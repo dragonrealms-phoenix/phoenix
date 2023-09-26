@@ -1,0 +1,62 @@
+name: Build App
+
+on:
+  # Allow developers to run this on-demand.
+  workflow_dispatch:
+
+# Allow at most one instance of this workflow to run at a time.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  GIT_USER_NAME: github-actions[bot]
+  GIT_USER_EMAIL: github-actions[bot]@users.noreply.github.com
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: yarn build:linux
+
+      - name: Build MacOS
+        if: matrix.os == 'macos-latest'
+        run: yarn build:mac
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: yarn build:win
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: phoenix-app
+          path: |
+            dist/phoenix-*.snap
+            dist/phoenix-*.exe
+            dist/phoenix-*.dmg
+            dist/phoenix-*.zip
+          retention-days: 5

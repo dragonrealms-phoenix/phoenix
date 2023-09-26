@@ -1,0 +1,80 @@
+# Electron Builder Configuration
+# https://www.electron.build/configuration/configuration
+# https://github.com/electron-userland/electron-builder/blob/master/packages/app-builder-lib/scheme.json
+
+appId: 'com.github.dragonrealms-phoenix.phoenix'
+
+# Name of the generated artifacts.
+# Note, this must result in unique names across all targets and architectures.
+# https://github.com/electron-userland/electron-builder/issues/7098#issuecomment-1577507664
+artifactName: ${name}-${version}.${arch}.${ext}
+
+copyright: Copyright © 2023 Katoak
+
+# Name (without extension) to the app icon to use.
+# The path is relative to the `directories.buildResources` location set below.
+# Electron will use the following platform-specific extensions:
+#   MacOS   ==> {icon}.icns
+#   Windows ==> {icon}.ico
+icon: phoenix
+
+# Whether to rebuild native dependencies before starting to package the app.
+npmRebuild: false
+
+# These glob patterns specify which files to unpack when creating the asar archive.
+# For example, very large files or images that the main process needs.
+asarUnpack:
+  - resources/**
+
+# Paths to use at build-time.
+directories:
+  # Where to put the built artifact files.
+  # This path should be in .gitignore.
+  output: dist
+  # Resources like app icon images that should be available at build-time.
+  # These resources are not packaged with the app.
+  # Use the `files` sections below to specify what gets packaged with the app.
+  buildResources: build
+
+# These glob patterns specify which files to include when creating the package.
+# https://www.electron.build/configuration/contents#files
+files:
+  - 'out/**/*'
+  - '!out/**/*.js.map'
+  - '.env'
+
+# Windows Build Configurations
+# https://www.electron.build/configuration/win
+# https://www.electron.build/configuration/nsis
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+# MacOS Build Configurations
+# https://www.electron.build/configuration/mac
+# https://www.electron.build/configuration/dmg
+mac:
+  category: public.app-category.role-playing-games
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: false
+  target:
+    - target: default
+      arch:
+        - x64
+        - arm64
+
+# Linux Build Configurations
+# https://www.electron.build/configuration/linux
+# https://www.electron.build/configuration/snap
+linux:
+  category: RolePlaying
+  target:
+    - target: snap
+      arch:
+        - x64
+
+# Specify where to upload the artifacts after they're built.
+# https://www.electron.build/configuration/publish
+publish: null
