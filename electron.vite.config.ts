@@ -2,25 +2,17 @@ import { resolve } from 'node:path';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig, externalizeDepsPlugin, swcPlugin } from 'electron-vite';
-import { PluginOption } from 'vite';
 
 const sentryPlugin = sentryVitePlugin({
   org: 'dragonrealms-phoenix',
   project: 'phoenix',
   telemetry: false,
+  disable: process.env.VITE_PLUGIN_SENTRY_ENABLE !== 'true',
 });
-
-const mainPlugins: PluginOption[] = [
-  externalizeDepsPlugin(),
-  swcPlugin(),
-  sentryPlugin,
-];
-
-const rendererPlugins: PluginOption[] = [react(), sentryPlugin];
 
 export default defineConfig({
   main: {
-    plugins: mainPlugins,
+    plugins: [externalizeDepsPlugin(), swcPlugin(), sentryPlugin],
     build: {
       sourcemap: true,
     },
@@ -32,7 +24,7 @@ export default defineConfig({
     },
   },
   renderer: {
-    plugins: rendererPlugins,
+    plugins: [react(), sentryPlugin],
     build: {
       sourcemap: true,
     },
