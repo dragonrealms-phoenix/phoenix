@@ -15,18 +15,29 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin(), swcPlugin(), sentryPlugin],
     build: {
       sourcemap: true,
+      minify: 'esbuild',
     },
   },
   preload: {
     plugins: [externalizeDepsPlugin(), swcPlugin(), sentryPlugin],
     build: {
       sourcemap: true,
+      minify: 'esbuild',
     },
   },
   renderer: {
     plugins: [react(), sentryPlugin],
     build: {
       sourcemap: true,
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            vendor: ['lodash'],
+          },
+        },
+      },
     },
     resolve: {
       alias: {
