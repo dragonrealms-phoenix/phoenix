@@ -7,16 +7,17 @@ appId: 'com.github.dragonrealms-phoenix.phoenix'
 # Name of the generated artifacts.
 # Note, this must result in unique names across all targets and architectures.
 # https://github.com/electron-userland/electron-builder/issues/7098#issuecomment-1577507664
-artifactName: ${name}-${version}.${arch}.${ext}
+artifactName: ${name}-v${version}-${os}-${arch}.${ext}
 
 copyright: Copyright © 2023 Katoak
 
 # Name (without extension) to the app icon to use.
+# It only shows in the "About" menu when the app is packaged.
 # The path is relative to the `directories.buildResources` location set below.
 # Electron will use the following platform-specific extensions:
 #   MacOS   ==> {icon}.icns
 #   Windows ==> {icon}.ico
-icon: phoenix
+icon: icon
 
 # Whether to rebuild native dependencies before starting to package the app.
 npmRebuild: false

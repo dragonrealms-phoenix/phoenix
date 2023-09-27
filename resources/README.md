@@ -10,6 +10,9 @@ Canva's [AI Product Terms](https://www.canva.com/policies/ai-product-terms/).
 [Install ImageMagick](https://imagemagick.org/script/download.php)
 
 ```shell
-convert phoenix.png -resize 512x512 -define icns:format=icns phoenix.icns
-convert phoenix.png -resize 215x215 -define ico:format=ico phoenix.ico
+convert phoenix.png -resize 512x512 -define icns:format=icns icon.icns
+convert phoenix.png -resize 256x256 -define ico:format=ico icon.ico
+convert phoenix.png -define png:format=png icon.png
+
+mv ./icon.* ../build
 ```
