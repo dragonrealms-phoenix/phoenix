@@ -136,7 +136,7 @@ async function connect(
     rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
   });
 
-  const rejectSocket = (error: Error) => {
+  const rejectSocket = (error: Error): void => {
     socket.destroy();
     throw error;
   };

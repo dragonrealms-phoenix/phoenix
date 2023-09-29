@@ -19,37 +19,37 @@ export async function sendAndReceive(options: {
   const { socket, payload } = options;
 
   return new Promise<Buffer>((resolve, reject) => {
-    const dataListener = (response: Buffer) => {
+    const dataListener = (response: Buffer): void => {
       resolveSocket(response);
     };
 
-    const timeoutListener = () => {
+    const timeoutListener = (): void => {
       const timeout = socket.timeout;
       rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
     };
 
-    const errorListener = (error: Error) => {
+    const errorListener = (error: Error): void => {
       rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
     };
 
-    const addListeners = () => {
+    const addListeners = (): void => {
       socket.once('data', dataListener);
       socket.once('timeout', timeoutListener);
       socket.once('error', errorListener);
     };
 
-    const removeListeners = () => {
+    const removeListeners = (): void => {
       socket.off('data', dataListener);
       socket.off('timeout', timeoutListener);
       socket.off('error', errorListener);
     };
 
-    const resolveSocket = (response: Buffer) => {
+    const resolveSocket = (response: Buffer): void => {
       removeListeners();
       resolve(response);
     };
 
-    const rejectSocket = (error: Error) => {
+    const rejectSocket = (error: Error): void => {
       removeListeners();
       reject(error);
     };
@@ -104,7 +104,7 @@ export async function downloadCertificate(
       rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
     });
 
-    const resolveSocket = (result: tls.PeerCertificate) => {
+    const resolveSocket = (result: tls.PeerCertificate): void => {
       logger.info('downloaded certificate', {
         host,
         port,
@@ -119,7 +119,7 @@ export async function downloadCertificate(
       resolve(result);
     };
 
-    const rejectSocket = (error: Error) => {
+    const rejectSocket = (error: Error): void => {
       socket.destroy();
       reject(error);
     };

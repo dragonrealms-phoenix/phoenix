@@ -1,20 +1,12 @@
-import * as Sentry from '@sentry/electron/renderer';
-import { init as reactInit } from '@sentry/react';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { createLogger } from './logger';
+import { initializeSentry } from './sentry';
 
 import './assets/index.css';
 
-// TODO move to a sentry init file
-Sentry.init(
-  {
-    dsn: import.meta.env.RENDER_VITE_SENTRY_DSN,
-    normalizeDepth: 5,
-  },
-  reactInit
-);
+initializeSentry();
 
 const logger = createLogger('renderer');
 logger.info('message from renderer');
