@@ -6,7 +6,7 @@ on:
   # Run for each commit to confirm that the build is still working.
   push:
     paths:
-      - './.github/workflows/build.yml'
+      - ./.github/workflows/build.yml
       - 'src/**'
       - '!src/**/__tests__/**'
       - '!src/**/__mocks__/**'
