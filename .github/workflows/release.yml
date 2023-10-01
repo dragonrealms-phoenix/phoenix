@@ -1,7 +1,9 @@
 name: Release
 
 on:
+  # Allow developers to run this on-demand.
   workflow_dispatch:
+  # When merge to main branch then publish a release.
   push:
     branches:
       - main
