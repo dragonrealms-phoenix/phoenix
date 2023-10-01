@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 /**
  * The electron-vite plugin exposes environment variables from .env file
  * to the main, preload, and renderer processes based on prefixes.
@@ -11,8 +9,8 @@
  * https://electron-vite.org/guide/env-and-mode.html
  */
 interface ImportMetaEnv {
-  readonly RENDERER_VITE_SENTRY_DSN: string;
-  readonly RENDERER_VITE_SENTRY_CRASH_REPORT_DSN: string;
+  readonly MAIN_VITE_SENTRY_DSN: string;
+  readonly MAIN_VITE_SENTRY_CRASH_REPORT_DSN: string;
 }
 
 interface ImportMeta {
