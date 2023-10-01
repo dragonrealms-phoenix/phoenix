@@ -66,16 +66,16 @@
         {
           "assets": [
             {
-              "path": "dist/phoenix-*.snap"
+              "path": "dist/**/phoenix-*.snap"
             },
             {
-              "path": "dist/phoenix-*.exe"
+              "path": "dist/**/phoenix-*.exe"
             },
             {
-              "path": "dist/phoenix-*.dmg"
+              "path": "dist/**/phoenix-*.dmg"
             },
             {
-              "path": "dist/phoenix-*.zip"
+              "path": "dist/**/phoenix-*.zip"
             }
           ]
         }
