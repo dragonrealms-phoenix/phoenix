@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.0.0...v1.0.1) (2023-10-01)
+
+
+### Bug Fixes
+
+* **build:** look for artifacts in subfolders ([745da45](https://github.com/dragonrealms-phoenix/phoenix/commit/745da459c27b72a16644fca0440785c30b2a26d0))
+* **build:** use npm plugin to update package.json ([d2e3c9b](https://github.com/dragonrealms-phoenix/phoenix/commit/d2e3c9bfad24284448e96f94917609c2eded3d38))
+
 # 1.0.0 (2023-10-01)
 
 
