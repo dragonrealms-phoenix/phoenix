@@ -51,13 +51,32 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: yarn build:win
 
-      - name: Upload artifacts
+      - name: Upload artifacts (linux-amd64-snap)
         uses: actions/upload-artifact@v3
         with:
-          name: phoenix-app
-          path: |
-            dist/phoenix-*.snap
-            dist/phoenix-*.exe
-            dist/phoenix-*.dmg
-            dist/phoenix-*.zip
-          retention-days: 5
+          path: dist/phoenix-*-linux-amd64.snap
+
+      - name: Upload artifacts (mac-arm64-dmg)
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/phoenix-*-mac-arm64.dmg
+
+      - name: Upload artifacts (mac-arm64-zip)
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/phoenix-*-mac-arm64.zip
+
+      - name: Upload artifacts (mac-x64-dmg)
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/phoenix-*-mac-x64.dmg
+
+      - name: Upload artifacts (mac-x64-zip)
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/phoenix-*-mac-x64.zip
+
+      - name: Upload artifacts (win-x64-exe)
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/phoenix-*-win-x64.exe
