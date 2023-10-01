@@ -17,6 +17,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   </React.StrictMode>
 );
 
-window.api.ping().then((response) => {
+window.api.ping().then((response): void => {
   logger.info(response); // pong
 });

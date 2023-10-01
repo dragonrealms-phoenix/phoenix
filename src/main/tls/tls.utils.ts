@@ -18,7 +18,7 @@ export async function sendAndReceive(options: {
 }): Promise<Buffer> {
   const { socket, payload } = options;
 
-  return new Promise<Buffer>((resolve, reject) => {
+  return new Promise<Buffer>((resolve, reject): void => {
     const dataListener = (response: Buffer): void => {
       resolveSocket(response);
     };
@@ -70,7 +70,7 @@ export async function downloadCertificate(
 
   logger.info('downloading certificate', { host, port });
 
-  return new Promise<tls.PeerCertificate>((resolve, reject) => {
+  return new Promise<tls.PeerCertificate>((resolve, reject): void => {
     const connectOptions: tls.ConnectionOptions = {
       // When downloading a self-signed cert then it won't be trusted yet
       // so we need to allow unauthorized requests for now.
@@ -80,26 +80,26 @@ export async function downloadCertificate(
       ...options,
     };
 
-    const socket = tls.connect(connectOptions, () => {
+    const socket = tls.connect(connectOptions, (): void => {
       logger.info('socket connected', { host, port });
       resolveSocket(socket.getPeerCertificate());
     });
 
-    socket.once('end', () => {
+    socket.once('end', (): void => {
       logger.info('socket connection ended', { host, port });
     });
 
-    socket.once('close', () => {
+    socket.once('close', (): void => {
       logger.info('socket connection closed', { host, port });
     });
 
-    socket.once('timeout', () => {
+    socket.once('timeout', (): void => {
       const timeout = socket.timeout;
       logger.error('socket timed out', { host, port, timeout });
       rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
     });
 
-    socket.once('error', (error: Error) => {
+    socket.once('error', (error: Error): void => {
       logger.error('socket error', { host, port, error });
       rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
     });

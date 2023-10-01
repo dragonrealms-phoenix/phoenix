@@ -113,25 +113,25 @@ async function connect(
   );
 
   logger.info('connecting to login server');
-  const socket = tls.connect(mergedOptions, () => {
+  const socket = tls.connect(mergedOptions, (): void => {
     logger.info('connected to login server');
   });
 
-  socket.once('end', () => {
+  socket.once('end', (): void => {
     logger.info('connection to login server ended', { host, port });
   });
 
-  socket.once('close', () => {
+  socket.once('close', (): void => {
     logger.info('connection to login server closed', { host, port });
   });
 
-  socket.once('timeout', () => {
+  socket.once('timeout', (): void => {
     const timeout = socket.timeout;
     logger.error('login server timed out', { host, port, timeout });
     rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
   });
 
-  socket.once('error', (error: Error) => {
+  socket.once('error', (error: Error): void => {
     logger.error('login server error', { host, port, error });
     rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
   });
@@ -231,7 +231,11 @@ async function validateGameCode(options: {
   const { socket, gameCode } = options;
 
   const availableGames = await listAvailableGames({ socket });
-  const availableGameCodes = availableGames.map(({ code }) => code);
+  const availableGameCodes = availableGames.map(
+    (game: SGEGame): SGEGameCode => {
+      return game.code;
+    }
+  );
 
   if (!availableGameCodes.includes(gameCode)) {
     logger.error('game is not available to account', {

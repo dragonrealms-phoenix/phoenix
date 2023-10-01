@@ -39,6 +39,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "yarn typecheck:preload && yarn typecheck:node && yarn typecheck:web",
+    "tsc": "yarn typecheck",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "yarn clean && yarn typecheck && VITE_PLUGIN_SENTRY_ENABLE=true electron-vite build",

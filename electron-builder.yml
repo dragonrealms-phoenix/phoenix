@@ -2,7 +2,7 @@
 # https://www.electron.build/configuration/configuration
 # https://github.com/electron-userland/electron-builder/blob/master/packages/app-builder-lib/scheme.json
 
-appId: 'com.github.dragonrealms-phoenix.phoenix'
+appId: com.github.dragonrealms-phoenix.phoenix
 
 # Name of the generated artifacts.
 # Note, this must result in unique names across all targets and architectures.

@@ -32,6 +32,10 @@
   "rules": {
     "no-else-return": "warn",
 
+    "curly": "error",
+
+    "prefer-arrow-callback": "error",
+
     "@typescript-eslint/array-type": [
       "warn",
       {
@@ -39,7 +43,14 @@
       }
     ],
 
-    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/explicit-function-return-type": [
+      "off",
+      {
+        "allowTypedFunctionExpressions": false
+      }
+    ],
+
+    "@typescript-eslint/explicit-module-boundary-types": "error",
 
     "@typescript-eslint/no-empty-interface": "off",
 
