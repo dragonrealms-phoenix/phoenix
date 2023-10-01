@@ -3,6 +3,22 @@ name: Build
 on:
   # Allow developers to run this on-demand.
   workflow_dispatch:
+  # Run for each commit to confirm that the build is still working.
+  push:
+    paths:
+      - './github/workflows/build.yml'
+      - 'src/**'
+      - '!src/**/__tests__/**'
+      - '!src/**/__mocks__/**'
+      - 'resources/**'
+      - 'build/**'
+      - 'electron-builder.yml'
+      - 'electron.vite.config.ts'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'tsconfig.json'
+      - 'tsconfig.node.json'
+      - 'tsconfig.web.json'
 
 # Allow at most one instance of this workflow to run at a time.
 concurrency:
