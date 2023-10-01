@@ -3,6 +3,8 @@ name: Build
 on:
   # Allow developers to run this on-demand.
   workflow_dispatch:
+  # Allow the release workflow to trigger this workflow.
+  workflow_call:
   # Validate pull request to confirm that the build is still working.
   pull_request:
     types:
