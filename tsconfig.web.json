@@ -9,10 +9,15 @@
     "composite": true,
     "baseUrl": ".",
     "strict": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noImplicitAny": true,
-    "noImplicitReturns": false
+    "noImplicitReturns": false,
+    "types": [
+      "jest",
+    ],
   }
 }
