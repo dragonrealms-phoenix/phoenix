@@ -60,7 +60,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: phoenix-app-{{ matrix.os }}
+          name: phoenix-app-${{ matrix.os }}
           path: |
             dist/phoenix-*.snap
             dist/phoenix-*.exe
