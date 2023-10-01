@@ -44,6 +44,16 @@ jobs:
           cache: yarn
           cache-dependency-path: yarn.lock
 
+      - name: Create .env file from GitHub Secrets
+        run: |
+          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
+
+          echo "MAIN_VITE_SENTRY_DSN=${{ secrets.MAIN_VITE_SENTRY_DSN }}" >> .env
+          echo "MAIN_VITE_SENTRY_CRASH_REPORT_DSN=${{ secrets.MAIN_VITE_SENTRY_CRASH_REPORT_DSN }}" >> .env
+
+          echo "RENDERER_VITE_SENTRY_DSN=${{ secrets.RENDERER_VITE_SENTRY_DSN }}" >> .env
+          echo "RENDERER_VITE_SENTRY_CRASH_REPORT_DSN=${{ secrets.RENDERER_VITE_SENTRY_CRASH_REPORT_DSN }}" >> .env
+
       - name: Install dependencies
         run: yarn install
 
