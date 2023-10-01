@@ -1,14 +1,8 @@
 import electronLog, { LogMessage } from 'electron-log';
 import { camelCase, get } from 'lodash';
-import { isMainProcess } from '../process/process.utils';
 import { LogData, LogFunction } from './logger.types';
 
 export function initializeLogging(logger: electronLog.Logger): void {
-  // Initialize the logger for any renderer processes. Must do from main.
-  if (isMainProcess()) {
-    electronLog.initialize({ preload: true });
-  }
-
   // Add our custom log formatter.
   logger.hooks.push((message: LogMessage): LogMessage => {
     const [text, data] = message.data as Parameters<LogFunction>;
