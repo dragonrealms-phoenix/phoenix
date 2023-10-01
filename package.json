@@ -60,22 +60,23 @@
       "@semantic-release/commit-analyzer",
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
+      "@semantic-release/npm",
       "@semantic-release/git",
       [
         "@semantic-release/github",
         {
           "assets": [
             {
-              "path": "dist/phoenix-*.snap"
+              "path": "dist/**/phoenix-*.snap"
             },
             {
-              "path": "dist/phoenix-*.exe"
+              "path": "dist/**/phoenix-*.exe"
             },
             {
-              "path": "dist/phoenix-*.dmg"
+              "path": "dist/**/phoenix-*.dmg"
             },
             {
-              "path": "dist/phoenix-*.zip"
+              "path": "dist/**/phoenix-*.zip"
             }
           ]
         }
