@@ -45,44 +45,62 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      # ============================================================
+      # LINUX
+      # ============================================================
+
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
         run: yarn build:linux
+
+      - name: Upload artifacts (linux-amd64-snap)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          path: dist/phoenix-*-linux-amd64.snap
+
+      # ============================================================
+      # MACOS
+      # ============================================================
 
       - name: Build MacOS
         if: matrix.os == 'macos-latest'
         run: yarn build:mac
 
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        run: yarn build:win
-
-      - name: Upload artifacts (linux-amd64-snap)
-        uses: actions/upload-artifact@v3
-        with:
-          path: dist/phoenix-*-linux-amd64.snap
-
       - name: Upload artifacts (mac-arm64-dmg)
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
           path: dist/phoenix-*-mac-arm64.dmg
 
       - name: Upload artifacts (mac-arm64-zip)
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
           path: dist/phoenix-*-mac-arm64.zip
 
       - name: Upload artifacts (mac-x64-dmg)
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
           path: dist/phoenix-*-mac-x64.dmg
 
       - name: Upload artifacts (mac-x64-zip)
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
           path: dist/phoenix-*-mac-x64.zip
 
+      # ============================================================
+      # WINDOWS
+      # ============================================================
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: yarn build:win
+
       - name: Upload artifacts (win-x64-exe)
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v3
         with:
           path: dist/phoenix-*-win-x64.exe
