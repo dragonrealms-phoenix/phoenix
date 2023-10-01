@@ -66,6 +66,8 @@ app.whenReady().then((): void => {
     }
   });
 
+  createWindow();
+
   // Listen for events emitted by the preload api
   ipcMain.handle('ping', async (): Promise<string> => {
     // Return response to renderer
