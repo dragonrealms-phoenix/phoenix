@@ -1,8 +1,14 @@
-name: Build App
+name: Build
 
 on:
   # Allow developers to run this on-demand.
   workflow_dispatch:
+  # Validate pull request to confirm that the build is still working.
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
 
 # Allow at most one instance of this workflow to run at a time.
 concurrency:
@@ -18,6 +24,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -53,7 +60,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: phoenix-app
+          name: phoenix-app-${{ matrix.os }}
           path: |
             dist/phoenix-*.snap
             dist/phoenix-*.exe

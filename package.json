@@ -19,8 +19,7 @@
     "email": "katoakdr@users.noreply.github.com"
   },
   "repository": {
-    "type": "git",
-    "url": "https://github.com/dragonrealms-phoenix/phoenix.git"
+    "url": "git+https://github.com/dragonrealms-phoenix/phoenix.git"
   },
   "bugs": {
     "url": "https://github.com/dragonrealms-phoenix/phoenix/issues"
@@ -34,6 +33,7 @@
     "prettier:fix": "yarn prettier --write",
     "lint": "eslint --ext .ts,.tsx,.js,.json .",
     "lint:fix": "yarn lint --fix",
+    "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
     "typecheck:preload": "tsc --declaration --emitDeclarationOnly --outDir ./src/preload/ ./src/preload/api.ts && yarn prettier:fix ./src/preload/api.d.ts",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
@@ -42,53 +42,106 @@
     "tsc": "yarn typecheck",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
-    "build": "yarn clean && yarn typecheck && VITE_PLUGIN_SENTRY_ENABLE=true electron-vite build",
+    "build": "yarn clean && yarn typecheck && cross-env VITE_PLUGIN_SENTRY_ENABLE=true electron-vite build",
     "build:all": "yarn build && electron-builder --win --mac --linux --config",
     "build:win": "yarn build && electron-builder --win --config",
     "build:mac": "yarn build && electron-builder --mac --config",
     "build:linux": "yarn build && electron-builder --linux --config",
-    "postinstall": "electron-builder install-app-deps",
+    "test": "jest",
+    "prepare": "npx husky install && electron-builder install-app-deps",
+    "semantic-release": "npx semantic-release",
     "syncyarnlock": "npx syncyarnlock"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/git",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            {
+              "path": "dist/phoenix-*.snap"
+            },
+            {
+              "path": "dist/phoenix-*.exe"
+            },
+            {
+              "path": "dist/phoenix-*.dmg"
+            },
+            {
+              "path": "dist/phoenix-*.zip"
+            }
+          ]
+        }
+      ]
+    ]
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
-    "@electron-toolkit/utils": "^2.0.0",
+    "@electron-toolkit/utils": "^2.0.1",
     "@sentry/electron": "^4.11.0",
     "@sentry/react": "^7.71.0",
     "electron-log": "^5.0.0-beta",
-    "electron-updater": "^6.1.1",
+    "electron-updater": "^6.1.4",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.7.2",
+    "@commitlint/config-conventional": "^17.7.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@sentry/vite-plugin": "^2.7.1",
-    "@swc/core": "^1.3.90",
+    "@swc/core": "^1.3.91",
     "@testing-library/jest-dom": "^6.1.3",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.1",
+    "@types/eslint": "^8.44.3",
+    "@types/eslint-config-prettier": "^6.11.1",
     "@types/jest": "^29.5.5",
+    "@types/lint-staged": "^13.2.0",
     "@types/lodash": "^4.14.199",
     "@types/node": "^18.17.19",
     "@types/react": "^18.2.22",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",
-    "@vitejs/plugin-react": "^4.0.4",
-    "electron": "^26.2.2",
+    "@vitejs/plugin-react": "^4.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^26.2.4",
     "electron-builder": "^24.6.4",
-    "electron-vite": "^1.0.27",
+    "electron-vite": "^1.0.28",
     "eslint": "^8.50.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.28.1",
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-unused-imports": "^3.0.0",
+    "husky": "^8.0.3",
     "jest": "^29.7.0",
+    "lint-staged": "^14.0.1",
     "prettier": "^3.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "semantic-release": "^22.0.5",
+    "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5",
     "vite": "^4.4.9"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,json}": "yarn lint:fix",
+    "*": "yarn prettier:fix"
   }
 }

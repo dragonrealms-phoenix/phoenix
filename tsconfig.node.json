@@ -9,13 +9,16 @@
   "compilerOptions": {
     "composite": true,
     "strict": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noImplicitAny": true,
     "noImplicitReturns": false,
     "types": [
-      "electron-vite/node"
+      "electron-vite/node",
+      "jest",
     ],
   }
 }
