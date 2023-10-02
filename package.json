@@ -67,16 +67,28 @@
         {
           "assets": [
             {
-              "path": "dist/**/phoenix-*.snap"
+              "label": "phoenix-v${nextRelease.version}-linux-amd64.snap",
+              "path": "dist/**/phoenix-*-linux-amd64.snap"
             },
             {
-              "path": "dist/**/phoenix-*.exe"
+              "label": "phoenix-v${nextRelease.version}-win-x64.exe",
+              "path": "dist/**/phoenix-*-win-x64.exe"
             },
             {
-              "path": "dist/**/phoenix-*.dmg"
+              "label": "phoenix-v${nextRelease.version}-mac-arm64.dmg",
+              "path": "dist/**/phoenix-*-mac-arm64.dmg"
             },
             {
-              "path": "dist/**/phoenix-*.zip"
+              "label": "phoenix-v${nextRelease.version}-mac-arm64.zip",
+              "path": "dist/**/phoenix-*-mac-arm64.zip"
+            },
+            {
+              "label": "phoenix-v${nextRelease.version}-mac-x64.dmg",
+              "path": "dist/**/phoenix-*-mac-x64.dmg"
+            },
+            {
+              "label": "phoenix-v${nextRelease.version}-mac-x64.zip",
+              "path": "dist/**/phoenix-*-mac-x64.zip"
             }
           ]
         }

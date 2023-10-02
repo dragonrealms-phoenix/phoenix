@@ -50,7 +50,7 @@ jobs:
         with:
           path: dist
 
-      - name: Display structure of downloaded files
+      - name: List artifacts
         run: ls -R
         working-directory: dist
 
