@@ -75,6 +75,7 @@ jobs:
           name: phoenix-app-${{ matrix.os }}
           path: |
             dist/phoenix-*.snap
+            dist/phoenix-*.deb
             dist/phoenix-*.exe
             dist/phoenix-*.dmg
             dist/phoenix-*.zip
