@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.0.1...v1.0.2) (2023-10-02)
+
+
+### Bug Fixes
+
+* **build:** use the new version in artifacts ([a6de721](https://github.com/dragonrealms-phoenix/phoenix/commit/a6de72173357b77282dd0bbc5bd9d801283f6feb))
+
 ## [1.0.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.0.0...v1.0.1) (2023-10-01)
 
 
