@@ -1,6 +1,11 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
-import { defineConfig, externalizeDepsPlugin, swcPlugin } from 'electron-vite';
+import {
+  defineConfig,
+  externalizeDepsPlugin,
+  splitVendorChunkPlugin,
+  swcPlugin,
+} from 'electron-vite';
 
 const sentryPlugin = sentryVitePlugin({
   org: 'dragonrealms-phoenix',
@@ -25,18 +30,10 @@ export default defineConfig({
     },
   },
   renderer: {
-    plugins: [react(), sentryPlugin],
+    plugins: [react(), splitVendorChunkPlugin(), sentryPlugin],
     build: {
       sourcemap: true,
       minify: 'esbuild',
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            react: ['react', 'react-dom'],
-            vendor: ['lodash'],
-          },
-        },
-      },
     },
   },
 });
