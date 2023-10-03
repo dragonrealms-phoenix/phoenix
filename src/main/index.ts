@@ -1,18 +1,27 @@
 import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import { join } from 'path';
-import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { is, optimizer, platform } from '@electron-toolkit/utils';
 import { createLogger } from './logger';
-import { isMacOS } from './platform/platform.utils';
+import { MenuBuilder } from './menu';
 import { initializeSentry } from './sentry';
 
 initializeSentry();
 
 const logger = createLogger('main');
 
-logger.info('message from main');
+app.setName('Phoenix');
+app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
+app.setAboutPanelOptions({
+  applicationName: app.name,
+  applicationVersion: app.getVersion(),
+  version: `${app.getVersion()}-${import.meta.env.MAIN_VITE_GIT_SHORT_HASH}`,
+  authors: ['Katoak'],
+  website: 'https://github.com/dragonrealms-phoenix/phoenix',
+});
 
 function createWindow(): void {
-  // Create the browser window.
+  logger.info('creating main window');
+
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
@@ -42,14 +51,15 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
+
+  new MenuBuilder(mainWindow).buildMenu();
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then((): void => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
+  createWindow();
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -66,8 +76,6 @@ app.whenReady().then((): void => {
     }
   });
 
-  createWindow();
-
   // Listen for events emitted by the preload api
   ipcMain.handle('ping', async (): Promise<string> => {
     // Return response to renderer
@@ -75,11 +83,10 @@ app.whenReady().then((): void => {
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// Quit when all windows are closed, except on macOS.
+// It's convention for macOS apps to stay open until the user quits them.
 app.on('window-all-closed', (): void => {
-  if (!isMacOS()) {
+  if (platform.isMacOS === false) {
     app.quit();
   }
 });
