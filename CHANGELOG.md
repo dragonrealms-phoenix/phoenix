@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.0.2...v1.1.0) (2023-10-04)
+
+
+### Features
+
+* add custom menu and about menu ([df3e34a](https://github.com/dragonrealms-phoenix/phoenix/commit/df3e34a905cc76fb68f7f5db2e1540b8699cb931))
+* include git hash in full app version ([2fa5ac6](https://github.com/dragonrealms-phoenix/phoenix/commit/2fa5ac6188d4c60bfc9fd164c83b190e2dce67a4))
+
 ## [1.0.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.0.1...v1.0.2) (2023-10-02)
 
 
