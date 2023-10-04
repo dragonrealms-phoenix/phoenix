@@ -11,6 +11,8 @@
 interface ImportMetaEnv {
   readonly MAIN_VITE_SENTRY_DSN: string;
   readonly MAIN_VITE_SENTRY_CRASH_REPORT_DSN: string;
+  readonly MAIN_VITE_GIT_SHORT_HASH: string;
+  readonly MAIN_VITE_GIT_LONG_HASH: string;
 }
 
 interface ImportMeta {

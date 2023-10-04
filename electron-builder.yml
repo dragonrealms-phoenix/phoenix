@@ -64,15 +64,14 @@ mac:
     - target: default
       arch:
         - x64
-        - arm64
 
 # Linux Build Configurations
 # https://www.electron.build/configuration/linux
-# https://www.electron.build/configuration/snap
+# https://www.electron.build/configuration/deb
 linux:
   category: RolePlaying
   target:
-    - target: snap
+    - target: deb
       arch:
         - x64
 
