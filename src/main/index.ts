@@ -2,7 +2,7 @@ import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { is, optimizer, platform } from '@electron-toolkit/utils';
 import { createLogger } from './logger';
-import { MenuBuilder } from './menu';
+import { initializeMenu } from './menu';
 import { initializeSentry } from './sentry';
 
 initializeSentry();
@@ -52,7 +52,7 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 
-  new MenuBuilder(mainWindow).buildMenu();
+  initializeMenu(mainWindow);
 }
 
 // This method will be called when Electron has finished
