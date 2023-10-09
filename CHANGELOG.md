@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.2.0...v1.2.1) (2023-10-09)
+
+
+### Bug Fixes
+
+* **dependabot:** 1, CVE-2023-44270 ([815a9ca](https://github.com/dragonrealms-phoenix/phoenix/commit/815a9ca5ec40129b540b2bc97eccef71fe1b94cf))
+
 # [1.2.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.1.0...v1.2.0) (2023-10-09)
 
 
