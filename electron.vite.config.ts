@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { execSync } from 'child_process';
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
@@ -13,6 +14,7 @@ const sentryPlugin = sentryVitePlugin({
   org: 'dragonrealms-phoenix',
   project: 'phoenix',
   telemetry: false,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
   disable: process.env.VITE_PLUGIN_SENTRY_ENABLE !== 'true',
 }) as PluginOption;
 

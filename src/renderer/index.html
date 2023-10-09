@@ -2,11 +2,16 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Electron</title>
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <title>DragonRealms Phoenix</title>
+    <!-- TODO get base url for protocol security working -->
+    <!-- <base href="app://drp" /> -->
+    <!--
+      https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+      https://www.electronjs.org/docs/latest/tutorial/security
+    -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+      content="default-src 'none'; script-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'none';"
     />
   </head>
 
