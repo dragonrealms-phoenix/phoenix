@@ -1,3 +1,11 @@
+# [1.2.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.1.0...v1.2.0) (2023-10-09)
+
+
+### Features
+
+* **menu:** refactor from class to functions ([41894b9](https://github.com/dragonrealms-phoenix/phoenix/commit/41894b96c88ef8d3079405a7f50d709b17c4cff7))
+* **security:** restrict apis and validate urls ([f8eabae](https://github.com/dragonrealms-phoenix/phoenix/commit/f8eabae69978b80d557671a1ac0b8058151e5c87))
+
 # [1.1.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.0.2...v1.1.0) (2023-10-04)
 
 
