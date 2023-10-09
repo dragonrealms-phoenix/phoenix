@@ -35,7 +35,7 @@
     "lint:fix": "yarn lint --fix",
     "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
-    "typecheck:preload": "tsc --declaration --emitDeclarationOnly --outDir ./src/preload/ ./src/preload/api.ts && yarn prettier:fix ./src/preload/api.d.ts",
+    "typecheck:preload": "tsc --declaration --emitDeclarationOnly --outDir ./src/preload/ ./src/preload/index.ts && yarn prettier:fix ./src/preload/index.d.ts",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "yarn typecheck:preload && yarn typecheck:node && yarn typecheck:web",
