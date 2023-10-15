@@ -46,13 +46,15 @@ jobs:
 
       - name: Create .env file from GitHub Secrets
         run: |
+          echo "SENTRY_INGEST_DOMAIN=${{ secrets.SENTRY_INGEST_DOMAIN }}" >> .env
           echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          echo "SENTRY_ORG=${{ github.repository_owner }}" >> .env
+          echo "SENTRY_PROJECT=${{ github.event.repository.name }}" >> .env
 
-          echo "MAIN_VITE_SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          echo "MAIN_VITE_SENTRY_CRASH_REPORT_DSN=${{ secrets.SENTRY_CRASH_REPORT_DSN }}" >> .env
-
-          echo "RENDERER_VITE_SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          echo "RENDERER_VITE_SENTRY_CRASH_REPORT_DSN=${{ secrets.SENTRY_CRASH_REPORT_DSN }}" >> .env
+          # https://docs.sentry.io/platforms/javascript/guides/electron/configuration/tree-shaking/
+          echo "__SENTRY_DEBUG__=false" >> .env
+          echo "__SENTRY_TRACING__=false" >> .env
 
       - name: Install dependencies
         run: yarn install
@@ -63,7 +65,7 @@ jobs:
 
       - name: Build MacOS
         if: matrix.os == 'macos-latest'
-        run: yarn build:mac
+        run: yarn build:mac && yarn sentry:sourcemaps
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'

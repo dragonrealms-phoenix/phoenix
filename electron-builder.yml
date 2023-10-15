@@ -25,7 +25,6 @@ npmRebuild: false
 # These glob patterns specify which files to unpack when creating the asar archive.
 # For example, very large files or images that the main process needs.
 asarUnpack:
-  - resources/**
 
 # Paths to use at build-time.
 directories:
@@ -35,14 +34,13 @@ directories:
   # Resources like app icon images that should be available at build-time.
   # These resources are not packaged with the app.
   # Use the `files` sections below to specify what gets packaged with the app.
-  buildResources: build
+  buildResources: resources
 
 # These glob patterns specify which files to include when creating the package.
 # https://www.electron.build/configuration/contents#files
 files:
-  - 'out/**/*'
-  - '!out/**/*.js.map'
-  - '.env'
+  - electron/build
+  - .env
 
 # Windows Build Configurations
 # https://www.electron.build/configuration/win
