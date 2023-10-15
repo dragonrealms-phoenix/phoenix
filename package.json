@@ -155,7 +155,8 @@
   "prettier": {
     "trailingComma": "es5",
     "semi": true,
-    "singleQuote": true
+    "singleQuote": true,
+    "endOfLine": "auto"
   },
   "eslintConfig": {
     "root": true,
