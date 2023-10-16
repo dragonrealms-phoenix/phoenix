@@ -26,31 +26,84 @@
   },
   "homepage": "https://github.com/dragonrealms-phoenix/phoenix#readme",
   "license": "BSD-3-Clause",
-  "main": "./out/main/index.js",
+  "main": "electron/build/main/index.js",
   "scripts": {
-    "clean": "rm -rf dist && rm -rf out",
+    "clean": "rm -rf dist electron/build electron/renderer/.next electron/renderer/public/themes",
     "prettier": "prettier --check .",
     "prettier:fix": "yarn prettier --write",
-    "lint": "eslint --ext .ts,.tsx,.js,.json .",
+    "lint": "eslint --ext .js,.ts,.tsx .",
     "lint:fix": "yarn lint --fix",
     "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
-    "typecheck:preload": "tsc --declaration --emitDeclarationOnly --outDir ./src/preload/ ./src/preload/index.ts && yarn prettier:fix ./src/preload/index.d.ts",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "yarn typecheck:preload && yarn typecheck:node && yarn typecheck:web",
-    "tsc": "yarn typecheck",
-    "start": "electron-vite preview",
-    "dev": "electron-vite dev",
-    "build": "yarn clean && yarn typecheck && cross-env VITE_PLUGIN_SENTRY_ENABLE=true electron-vite build",
+    "start": "yarn build && yarn sentry:sourcemaps && electron .",
+    "build:main": "tsc -p electron/main",
+    "build:preload": "tsc -p electron/preload && yarn prettier:fix electron/preload/**/*.d.ts",
+    "build:renderer": "next build electron/renderer",
+    "build": "yarn clean && concurrently \"yarn build:main\" \"yarn build:preload\" \"yarn build:renderer\"",
     "build:all": "yarn build && electron-builder --win --mac --linux --config",
     "build:win": "yarn build && electron-builder --win --config",
     "build:mac": "yarn build && electron-builder --mac --config",
     "build:linux": "yarn build && electron-builder --linux --config",
+    "tsc": "tsc -p renderer/tsconfig.json && tsc -p electron/main/tsconfig.json",
     "test": "jest",
     "prepare": "npx husky install && electron-builder install-app-deps",
     "semantic-release": "npx semantic-release",
-    "syncyarnlock": "npx syncyarnlock"
+    "syncyarnlock": "npx syncyarnlock",
+    "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh"
+  },
+  "dependencies": {
+    "@elastic/eui": "^89.0.0",
+    "@emotion/cache": "^11.11.0",
+    "@emotion/css": "^11.11.2",
+    "@emotion/react": "^11.11.1",
+    "@sentry/electron": "^4.13.0",
+    "@sentry/nextjs": "^7.74.0",
+    "dotenv": "^16.3.1",
+    "electron-is-dev": "^2.0.0",
+    "electron-log": "^5.0.0-rc",
+    "electron-next": "^3.1.5",
+    "electron-serve": "^1.1.0",
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.7.2",
+    "@commitlint/config-conventional": "^17.7.0",
+    "@elastic/datemath": "^5.0.3",
+    "@next/eslint-plugin-next": "^13.5.4",
+    "@sentry/cli": "^2.21.2",
+    "@types/eslint": "^8.44.4",
+    "@types/eslint-config-prettier": "^6.11.1",
+    "@types/jest": "^29.5.5",
+    "@types/lint-staged": "^13.2.0",
+    "@types/node": "^18.18.5",
+    "@types/react": "^18.2.28",
+    "@types/react-dom": "^18.2.13",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "concurrently": "^8.2.1",
+    "copy-webpack-plugin": "^11.0.0",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4",
+    "eslint": "^8.51.0",
+    "eslint-config-next": "^13.5.4",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "glob": "^10.3.10",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "lint-staged": "^14.0.1",
+    "moment": "^2.29.4",
+    "next": "^13.5.4",
+    "prettier": "^3.0.3",
+    "semantic-release": "^22.0.5",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
   },
   "release": {
     "branches": [
@@ -83,59 +136,12 @@
       ]
     ]
   },
-  "dependencies": {
-    "@electron-toolkit/preload": "^2.0.0",
-    "@electron-toolkit/utils": "^2.0.1",
-    "@sentry/electron": "^4.13.0",
-    "@sentry/react": "^7.73.0",
-    "electron-log": "^5.0.0-rc",
-    "electron-updater": "^6.1.4",
-    "lodash": "^4.17.21"
-  },
-  "devDependencies": {
-    "@commitlint/cli": "^17.7.2",
-    "@commitlint/config-conventional": "^17.7.0",
-    "@electron-toolkit/tsconfig": "^1.0.1",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@sentry/vite-plugin": "^2.8.0",
-    "@swc/core": "^1.3.92",
-    "@testing-library/jest-dom": "^6.1.3",
-    "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^14.5.1",
-    "@types/eslint": "^8.44.3",
-    "@types/eslint-config-prettier": "^6.11.1",
-    "@types/jest": "^29.5.5",
-    "@types/lint-staged": "^13.2.0",
-    "@types/lodash": "^4.14.199",
-    "@types/node": "^18.18.4",
-    "@types/react": "^18.2.27",
-    "@types/react-dom": "^18.2.12",
-    "@typescript-eslint/eslint-plugin": "^6.7.5",
-    "@typescript-eslint/parser": "^6.7.5",
-    "@vitejs/plugin-react": "^4.1.0",
-    "cross-env": "^7.0.3",
-    "dotenv": "^16.3.1",
-    "electron": "^26.3.0",
-    "electron-builder": "^24.6.4",
-    "electron-vite": "^1.0.28",
-    "eslint": "^8.51.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-import": "^2.28.1",
-    "eslint-plugin-prettier": "^5.0.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-unused-imports": "^3.0.0",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
-    "lint-staged": "^14.0.1",
-    "prettier": "^3.0.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "semantic-release": "^22.0.5",
-    "ts-jest": "^29.1.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.5",
-    "vite": "^4.4.11"
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/electron"
+    ]
   },
   "commitlint": {
     "extends": [
@@ -143,7 +149,133 @@
     ]
   },
   "lint-staged": {
-    "*.{ts,tsx,js,json}": "yarn lint:fix",
+    "*.{js,ts,tsx}": "yarn lint:fix",
     "*": "yarn prettier:fix"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "semi": true,
+    "singleQuote": true,
+    "endOfLine": "auto"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "browser": true,
+      "es6": true,
+      "node": true,
+      "jest": true
+    },
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      },
+      "next": {
+        "rootDir": "electron/renderer/"
+      }
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:prettier/recommended",
+      "plugin:import/recommended",
+      "plugin:@next/next/recommended"
+    ],
+    "plugins": [
+      "prettier",
+      "import",
+      "unused-imports"
+    ],
+    "rules": {
+      "no-else-return": "warn",
+      "curly": "error",
+      "prefer-arrow-callback": "error",
+      "sort-imports": [
+        "error",
+        {
+          "ignoreCase": false,
+          "ignoreDeclarationSort": true,
+          "ignoreMemberSort": false,
+          "memberSyntaxSortOrder": [
+            "none",
+            "all",
+            "multiple",
+            "single"
+          ],
+          "allowSeparatedGroups": true
+        }
+      ],
+      "import/no-unresolved": "error",
+      "import/order": [
+        "error",
+        {
+          "newlines-between": "ignore",
+          "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+          }
+        }
+      ],
+      "unused-imports/no-unused-imports": "error"
+    },
+    "overrides": [
+      {
+        "files": [
+          "electron/**/*.ts",
+          "electron/**/*.tsx"
+        ],
+        "parser": "@typescript-eslint/parser",
+        "extends": [
+          "eslint:recommended",
+          "plugin:@typescript-eslint/eslint-recommended",
+          "plugin:@typescript-eslint/recommended",
+          "plugin:react/recommended",
+          "plugin:react/jsx-runtime",
+          "plugin:prettier/recommended",
+          "plugin:import/recommended",
+          "plugin:import/electron",
+          "plugin:import/typescript",
+          "plugin:@next/next/recommended"
+        ],
+        "plugins": [
+          "@typescript-eslint",
+          "react",
+          "prettier",
+          "import",
+          "unused-imports"
+        ],
+        "rules": {
+          "@typescript-eslint/array-type": [
+            "warn",
+            {
+              "default": "generic"
+            }
+          ],
+          "@typescript-eslint/explicit-function-return-type": [
+            "off",
+            {
+              "allowTypedFunctionExpressions": false
+            }
+          ],
+          "@typescript-eslint/explicit-module-boundary-types": "error",
+          "@typescript-eslint/ban-ts-comment": "off",
+          "@typescript-eslint/no-empty-interface": "off",
+          "@typescript-eslint/no-explicit-any": "off",
+          "@typescript-eslint/no-namespace": "off",
+          "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+              "vars": "all",
+              "args": "after-used",
+              "argsIgnorePattern": "^_",
+              "varsIgnorePattern": "^_"
+            }
+          ]
+        }
+      }
+    ]
   }
 }
