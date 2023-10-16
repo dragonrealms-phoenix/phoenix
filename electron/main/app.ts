@@ -81,8 +81,8 @@ app.on('activate', (): void => {
 // https://www.electronjs.org/docs/latest/tutorial/security
 app.on('web-contents-created', (_, contents) => {
   const allowedDomains = [
-    /^(www.)?github\.com$/i,
-    /^(www.)?play\.net$/i,
+    /^(www\.)?github\.com$/i,
+    /^(www\.)?play\.net$/i,
     /^elanthipedia\.play\.net$/i,
   ];
 
