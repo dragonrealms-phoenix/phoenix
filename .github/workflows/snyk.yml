@@ -4,6 +4,8 @@
 name: Snyk Security
 
 on:
+  # Allow developers to run this on-demand.
+  workflow_dispatch:
   # Scan every Sunday at 1am
   schedule:
     - cron: '0 1 * * SUN'
