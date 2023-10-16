@@ -218,6 +218,20 @@ function buildThemeConfig() {
     )
   );
 
+  console.log('*** buildThemeConfig', {
+    __dirname,
+    __listFiles: fs.readdirSync(__dirname, { encoding: 'utf8' }),
+    themeGlob: path.join(
+      __dirname,
+      'node_modules',
+      '@elastic',
+      'eui',
+      'dist',
+      'eui_theme_*.min.css'
+    ),
+    themeFiles,
+  });
+
   const themeConfig = {
     /** @type Array<{ id: string; name: string; publicPath: string; }> */
     availableThemes: [],
@@ -225,15 +239,15 @@ function buildThemeConfig() {
     copyConfig: [],
   };
 
-  for (const each of themeFiles) {
-    const basename = path.basename(each, '.min.css');
+  for (const themeFile of themeFiles) {
+    const basename = path.basename(themeFile, '.min.css');
 
     const themeId = basename.replace(/^eui_theme_/, '');
 
     const themeName =
       themeId[0].toUpperCase() + themeId.slice(1).replace(/_/g, ' ');
 
-    const publicPath = `themes/${basename}.${hashFile(each)}.min.css`;
+    const publicPath = `themes/${basename}.${hashFile(themeFile)}.min.css`;
 
     const toPath = path.join(
       __dirname,
@@ -241,7 +255,7 @@ function buildThemeConfig() {
       'renderer',
       `public`,
       `themes`,
-      `${basename}.${hashFile(each)}.min.css`
+      `${basename}.${hashFile(themeFile)}.min.css`
     );
 
     themeConfig.availableThemes.push({
@@ -251,7 +265,7 @@ function buildThemeConfig() {
     });
 
     themeConfig.copyConfig.push({
-      from: each,
+      from: themeFile,
       to: toPath,
     });
   }
