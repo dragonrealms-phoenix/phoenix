@@ -215,7 +215,14 @@ function buildThemeConfig() {
       'eui',
       'dist',
       'eui_theme_*.min.css'
-    )
+    ),
+    {
+      // Only / characters are used by this glob implementation.
+      // Since Windows uses \ as a path separator then we enable this option
+      // in order for us to use glob patterns created from `path.join`.
+      // https://github.com/isaacs/node-glob#windows
+      windowsPathsNoEscape: true,
+    }
   );
 
   console.log('*** buildThemeConfig', {
