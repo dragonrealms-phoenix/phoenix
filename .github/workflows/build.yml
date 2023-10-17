@@ -45,12 +45,18 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Create .env file from GitHub Secrets
+        env:
+          SENTRY_INGEST_DOMAIN: ${{ secrets.SENTRY_INGEST_DOMAIN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG: ${{ github.repository_owner }}
+          SENTRY_PROJECT: ${{ github.event.repository.name }}
         run: |
-          echo "SENTRY_INGEST_DOMAIN=${{ secrets.SENTRY_INGEST_DOMAIN }}" >> .env
-          echo "SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}" >> .env
-          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          echo "SENTRY_ORG=${{ github.repository_owner }}" >> .env
-          echo "SENTRY_PROJECT=${{ github.event.repository.name }}" >> .env
+          echo "SENTRY_INGEST_DOMAIN=${SENTRY_INGEST_DOMAIN}" >> .env
+          echo "SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" >> .env
+          echo "SENTRY_DSN=${SENTRY_DSN}" >> .env
+          echo "SENTRY_ORG=${SENTRY_ORG}" >> .env
+          echo "SENTRY_PROJECT=${SENTRY_PROJECT}" >> .env
 
           # https://docs.sentry.io/platforms/javascript/guides/electron/configuration/tree-shaking/
           echo "__SENTRY_DEBUG__=false" >> .env
