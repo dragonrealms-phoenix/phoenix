@@ -66,10 +66,17 @@ jobs:
       - name: Create .sentryclirc file for Sentry CLI
         env:
           SENTRY_ADMIN_TOKEN: ${{ secrets.SENTRY_ADMIN_TOKEN }}
+          SENTRY_ORG: ${{ github.repository_owner }}
+          SENTRY_PROJECT: ${{ github.event.repository.name }}
         run: |
           echo "" > .sentryclirc
+          echo "[defaults]" >> .sentryclirc
+          echo "org=${SENTRY_ORG}" >> .sentryclirc
+          echo "project=${SENTRY_PROJECT}" >> .sentryclirc
           echo "[auth]" >> .sentryclirc
           echo "token=${SENTRY_ADMIN_TOKEN}" >> .sentryclirc
+          echo "[log]" >> .sentryclirc
+          echo "level=debug" >> .sentryclirc
 
       - name: Install dependencies
         run: yarn install
