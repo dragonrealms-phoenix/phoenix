@@ -45,6 +45,7 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Create .env file from GitHub Secrets
+        shell: bash
         env:
           SENTRY_INGEST_DOMAIN: ${{ secrets.SENTRY_INGEST_DOMAIN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -62,29 +63,6 @@ jobs:
           # https://docs.sentry.io/platforms/javascript/guides/electron/configuration/tree-shaking/
           echo "__SENTRY_DEBUG__=false" >> .env
           echo "__SENTRY_TRACING__=false" >> .env
-
-      - name: Create .sentryclirc file for Sentry CLI
-        env:
-          SENTRY_ADMIN_TOKEN: ${{ secrets.SENTRY_ADMIN_TOKEN }}
-          SENTRY_ORG: ${{ github.repository_owner }}
-          SENTRY_PROJECT: ${{ github.event.repository.name }}
-        run: |
-          echo "" > .sentryclirc
-          echo "[defaults]" >> .sentryclirc
-          echo "org=${SENTRY_ORG}" >> .sentryclirc
-          echo "project=${SENTRY_PROJECT}" >> .sentryclirc
-          echo "[auth]" >> .sentryclirc
-          echo "token=${SENTRY_ADMIN_TOKEN}" >> .sentryclirc
-          echo "[log]" >> .sentryclirc
-          echo "level=debug" >> .sentryclirc
-
-          grep "org" .sentryclirc
-          grep "project" .sentryclirc
-
-          echo "SENTRY_ORG=${SENTRY_ORG}"
-          echo "SENTRY_PROJECT=${SENTRY_PROJECT}"
-
-          npx sentry-cli info
 
       - name: Install dependencies
         run: yarn install
