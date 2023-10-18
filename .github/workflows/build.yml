@@ -78,6 +78,14 @@ jobs:
           echo "[log]" >> .sentryclirc
           echo "level=debug" >> .sentryclirc
 
+          grep "org" .sentryclirc
+          grep "project" .sentryclirc
+
+          echo "SENTRY_ORG=${SENTRY_ORG}"
+          echo "SENTRY_PROJECT=${SENTRY_PROJECT}"
+
+          npx sentry-cli info
+
       - name: Install dependencies
         run: yarn install
 
