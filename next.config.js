@@ -225,20 +225,6 @@ function buildThemeConfig() {
     }
   );
 
-  console.log('*** buildThemeConfig', {
-    __dirname,
-    __listFiles: fs.readdirSync(__dirname, { encoding: 'utf8' }),
-    themeGlob: path.join(
-      __dirname,
-      'node_modules',
-      '@elastic',
-      'eui',
-      'dist',
-      'eui_theme_*.min.css'
-    ),
-    themeFiles,
-  });
-
   const themeConfig = {
     /** @type Array<{ id: string; name: string; publicPath: string; }> */
     availableThemes: [],
