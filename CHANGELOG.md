@@ -1,3 +1,20 @@
+# [1.3.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.2.1...v1.3.0) (2023-10-18)
+
+
+### Bug Fixes
+
+* **build:** add semantic release libs ([6b91de2](https://github.com/dragonrealms-phoenix/phoenix/commit/6b91de24d833415703632a626a7917920fb91d76))
+* **build:** pass secrets to reusable workflow ([3387af3](https://github.com/dragonrealms-phoenix/phoenix/commit/3387af3918397d97e656f2a04a77e112b9ef879a))
+* correct regex escaping ([ebfb30b](https://github.com/dragonrealms-phoenix/phoenix/commit/ebfb30bbded63d5626646af5c10aeaf5f515ba4c))
+* ensure run in a bash shell on windows ([89e9326](https://github.com/dragonrealms-phoenix/phoenix/commit/89e9326724fc5bbfb4e589658806aadf8391ccbd))
+* increase yarn timeout for large packages ([3441a3e](https://github.com/dragonrealms-phoenix/phoenix/commit/3441a3e156d595f17ad3d7963b98c95c499de3b2))
+
+
+### Features
+
+* refactored from vite to nextjs ([7d8e557](https://github.com/dragonrealms-phoenix/phoenix/commit/7d8e557f45a96b9075b50ce363babd8e0e2dc2e3))
+* **security:** add snyk scan ([d031816](https://github.com/dragonrealms-phoenix/phoenix/commit/d03181617116039d24c2e0f9a1d08a2c39be5b3e))
+
 ## [1.2.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.2.0...v1.2.1) (2023-10-09)
 
 
