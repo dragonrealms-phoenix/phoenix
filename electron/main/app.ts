@@ -30,10 +30,11 @@ serve({ directory: appRendererPath });
 
 const createWindow = async (): Promise<void> => {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload: path.join(appPreloadPath, 'index.js'),
+      devTools: !app.isPackaged,
       /**
        * Security Best Practices
        * https://www.electronjs.org/docs/latest/tutorial/security

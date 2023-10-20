@@ -139,6 +139,14 @@ function buildDarwinTemplate(
           window.setFullScreen(!window.isFullScreen());
         },
       },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator: 'Alt+Command+I',
+        visible: !app.isPackaged,
+        click: () => {
+          window.webContents.toggleDevTools();
+        },
+      },
       { type: 'separator' },
       {
         label: 'Reset Zoom',
