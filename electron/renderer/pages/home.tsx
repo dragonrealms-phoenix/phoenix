@@ -23,6 +23,10 @@ const HomePage: React.FC = (): JSX.Element => {
       </p>
 
       <p>
+        <Link href="/dnd">Drag-n-Drop</Link>
+      </p>
+
+      <p>
         <Link href="http://play.net/dr">DragonRealms</Link>
       </p>
 
@@ -30,7 +34,7 @@ const HomePage: React.FC = (): JSX.Element => {
         <p>Hello World!</p>
       </EuiText>
 
-      <EuiIcon type="apps" size="xxl" />
+      <EuiIcon type="apps" size="l" />
     </div>
   );
 };

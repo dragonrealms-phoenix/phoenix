@@ -9,7 +9,10 @@
 # next.js
 /electron/build
 /electron/renderer/.next
-/electron/renderer/public/themes
+
+# source maps
+*.js.map
+*.css.map
 
 # production
 /build

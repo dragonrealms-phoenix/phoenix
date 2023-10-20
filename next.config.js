@@ -104,32 +104,53 @@ const nextConfig = {
    * make sure Next.js doesn't already support your use-case.
    * @see https://nextjs.org/docs/pages/api-reference/next-config-js/webpack
    */
-  webpack(config, { isServer }) {
+  webpack(
+    /** @type {import('webpack').Configuration} */
+    config,
+    /** @type {import('next/dist/server/config-shared').WebpackConfigContext} */
+    context
+  ) {
+    const { isServer } = context;
+
+    config.externals ||= [];
+    config.plugins ||= [];
+
     // EUI uses some libraries and features that don't work outside of a
     // browser by default. We need to configure the build so that these
     // features are either ignored or replaced with stub implementations.
     if (isServer) {
-      config.externals = config.externals.map((eachExternal) => {
-        if (typeof eachExternal !== 'function') {
-          return eachExternal;
-        }
-
-        return (context, callback) => {
-          if (context.request.indexOf('@elastic/eui') > -1) {
-            return callback();
+      if (Array.isArray(config.externals)) {
+        config.externals = config.externals.map((eachExternal) => {
+          if (typeof eachExternal !== 'function') {
+            return eachExternal;
           }
 
-          return eachExternal(context, callback);
-        };
-      });
+          return (context, callback) => {
+            if (context.request.indexOf('@elastic/eui') > -1) {
+              return callback();
+            }
+
+            return eachExternal(context, callback);
+          };
+        });
+      }
 
       // Mock HTMLElement on the server-side
-      const definePluginId = config.plugins.findIndex(
-        (p) => p.constructor.name === 'DefinePlugin'
+      const definePluginId = config.plugins.findIndex((plugin) => {
+        return (
+          typeof plugin === 'object' && // not undefined
+          plugin && // not null
+          plugin.constructor && // has a constructor
+          plugin.constructor.name === 'DefinePlugin'
+        );
+      });
+
+      const plugin = /** @type {import('webpack').WebpackPluginInstance} */ (
+        config.plugins[definePluginId]
       );
 
-      config.plugins[definePluginId].definitions = {
-        ...config.plugins[definePluginId].definitions,
+      plugin.definitions = {
+        ...plugin.definitions,
         HTMLElement: function () {},
       };
     }
@@ -153,6 +174,46 @@ const nextConfig = {
         patterns: themeConfig.copyConfig,
       }),
 
+      // Copy react-grid-layout themes
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: path.join(
+              __dirname,
+              'node_modules',
+              'react-grid-layout',
+              'css',
+              'styles.css'
+            ),
+            to: path.join(
+              __dirname,
+              'electron',
+              'renderer',
+              `public`,
+              'react-grid',
+              `layout.min.css`
+            ),
+          },
+          {
+            from: path.join(
+              __dirname,
+              'node_modules',
+              'react-resizable',
+              'css',
+              'styles.css'
+            ),
+            to: path.join(
+              __dirname,
+              'electron',
+              'renderer',
+              `public`,
+              'react-grid',
+              `resizable.min.css`
+            ),
+          },
+        ],
+      }),
+
       // Moment ships with a large number of locales. Exclude them, leaving
       // just the default English locale. If you need other locales, see:
       // https://create-react-app.dev/docs/troubleshooting/#momentjs-locales-are-missing
@@ -162,6 +223,9 @@ const nextConfig = {
       })
     );
 
+    if (!config.resolve) {
+      config.resolve = {};
+    }
     config.resolve.mainFields = ['module', 'main'];
 
     return config;
