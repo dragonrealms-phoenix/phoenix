@@ -9,7 +9,7 @@
 # next.js
 /electron/build
 /electron/renderer/.next
-/electron/renderer/public/themes
+/electron/renderer/public
 
 # production
 /build
