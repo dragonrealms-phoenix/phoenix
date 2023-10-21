@@ -11,6 +11,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const glob = require('glob');
+const { capitalize } = require('lodash');
 const { IgnorePlugin, EnvironmentPlugin } = require('webpack');
 
 dotenv.config();
@@ -125,11 +126,18 @@ const nextConfig = {
             return eachExternal;
           }
 
-          return (context, callback) => {
-            if (context.request.indexOf('@elastic/eui') > -1) {
-              return callback();
+          return (
+            /** @type {import('webpack').ExternalItemFunctionData} */
+            context,
+            /** @type {(err?: null | Error, result?: any) => void} */
+            callback
+          ) => {
+            // Exclude EUI from server-side builds
+            if (context && context.request) {
+              if (context.request.indexOf('@elastic/eui') > -1) {
+                return callback();
+              }
             }
-
             return eachExternal(context, callback);
           };
         });
@@ -169,49 +177,14 @@ const nextConfig = {
         VERCEL_ENV: '',
       }),
 
-      // Copy theme CSS files into `public`
+      // Copy @elastic/eui theme files
       new CopyWebpackPlugin({
-        patterns: themeConfig.copyConfig,
+        patterns: buildElasticThemeFileCopyPatterns(),
       }),
 
-      // Copy react-grid-layout themes
+      // Copy react-grid-layout theme files
       new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: path.join(
-              __dirname,
-              'node_modules',
-              'react-grid-layout',
-              'css',
-              'styles.css'
-            ),
-            to: path.join(
-              __dirname,
-              'electron',
-              'renderer',
-              `public`,
-              'react-grid',
-              `layout.min.css`
-            ),
-          },
-          {
-            from: path.join(
-              __dirname,
-              'node_modules',
-              'react-resizable',
-              'css',
-              'styles.css'
-            ),
-            to: path.join(
-              __dirname,
-              'electron',
-              'renderer',
-              `public`,
-              'react-grid',
-              `resizable.min.css`
-            ),
-          },
-        ],
+        patterns: buildReactGridThemeFileCopyPatterns(),
       }),
 
       // Moment ships with a large number of locales. Exclude them, leaving
@@ -289,21 +262,16 @@ function buildThemeConfig() {
     }
   );
 
+  /** @type {import('./electron/renderer/lib/theme').ThemeConfig} */
   const themeConfig = {
-    /** @type Array<{ id: string; name: string; publicPath: string; }> */
     availableThemes: [],
-    /** @type Array<{ from: string; to: string; }> */
     copyConfig: [],
   };
 
   for (const themeFile of themeFiles) {
     const basename = path.basename(themeFile, '.min.css');
-
     const themeId = basename.replace(/^eui_theme_/, '');
-
-    const themeName =
-      themeId[0].toUpperCase() + themeId.slice(1).replace(/_/g, ' ');
-
+    const themeName = capitalize(themeId).replace(/_/g, ' ');
     const publicPath = `themes/${basename}.${hashFile(themeFile)}.min.css`;
 
     const toPath = path.join(
@@ -328,6 +296,37 @@ function buildThemeConfig() {
   }
 
   return themeConfig;
+}
+
+/**
+ * @returns {import('copy-webpack-plugin').ObjectPattern[]}
+ */
+function buildElasticThemeFileCopyPatterns() {
+  return themeConfig.copyConfig;
+}
+
+/**
+ * @returns {import('copy-webpack-plugin').ObjectPattern[]}
+ */
+function buildReactGridThemeFileCopyPatterns() {
+  // Where to copy assets from.
+  const nodeModulesPath = path.join(__dirname, 'node_modules');
+  const reactGridLayoutPath = path.join(nodeModulesPath, 'react-grid-layout');
+  const reactResizablePath = path.join(nodeModulesPath, 'react-resizable');
+
+  // Where to copy the assets to.
+  const publicPath = path.join(__dirname, 'electron', 'renderer', `public`);
+
+  return [
+    {
+      from: path.join(reactGridLayoutPath, 'css', 'styles.css'),
+      to: path.join(publicPath, 'react-grid', `layout.min.css`),
+    },
+    {
+      from: path.join(reactResizablePath, 'css', 'styles.css'),
+      to: path.join(publicPath, 'react-grid', 'resizable.min.css'),
+    },
+  ];
 }
 
 /**
