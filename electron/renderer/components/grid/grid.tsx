@@ -1,30 +1,11 @@
-import {
-  EuiPanel,
-  EuiText,
-  useEuiOverflowScroll,
-  useEuiTheme,
-} from '@elastic/eui';
-import { cx } from '@emotion/css';
+import { EuiText, useEuiOverflowScroll, useEuiTheme } from '@elastic/eui';
 import { css } from '@emotion/react';
 import Head from 'next/head';
-import {
-  CSSProperties,
-  MouseEvent,
-  ReactNode,
-  TouchEvent,
-  forwardRef,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
-import { useLogger } from '../logger';
+import { GridItem } from '../grid-item';
 
 const Grid: React.FC = (): JSX.Element => {
-  const { logger } = useLogger('component:grid');
-
-  logger.info('rendering');
-
   const { euiTheme } = useEuiTheme();
 
   const gridLayoutStyles = css`
@@ -57,6 +38,15 @@ const Grid: React.FC = (): JSX.Element => {
 
   /**
    * Define the initial layout state.
+   *
+   * TODO save the layout on changes
+   * TODO load the layout according to user's preferences
+   * TODO create an item per game window that is open (e.g. Room, Spells, etc)
+   *      and one of the properties should be the game window's title
+   *      and one of the properties should be the game window's text
+   *      Probably make the property another component to encapsulate use of rxjs
+   *      and then exposes a property that is the text so that when that changes
+   *      then the grid item will rerender.
    */
   const [layout, setLayout] = useState([
     { i: 'a', x: 0, y: 0, w: 3, h: 2 },
@@ -72,46 +62,19 @@ const Grid: React.FC = (): JSX.Element => {
    */
   const children = useMemo(() => {
     return layout.map((item) => {
-      /**
-       * How to use custom components a react-grid-layout children.
-       * https://github.com/react-grid-layout/react-grid-layout/tree/master?tab=readme-ov-file#custom-child-components-and-draggable-handles
-       * https://stackoverflow.com/questions/67053157/react-grid-layout-error-draggablecore-not-mounted-on-dragstart
-       */
-
-      interface ReactGridLayoutItemProps {
-        style?: CSSProperties;
-        className?: string;
-        onMouseDown?: (e: MouseEvent<HTMLDivElement>) => void;
-        onMouseUp?: (e: MouseEvent<HTMLDivElement>) => void;
-        onTouchEnd?: (e: TouchEvent<HTMLDivElement>) => void;
-        children?: ReactNode;
-      }
-
-      const MyGridItem = forwardRef<HTMLDivElement, ReactGridLayoutItemProps>(
-        (props, ref) => {
-          const { style, className, children, ...otherProps } = props;
-
-          return (
-            <EuiPanel
-              panelRef={ref}
-              hasBorder={true}
-              grow={false}
-              style={style}
-              className={cx(className)}
-              {...otherProps}
-            >
-              <EuiText css={gridItemTextStyles}>{item.i}</EuiText>
-              {children}
-            </EuiPanel>
-          );
-        }
+      return (
+        <GridItem key={item.i} ref={useRef(null)}>
+          <EuiText css={gridItemTextStyles}>{item.i}</EuiText>
+        </GridItem>
       );
-
-      MyGridItem.displayName = 'MyGridItem';
-
-      return <MyGridItem key={item.i} ref={useRef(null)} />;
     });
   }, [layout.length]);
+
+  /**
+   * When resize horizontally or vertically, this is the number
+   * of pixels the grid item will grow or shrink.
+   */
+  const resizeIncrement = 30;
 
   return (
     <>
@@ -123,8 +86,8 @@ const Grid: React.FC = (): JSX.Element => {
         css={gridLayoutStyles}
         layouts={{ lg: layout }}
         breakpoints={{ lg: 1200 }}
-        cols={{ lg: 30 }}
-        rowHeight={30}
+        cols={{ lg: resizeIncrement }}
+        rowHeight={resizeIncrement}
         isBounded={true}
         isDraggable={true}
         isDroppable={true}
