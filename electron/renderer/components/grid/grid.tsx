@@ -1,4 +1,4 @@
-import { EuiText, useEuiOverflowScroll, useEuiTheme } from '@elastic/eui';
+import { EuiText, useEuiTheme } from '@elastic/eui';
 import { css } from '@emotion/react';
 import Head from 'next/head';
 import { useMemo, useRef, useState } from 'react';
@@ -9,21 +9,23 @@ const Grid: React.FC = (): JSX.Element => {
   const { euiTheme } = useEuiTheme();
 
   const gridLayoutStyles = css`
-    .react-grid-layout {
-      background: ${euiTheme.colors.lightestShade};
-    }
-    .react-grid-item {
-      padding: ${euiTheme.size.xs};
-    }
     .react-grid-item.react-grid-placeholder {
       background: ${euiTheme.colors.warning};
+    }
+    .react-grid-item .grab-handle {
+      cursor: grab;
+    }
+    .react-grid-item .grab-handle:active {
+      cursor: grabbing;
     }
   `;
 
   const gridItemTextStyles = css`
     font-family: ${euiTheme.font.familyCode};
-    white-space: pre-wrap;
-    ${useEuiOverflowScroll('y', true)}
+    font-size: ${euiTheme.size.m};
+    line-height: 'initial';
+    color: ${euiTheme.colors.emptyShade};
+    background: ${euiTheme.colors.darkestShade};
   `;
 
   /**
@@ -49,9 +51,9 @@ const Grid: React.FC = (): JSX.Element => {
    *      then the grid item will rerender.
    */
   const [layout, setLayout] = useState([
-    { i: 'a', x: 0, y: 0, w: 3, h: 2 },
-    { i: 'b', x: 3, y: 0, w: 3, h: 2 },
-    { i: 'c', x: 6, y: 0, w: 3, h: 2 },
+    { i: 'a', x: 0, y: 0, w: 3, h: 2, title: 'Room' },
+    { i: 'b', x: 3, y: 0, w: 3, h: 2, title: 'Spells' },
+    { i: 'c', x: 6, y: 0, w: 3, h: 2, title: 'Combat' },
   ]);
 
   /**
@@ -64,7 +66,7 @@ const Grid: React.FC = (): JSX.Element => {
     return layout.map((item) => {
       return (
         <GridItem key={item.i} ref={useRef(null)}>
-          <EuiText css={gridItemTextStyles}>{item.i}</EuiText>
+          <EuiText css={gridItemTextStyles}>Hello World</EuiText>
         </GridItem>
       );
     });
@@ -93,6 +95,7 @@ const Grid: React.FC = (): JSX.Element => {
         isDroppable={true}
         isResizable={true}
         resizeHandles={['se']}
+        draggableHandle={'.grab-handle'}
       >
         {children}
       </ResponsiveGridLayout>
