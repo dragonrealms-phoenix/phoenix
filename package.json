@@ -281,6 +281,14 @@
               "argsIgnorePattern": "^_",
               "varsIgnorePattern": "^_"
             }
+          ],
+          "react/no-unknown-property": [
+            "error",
+            {
+              "ignore": [
+                "css"
+              ]
+            }
           ]
         }
       }
