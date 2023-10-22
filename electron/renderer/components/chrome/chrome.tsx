@@ -3,7 +3,7 @@
 import { EuiProvider, EuiThemeColorMode } from '@elastic/eui';
 import createCache from '@emotion/cache';
 import { FunctionComponent } from 'react';
-import { useTheme } from './theme';
+import { useTheme } from '../theme/theme';
 
 /**
  * Renders the UI that surrounds the page content.

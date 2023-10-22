@@ -7,7 +7,11 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { enableTheme, getDefaultThemeName, getThemeName } from '../lib/theme';
+import {
+  enableTheme,
+  getDefaultThemeName,
+  getThemeName,
+} from '../../lib/theme';
 
 /**
  * React context for storing theme-related data and callbacks.

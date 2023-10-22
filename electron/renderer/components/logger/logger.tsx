@@ -1,10 +1,10 @@
 import { FunctionComponent, createContext, useContext, useEffect } from 'react';
-import { Logger } from '../../common/logger/logger.types';
+import { Logger } from '../../../common/logger/logger.types';
 import {
   createLogger,
   startMonitoringUnhandledExceptions,
   stopMonitoringUnhandledExceptions,
-} from '../lib/logger';
+} from '../../lib/logger';
 
 /**
  * React context for accessing a logger.
