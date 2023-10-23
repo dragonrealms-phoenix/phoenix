@@ -1,7 +1,7 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/components/theme.tsx
 
 import {
-  FunctionComponent,
+  ReactNode,
   createContext,
   useContext,
   useEffect,
@@ -23,9 +23,16 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({});
-ThemeContext.displayName = 'ThemeContext'; // for dev tools
 
-export const ThemeProvider: FunctionComponent<any> = ({ children }) => {
+interface ThemeProviderProps {
+  children?: ReactNode;
+}
+
+const ThemeProvider: React.FC<ThemeProviderProps> = (
+  props: ThemeProviderProps
+) => {
+  const { children } = props;
+
   const [colorMode, setColorMode] = useState(getDefaultThemeName());
 
   // On initial mount in the browser, use any theme from local storage.
@@ -45,6 +52,8 @@ export const ThemeProvider: FunctionComponent<any> = ({ children }) => {
   );
 };
 
-export const useTheme = (): ThemeContextValue => {
+const useTheme = (): ThemeContextValue => {
   return useContext(ThemeContext);
 };
+
+export { ThemeProvider, useTheme };
