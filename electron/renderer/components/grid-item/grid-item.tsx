@@ -3,6 +3,7 @@ import {
   EuiFlexGroup,
   EuiFlexItem,
   EuiIcon,
+  EuiSpacer,
   EuiSplitPanel,
   EuiText,
   useEuiOverflowScroll,
@@ -18,6 +19,12 @@ import {
 } from 'react';
 
 interface GridItemProps {
+  /**
+   * Text to display in the title bar of the grid item.
+   * Note the prop `title` is reserved and refers to titling a DOM element,
+   * not for passing data to child components. So using a more specific name.
+   */
+  titleBarText: string;
   /**
    * Required when using custom components as react-grid-layout children.
    */
@@ -98,7 +105,7 @@ const GridItem: React.FC<GridItemProps> = forwardRef<
   HTMLDivElement,
   GridItemProps
 >((props, ref): JSX.Element => {
-  const { style, className, children, ...otherProps } = props;
+  const { titleBarText, style, className, children, ...otherProps } = props;
 
   const gridItemContentStyles = css`
     white-space: pre-wrap;
@@ -128,7 +135,7 @@ const GridItem: React.FC<GridItemProps> = forwardRef<
             <EuiIcon type="grabOmnidirectional" />
           </EuiFlexItem>
           <EuiFlexItem grow={true} className={'grab-handle'}>
-            <EuiText size="xs">{'Room'}</EuiText>
+            <EuiText size="xs">{titleBarText}</EuiText>
           </EuiFlexItem>
           <EuiFlexItem grow={false}>
             <EuiFlexGroup
@@ -146,6 +153,7 @@ const GridItem: React.FC<GridItemProps> = forwardRef<
           </EuiFlexItem>
         </EuiFlexGroup>
       </EuiSplitPanel.Inner>
+      <EuiSpacer size="xs" />
       <EuiSplitPanel.Inner
         grow={true}
         paddingSize="none"

@@ -1,7 +1,7 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/pages/_document.tsx
 
 import Document, { Head, Html, Main, NextScript } from 'next/document';
-import { ReactElement } from 'react';
+import React, { LinkHTMLAttributes, ReactElement } from 'react';
 import { Theme, getDefaultThemeName, themeConfig } from '../lib/theme';
 
 function createThemeLink(theme: Theme): ReactElement {
@@ -28,6 +28,25 @@ function createThemeLink(theme: Theme): ReactElement {
 }
 
 /**
+ * Nextjs wants you to import CSS stylesheets in the `pages/_app.tsx` file.
+ * However, the @elastic/eui library instructs you to load their themes here.
+ * We also need to import the react-grid-layout stylesheets, so instead of
+ * splitting some of that in the `pages/_app.tsx` file, we do it all here.
+ *
+ * To get around the eslint rule and console warnings, we cannot use
+ * the `<link>` element in the `Head` element directly.
+ * So instead we use functions.
+ */
+function createStyleLink(
+  props: LinkHTMLAttributes<HTMLLinkElement>
+): ReactElement {
+  return React.createElement<LinkHTMLAttributes<HTMLLinkElement>>('link', {
+    rel: 'stylesheet',
+    ...props,
+  });
+}
+
+/**
  * A custom `Document` is commonly used to augment your application's
  * `<html>` and `<body>` tags. This is necessary because Next.js pages skip
  * the definition of the surrounding document's markup.
@@ -42,6 +61,8 @@ export default class MyDocument extends Document {
           <meta name="eui-styles" />
           {themeConfig.availableThemes.map((theme) => createThemeLink(theme))}
           <meta name="eui-styles-utility" />
+          {createStyleLink({ href: '/react-grid/layout.min.css' })}
+          {createStyleLink({ href: '/react-grid/resizable.min.css' })}
           <meta
             httpEquiv="Content-Security-Policy"
             content={`
