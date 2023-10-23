@@ -16,22 +16,52 @@ app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
 const logger = createLogger('main');
 
+const appEnv = process.env.APP_ENV ?? 'production';
+const appEnvIsProd = appEnv === 'production';
+const appEnvIsDev = appEnv === 'development';
+
 const appPath = app.getAppPath();
-const appBuildPath = path.join(appPath, 'electron', 'build');
+const appElectronPath = path.join(appPath, 'electron');
+const appBuildPath = path.join(appElectronPath, 'build');
 const appPreloadPath = path.join(appBuildPath, 'preload');
-const appRendererPath = path.join(appBuildPath, 'renderer');
+
+// When running in production, serve the app from these paths.
+const prodRendererPath = path.join(appBuildPath, 'renderer');
+const prodAppScheme = 'app';
+const prodAppUrl = `${prodAppScheme}://-`;
+
+// When running in development, serve the app from these paths.
+const devRendererPath = path.join(appElectronPath, 'renderer');
+const devPort = 3000;
+const devAppUrl = `http://localhost:${devPort}`;
+
+const appUrl = appEnvIsProd ? prodAppUrl : devAppUrl;
 
 // Register custom protocol 'app://' to serve our app.
 // Registering the protocol must be done before the app is ready.
 // This is necessary for both security and for single-page apps.
 // https://bishopfox.com/blog/reasonably-secure-electron
 // https://github.com/sindresorhus/electron-serve
-serve({ directory: appRendererPath });
+if (appEnvIsProd) {
+  serve({
+    scheme: prodAppScheme,
+    directory: prodRendererPath,
+  });
+}
 
 const createWindow = async (): Promise<void> => {
+  if (appEnvIsDev) {
+    // If running in development, serve the renderer from localhost.
+    // This must be done once the app is ready.
+    // This enables hot reloading of the renderer.
+    const { default: serveDev } = await import('electron-next');
+    await serveDev(devRendererPath, devPort);
+  }
+
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    show: false, // hidden until window loads contents to avoid a blank screen
     webPreferences: {
       preload: path.join(appPreloadPath, 'index.js'),
       devTools: !app.isPackaged,
@@ -54,7 +84,12 @@ const createWindow = async (): Promise<void> => {
     },
   });
 
-  await mainWindow.loadURL('app://-');
+  // Once the window has finished loading, show it.
+  mainWindow.webContents.once('did-finish-load', () => {
+    mainWindow.show();
+  });
+
+  await mainWindow.loadURL(appUrl);
 
   initializeMenu(mainWindow);
 };
