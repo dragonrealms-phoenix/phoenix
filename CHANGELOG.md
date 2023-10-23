@@ -1,3 +1,18 @@
+# [1.4.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.3.0...v1.4.0) (2023-10-23)
+
+
+### Features
+
+* add title bar to drag windows, scrolling, styling ([12e6b98](https://github.com/dragonrealms-phoenix/phoenix/commit/12e6b9891fca052d9449c17c577f0d52dc41c33e))
+* create grid item component ([6c04a56](https://github.com/dragonrealms-phoenix/phoenix/commit/6c04a56c8fff15e5fcf797f7ee1a8599bb5f4c5f))
+* enable dev tools ([d70cd0a](https://github.com/dragonrealms-phoenix/phoenix/commit/d70cd0af3c798a5b7b043f2e35cb98631cdd1b75))
+* poc grid layout drag-n-drop ([822e332](https://github.com/dragonrealms-phoenix/phoenix/commit/822e332981eda37120f7017da41ba0b13025dd7b))
+* type safety in build; add react-grid drag-n-drop ([a805c7e](https://github.com/dragonrealms-phoenix/phoenix/commit/a805c7eabc3bf693808b5793db668300874ec9e9))
+* use dark theme ([838543e](https://github.com/dragonrealms-phoenix/phoenix/commit/838543e6824ca241c7bceec1b43bab1b5c0fea78))
+* use electron-next to run app in dev mode ([e37a029](https://github.com/dragonrealms-phoenix/phoenix/commit/e37a029ce406e06834102a12ef8cc789663186eb))
+* use React.FC ([32ba541](https://github.com/dragonrealms-phoenix/phoenix/commit/32ba54172ea193cfbc2a9274567f1bede789f8e0))
+* use type-safe styles, title grid item ([f4dbedb](https://github.com/dragonrealms-phoenix/phoenix/commit/f4dbedb7968670e2b11107ca458bf91232eb522e))
+
 # [1.3.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.2.1...v1.3.0) (2023-10-18)
 
 
