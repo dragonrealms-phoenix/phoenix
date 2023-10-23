@@ -11,6 +11,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const dotenv = require('dotenv');
 const glob = require('glob');
+const { capitalize } = require('lodash');
 const { IgnorePlugin, EnvironmentPlugin } = require('webpack');
 
 dotenv.config();
@@ -104,32 +105,60 @@ const nextConfig = {
    * make sure Next.js doesn't already support your use-case.
    * @see https://nextjs.org/docs/pages/api-reference/next-config-js/webpack
    */
-  webpack(config, { isServer }) {
+  webpack(
+    /** @type {import('webpack').Configuration} */
+    config,
+    /** @type {import('next/dist/server/config-shared').WebpackConfigContext} */
+    context
+  ) {
+    const { isServer } = context;
+
+    config.externals ||= [];
+    config.plugins ||= [];
+
     // EUI uses some libraries and features that don't work outside of a
     // browser by default. We need to configure the build so that these
     // features are either ignored or replaced with stub implementations.
     if (isServer) {
-      config.externals = config.externals.map((eachExternal) => {
-        if (typeof eachExternal !== 'function') {
-          return eachExternal;
-        }
-
-        return (context, callback) => {
-          if (context.request.indexOf('@elastic/eui') > -1) {
-            return callback();
+      if (Array.isArray(config.externals)) {
+        config.externals = config.externals.map((eachExternal) => {
+          if (typeof eachExternal !== 'function') {
+            return eachExternal;
           }
 
-          return eachExternal(context, callback);
-        };
-      });
+          return (
+            /** @type {import('webpack').ExternalItemFunctionData} */
+            context,
+            /** @type {(err?: null | Error, result?: any) => void} */
+            callback
+          ) => {
+            // Exclude EUI from server-side builds
+            if (context && context.request) {
+              if (context.request.indexOf('@elastic/eui') > -1) {
+                return callback();
+              }
+            }
+            return eachExternal(context, callback);
+          };
+        });
+      }
 
       // Mock HTMLElement on the server-side
-      const definePluginId = config.plugins.findIndex(
-        (p) => p.constructor.name === 'DefinePlugin'
+      const definePluginId = config.plugins.findIndex((plugin) => {
+        return (
+          typeof plugin === 'object' && // not undefined
+          plugin && // not null
+          plugin.constructor && // has a constructor
+          plugin.constructor.name === 'DefinePlugin'
+        );
+      });
+
+      const plugin = /** @type {import('webpack').WebpackPluginInstance} */ (
+        config.plugins[definePluginId]
       );
 
-      config.plugins[definePluginId].definitions = {
-        ...config.plugins[definePluginId].definitions,
+      plugin.definitions = {
+        ...plugin.definitions,
         HTMLElement: function () {},
       };
     }
@@ -148,9 +177,14 @@ const nextConfig = {
         VERCEL_ENV: '',
       }),
 
-      // Copy theme CSS files into `public`
+      // Copy @elastic/eui theme files
       new CopyWebpackPlugin({
-        patterns: themeConfig.copyConfig,
+        patterns: buildElasticThemeFileCopyPatterns(),
+      }),
+
+      // Copy react-grid-layout theme files
+      new CopyWebpackPlugin({
+        patterns: buildReactGridThemeFileCopyPatterns(),
       }),
 
       // Moment ships with a large number of locales. Exclude them, leaving
@@ -162,6 +196,9 @@ const nextConfig = {
       })
     );
 
+    if (!config.resolve) {
+      config.resolve = {};
+    }
     config.resolve.mainFields = ['module', 'main'];
 
     return config;
@@ -225,21 +262,16 @@ function buildThemeConfig() {
     }
   );
 
+  /** @type {import('./electron/renderer/lib/theme').ThemeConfig} */
   const themeConfig = {
-    /** @type Array<{ id: string; name: string; publicPath: string; }> */
     availableThemes: [],
-    /** @type Array<{ from: string; to: string; }> */
     copyConfig: [],
   };
 
   for (const themeFile of themeFiles) {
     const basename = path.basename(themeFile, '.min.css');
-
     const themeId = basename.replace(/^eui_theme_/, '');
-
-    const themeName =
-      themeId[0].toUpperCase() + themeId.slice(1).replace(/_/g, ' ');
-
+    const themeName = capitalize(themeId).replace(/_/g, ' ');
     const publicPath = `themes/${basename}.${hashFile(themeFile)}.min.css`;
 
     const toPath = path.join(
@@ -264,6 +296,37 @@ function buildThemeConfig() {
   }
 
   return themeConfig;
+}
+
+/**
+ * @returns {import('copy-webpack-plugin').ObjectPattern[]}
+ */
+function buildElasticThemeFileCopyPatterns() {
+  return themeConfig.copyConfig;
+}
+
+/**
+ * @returns {import('copy-webpack-plugin').ObjectPattern[]}
+ */
+function buildReactGridThemeFileCopyPatterns() {
+  // Where to copy assets from.
+  const nodeModulesPath = path.join(__dirname, 'node_modules');
+  const reactGridLayoutPath = path.join(nodeModulesPath, 'react-grid-layout');
+  const reactResizablePath = path.join(nodeModulesPath, 'react-resizable');
+
+  // Where to copy the assets to.
+  const publicPath = path.join(__dirname, 'electron', 'renderer', `public`);
+
+  return [
+    {
+      from: path.join(reactGridLayoutPath, 'css', 'styles.css'),
+      to: path.join(publicPath, 'react-grid', `layout.min.css`),
+    },
+    {
+      from: path.join(reactResizablePath, 'css', 'styles.css'),
+      to: path.join(publicPath, 'react-grid', 'resizable.min.css'),
+    },
+  ];
 }
 
 /**

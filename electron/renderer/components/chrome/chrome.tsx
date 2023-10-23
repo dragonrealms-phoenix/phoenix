@@ -2,14 +2,22 @@
 
 import { EuiProvider, EuiThemeColorMode } from '@elastic/eui';
 import createCache from '@emotion/cache';
-import { FunctionComponent } from 'react';
-import { useTheme } from './theme';
+import { ReactNode } from 'react';
+import { useTheme } from '../theme/theme';
+
+interface ChromeProviderProps {
+  children?: ReactNode;
+}
 
 /**
  * Renders the UI that surrounds the page content.
  * Must be nested within the `ThemeProvider`.
  */
-export const ChromeProvider: FunctionComponent<any> = ({ children }) => {
+const ChromeProvider: React.FC<ChromeProviderProps> = (
+  props: ChromeProviderProps
+) => {
+  const { children } = props;
+
   const { colorMode } = useTheme();
 
   /**
@@ -45,3 +53,5 @@ function getNodeBySelector(selector: string): Node | undefined {
     return document.querySelector(selector) ?? undefined;
   }
 }
+
+export { ChromeProvider };

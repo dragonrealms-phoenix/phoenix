@@ -54,6 +54,8 @@ jobs:
           SENTRY_PROJECT: ${{ github.event.repository.name }}
         run: |
           echo "" > .env
+          echo "APP_ENV=production" >> .env
+
           echo "SENTRY_INGEST_DOMAIN=${SENTRY_INGEST_DOMAIN}" >> .env
           echo "SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" >> .env
           echo "SENTRY_DSN=${SENTRY_DSN}" >> .env
