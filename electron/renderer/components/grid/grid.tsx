@@ -1,6 +1,6 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
 import { css } from '@emotion/react';
-import { Ref, createRef, useMemo, useRef, useState } from 'react';
+import { Ref, createRef, useEffect, useMemo, useRef, useState } from 'react';
 import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
 import { GridItem } from '../grid-item';
 import { useLogger } from '../logger';
@@ -10,28 +10,39 @@ const Grid: React.FC = (): JSX.Element => {
 
   const { euiTheme } = useEuiTheme();
 
-  const gridLayoutStyles = css`
-    .react-grid-item.react-grid-placeholder {
+  const [gridLayoutStyles, setGridLayoutStyles] = useState(css``);
+
+  useEffect(() => {
+    setGridLayoutStyles(css`
       ${css({
-        background: euiTheme.colors.warning,
+        height: window.innerHeight,
+        minHeight: window.innerHeight,
+        maxHeight: window.innerHeight,
       })}
-    }
-    .react-grid-item .grab-handle {
-      ${css({
-        cursor: 'grab',
-      })}
-    }
-    .react-grid-item .grab-handle:active {
-      ${css({
-        cursor: 'grabbing',
-      })}
-    }
-  `;
+      .react-grid-item.react-grid-placeholder {
+        ${css({
+          background: euiTheme.colors.warning,
+        })}
+      }
+      .react-grid-item .grab-handle {
+        ${css({
+          cursor: 'grab',
+        })}
+      }
+      .react-grid-item .grab-handle:active {
+        ${css({
+          cursor: 'grabbing',
+        })}
+      }
+    `);
+  }, [window?.innerHeight]);
 
   const gridItemTextStyles = css({
     fontFamily: euiTheme.font.familyCode,
     fontSize: euiTheme.size.m,
     lineHeight: 'initial',
+    paddingLeft: euiTheme.size.s,
+    paddingRight: euiTheme.size.s,
   });
 
   /**
@@ -42,6 +53,32 @@ const Grid: React.FC = (): JSX.Element => {
    */
   const ResponsiveGridLayout = useMemo(() => {
     return WidthProvider(Responsive);
+  }, []);
+
+  /**
+   * When resize horizontally or vertically, this is the number
+   * of pixels the grid item will grow or shrink per increment.
+   * Use smaller numbers to give users more granular and precise control.
+   * Use larger numbers to give users more coarse and quick control.
+   */
+  const resizeMaxColumns = 50; // increment = divide page width by this value
+  const resizeRowHeightIncrement = 10; // approx. pixels to change vertically
+  const gridItemMargin = 1.03; // pixels, when grid layout margin is [1, 1]
+  const rowHeightWithMargin = resizeRowHeightIncrement + gridItemMargin;
+
+  const [gridMaxRows, setGridMaxRows] = useState<number>(10);
+
+  // Recalculate the max grid layout height when the window is resized.
+  // This lets the user drag the grid items around the whole window.
+  // https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
+  useEffect(() => {
+    const onWindowResize = () => {
+      setGridMaxRows(Math.floor(window.innerHeight / rowHeightWithMargin));
+    };
+    window.addEventListener('resize', onWindowResize);
+    return () => {
+      window.removeEventListener('resize', onWindowResize);
+    };
   }, []);
 
   /**
@@ -64,6 +101,8 @@ const Grid: React.FC = (): JSX.Element => {
     { i: 'b', x: 4, y: 0, w: 5, minW: 5, h: 10, minH: 2, title: 'Spells' },
     { i: 'c', x: 9, y: 0, w: 6, minW: 5, h: 10, minH: 2, title: 'Combat' },
   ]);
+
+  const lastLayoutThatRespectsMaxHeight = useRef<Array<Layout>>([]);
 
   /**
    * Originally I called `useRef` in the `children` `useMemo` hook below but
@@ -100,15 +139,6 @@ const Grid: React.FC = (): JSX.Element => {
     });
   }, [layout.length]);
 
-  /**
-   * When resize horizontally or vertically, this is the number
-   * of pixels the grid item will grow or shrink per increment.
-   * Use smaller numbers to give users more granular and precise control.
-   * Use larger numbers to give users more coarse and quick control.
-   */
-  const resizeMaxColumns = 50; // increment = divide page width by this value
-  const resizeRowHeightIncrement = 10; // approx. pixels to change vertically
-
   return (
     <ResponsiveGridLayout
       css={gridLayoutStyles}
@@ -116,6 +146,21 @@ const Grid: React.FC = (): JSX.Element => {
       breakpoints={{ lg: 1200 }}
       cols={{ lg: resizeMaxColumns }}
       rowHeight={resizeRowHeightIncrement}
+      maxRows={gridMaxRows}
+      autoSize={false}
+      margin={[1, 1]}
+      onLayoutChange={(layout) => {
+        // const isTooTall = layout.some((item) => {
+        //   return false;
+        // });
+      }}
+      onDragStart={(layout) => {
+        lastLayoutThatRespectsMaxHeight.current = layout;
+      }}
+      onResizeStart={(layout) => {
+        lastLayoutThatRespectsMaxHeight.current = layout;
+      }}
+      compactType={null}
       isBounded={true}
       isDraggable={true}
       isDroppable={true}
