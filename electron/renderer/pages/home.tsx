@@ -23,7 +23,7 @@ const HomePage: React.FC = (): JSX.Element => {
       </p>
 
       <p>
-        <Link href="/dnd">Drag-n-Drop</Link>
+        <Link href="/grid">Grid</Link>
       </p>
 
       <p>
