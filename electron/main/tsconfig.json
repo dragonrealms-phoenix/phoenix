@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "moduleResolution": "Node16",
+    "moduleResolution": "Node",
     "incremental": true,
     "outDir": "../build", // creates 'main' and 'common' subfolders
     "declaration": false,
