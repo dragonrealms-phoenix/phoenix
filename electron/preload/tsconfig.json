@@ -3,6 +3,7 @@
     "target": "ESNext",
     "module": "CommonJS",
     "moduleResolution": "Node16",
+    "incremental": true,
     "outDir": "../build/preload",
     "declaration": true,
     "declarationDir": "./",
