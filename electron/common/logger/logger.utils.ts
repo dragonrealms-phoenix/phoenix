@@ -13,7 +13,7 @@ export function initializeLogging(logger: electronLog.Logger): void {
   });
 
   // Overwrite the console.log/warn/etc methods
-  Object.assign(console, logger.functions);
+  //Object.assign(console, logger.functions);
 }
 
 /**

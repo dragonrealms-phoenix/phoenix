@@ -1,23 +1,22 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
-import { css } from '@emotion/react';
+import { SerializedStyles, css } from '@emotion/react';
 import { Ref, createRef, useEffect, useMemo, useRef, useState } from 'react';
-import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
+import GridLayout, { Layout } from 'react-grid-layout';
+import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { GridItem } from '../grid-item';
-import { useLogger } from '../logger';
 
 const Grid: React.FC = (): JSX.Element => {
-  const { logger } = useLogger('component:grid');
-
   const { euiTheme } = useEuiTheme();
 
-  const [gridLayoutStyles, setGridLayoutStyles] = useState(css``);
+  const windowDimensions = useWindowDimensions();
+
+  const [gridLayoutStyles, setGridLayoutStyles] = useState<SerializedStyles>();
 
   useEffect(() => {
     setGridLayoutStyles(css`
       ${css({
-        height: window.innerHeight,
-        minHeight: window.innerHeight,
-        maxHeight: window.innerHeight,
+        height: windowDimensions.height,
+        width: windowDimensions.width,
       })}
       .react-grid-item.react-grid-placeholder {
         ${css({
@@ -35,7 +34,7 @@ const Grid: React.FC = (): JSX.Element => {
         })}
       }
     `);
-  }, [window?.innerHeight]);
+  }, [windowDimensions]);
 
   const gridItemTextStyles = css({
     fontFamily: euiTheme.font.familyCode,
@@ -44,42 +43,6 @@ const Grid: React.FC = (): JSX.Element => {
     paddingLeft: euiTheme.size.s,
     paddingRight: euiTheme.size.s,
   });
-
-  /**
-   * Using hooks to save the layout state on change will cause the layouts to
-   * re-render because the layout component's value keeps changing every render.
-   * To avoid this we memoize the layout component using the `useMemo` hook.
-   * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#react-hooks-performance
-   */
-  const ResponsiveGridLayout = useMemo(() => {
-    return WidthProvider(Responsive);
-  }, []);
-
-  /**
-   * When resize horizontally or vertically, this is the number
-   * of pixels the grid item will grow or shrink per increment.
-   * Use smaller numbers to give users more granular and precise control.
-   * Use larger numbers to give users more coarse and quick control.
-   */
-  const resizeMaxColumns = 50; // increment = divide page width by this value
-  const resizeRowHeightIncrement = 10; // approx. pixels to change vertically
-  const gridItemMargin = 1.03; // pixels, when grid layout margin is [1, 1]
-  const rowHeightWithMargin = resizeRowHeightIncrement + gridItemMargin;
-
-  const [gridMaxRows, setGridMaxRows] = useState<number>(10);
-
-  // Recalculate the max grid layout height when the window is resized.
-  // This lets the user drag the grid items around the whole window.
-  // https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
-  useEffect(() => {
-    const onWindowResize = () => {
-      setGridMaxRows(Math.floor(window.innerHeight / rowHeightWithMargin));
-    };
-    window.addEventListener('resize', onWindowResize);
-    return () => {
-      window.removeEventListener('resize', onWindowResize);
-    };
-  }, []);
 
   /**
    * Define the initial layout state.
@@ -97,15 +60,59 @@ const Grid: React.FC = (): JSX.Element => {
    *      then the grid item will rerender.
    */
   const [layout, setLayout] = useState<Array<Layout & { [key: string]: any }>>([
-    { i: 'a', x: 0, y: 0, w: 4, minW: 5, h: 10, minH: 2, title: 'Room' },
-    { i: 'b', x: 4, y: 0, w: 5, minW: 5, h: 10, minH: 2, title: 'Spells' },
-    { i: 'c', x: 9, y: 0, w: 6, minW: 5, h: 10, minH: 2, title: 'Combat' },
+    { i: 'a', x: 0, y: 0, w: 5, minW: 5, h: 10, minH: 2, title: 'Room' },
+    { i: 'b', x: 5, y: 5, w: 5, minW: 5, h: 10, minH: 2, title: 'Spells' },
+    { i: 'c', x: 10, y: 10, w: 5, minW: 5, h: 10, minH: 2, title: 'Combat' },
   ]);
+
+  /**
+   * When grid items are resized the increment is based on the the layout size.
+   * Horizontal resize increments are based on the number of columns.
+   * Vertical resize increments are based on row height.
+   * Why two different units? I don't know.
+   */
+
+  /* Horizontal Resizing */
+
+  // The grid layout is divided into columns.
+  // The resize increment is the layout's width divided by the number of columns.
+  // Use larger values to give users fine-grained control.
+  // Use smaller values for coarse-grained control.
+  const gridMaxColumns = 50;
+
+  /* Vertical Resizing */
+
+  // A grid item has a height, and if the layout has margins then there
+  // is a number of pixels margin between each row, too. Therefore, the
+  // total height of a grid item is the height plus the margin.
+  // Playing around with different row heights, I deduced that the margin
+  // size in pixels when the layout's margin is [1, 1] is ~1.03 pixels.
+  const gridRowHeight = 10;
+  const gridRowMargin = 1.03;
+  const gridRowHeightWithMargin = gridRowHeight + gridRowMargin;
+
+  /* Window Resizing */
+
+  // As the window dimensions change, we need to update the layout, too,
+  // so that the layout always fits the window exactly.
+  // This allows the user to drag grid items anywhere within the window.
+  const [gridMaxRows, setGridMaxRows] = useState<number>();
+  const [gridMaxWidth, setGridMaxWidth] = useState<number>(1200); // app.ts
+
+  useEffect(() => {
+    const { height, width } = windowDimensions;
+    if (height) {
+      setGridMaxRows(Math.floor(height / gridRowHeightWithMargin));
+    }
+    if (width) {
+      setGridMaxWidth(width);
+    }
+  }, [windowDimensions]);
 
   const lastLayoutThatRespectsMaxHeight = useRef<Array<Layout>>([]);
 
   /**
-   * Originally I called `useRef` in the `children` `useMemo` hook below but
+   * Originally I called `useRef` in the children's `useMemo` hook below but
    * that caused "Error: Rendered fewer hooks than expected" to be thrown.
    * I later learned the "Rule of Hooks" which forbid what I was doing.
    * Found a workaround on stackoverflow to store the refs in a ref. Ironic.
@@ -125,7 +132,6 @@ const Grid: React.FC = (): JSX.Element => {
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
   const children = useMemo(() => {
-    logger.info('creating children');
     return layout.map((item, i) => {
       return (
         <GridItem
@@ -140,14 +146,18 @@ const Grid: React.FC = (): JSX.Element => {
   }, [layout.length]);
 
   return (
-    <ResponsiveGridLayout
+    <GridLayout
       css={gridLayoutStyles}
-      layouts={{ lg: layout }}
-      breakpoints={{ lg: 1200 }}
-      cols={{ lg: resizeMaxColumns }}
-      rowHeight={resizeRowHeightIncrement}
+      layout={layout}
+      cols={gridMaxColumns}
+      width={gridMaxWidth}
+      rowHeight={gridRowHeight}
       maxRows={gridMaxRows}
+      // Disable the grid from managing its own height.
+      // We manage it explicitly in the `gridLayoutStyles` above.
       autoSize={false}
+      // Provide nominal spacing between grid items.
+      // If this value changes then review the grid row height variables.
       margin={[1, 1]}
       onLayoutChange={(layout) => {
         // const isTooTall = layout.some((item) => {
@@ -160,16 +170,25 @@ const Grid: React.FC = (): JSX.Element => {
       onResizeStart={(layout) => {
         lastLayoutThatRespectsMaxHeight.current = layout;
       }}
+      // Allow items to be placed anywhere in the grid.
       compactType={null}
+      // Prevent items from overlapping or being pushed.
+      preventCollision={true}
+      // Prevent items from being dragged outside the grid.
       isBounded={true}
+      // Allow items to be dragged around the grid.
       isDraggable={true}
+      // Allow items to be dropped around the grid.
       isDroppable={true}
+      // Allow items to be resized within the grid.
       isResizable={true}
+      // The grid item's bottom right corner is used as the handle for resizing.
       resizeHandles={['se']}
+      // The grid item's title bar is used as the handle for dragging.
       draggableHandle={'.grab-handle'}
     >
       {children}
-    </ResponsiveGridLayout>
+    </GridLayout>
   );
 };
 
