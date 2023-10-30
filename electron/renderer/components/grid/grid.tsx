@@ -50,8 +50,9 @@ const Grid: React.FC = (): JSX.Element => {
    * The min width and height are used to prevent the grid item from being
    * resized so small that it's unusable and hides its title bar.
    *
-   * TODO save the layout on changes
-   * TODO load the layout according to user's preferences
+   * TODO move the definition of the layout to a separate file
+   *      and pass this in as a grid prop
+   * TODO load the layout from storage
    * TODO create an item per game window that is open (e.g. Room, Spells, etc)
    *      and one of the properties should be the game window's title
    *      and one of the properties should be the game window's text
@@ -59,11 +60,48 @@ const Grid: React.FC = (): JSX.Element => {
    *      and then exposes a property that is the text so that when that changes
    *      then the grid item will rerender.
    */
-  const [layout, setLayout] = useState<Array<Layout & { [key: string]: any }>>([
-    { i: 'a', x: 0, y: 0, w: 5, minW: 5, h: 10, minH: 2, title: 'Room' },
-    { i: 'b', x: 5, y: 5, w: 5, minW: 5, h: 10, minH: 2, title: 'Spells' },
-    { i: 'c', x: 10, y: 10, w: 5, minW: 5, h: 10, minH: 2, title: 'Combat' },
-  ]);
+  type MyLayout = Array<Layout & { [key: string]: any }>;
+  const defaultLayout: MyLayout = [
+    {
+      i: 'a',
+      x: 0,
+      y: 0,
+      w: 5,
+      minW: 5,
+      h: 10,
+      minH: 2,
+      // TODO the title and content should come from another variable
+      //      the coordinates should be part of a layout that gets saved/loaded
+      //      and the cross-ref between the two should be the key (`i` prop)
+      //      This is because the react nodes are not serializable.
+      title: 'Room',
+      content: <EuiText css={gridItemTextStyles}>room room room</EuiText>,
+    },
+    {
+      i: 'b',
+      x: 5,
+      y: 5,
+      w: 5,
+      minW: 5,
+      h: 10,
+      minH: 2,
+      title: 'Spells',
+      content: <EuiText css={gridItemTextStyles}>spells spells spells</EuiText>,
+    },
+    {
+      i: 'c',
+      x: 10,
+      y: 10,
+      w: 5,
+      minW: 5,
+      h: 10,
+      minH: 2,
+      title: 'Combat',
+      content: <EuiText css={gridItemTextStyles}>combat combat combat</EuiText>,
+    },
+  ];
+
+  const [layout, setLayout] = useState<MyLayout>(defaultLayout);
 
   /**
    * When grid items are resized the increment is based on the the layout size.
@@ -109,8 +147,6 @@ const Grid: React.FC = (): JSX.Element => {
     }
   }, [windowDimensions]);
 
-  const lastLayoutThatRespectsMaxHeight = useRef<Array<Layout>>([]);
-
   /**
    * Originally I called `useRef` in the children's `useMemo` hook below but
    * that caused "Error: Rendered fewer hooks than expected" to be thrown.
@@ -139,7 +175,7 @@ const Grid: React.FC = (): JSX.Element => {
           ref={childRefs.current[i]}
           titleBarText={item.title}
         >
-          <EuiText css={gridItemTextStyles}>Hello World</EuiText>
+          {item.content}
         </GridItem>
       );
     });
@@ -160,15 +196,8 @@ const Grid: React.FC = (): JSX.Element => {
       // If this value changes then review the grid row height variables.
       margin={[1, 1]}
       onLayoutChange={(layout) => {
-        // const isTooTall = layout.some((item) => {
-        //   return false;
-        // });
-      }}
-      onDragStart={(layout) => {
-        lastLayoutThatRespectsMaxHeight.current = layout;
-      }}
-      onResizeStart={(layout) => {
-        lastLayoutThatRespectsMaxHeight.current = layout;
+        // TODO save the layout to storage
+        setLayout(layout);
       }}
       // Allow items to be placed anywhere in the grid.
       compactType={null}
