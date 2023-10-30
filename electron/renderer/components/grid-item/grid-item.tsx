@@ -80,13 +80,15 @@ function separateResizeHandleComponents(nodes: ReactNode): {
 
   if (Array.isArray(nodes)) {
     for (const child of nodes) {
-      if (child.key?.startsWith('resizableHandle-')) {
-        resizeHandles.push(child);
-      } else {
-        children.push(child);
+      if (child) {
+        if (child.key?.startsWith('resizableHandle-')) {
+          resizeHandles.push(child);
+        } else {
+          children.push(child);
+        }
       }
     }
-  } else {
+  } else if (nodes) {
     children.push(nodes);
   }
 
