@@ -7,6 +7,7 @@ import {
   sendAndReceive,
 } from '../tls/tls.utils';
 import {
+  SGECharacter,
   SGEGame,
   SGEGameCode,
   SGEGameCredentials,
@@ -79,6 +80,61 @@ export async function login(options: {
     };
   } catch (error) {
     logger.error('error logging in', { error });
+    socket.destroy();
+    throw error;
+  }
+}
+
+/**
+ * List the characters available to the account.
+ */
+export async function listCharacters(options: {
+  /**
+   * Play.net account name
+   */
+  username: string;
+  /**
+   * Play.net account password
+   */
+  password: string;
+  /**
+   * Which instance of the game to log in to.
+   */
+  gameCode: SGEGameCode;
+  /**
+   * Any additional options to use when making the socket connection.
+   */
+  connectOptions?: tls.ConnectionOptions;
+}): Promise<Array<SGECharacter>> {
+  const { username, password, gameCode } = options;
+
+  // Connect to login server
+  const socket = await connect(options.connectOptions);
+
+  try {
+    // Authenticate to login server
+    await authenticate({
+      socket,
+      username,
+      password,
+    });
+
+    // Confirm account has access to the game they want to play
+    await validateGameCode({ socket, gameCode });
+
+    // Confirm account's subscription status to play the game
+    // We don't need this, but the SGE protocol requires us to do it
+    // before we can list the characters available to the account
+    await getGameSubscription({ socket, gameCode });
+
+    // Retrieve list of characters available to the account
+    const characters = await listAvailableCharacters({ socket });
+
+    socket.end();
+
+    return characters;
+  } catch (error) {
+    logger.error('error listing characters', { error });
     socket.destroy();
     throw error;
   }
@@ -420,6 +476,23 @@ async function getCharacterId(options: {
 }): Promise<string | undefined> {
   const { socket, characterName } = options;
 
+  const characters = await listAvailableCharacters({ socket });
+
+  const character = characters.find((character: SGECharacter): boolean => {
+    return character.name === characterName;
+  });
+
+  return character?.id;
+}
+
+/**
+ * Get list of the account's available characters.
+ */
+async function listAvailableCharacters(options: {
+  socket: tls.TLSSocket;
+}): Promise<Array<SGECharacter>> {
+  const { socket } = options;
+
   /**
    * Get list of the account's available character names and ids
    *  'C\t1\t1\t0\t0\t{character_id_1}\t{character_name_1}\t{character_id_2}\t{character_name_2}\t...'
@@ -431,13 +504,18 @@ async function getCharacterId(options: {
     })
   ).toString();
 
+  const characters = new Array<SGECharacter>();
+
   const pairs = response.split('\t').slice(5);
   for (let i = 0; i < pairs.length - 1; i += 2) {
     const id = pairs[i];
     const name = pairs[i + 1];
 
-    if (name === characterName) {
-      return id;
-    }
+    characters.push({
+      id,
+      name,
+    });
   }
+
+  return characters;
 }
