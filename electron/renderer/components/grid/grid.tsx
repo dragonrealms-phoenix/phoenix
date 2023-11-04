@@ -1,11 +1,33 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
 import { SerializedStyles, css } from '@emotion/react';
-import { Ref, createRef, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ReactNode,
+  Ref,
+  createRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import GridLayout, { Layout } from 'react-grid-layout';
 import { useWindowDimensions } from '../../hooks/window-dimensions';
+import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
 
-const Grid: React.FC = (): JSX.Element => {
+interface GridItemProps {
+  itemId: string;
+  title: string;
+  content: ReactNode;
+}
+
+interface GridProps {
+  items: Array<GridItemProps>;
+}
+
+const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
+  const { items } = props;
+
   const { euiTheme } = useEuiTheme();
 
   const windowDimensions = useWindowDimensions();
@@ -43,65 +65,6 @@ const Grid: React.FC = (): JSX.Element => {
     paddingLeft: euiTheme.size.s,
     paddingRight: euiTheme.size.s,
   });
-
-  /**
-   * Define the initial layout state.
-   *
-   * The min width and height are used to prevent the grid item from being
-   * resized so small that it's unusable and hides its title bar.
-   *
-   * TODO move the definition of the layout to a separate file
-   *      and pass this in as a grid prop
-   * TODO load the layout from storage
-   * TODO create an item per game window that is open (e.g. Room, Spells, etc)
-   *      and one of the properties should be the game window's title
-   *      and one of the properties should be the game window's text
-   *      Probably make the property another component to encapsulate use of rxjs
-   *      and then exposes a property that is the text so that when that changes
-   *      then the grid item will rerender.
-   */
-  type MyLayout = Array<Layout & { [key: string]: any }>;
-  const defaultLayout: MyLayout = [
-    {
-      i: 'a',
-      x: 0,
-      y: 0,
-      w: 5,
-      minW: 5,
-      h: 10,
-      minH: 2,
-      // TODO the title and content should come from another variable
-      //      the coordinates should be part of a layout that gets saved/loaded
-      //      and the cross-ref between the two should be the key (`i` prop)
-      //      This is because the react nodes are not serializable.
-      title: 'Room',
-      content: <EuiText css={gridItemTextStyles}>room room room</EuiText>,
-    },
-    {
-      i: 'b',
-      x: 5,
-      y: 5,
-      w: 5,
-      minW: 5,
-      h: 10,
-      minH: 2,
-      title: 'Spells',
-      content: <EuiText css={gridItemTextStyles}>spells spells spells</EuiText>,
-    },
-    {
-      i: 'c',
-      x: 10,
-      y: 10,
-      w: 5,
-      minW: 5,
-      h: 10,
-      minH: 2,
-      title: 'Combat',
-      content: <EuiText css={gridItemTextStyles}>combat combat combat</EuiText>,
-    },
-  ];
-
-  const [layout, setLayout] = useState<MyLayout>(defaultLayout);
 
   /**
    * When grid items are resized the increment is based on the the layout size.
@@ -148,6 +111,75 @@ const Grid: React.FC = (): JSX.Element => {
   }, [windowDimensions]);
 
   /**
+   * Load the layout from storage or build a default layout.
+   */
+  const buildDefaultLayout = (): Array<Layout> => {
+    let layout = LocalStorage.get<Array<Layout>>('layout');
+
+    if (layout) {
+      layout = layout.filter((layoutItem) => {
+        return items.find((item) => item.itemId === layoutItem.i);
+      });
+      return layout;
+    }
+
+    // We'll tile the items three per row.
+    const maxItemsPerRow = 3;
+
+    // The min width and height are used to prevent the grid item from being
+    //resized so small that it's unusable and hides its title bar.
+    const minWidth = 5;
+    const minHeight = 2;
+
+    // The number of columns and rows the item will span.
+    const defaultWidth = Math.floor(gridMaxColumns / maxItemsPerRow);
+    const defaultHeight = gridRowHeight;
+
+    let rowOffset = 0;
+    let colOffset = 0;
+
+    layout = items.map((item, index): Layout => {
+      // If time to move to next row then adjust the offsets.
+      if (index > 0 && index % maxItemsPerRow === 0) {
+        rowOffset += gridRowHeight;
+        colOffset = 0;
+      }
+
+      const newItem = {
+        i: item.itemId,
+        x: defaultWidth * colOffset,
+        y: rowOffset,
+        w: defaultWidth,
+        h: defaultHeight,
+        minW: minWidth,
+        minH: minHeight,
+      };
+
+      colOffset += 1;
+
+      return newItem;
+    });
+
+    return layout;
+  };
+
+  const [layout, setLayout] = useState<Array<Layout>>(buildDefaultLayout);
+
+  // Save the layout when it changes in the grid.
+  const onLayoutChange = useCallback((layout: Array<Layout>) => {
+    setLayout(layout);
+    LocalStorage.set('layout', layout);
+  }, []);
+
+  // Remove the item from the layout.
+  const onGridItemClose = useCallback((itemId: string) => {
+    const newLayout = layout.filter((layoutItem) => {
+      return layoutItem.i !== itemId;
+    });
+    onLayoutChange(newLayout);
+  }, []);
+
+  /**
    * Originally I called `useRef` in the children's `useMemo` hook below but
    * that caused "Error: Rendered fewer hooks than expected" to be thrown.
    * I later learned the "Rule of Hooks" which forbid what I was doing.
@@ -168,14 +200,17 @@ const Grid: React.FC = (): JSX.Element => {
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
   const children = useMemo(() => {
-    return layout.map((item, i) => {
+    return layout.map((layoutItem, i) => {
+      const item = items.find((item) => item.itemId === layoutItem.i);
       return (
         <GridItem
-          key={item.i}
+          key={item!.itemId}
           ref={childRefs.current[i]}
-          titleBarText={item.title}
+          itemId={item!.itemId}
+          titleBarText={item!.title}
+          onClose={onGridItemClose}
         >
-          {item.content}
+          <EuiText css={gridItemTextStyles}>{item!.content}</EuiText>
         </GridItem>
       );
     });
@@ -195,10 +230,8 @@ const Grid: React.FC = (): JSX.Element => {
       // Provide nominal spacing between grid items.
       // If this value changes then review the grid row height variables.
       margin={[1, 1]}
-      onLayoutChange={(layout) => {
-        // TODO save the layout to storage
-        setLayout(layout);
-      }}
+      // Handle each time the layout changes (e.g. an item is moved or resized)
+      onLayoutChange={onLayoutChange}
       // Allow items to be placed anywhere in the grid.
       compactType={null}
       // Prevent items from overlapping or being pushed.
