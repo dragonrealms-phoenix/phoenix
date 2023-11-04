@@ -49,7 +49,18 @@ if (appEnvIsProd) {
   });
 }
 
+// Multiple events on startup might try to create a window.
+// For example, just starting the app or clicking the dock icon.
+// Track if we are already creating one to avoid conflicts.
+let isCreatingWindow = false;
+
 const createWindow = async (): Promise<void> => {
+  if (isCreatingWindow) {
+    return;
+  }
+
+  isCreatingWindow = true;
+
   if (appEnvIsDev) {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
