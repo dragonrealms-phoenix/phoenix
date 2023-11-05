@@ -1,7 +1,11 @@
 // Only import types from electron-log because the actual logger
 // to use depends on if the code runs in the main or renderer process.
 // It's in those modules that the correct logger instance will be imported.
-import type { Logger as ElectronLogger, LogMessage } from 'electron-log';
+import type {
+  Logger as ElectronLogger,
+  LogLevel,
+  LogMessage,
+} from 'electron-log';
 import { camelCase, get } from 'lodash';
 import type { LogData, LogFunction, Logger } from './logger.types';
 
@@ -25,6 +29,16 @@ export function initializeLogging(logger: ElectronLogger): void {
       message.data = [text, formatLogData(data)];
     }
     return message;
+  });
+
+  // Set the log level.
+  // eslint-disable-next-line no-restricted-globals -- process.env is allowed
+  const logLevel = (process.env.LOG_LEVEL ?? 'info') as LogLevel;
+  Object.keys(logger.transports).forEach((transportKey) => {
+    const transport = logger.transports[transportKey];
+    if (transport) {
+      transport.level = logLevel;
+    }
   });
 
   // Overwrite the console.log/warn/etc methods
