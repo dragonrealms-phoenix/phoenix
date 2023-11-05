@@ -1,9 +1,8 @@
-import dotenv from 'dotenv';
+import { config as initializeDotenv } from 'dotenv';
 import { initializeLogging } from './logger';
 import { initializeSentry } from './sentry';
 
-dotenv.config();
-
+initializeDotenv();
 initializeLogging();
 initializeSentry();
 
