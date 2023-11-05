@@ -30,6 +30,10 @@ export async function sendAndReceive(options: {
       resolveSocket(response);
     };
 
+    const closedListener = (): void => {
+      rejectSocket(new Error('ERR:SOCKET:CLOSED'));
+    };
+
     const timeoutListener = (): void => {
       const timeout = socket.timeout;
       rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
@@ -41,12 +45,16 @@ export async function sendAndReceive(options: {
 
     const addListeners = (): void => {
       socket.once('data', dataListener);
+      socket.once('end', closedListener);
+      socket.once('close', closedListener);
       socket.once('timeout', timeoutListener);
       socket.once('error', errorListener);
     };
 
     const removeListeners = (): void => {
       socket.off('data', dataListener);
+      socket.off('end', closedListener);
+      socket.off('close', closedListener);
       socket.off('timeout', timeoutListener);
       socket.off('error', errorListener);
     };
