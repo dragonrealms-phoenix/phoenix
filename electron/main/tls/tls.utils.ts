@@ -15,10 +15,17 @@ const logger = createLogger('tls:utils');
 export async function sendAndReceive(options: {
   socket: tls.TLSSocket;
   payload: Buffer;
+  /**
+   * The number of milliseconds to wait for a response before timing out.
+   * Default is the socket's timeout value.
+   */
+  requestTimeout?: number;
 }): Promise<Buffer> {
-  const { socket, payload } = options;
+  const { socket, payload, requestTimeout = socket.timeout } = options;
 
   return new Promise<Buffer>((resolve, reject): void => {
+    let requestTimeoutId: NodeJS.Timeout | undefined;
+
     const dataListener = (response: Buffer): void => {
       resolveSocket(response);
     };
@@ -45,16 +52,24 @@ export async function sendAndReceive(options: {
     };
 
     const resolveSocket = (response: Buffer): void => {
+      clearTimeout(requestTimeoutId);
       removeListeners();
       resolve(response);
     };
 
     const rejectSocket = (error: Error): void => {
+      clearTimeout(requestTimeoutId);
       removeListeners();
       reject(error);
     };
 
     addListeners();
+
+    if (requestTimeout) {
+      requestTimeoutId = setTimeout(() => {
+        rejectSocket(new Error(`ERR:SOCKET:REQ:TIMEOUT:${requestTimeout}`));
+      }, requestTimeout);
+    }
 
     socket.write(payload);
   });
