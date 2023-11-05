@@ -43,6 +43,12 @@ const nextConfig = {
      * https://stackoverflow.com/questions/72840513/import-shared-code-in-next-js-app-in-a-monorepo
      */
     externalDir: true,
+    /**
+     * Use separate webpack worker during compilation to mitigate memory issues.
+     * https://github.com/vercel/next.js/pull/57346
+     * https://github.com/vercel/next.js/issues/57876
+     */
+    webpackBuildWorker: true,
   },
 
   compiler: {
@@ -172,7 +178,10 @@ const nextConfig = {
         SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
         SENTRY_ORG: process.env.SENTRY_ORG,
         SENTRY_PROJECT: process.env.SENTRY_PROJECT,
-
+        APP_ENV: process.env.APP_ENV,
+        LOG_LEVEL: process.env.LOG_LEVEL,
+        // I don't remember why I blank these out.
+        // It fixes something, maybe with the env name sent to Sentry?
         NEXT_PUBLIC_VERCEL_ENV: '',
         VERCEL_ENV: '',
       }),
