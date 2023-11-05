@@ -262,7 +262,7 @@ async function authenticate(options: {
   if (!response.includes('\tKEY\t')) {
     const authError = parseAuthError(response);
     logger.error('authentication failed', { authError });
-    throw new Error(`SGE:LOGIN:ERROR:${authError}`);
+    throw new Error(`[SGE:LOGIN:ERROR] ${authError}`);
   }
 }
 
@@ -314,7 +314,7 @@ async function validateGameCode(options: {
       gameCode,
       availableGames,
     });
-    throw new Error(`SGE:LOGIN:ERROR:GAME_NOT_FOUND:${gameCode}`);
+    throw new Error(`[SGE:LOGIN:ERROR:GAME_NOT_FOUND] ${gameCode}`);
   }
 }
 
@@ -382,7 +382,7 @@ async function getGameSubscription(options: {
 
   if (isProblemResponse(response)) {
     logger.error('problem with game subscription', { gameCode });
-    throw new Error(`SGE:LOGIN:ERROR:SUBSCRIPTION:${gameCode}`);
+    throw new Error(`[SGE:LOGIN:ERROR:SUBSCRIPTION] ${gameCode}`);
   }
 
   const [gameName, status] = response.split('\t').slice(1);
@@ -412,7 +412,7 @@ async function getGameCredentials(options: {
 
   if (!characterId) {
     logger.error('no character found', { characterName });
-    throw new Error(`SGE:LOGIN:ERROR:CHARACTER_NOT_FOUND:${characterName}`);
+    throw new Error(`[SGE:LOGIN:ERROR:CHARACTER_NOT_FOUND] ${characterName}`);
   }
 
   /**
@@ -461,10 +461,11 @@ async function getGameCredentials(options: {
 
   if (status !== 'OK') {
     logger.error('no game credentials received from login server', {
+      characterName,
       characterId,
       status,
     });
-    throw new Error(`SGE:LOGIN:ERROR:SUBSCRIPTION:${status}`);
+    throw new Error(`[SGE:LOGIN:ERROR:SUBSCRIPTION] ${status}`);
   }
 
   const gameHost = parseGameHost(response);
@@ -472,8 +473,13 @@ async function getGameCredentials(options: {
   const gameKey = parseGameKey(response);
 
   if (!gameHost || !gamePort || !gameKey) {
-    logger.error('failed to parse game credentials', { characterId });
-    throw new Error(`SGE:LOGIN:ERROR:PARSE_GAME_CREDENTIALS`);
+    logger.error('failed to parse game credentials', {
+      characterName,
+      characterId,
+    });
+    throw new Error(
+      `[SGE:LOGIN:ERROR:PARSE_GAME_CREDENTIALS] ${characterName}`
+    );
   }
 
   return {

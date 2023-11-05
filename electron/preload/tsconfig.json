@@ -23,6 +23,7 @@
     "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "useUnknownInCatchVariables": false,
     "skipLibCheck": true,
     "isolatedModules": true,
     "jsx": "preserve",

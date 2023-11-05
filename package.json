@@ -352,9 +352,28 @@
                         "url",
                         "util"
                       ],
-                      "message": "common package is shared with renderer which does not have node enabled"
+                      "message": "common package is used in non-node environments"
                     }
                   ]
+                }
+              ],
+              "no-restricted-globals": [
+                "error",
+                {
+                  "name": "__dirname",
+                  "message": "common package is used in non-node environments"
+                },
+                {
+                  "name": "__filename",
+                  "message": "common package is used in non-node environments"
+                },
+                {
+                  "name": "Buffer",
+                  "message": "common package is used in non-node environments"
+                },
+                {
+                  "name": "process",
+                  "message": "common package is used in non-node environments, only process.env is allowed"
                 }
               ]
             }
