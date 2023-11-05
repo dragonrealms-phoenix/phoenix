@@ -1,5 +1,6 @@
-import { ReactNode, createContext, useContext, useEffect } from 'react';
-import { Logger } from '../../../common/logger/logger.types';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import type { Logger } from '../../../common/logger/logger.types';
 import {
   createLogger,
   startMonitoringUnhandledExceptions,

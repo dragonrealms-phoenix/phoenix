@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import tls from 'node:tls';
 import { createLogger } from '../logger';
-import { SelfSignedCertConnectOptions } from './tls.types';
+import type { SelfSignedCertConnectOptions } from './tls.types';
 
 const logger = createLogger('tls:utils');
 

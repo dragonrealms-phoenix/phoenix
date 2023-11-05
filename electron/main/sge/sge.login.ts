@@ -6,15 +6,15 @@ import {
   downloadCertificate,
   sendAndReceive,
 } from '../tls/tls.utils';
-import {
+import type {
   SGECharacter,
   SGEGame,
   SGEGameCode,
   SGEGameCredentials,
-  SGEGameProtocol,
   SGEGameSubscription,
   SGELoginResponse,
 } from './sge.types';
+import { SGEGameProtocol } from './sge.types';
 import { hashPassword, isProblemResponse } from './sge.utils';
 
 const logger = createLogger('sge:login');

@@ -1,12 +1,7 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/components/theme.tsx
 
-import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import {
   enableTheme,
   getDefaultThemeName,

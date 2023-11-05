@@ -9,15 +9,14 @@ import {
   useEuiOverflowScroll,
 } from '@elastic/eui';
 import { css } from '@emotion/react';
-import {
+import type {
   CSSProperties,
   MouseEvent,
   ReactNode,
   Ref,
   TouchEvent,
-  forwardRef,
-  useCallback,
 } from 'react';
+import { forwardRef, useCallback } from 'react';
 
 interface GridItemProps {
   /**

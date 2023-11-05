@@ -3,7 +3,7 @@
 // It's in those modules that the correct logger instance will be imported.
 import type { Logger as ElectronLogger, LogMessage } from 'electron-log';
 import { camelCase, get } from 'lodash';
-import { LogData, LogFunction, Logger } from './logger.types';
+import type { LogData, LogFunction, Logger } from './logger.types';
 
 export function createLogger(scope?: string): Logger {
   let electronLogger: ElectronLogger;

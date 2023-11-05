@@ -1,12 +1,8 @@
 import dynamic from 'next/dynamic';
-import {
-  ReactNode,
-  createElement,
-  isValidElement,
-  useEffect,
-  useState,
-} from 'react';
-import { Observable, interval, map, take } from 'rxjs';
+import type { ReactNode } from 'react';
+import { createElement, isValidElement, useEffect, useState } from 'react';
+import type { Observable } from 'rxjs';
+import { interval, map, take } from 'rxjs';
 import { Grid } from '../components/grid';
 import { useLogger } from '../components/logger';
 

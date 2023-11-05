@@ -1,8 +1,9 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/components/chrome/index.tsx
 
-import { EuiProvider, EuiThemeColorMode } from '@elastic/eui';
+import type { EuiThemeColorMode } from '@elastic/eui';
+import { EuiProvider } from '@elastic/eui';
 import createCache from '@emotion/cache';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useTheme } from '../theme/theme';
 
 interface ChromeProviderProps {

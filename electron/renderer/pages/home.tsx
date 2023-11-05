@@ -1,4 +1,5 @@
-import { ReactNode, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { runInBackground } from '../../common/async/async.utils';
 import { useLogger } from '../components/logger';
 

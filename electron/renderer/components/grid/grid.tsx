@@ -1,8 +1,8 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
-import { SerializedStyles, css } from '@emotion/react';
+import type { SerializedStyles } from '@emotion/react';
+import { css } from '@emotion/react';
+import type { ReactNode, Ref } from 'react';
 import {
-  ReactNode,
-  Ref,
   createRef,
   useCallback,
   useEffect,
@@ -10,7 +10,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import GridLayout, { Layout } from 'react-grid-layout';
+import type { Layout } from 'react-grid-layout';
+import GridLayout from 'react-grid-layout';
 import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
