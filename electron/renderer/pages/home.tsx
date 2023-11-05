@@ -8,8 +8,11 @@ const HomePage: React.FC = (): ReactNode => {
   const { logger } = useLogger('page:grid');
   useEffect(() => {
     runInBackground(async () => {
-      const response = await window.api.ping();
-      logger.info(response); // pong
+      logger.info('>> ping', { response: await window.api.ping() });
+      logger.info('>> speak', { response: await window.api.speak('electron') });
+      logger.info('>> climb', {
+        response: await window.api.climb({ height: 2 }),
+      });
     });
   }, []);
   // --

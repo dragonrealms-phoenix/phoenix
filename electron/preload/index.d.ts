@@ -3,9 +3,14 @@
  */
 declare const appAPI: {
   ping: () => Promise<string>;
+  speak: (text: string) => Promise<void>;
+  climb: (data: { height: number }) => Promise<number>;
 };
 declare global {
-  type AppAPI = typeof appAPI;
+  type TypeOfAppAPI = typeof appAPI;
+  type AppAPI = {
+    [K in keyof TypeOfAppAPI]: TypeOfAppAPI[K];
+  };
   interface Window {
     api: AppAPI;
   }
