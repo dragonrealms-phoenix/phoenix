@@ -8,6 +8,7 @@ import {
 } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
+import { runInBackground } from '../common/async/async.utils';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
 
@@ -49,18 +50,7 @@ if (appEnvIsProd) {
   });
 }
 
-// Multiple events on startup might try to create a window.
-// For example, just starting the app or clicking the dock icon.
-// Track if we are already creating one to avoid conflicts.
-let isCreatingWindow = false;
-
 const createWindow = async (): Promise<void> => {
-  if (isCreatingWindow) {
-    return;
-  }
-
-  isCreatingWindow = true;
-
   if (appEnvIsDev) {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
@@ -97,6 +87,7 @@ const createWindow = async (): Promise<void> => {
 
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
+    logger.info('showing window');
     mainWindow.show();
   });
 
@@ -106,22 +97,17 @@ const createWindow = async (): Promise<void> => {
 };
 
 // Prepare the renderer once the app is ready
-app.on('ready', async () => {
-  createWindow();
+app.on('ready', () => {
+  runInBackground(async () => {
+    await createWindow();
+  });
 
   // Listen for events emitted by the preload api
   ipcMain.handle('ping', async (): Promise<string> => {
     // Return response to renderer
+    logger.info('ping');
     return 'pong';
   });
-});
-
-app.on('activate', (): void => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
 });
 
 // Disable or limit creation of new windows to protect app and users.
@@ -144,9 +130,9 @@ app.on('web-contents-created', (_, contents) => {
     const domain = new URL(url).hostname;
     // If the domain is allowed, open it in the user's default browser.
     if (isAllowedDomain(domain)) {
-      logger.info('opening url in default browser', { url });
-      setImmediate(() => {
-        shell.openExternal(url);
+      runInBackground(async () => {
+        logger.info('opening url in default browser', { url });
+        await shell.openExternal(url);
       });
     } else {
       logger.warn('blocked window navigation', { url });
@@ -166,11 +152,7 @@ app.on('web-contents-created', (_, contents) => {
 });
 
 app.on('window-all-closed', (): void => {
-  // Quit when all windows are closed, except on macOS.
-  // It's convention for macOS apps to stay open until the user quits them.
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('quit', (): void => {
