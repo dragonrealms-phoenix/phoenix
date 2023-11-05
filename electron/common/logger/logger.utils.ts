@@ -1,12 +1,23 @@
-import electronLog, { LogMessage } from 'electron-log';
+// Only import types from electron-log because the actual logger
+// to use depends on if the code runs in the main or renderer process.
+// It's in those modules that the correct logger instance will be imported.
+import type { Logger as ElectronLogger, LogMessage } from 'electron-log';
 import { camelCase, get } from 'lodash';
 import { LogData, LogFunction, Logger } from './logger.types';
 
 export function createLogger(scope?: string): Logger {
-  return scope ? electronLog.scope(scope) : electronLog;
+  let electronLogger: ElectronLogger;
+  if (typeof window === 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    electronLogger = require('electron-log/main');
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    electronLogger = require('electron-log/renderer');
+  }
+  return scope ? electronLogger.scope(scope) : electronLogger;
 }
 
-export function initializeLogging(logger: electronLog.Logger): void {
+export function initializeLogging(logger: ElectronLogger): void {
   // Add our custom log formatter.
   logger.hooks.push((message: LogMessage): LogMessage => {
     const [text, data] = message.data as Parameters<LogFunction>;
