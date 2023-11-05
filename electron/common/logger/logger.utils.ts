@@ -1,6 +1,10 @@
 import electronLog, { LogMessage } from 'electron-log';
 import { camelCase, get } from 'lodash';
-import { LogData, LogFunction } from './logger.types';
+import { LogData, LogFunction, Logger } from './logger.types';
+
+export function createLogger(scope?: string): Logger {
+  return scope ? electronLog.scope(scope) : electronLog;
+}
 
 export function initializeLogging(logger: electronLog.Logger): void {
   // Add our custom log formatter.
