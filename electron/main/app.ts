@@ -3,19 +3,19 @@ import {
   Event,
   WebContentsWillNavigateEventParams,
   app,
-  ipcMain,
   shell,
 } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async/async.utils';
+import { registerIpcHandlers } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
-const logger = createLogger('main');
+const logger = createLogger('app');
 
 const appEnv = process.env.APP_ENV ?? 'production';
 const appEnvIsProd = appEnv === 'production';
@@ -99,14 +99,8 @@ const createWindow = async (): Promise<void> => {
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
   runInBackground(async () => {
+    registerIpcHandlers();
     await createWindow();
-  });
-
-  // Listen for events emitted by the preload api
-  ipcMain.handle('ping', async (): Promise<string> => {
-    // Return response to renderer
-    logger.info('ping');
-    return 'pong';
   });
 });
 
