@@ -1,12 +1,10 @@
 import electronLog from 'electron-log/renderer';
-import { Logger } from '../../common/logger/logger.types';
-import { initializeLogging } from '../../common/logger/logger.utils';
+import {
+  createLogger,
+  initializeLogging,
+} from '../../common/logger/logger.utils';
 
 initializeLogging(electronLog);
-
-export function createLogger(scope?: string): Logger {
-  return scope ? electronLog.scope(scope) : electronLog;
-}
 
 /**
  * Catch and log unhandled exceptions, such as promise rejections.
@@ -19,3 +17,5 @@ export function startMonitoringUnhandledExceptions(): void {
 export function stopMonitoringUnhandledExceptions(): void {
   electronLog.errorHandler.stopCatching();
 }
+
+export { createLogger };
