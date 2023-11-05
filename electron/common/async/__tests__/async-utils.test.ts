@@ -57,7 +57,7 @@ describe('async-utils', () => {
     });
 
     test('when promise rejects then it logs', (done) => {
-      const logger = createLogger('async:utils');
+      const logger = createLogger('test');
 
       runInBackground(async () => {
         throw new Error('test');
