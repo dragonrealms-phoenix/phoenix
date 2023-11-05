@@ -176,29 +176,22 @@ async function connect(
     logger.info('connected to login server');
   });
 
-  socket.once('end', (): void => {
+  socket.on('end', (): void => {
     logger.info('connection to login server ended', { host, port });
   });
 
-  socket.once('close', (): void => {
+  socket.on('close', (): void => {
     logger.info('connection to login server closed', { host, port });
   });
 
-  socket.once('timeout', (): void => {
+  socket.on('timeout', (): void => {
     const timeout = socket.timeout;
     logger.error('login server timed out', { host, port, timeout });
-    rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
   });
 
-  socket.once('error', (error: Error): void => {
+  socket.on('error', (error: Error): void => {
     logger.error('login server error', { host, port, error });
-    rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
   });
-
-  const rejectSocket = (error: Error): void => {
-    socket.destroy();
-    throw error;
-  };
 
   return socket;
 }
