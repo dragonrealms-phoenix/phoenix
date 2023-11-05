@@ -19,6 +19,10 @@ import { hashPassword, isProblemResponse } from './sge.utils';
 
 const logger = createLogger('sge:login');
 
+// As of November 2023, the login server's self-signed certificate
+// is valid until Nov 16, 3017. We'll cache it in memory for performance.
+let cachedTlsCertificate: tls.PeerCertificate | undefined;
+
 /**
  * SGE stands for Simutronics Game Entry
  * https://www.play.net/dr/play/sge-info.asp
@@ -158,8 +162,7 @@ async function connect(
 
   const { host, port } = mergedOptions;
 
-  logger.info('downloading login server certificate', { host, port });
-  const certToTrust = await downloadCertificate(mergedOptions);
+  const certToTrust = await getTrustedTlsCertificate(mergedOptions);
 
   mergedOptions = merge(
     mergedOptions,
@@ -198,6 +201,26 @@ async function connect(
   };
 
   return socket;
+}
+
+/**
+ * Gets the play.net login server's self-signed certificate.
+ * Use this anytime we connect to the SGE server to get or send customer data.
+ */
+async function getTrustedTlsCertificate(
+  connectOptions: tls.ConnectionOptions
+): Promise<tls.PeerCertificate> {
+  const { host, port } = connectOptions;
+
+  if (cachedTlsCertificate) {
+    logger.info('using cached login server certificate', { host, port });
+    return cachedTlsCertificate;
+  }
+
+  logger.info('downloading login server certificate', { host, port });
+  cachedTlsCertificate = await downloadCertificate(connectOptions);
+
+  return cachedTlsCertificate;
 }
 
 /**
