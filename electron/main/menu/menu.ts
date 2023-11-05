@@ -17,14 +17,14 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   submenu?: Array<DarwinMenuItemConstructorOptions> | Menu;
 }
 
-function initializeMenu(window?: BrowserWindow): void {
+function initializeMenu(window: BrowserWindow): void {
   const template = getMenuTemplate(window);
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
 
 function getMenuTemplate(
-  window?: BrowserWindow
+  window: BrowserWindow
 ): Array<Electron.MenuItemConstructorOptions> {
   return process.platform === 'darwin'
     ? buildDarwinTemplate(window)
@@ -64,7 +64,7 @@ function decreaseZoomFactor(window: BrowserWindow): void {
 }
 
 function buildDarwinTemplate(
-  window?: BrowserWindow
+  window: BrowserWindow
 ): Array<MenuItemConstructorOptions> {
   const subMenuApp: DarwinMenuItemConstructorOptions = {
     label: app.name,
@@ -136,61 +136,57 @@ function buildDarwinTemplate(
     ],
   };
 
-  const subMenuView: MenuItemConstructorOptions = !window
-    ? {}
-    : {
-        label: 'View',
-        submenu: [
-          {
-            label: 'Reload',
-            accelerator: 'Command+R',
-            visible: window !== undefined,
-            click: () => {
-              window.webContents.reload();
-            },
-          },
-          { type: 'separator' },
-          {
-            label: 'Toggle Full Screen',
-            accelerator: 'Ctrl+Command+F',
-            visible: window !== undefined,
-            click: () => {
-              const isFullScreen = window.isFullScreen();
-              window.setFullScreen(!isFullScreen);
-            },
-          },
-          {
-            label: 'Toggle Developer Tools',
-            accelerator: 'Alt+Command+I',
-            visible: !app.isPackaged,
-            click: () => {
-              window.webContents.toggleDevTools();
-            },
-          },
-          { type: 'separator' },
-          {
-            label: 'Reset Zoom',
-            accelerator: 'CmdOrCtrl+0',
-            click: () => {
-              resetZoomFactor(window);
-            },
-          },
-          {
-            label: 'Zoom In',
-            accelerator: 'CmdOrCtrl+=',
-            click: () => {
-              increaseZoomFactor(window);
-            },
-          },
-          {
-            label: 'Zoom Out',
-            accelerator: 'CmdOrCtrl+-',
-            click: () => {
-              decreaseZoomFactor(window);
-            },
-          },
-        ],
-      };
+  const subMenuView: MenuItemConstructorOptions = {
+    label: 'View',
+    submenu: [
+      {
+        label: 'Reload',
+        accelerator: 'Command+R',
+        click: () => {
+          window.webContents.reload();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Toggle Full Screen',
+        accelerator: 'Ctrl+Command+F',
+        click: () => {
+          const isFullScreen = window.isFullScreen();
+          window.setFullScreen(!isFullScreen);
+        },
+      },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator: 'Alt+Command+I',
+        visible: !app.isPackaged,
+        click: () => {
+          window.webContents.toggleDevTools();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Reset Zoom',
+        accelerator: 'CmdOrCtrl+0',
+        click: () => {
+          resetZoomFactor(window);
+        },
+      },
+      {
+        label: 'Zoom In',
+        accelerator: 'CmdOrCtrl+=',
+        click: () => {
+          increaseZoomFactor(window);
+        },
+      },
+      {
+        label: 'Zoom Out',
+        accelerator: 'CmdOrCtrl+-',
+        click: () => {
+          decreaseZoomFactor(window);
+        },
+      },
+    ],
+  };
 
   const subMenuWindow: DarwinMenuItemConstructorOptions = {
     label: 'Window',
@@ -203,9 +199,8 @@ function buildDarwinTemplate(
       {
         label: 'Close',
         accelerator: 'Command+W',
-        enabled: window !== undefined,
         click: () => {
-          window?.close();
+          window.close();
         },
       },
       {
@@ -287,7 +282,7 @@ function buildDarwinTemplate(
 }
 
 function buildDefaultTemplate(
-  window?: BrowserWindow
+  window: BrowserWindow
 ): Array<MenuItemConstructorOptions> {
   const subMenuWindow: MenuItemConstructorOptions = {
     label: '&Window',
@@ -296,7 +291,7 @@ function buildDefaultTemplate(
         label: '&Close',
         accelerator: 'Ctrl+W',
         click: () => {
-          window?.close();
+          window.close();
         },
       },
       // type separator cannot be invisible
