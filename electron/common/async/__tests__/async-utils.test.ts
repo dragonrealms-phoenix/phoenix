@@ -1,8 +1,8 @@
-import { createLogger } from '../../logger/logger.utils';
+import { createLogger } from '../../logger';
 import { runInBackground, sleep } from '../async.utils';
 
 jest.mock('../../logger/logger.utils', () => {
-  const actualModule = jest.requireActual('../../logger/logger.utils');
+  const actualModule = jest.requireActual('../../logger');
   return {
     ...actualModule,
     createLogger: jest.fn().mockReturnValue({
