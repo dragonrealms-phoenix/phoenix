@@ -17,11 +17,11 @@ export function maskSensitiveValues(options: {
   keys?: Array<string>;
   /**
    * The value to replace the matched keys with.
-   * Default is "[REDACTED]".
+   * Default is "***REDACTED***".
    */
   mask?: string;
 }): any {
-  const { json, keys = ['password', 'key'], mask = '[REDACTED]' } = options;
+  const { json, keys = ['password', 'key'], mask = '***REDACTED***' } = options;
 
   if (isNotMaskable(json)) {
     return json;
