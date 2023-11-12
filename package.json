@@ -34,7 +34,7 @@
     "clean:nextjs": "rm -rf electron/renderer/.next",
     "clean:themes": "rm -rf electron/renderer/public/themes",
     "clean:react-grid": "rm -rf electron/renderer/public/react-grid",
-    "clean": "concurrently \"yarn clean:dist\" \"yarn clean:build\" \"yarn clean:nextjs\" \"yarn clean:themes\" \"yarn clean:react-grid\" \"yarn clean:tsbuildinfo\"",
+    "clean": "concurrently \"yarn clean:dist\" \"yarn clean:build\" \"yarn clean:nextjs\" \"yarn clean:themes\" \"yarn clean:react-grid\" && yarn clean:tsbuildinfo",
     "prettier": "prettier --check .",
     "prettier:fix": "yarn prettier --write",
     "lint": "eslint --ext .js,.ts,.tsx .",
