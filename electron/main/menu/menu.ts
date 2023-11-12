@@ -1,6 +1,6 @@
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell } from 'electron';
-import { runInBackground } from '../../common/async/async.utils';
+import { runInBackground } from '../../common/async';
 
 /**
  * Inspired by RedisInsight
