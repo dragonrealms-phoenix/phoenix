@@ -2,7 +2,7 @@ import type { Event, WebContentsWillNavigateEventParams } from 'electron';
 import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
-import { runInBackground } from '../common/async/async.utils';
+import { runInBackground } from '../common/async';
 import { registerIpcHandlers } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';

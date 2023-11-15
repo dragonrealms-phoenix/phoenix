@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { runInBackground } from '../../common/async/async.utils';
+import { runInBackground } from '../../common/async';
 import { useLogger } from '../components/logger';
 
 const HomePage: React.FC = (): ReactNode => {
@@ -9,10 +9,7 @@ const HomePage: React.FC = (): ReactNode => {
   useEffect(() => {
     runInBackground(async () => {
       logger.info('>> ping', { response: await window.api.ping() });
-      logger.info('>> speak', { response: await window.api.speak('electron') });
-      logger.info('>> climb', {
-        response: await window.api.climb({ height: 2 }),
-      });
+      logger.info('>> sgeListCharacters', {});
     });
   }, []);
   // --
