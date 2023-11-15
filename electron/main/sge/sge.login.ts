@@ -5,7 +5,7 @@ import {
   createSelfSignedCertConnectOptions,
   downloadCertificate,
   sendAndReceive,
-} from '../tls/tls.utils';
+} from '../tls';
 import type {
   SGECharacter,
   SGEGame,
@@ -32,7 +32,7 @@ let cachedTlsCertificate: tls.PeerCertificate | undefined;
  * https://elanthipedia.play.net/SGE_protocol_(saved_post)
  * https://github.com/WarlockFE/warlock2/wiki/EAccess-Protocol
  */
-export async function login(options: {
+export async function loginCharacter(options: {
   /**
    * Play.net account name
    */
@@ -171,9 +171,9 @@ async function connect(
     })
   );
 
-  logger.info('connecting to login server');
+  logger.info('connecting to login server', { host, port });
   const socket = tls.connect(mergedOptions, (): void => {
-    logger.info('connected to login server');
+    logger.info('connected to login server', { host, port });
   });
 
   socket.on('end', (): void => {

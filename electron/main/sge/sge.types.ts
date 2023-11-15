@@ -73,3 +73,8 @@ export interface SGECharacter {
    */
   name: string;
 }
+
+export interface SGEService {
+  loginCharacter(characterName: string): Promise<SGEGameCredentials>;
+  listCharacters(): Promise<Array<SGECharacter>>;
+}
