@@ -3,8 +3,28 @@
  */
 declare const appAPI: {
   ping: () => Promise<string>;
-  speak: (text: string) => Promise<void>;
-  climb: (data: { height: number }) => Promise<number>;
+  /**
+   * List available characters for a given play.net account.
+   */
+  sgeListCharacters: (options: {
+    username: string;
+    password: string;
+    gameCode: string;
+  }) => Promise<
+    Array<{
+      id: string;
+      name: string;
+    }>
+  >;
+  /**
+   * Log in to game with a given character.
+   */
+  sgePlayCharacter: (options: {
+    username: string;
+    password: string;
+    gameCode: string;
+    characterName: string;
+  }) => Promise<void>;
 };
 declare global {
   type TypeOfAppAPI = typeof appAPI;

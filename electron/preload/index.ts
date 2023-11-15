@@ -10,11 +10,26 @@ const appAPI = {
   ping: async (): Promise<string> => {
     return ipcRenderer.invoke('ping');
   },
-  speak: async (text: string): Promise<void> => {
-    return ipcRenderer.invoke('speak', text);
+  /**
+   * List available characters for a given play.net account.
+   */
+  sgeListCharacters: async (options: {
+    username: string;
+    password: string;
+    gameCode: string;
+  }): Promise<Array<{ id: string; name: string }>> => {
+    return ipcRenderer.invoke('sgeListCharacters', options);
   },
-  climb: async (data: { height: number }): Promise<number> => {
-    return ipcRenderer.invoke('climb', data);
+  /**
+   * Log in to game with a given character.
+   */
+  sgePlayCharacter: async (options: {
+    username: string;
+    password: string;
+    gameCode: string;
+    characterName: string;
+  }): Promise<void> => {
+    return ipcRenderer.invoke('sgePlayCharacter', options);
   },
 };
 
