@@ -9,7 +9,6 @@ const HomePage: React.FC = (): ReactNode => {
   useEffect(() => {
     runInBackground(async () => {
       logger.info('>> ping', { response: await window.api.ping() });
-      logger.info('>> sgeListCharacters', {});
     });
   }, []);
   // --
