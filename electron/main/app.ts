@@ -3,9 +3,10 @@ import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
-import { registerIpcHandlers } from './ipc';
+import { IpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
+import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
@@ -86,6 +87,12 @@ const createWindow = async (): Promise<void> => {
     mainWindow.show();
   });
 
+  const dispatch: Dispatcher = (channel, ...args): void => {
+    mainWindow.webContents.send(channel, ...args);
+  };
+
+  new IpcController({ dispatch }).registerHandlers();
+
   await mainWindow.loadURL(appUrl);
 
   initializeMenu(mainWindow);
@@ -94,7 +101,6 @@ const createWindow = async (): Promise<void> => {
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
   runInBackground(async () => {
-    registerIpcHandlers();
     await createWindow();
   });
 });
