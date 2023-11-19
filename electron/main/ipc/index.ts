@@ -1,2 +1,2 @@
-export * from './ipc';
+export * from './ipc.controller';
 export * from './ipc.types';
