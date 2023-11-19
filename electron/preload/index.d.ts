@@ -4,27 +4,63 @@
 declare const appAPI: {
   ping: () => Promise<string>;
   /**
+   * Add credentials for a given play.net account.
+   */
+  sgeAddAccount: (options: {
+    gameCode: string;
+    username: string;
+    password: string;
+  }) => Promise<void>;
+  /**
+   * Remove credentials for a given play.net account.
+   */
+  sgeRemoveAccount: (options: {
+    gameCode: string;
+    username: string;
+  }) => Promise<void>;
+  /**
+   * List saved play.net accounts.
+   */
+  sgeListAccounts: (options: { gameCode: string }) => Promise<
+    {
+      gameCode: string;
+      username: string;
+    }[]
+  >;
+  /**
    * List available characters for a given play.net account.
    */
   sgeListCharacters: (options: {
-    username: string;
-    password: string;
     gameCode: string;
+    username: string;
   }) => Promise<
-    Array<{
+    {
       id: string;
       name: string;
-    }>
+    }[]
   >;
   /**
-   * Log in to game with a given character.
+   * Play the game with a given character.
+   * This app can only play one character at a time.
+   * Use the `onMessage` API to receive game data.
    */
-  sgePlayCharacter: (options: {
-    username: string;
-    password: string;
+  gamePlayCharacter: (options: {
     gameCode: string;
+    username: string;
     characterName: string;
   }) => Promise<void>;
+  /**
+   * Sends a command to the game as the currently playing character.
+   * Use the `onMessage` API to receive game data.
+   */
+  gameSendCommand: (command: string) => Promise<void>;
+  /**
+   * Allows the renderer to subscribe to messages from the main process.
+   */
+  onMessage: (
+    channel: string,
+    callback: (event: Electron.IpcRendererEvent, ...args: any[]) => void
+  ) => void;
 };
 declare global {
   type TypeOfAppAPI = typeof appAPI;

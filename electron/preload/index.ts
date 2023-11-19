@@ -1,3 +1,4 @@
+import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
 
 /**
@@ -11,25 +12,78 @@ const appAPI = {
     return ipcRenderer.invoke('ping');
   },
   /**
+   * Add credentials for a given play.net account.
+   */
+  sgeAddAccount: async (options: {
+    gameCode: string;
+    username: string;
+    password: string;
+  }): Promise<void> => {
+    return ipcRenderer.invoke('sgeAddAccount', options);
+  },
+  /**
+   * Remove credentials for a given play.net account.
+   */
+  sgeRemoveAccount: async (options: {
+    gameCode: string;
+    username: string;
+  }): Promise<void> => {
+    return ipcRenderer.invoke('sgeRemoveAccount', options);
+  },
+  /**
+   * List saved play.net accounts.
+   */
+  sgeListAccounts: async (options: {
+    gameCode: string;
+  }): Promise<
+    Array<{
+      gameCode: string;
+      username: string;
+    }>
+  > => {
+    return ipcRenderer.invoke('sgeListAccounts', options);
+  },
+  /**
    * List available characters for a given play.net account.
    */
   sgeListCharacters: async (options: {
-    username: string;
-    password: string;
     gameCode: string;
-  }): Promise<Array<{ id: string; name: string }>> => {
+    username: string;
+  }): Promise<
+    Array<{
+      id: string;
+      name: string;
+    }>
+  > => {
     return ipcRenderer.invoke('sgeListCharacters', options);
   },
   /**
-   * Log in to game with a given character.
+   * Play the game with a given character.
+   * This app can only play one character at a time.
+   * Use the `onMessage` API to receive game data.
    */
-  sgePlayCharacter: async (options: {
-    username: string;
-    password: string;
+  gamePlayCharacter: async (options: {
     gameCode: string;
+    username: string;
     characterName: string;
   }): Promise<void> => {
-    return ipcRenderer.invoke('sgePlayCharacter', options);
+    return ipcRenderer.invoke('gamePlayCharacter', options);
+  },
+  /**
+   * Sends a command to the game as the currently playing character.
+   * Use the `onMessage` API to receive game data.
+   */
+  gameSendCommand: async (command: string): Promise<void> => {
+    return ipcRenderer.invoke('gameSendCommand', command);
+  },
+  /**
+   * Allows the renderer to subscribe to messages from the main process.
+   */
+  onMessage: (
+    channel: string,
+    callback: (event: IpcRendererEvent, ...args: Array<any>) => void
+  ) => {
+    ipcRenderer.on(channel, callback);
   },
 };
 
