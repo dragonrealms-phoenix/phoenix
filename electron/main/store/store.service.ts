@@ -1,7 +1,7 @@
 import { app, safeStorage } from 'electron';
 import path from 'node:path';
 import { isNil } from 'lodash';
-import type { CacheService } from '../cache';
+import type { CacheService, DiskCacheOptions } from '../cache';
 import { DiskCacheServiceImpl } from '../cache';
 import { createLogger } from '../logger';
 import type { StoreService, StoreSetOptions, StoredValue } from './store.types';
@@ -14,10 +14,8 @@ const logger = createLogger('store');
 class StoreServiceImpl implements StoreService {
   private cacheService: CacheService;
 
-  constructor(options: { filepath: string }) {
-    this.cacheService = new DiskCacheServiceImpl({
-      filepath: options.filepath,
-    });
+  constructor(options: DiskCacheOptions) {
+    this.cacheService = new DiskCacheServiceImpl(options);
   }
 
   public async get<T>(key: string): Promise<T | undefined> {

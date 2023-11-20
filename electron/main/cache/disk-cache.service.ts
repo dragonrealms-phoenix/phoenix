@@ -20,23 +20,27 @@ class DiskCacheServiceImpl extends AbstractCacheService {
 
   constructor(private options: DiskCacheOptions) {
     super();
-    this.delegate = new MemoryCacheServiceImpl();
-    this.init();
+    this.delegate = this.createCacheServiceFromDisk();
   }
 
-  private init(): void {
+  private createCacheServiceFromDisk(): CacheService {
     const { filepath } = this.options;
+
+    let cache: Cache = {};
+
     try {
       if (!fs.pathExistsSync(filepath)) {
         fs.writeJsonSync(filepath, {});
       }
-      this.delegate = new MemoryCacheServiceImpl(fs.readJsonSync(filepath));
+      cache = fs.readJsonSync(filepath);
     } catch (error) {
       logger.error('error initializing disk cache', {
         filepath,
         error,
       });
     }
+
+    return new MemoryCacheServiceImpl(cache);
   }
 
   public async set<T>(key: string | number, item: T): Promise<void> {
