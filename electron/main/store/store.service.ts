@@ -18,6 +18,10 @@ class StoreServiceImpl implements StoreService {
     this.cacheService = new DiskCacheServiceImpl(options);
   }
 
+  public async keys(): Promise<Array<string>> {
+    return Object.keys(await this.cacheService.readCache());
+  }
+
   public async get<T>(key: string): Promise<T | undefined> {
     const storedValue = await this.cacheService.get<StoredValue<T>>(key);
 
@@ -69,6 +73,10 @@ class StoreServiceImpl implements StoreService {
 
   public async remove(key: string): Promise<void> {
     await this.cacheService.remove(key);
+  }
+
+  public async removeAll(): Promise<void> {
+    await this.cacheService.clear();
   }
 }
 

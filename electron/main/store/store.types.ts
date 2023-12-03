@@ -17,7 +17,9 @@ export interface StoreSetOptions {
 }
 
 export interface StoreService {
+  keys(): Promise<Array<string>>;
   get<T>(key: string): Promise<T | undefined>;
   set<T>(key: string, value: T, options?: StoreSetOptions): Promise<void>;
   remove(key: string): Promise<void>;
+  removeAll(): Promise<void>;
 }
