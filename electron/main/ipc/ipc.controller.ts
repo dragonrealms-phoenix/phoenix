@@ -1,10 +1,15 @@
 import { ipcMain } from 'electron';
 import { createLogger } from '../logger';
+import type { SGEGameCode } from '../sge';
+import { SGEServiceImpl } from '../sge';
+import { store } from '../store';
 import type { Dispatcher } from '../types';
 import type {
   IpcHandlerRegistry,
   IpcInvokableEvent,
   IpcInvokeHandler,
+  SGEListAccountsResponse,
+  SGEListCharactersResponse,
 } from './ipc.types';
 
 const logger = createLogger('ipc');
@@ -69,66 +74,93 @@ export class IpcController {
   ): Promise<void> => {
     const { gameCode, username, password } = args[0];
 
-    // TODO
-    logger.info('sgeAddAccountHandler', { gameCode, username });
+    logger.debug('sgeAddAccountHandler', { gameCode, username });
+
+    const key = this.getSgeAccountStoreKey({ gameCode, username });
+    await store.set(key, password, { encrypted: true });
   };
 
   private sgeRemoveAccountHandler: IpcInvokeHandler<'sgeRemoveAccount'> =
     async (args): Promise<void> => {
       const { gameCode, username } = args[0];
 
-      // TODO
-      logger.info('sgeRemoveAccountHandler', { gameCode, username });
+      logger.debug('sgeRemoveAccountHandler', { gameCode, username });
+
+      const key = this.getSgeAccountStoreKey({ gameCode, username });
+      await store.remove(key);
     };
 
   private sgeListAccountsHandler: IpcInvokeHandler<'sgeListAccounts'> = async (
     args
-  ): Promise<
-    Array<{
-      gameCode: string;
-      username: string;
-    }>
-  > => {
+  ): Promise<SGEListAccountsResponse> => {
     const { gameCode } = args[0];
 
-    // TODO
-    logger.info('sgeListAccountsHandler', { gameCode });
+    logger.debug('sgeListAccountsHandler', { gameCode });
 
-    return [];
+    const keys = await store.keys();
+    const keyPrefix = this.getSgeAccountStoreKey({ gameCode, username: '' });
+
+    const accounts = keys
+      .filter((key) => {
+        return key.startsWith(keyPrefix);
+      })
+      .map((key) => {
+        const username = key.slice(keyPrefix.length);
+        return { gameCode, username };
+      });
+
+    return accounts;
   };
 
   private sgeListCharactersHandler: IpcInvokeHandler<'sgeListCharacters'> =
-    async (
-      args
-    ): Promise<
-      Array<{
-        id: string;
-        name: string;
-      }>
-    > => {
+    async (args): Promise<SGEListCharactersResponse> => {
       const { gameCode, username } = args[0];
 
-      // TODO
-      logger.info('sgeListCharactersHandler', { gameCode, username });
+      logger.debug('sgeListCharactersHandler', { gameCode, username });
 
-      return [];
+      const key = this.getSgeAccountStoreKey({ gameCode, username });
+      const password = await store.get<string>(key);
+
+      if (password) {
+        const sgeService = new SGEServiceImpl({
+          gameCode: gameCode as SGEGameCode,
+          username,
+          password,
+        });
+        return sgeService.listCharacters();
+      }
+
+      throw new Error(`[IPC:SGE:ACCOUNT:NOT_FOUND] ${gameCode}:${username}`);
     };
 
   private gamePlayCharacterHandler: IpcInvokeHandler<'gamePlayCharacter'> =
     async (args): Promise<void> => {
       const { gameCode, username, characterName } = args[0];
 
-      logger.info('gamePlayCharacterHandler', {
+      logger.debug('gamePlayCharacterHandler', {
         gameCode,
         username,
         characterName,
       });
 
-      // TODO look up sge credentials for { gameCode, username }
-      // TODO use sge service to get character game play credentials
-      // TODO Game.initInstance({ credentials, dispatch });
-      // TODO game instance emit data via dispatch function
-      // TODO renderer listens for game data and updates ui accordingly
+      const key = this.getSgeAccountStoreKey({ gameCode, username });
+      const password = await store.get<string>(key);
+
+      if (password) {
+        const sgeService = new SGEServiceImpl({
+          gameCode: gameCode as SGEGameCode,
+          username,
+          password,
+        });
+
+        const credentials = await sgeService.loginCharacter(characterName);
+
+        // TODO Game.initInstance({ credentials, dispatch });
+        // TODO game instance emit data via dispatch function
+        // TODO renderer listens for game data and updates ui accordingly
+      }
+
+      throw new Error(`[IPC:SGE:ACCOUNT:NOT_FOUND] ${gameCode}:${username}`);
     };
 
   private gameSendCommandHandler: IpcInvokeHandler<'gameSendCommand'> = async (
@@ -136,8 +168,16 @@ export class IpcController {
   ): Promise<void> => {
     const command = args[0];
 
-    logger.info('gameSendCommandHandler', { command });
+    logger.debug('gameSendCommandHandler', { command });
 
     // TODO Game.getInstance().sendCommand(command);
   };
+
+  private getSgeAccountStoreKey(options: {
+    gameCode: string;
+    username: string;
+  }): string {
+    const { gameCode, username } = options;
+    return `sge.account.${gameCode}.${username}`.toLowerCase();
+  }
 }

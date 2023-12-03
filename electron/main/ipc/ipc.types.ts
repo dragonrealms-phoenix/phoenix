@@ -12,3 +12,13 @@ export interface IpcInvokeHandler<K extends IpcInvokableEvent> {
 export type IpcHandlerRegistry = {
   [channel in IpcInvokableEvent]: IpcInvokeHandler<channel>;
 };
+
+export type SGEListAccountsResponse = Array<{
+  gameCode: string;
+  username: string;
+}>;
+
+export type SGEListCharactersResponse = Array<{
+  id: string;
+  name: string;
+}>;
