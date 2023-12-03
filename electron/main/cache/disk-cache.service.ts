@@ -43,16 +43,16 @@ class DiskCacheServiceImpl extends AbstractCacheService {
     return new MemoryCacheServiceImpl(cache);
   }
 
-  public async set<T>(key: string | number, item: T): Promise<void> {
+  public async set<T>(key: string, item: T): Promise<void> {
     await this.delegate.set(key, item);
     await this.writeToDisk();
   }
 
-  public async get<T>(key: string | number): Promise<T | undefined> {
+  public async get<T>(key: string): Promise<T | undefined> {
     return this.delegate.get(key);
   }
 
-  public async remove(key: string | number): Promise<void> {
+  public async remove(key: string): Promise<void> {
     await this.delegate.remove(key);
     await this.writeToDisk();
   }
