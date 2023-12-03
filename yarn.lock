@@ -4176,7 +4176,14 @@ dotenv-expand@^5.1.0:
   resolved "https://registry.yarnpkg.com/dotenv-expand/-/dotenv-expand-5.1.0.tgz#3fbaf020bfd794884072ea26b1e9791d45a629f0"
   integrity sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==
 
-dotenv@^16.3.1:
+dotenv-flow@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/dotenv-flow/-/dotenv-flow-4.0.1.tgz#28686d1a454fb9d350e50a175375965a30492c30"
+  integrity sha512-HuCQ487bSA43mtlxdWpyk5jt5Lljy+v1I8y/2l96gtjSve9p3OvJZCCOhQnz2hY4VhLogFfXpY20zBygMwaydA==
+  dependencies:
+    dotenv "^16.0.0"
+
+dotenv@^16.0.0, dotenv@^16.3.1:
   version "16.3.1"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
