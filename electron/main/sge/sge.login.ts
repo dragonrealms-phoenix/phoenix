@@ -1,5 +1,6 @@
 import tls from 'node:tls';
 import { first, last, merge } from 'lodash';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import {
   createSelfSignedCertConnectOptions,
@@ -21,7 +22,7 @@ const logger = createLogger('sge:login');
 
 // As of November 2023, the login server's self-signed certificate
 // is valid until Nov 16, 3017. We'll cache it in memory for performance.
-let cachedTlsCertificate: tls.PeerCertificate | undefined;
+let cachedTlsCertificate: Maybe<tls.PeerCertificate>;
 
 /**
  * SGE stands for Simutronics Game Entry
@@ -432,25 +433,25 @@ async function getGameCredentials(options: {
     })
   ).toString();
 
-  const parseStatus = (text: string): string | undefined => {
+  const parseStatus = (text: string): Maybe<string> => {
     return first(text.split('\t').slice(1));
   };
 
-  const parseGameHost = (text: string): string | undefined => {
+  const parseGameHost = (text: string): Maybe<string> => {
     // https://regex101.com/r/zzHkPT/1
     const regex = /\tGAMEHOST=(?<host>[^\t]+)\b/;
     const matches = text.match(regex);
     return matches?.groups?.host ?? '';
   };
 
-  const parseGamePort = (text: string): number | undefined => {
+  const parseGamePort = (text: string): Maybe<number> => {
     // https://regex101.com/r/uhgJQK/1
     const regex = /\tGAMEPORT=(?<port>[^\t]+)\b/;
     const matches = text.match(regex);
     return Number(matches?.groups?.port);
   };
 
-  const parseGameKey = (text: string): string | undefined => {
+  const parseGameKey = (text: string): Maybe<string> => {
     // https://regex101.com/r/WMYAbs/1
     const regex = /\tKEY=(?<key>[^\t]+)\b/;
     const matches = text.match(regex);
@@ -495,7 +496,7 @@ async function getGameCredentials(options: {
 async function getCharacterId(options: {
   socket: tls.TLSSocket;
   characterName: string;
-}): Promise<string | undefined> {
+}): Promise<Maybe<string>> {
   const { socket, characterName } = options;
 
   const characters = await listAvailableCharacters({ socket });

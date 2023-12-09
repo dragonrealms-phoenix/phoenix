@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import tls from 'node:tls';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import type { SelfSignedCertConnectOptions } from './tls.types';
 
@@ -24,7 +25,7 @@ export async function sendAndReceive(options: {
   const { socket, payload, requestTimeout = socket.timeout } = options;
 
   return new Promise<Buffer>((resolve, reject): void => {
-    let requestTimeoutId: NodeJS.Timeout | undefined;
+    let requestTimeoutId: Maybe<NodeJS.Timeout>;
 
     const dataListener = (response: Buffer): void => {
       resolveSocket(response);
@@ -179,7 +180,7 @@ export function createSelfSignedCertConnectOptions(options: {
        * The server's certificate to check.
        */
       certToCheck: tls.PeerCertificate
-    ): Error | undefined => {
+    ): Maybe<Error> => {
       const pemToCheck = convertDERtoPEM(certToCheck.raw);
 
       if (pemToCheck !== pemToTrust) {

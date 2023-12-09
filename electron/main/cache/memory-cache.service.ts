@@ -1,3 +1,4 @@
+import type { Maybe } from '../../common/types';
 import { AbstractCacheService } from './abstract-cache.service';
 import type { Cache } from './cache.types';
 
@@ -13,7 +14,7 @@ class MemoryCacheServiceImpl extends AbstractCacheService {
     this.cache[key] = item;
   }
 
-  public async get<T>(key: string): Promise<T | undefined> {
+  public async get<T>(key: string): Promise<Maybe<T>> {
     return this.cache[key];
   }
 

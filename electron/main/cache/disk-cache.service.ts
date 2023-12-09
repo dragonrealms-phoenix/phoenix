@@ -1,4 +1,5 @@
 import * as fs from 'fs-extra';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import { AbstractCacheService } from './abstract-cache.service';
 import type { Cache, CacheService, DiskCacheOptions } from './cache.types';
@@ -48,7 +49,7 @@ class DiskCacheServiceImpl extends AbstractCacheService {
     await this.writeToDisk();
   }
 
-  public async get<T>(key: string): Promise<T | undefined> {
+  public async get<T>(key: string): Promise<Maybe<T>> {
     return this.delegate.get(key);
   }
 

@@ -1,3 +1,5 @@
+import type { Maybe } from '../../common/types';
+
 export type Cache = Record<string, any>;
 
 export interface CacheService {
@@ -8,7 +10,7 @@ export interface CacheService {
   /**
    * Gets a value for the key from the cache.
    */
-  get<T>(key: string | number): Promise<T | undefined>;
+  get<T>(key: string | number): Promise<Maybe<T>>;
   /**
    * Removes a value for the key from the cache.
    */

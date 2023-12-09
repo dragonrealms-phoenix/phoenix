@@ -1,9 +1,10 @@
+import type { Maybe } from '../../common/types';
 import type { Cache, CacheService } from './cache.types';
 
 abstract class AbstractCacheService implements CacheService {
   public abstract set<T>(key: string, data: T): Promise<void>;
 
-  public abstract get<T>(key: string): Promise<T | undefined>;
+  public abstract get<T>(key: string): Promise<Maybe<T>>;
 
   public abstract remove(key: string): Promise<void>;
 

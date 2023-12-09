@@ -1,3 +1,4 @@
+import type { Maybe } from '../../common/types';
 import type { CacheService } from './cache.types';
 
 /**
@@ -17,19 +18,19 @@ export async function getCacheValue<T>(options: {
 export async function getCacheValue<T>(options: {
   cacheService: CacheService;
   key: string;
-  onCacheMiss: () => Promise<T | undefined>;
-}): Promise<T | undefined>; // callback may or may not return a value so unsure
+  onCacheMiss: () => Promise<Maybe<T>>;
+}): Promise<Maybe<T>>; // callback may or may not return a value so unsure
 
 export async function getCacheValue<T>(options: {
   cacheService: CacheService;
   key: string;
-}): Promise<T | undefined>; // no callback, so cache may or may not have value
+}): Promise<Maybe<T>>; // no callback, so cache may or may not have value
 
 export async function getCacheValue<T>(options: {
   cacheService: CacheService;
   key: string;
-  onCacheMiss?: () => Promise<T | undefined>;
-}): Promise<T | undefined> {
+  onCacheMiss?: () => Promise<Maybe<T>>;
+}): Promise<Maybe<T>> {
   const { cacheService, key, onCacheMiss } = options;
 
   let value = await cacheService.get<T>(key);

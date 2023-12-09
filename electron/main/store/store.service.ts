@@ -1,6 +1,6 @@
 import { app, safeStorage } from 'electron';
 import path from 'node:path';
-import { isNil } from 'lodash';
+import type { Maybe } from '../../common/types';
 import type { CacheService, DiskCacheOptions } from '../cache';
 import { DiskCacheServiceImpl } from '../cache';
 import { createLogger } from '../logger';
@@ -22,7 +22,7 @@ class StoreServiceImpl implements StoreService {
     return Object.keys(await this.cacheService.readCache());
   }
 
-  public async get<T>(key: string): Promise<T | undefined> {
+  public async get<T>(key: string): Promise<Maybe<T>> {
     const storedValue = await this.cacheService.get<StoredValue<T>>(key);
 
     if (storedValue?.encrypted) {
@@ -30,7 +30,7 @@ class StoreServiceImpl implements StoreService {
       const safeValueBytes = Buffer.from(safeValueHex, 'hex');
       const safeValueJson = safeStorage.decryptString(safeValueBytes);
       try {
-        return JSON.parse(safeValueJson) as T;
+        return JSON.parse(safeValueJson);
       } catch (error) {
         logger.error('failed to parse stored value', { key, error });
         return undefined;
@@ -47,7 +47,7 @@ class StoreServiceImpl implements StoreService {
   ): Promise<void> {
     const { encrypted = false } = options ?? {};
 
-    if (isNil(value)) {
+    if (value === null || value === undefined) {
       return this.remove(key);
     }
 
