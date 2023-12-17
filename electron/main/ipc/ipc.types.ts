@@ -13,12 +13,8 @@ export type IpcHandlerRegistry = {
   [channel in IpcInvokableEvent]: IpcInvokeHandler<channel>;
 };
 
-export type SGEListAccountsResponse = Array<{
+export type IpcSgeCharacter = {
   gameCode: string;
-  username: string;
-}>;
-
-export type SGEListCharactersResponse = Array<{
-  id: string;
-  name: string;
-}>;
+  accountName: string;
+  characterName: string;
+};

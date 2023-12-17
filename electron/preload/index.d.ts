@@ -4,49 +4,41 @@
 declare const appAPI: {
   ping: () => Promise<string>;
   /**
-   * Add credentials for a given play.net account.
+   * Add credentials for a character for a given play.net account.
    */
-  sgeAddAccount: (options: {
+  sgeAddCharacter: (options: {
     gameCode: string;
-    username: string;
-    password: string;
+    accountName: string;
+    accountPassword: string;
+    characterName: string;
   }) => Promise<void>;
   /**
-   * Remove credentials for a given play.net account.
+   * Remove credentials for a character for a given play.net account.
    */
-  sgeRemoveAccount: (options: {
+  sgeRemoveCharacter: (options: {
     gameCode: string;
-    username: string;
+    accountName: string;
+    characterName: string;
   }) => Promise<void>;
   /**
-   * List saved play.net accounts.
+   * List added characters.
    */
-  sgeListAccounts: (options: { gameCode: string }) => Promise<
+  sgeListCharacters: () => Promise<
     {
       gameCode: string;
-      username: string;
-    }[]
-  >;
-  /**
-   * List available characters for a given play.net account.
-   */
-  sgeListCharacters: (options: {
-    gameCode: string;
-    username: string;
-  }) => Promise<
-    {
-      id: string;
-      name: string;
+      accountName: string;
+      characterName: string;
     }[]
   >;
   /**
    * Play the game with a given character.
    * This app can only play one character at a time.
    * Use the `onMessage` API to receive game data.
+   * Use the `gameSendCommand` API to send game commands.
    */
   gamePlayCharacter: (options: {
     gameCode: string;
-    username: string;
+    accountName: string;
     characterName: string;
   }) => Promise<void>;
   /**
