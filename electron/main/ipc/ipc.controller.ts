@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import { Game } from '../game';
 import { createLogger } from '../logger';
 import type { SGEGameCode } from '../sge';
 import { SGEServiceImpl } from '../sge';
@@ -146,21 +147,24 @@ export class IpcController {
       const key = this.getSgeAccountStoreKey({ gameCode, username });
       const password = await store.get<string>(key);
 
-      if (password) {
-        const sgeService = new SGEServiceImpl({
-          gameCode: gameCode as SGEGameCode,
-          username,
-          password,
-        });
-
-        const credentials = await sgeService.loginCharacter(characterName);
-
-        // TODO Game.initInstance({ credentials, dispatch });
-        // TODO game instance emit data via dispatch function
-        // TODO renderer listens for game data and updates ui accordingly
+      if (!password) {
+        throw new Error(`[IPC:SGE:ACCOUNT:NOT_FOUND] ${gameCode}:${username}`);
       }
 
-      throw new Error(`[IPC:SGE:ACCOUNT:NOT_FOUND] ${gameCode}:${username}`);
+      const sgeService = new SGEServiceImpl({
+        gameCode: gameCode as SGEGameCode,
+        username,
+        password,
+      });
+
+      const credentials = await sgeService.loginCharacter(characterName);
+
+      const gameInstance = Game.initInstance({
+        credentials,
+        dispatch: this.dispatch,
+      });
+
+      await gameInstance.connect();
     };
 
   private gameSendCommandHandler: IpcInvokeHandler<'gameSendCommand'> = async (
@@ -170,7 +174,13 @@ export class IpcController {
 
     logger.debug('gameSendCommandHandler', { command });
 
-    // TODO Game.getInstance().sendCommand(command);
+    const gameInstance = Game.getInstance();
+
+    if (gameInstance) {
+      gameInstance.send(command);
+    } else {
+      throw new Error('[IPC:GAME:INSTANCE:NOT_FOUND]');
+    }
   };
 
   private getSgeAccountStoreKey(options: {
