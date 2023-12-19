@@ -1,3 +1,5 @@
+import type { Maybe } from '../types';
+
 export const includesIgnoreCase = (
   values: Array<string>,
   valueToFind: string
@@ -5,6 +7,9 @@ export const includesIgnoreCase = (
   return values.some((value) => equalsIgnoreCase(value, valueToFind));
 };
 
-export const equalsIgnoreCase = (a: string, b: string): boolean => {
+export const equalsIgnoreCase = (
+  a: Maybe<string>,
+  b: Maybe<string>
+): boolean => {
   return a?.toLowerCase() === b?.toLowerCase();
 };
