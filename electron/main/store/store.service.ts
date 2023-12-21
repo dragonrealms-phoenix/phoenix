@@ -1,12 +1,9 @@
-import { app, safeStorage } from 'electron';
+import { app } from 'electron';
 import path from 'node:path';
 import type { Maybe } from '../../common/types';
 import type { CacheService, DiskCacheOptions } from '../cache';
 import { DiskCacheServiceImpl } from '../cache';
-import { createLogger } from '../logger';
-import type { StoreService, StoreSetOptions, StoredValue } from './store.types';
-
-const logger = createLogger('store');
+import type { StoreService } from './store.types';
 
 /**
  * Simple file-backed store for storing key-value pairs.
@@ -23,52 +20,14 @@ class StoreServiceImpl implements StoreService {
   }
 
   public async get<T>(key: string): Promise<Maybe<T>> {
-    const storedValue = await this.cacheService.get<StoredValue<T>>(key);
-
-    if (storedValue?.encrypted) {
-      const safeValueHex = storedValue.value;
-      const safeValueBytes = Buffer.from(safeValueHex, 'hex');
-      const safeValueJson = safeStorage.decryptString(safeValueBytes);
-      try {
-        return JSON.parse(safeValueJson);
-      } catch (error) {
-        logger.error('failed to parse stored value', { key, error });
-        return undefined;
-      }
-    }
-
-    return storedValue?.value;
+    return this.cacheService.get<T>(key);
   }
 
-  public async set<T>(
-    key: string,
-    value: T,
-    options?: StoreSetOptions
-  ): Promise<void> {
-    const { encrypted = false } = options ?? {};
-
+  public async set<T>(key: string, value: T): Promise<void> {
     if (value === null || value === undefined) {
       return this.remove(key);
     }
-
-    let valueToStore: StoredValue<T>;
-
-    if (encrypted) {
-      const safeValueJson = JSON.stringify(value);
-      const safeValueBytes = safeStorage.encryptString(safeValueJson);
-      const safeValueHex = safeValueBytes.toString('hex');
-      valueToStore = {
-        encrypted,
-        value: safeValueHex,
-      };
-    } else {
-      valueToStore = {
-        encrypted,
-        value,
-      };
-    }
-
-    await this.cacheService.set(key, valueToStore);
+    await this.cacheService.set(key, value);
   }
 
   public async remove(key: string): Promise<void> {
