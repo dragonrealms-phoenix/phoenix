@@ -1,3 +1,5 @@
+import type { Maybe } from '../../common/types';
+
 export type ListAccountsType = Array<ListAccountsItemType>;
 export type ListAccountsItemType = Omit<Account, 'accountPassword'>;
 
@@ -26,7 +28,7 @@ export interface AccountService {
    * Gets an account by name.
    * The password will be decrypted.
    */
-  getAccount(options: { accountName: string }): Promise<Account | undefined>;
+  getAccount(options: { accountName: string }): Promise<Maybe<Account>>;
 
   /**
    * Adds or updates an account.
@@ -55,7 +57,7 @@ export interface AccountService {
   getCharacter(options: {
     characterName: string;
     gameCode: string;
-  }): Promise<Character | undefined>;
+  }): Promise<Maybe<Character>>;
 
   /**
    * Adds or updates a character to an account.

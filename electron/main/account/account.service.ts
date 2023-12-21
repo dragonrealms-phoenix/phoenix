@@ -1,6 +1,7 @@
 import { safeStorage } from 'electron';
 import { isEmpty, omit } from 'lodash';
 import { equalsIgnoreCase } from '../../common/string';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import type { StoreService } from '../store';
 import type {
@@ -44,7 +45,7 @@ export class AccountServiceImpl implements AccountService {
 
   public async getAccount(options: {
     accountName: string;
-  }): Promise<Account | undefined> {
+  }): Promise<Maybe<Account>> {
     const { accountName } = options;
 
     logger.info('getting account', { accountName });
@@ -134,7 +135,7 @@ export class AccountServiceImpl implements AccountService {
   public async getCharacter(options: {
     characterName: string;
     gameCode: string;
-  }): Promise<Character | undefined> {
+  }): Promise<Maybe<Character>> {
     const { characterName, gameCode } = options;
 
     logger.info('getting character', { characterName, gameCode });
