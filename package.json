@@ -45,7 +45,7 @@
     "start:dev": "yarn build:dev && APP_ENV=development electron .",
     "build:main": "tsc -p electron/main",
     "build:preload": "tsc -p electron/preload && yarn prettier:fix electron/preload/**/*.d.ts",
-    "build:renderer": "next build electron/renderer",
+    "build:renderer": "next build electron/renderer && mv electron/renderer/out electron/build/renderer",
     "build": "yarn clean && concurrently \"yarn build:main\" \"yarn build:preload\" \"yarn build:renderer\"",
     "build:dev": "yarn clean && concurrently \"yarn build:main\" \"yarn build:preload\"",
     "build:all": "yarn build && electron-builder --win --mac --linux --config",

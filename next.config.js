@@ -31,11 +31,6 @@ const nextConfig = {
    */
   output: 'export',
 
-  /**
-   * Output the built files to the specified directory.
-   */
-  distDir: '../build/renderer',
-
   experimental: {
     /**
      * Allow importing shared code from outside the renderer module.
