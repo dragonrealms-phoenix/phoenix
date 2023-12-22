@@ -172,7 +172,7 @@
   },
   "lint-staged": {
     "*.{js,ts,tsx}": "eslint --fix",
-    "*": "prettier --write"
+    "*.{js,ts,tsx,md,sh,json,yml,yaml}": "prettier --write"
   },
   "prettier": {
     "trailingComma": "es5",
