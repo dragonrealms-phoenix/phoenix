@@ -68,17 +68,21 @@ jobs:
           echo "__SENTRY_TRACING__=false" >> .env
 
       - name: Install dependencies
+        shell: bash
         run: yarn install
 
       - name: Build Linux
+        shell: bash
         if: matrix.os == 'ubuntu-latest'
         run: yarn build:linux
 
       - name: Build MacOS
+        shell: bash
         if: matrix.os == 'macos-latest'
         run: yarn build:mac && yarn sentry:sourcemaps
 
       - name: Build Windows
+        shell: bash
         if: matrix.os == 'windows-latest'
         run: yarn build:win
 
