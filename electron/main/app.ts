@@ -3,9 +3,11 @@ import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
+import { AccountServiceImpl } from './account';
 import { IpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
+import { Store } from './store';
 import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
@@ -91,7 +93,14 @@ const createWindow = async (): Promise<void> => {
     mainWindow.webContents.send(channel, ...args);
   };
 
-  new IpcController({ dispatch }).registerHandlers();
+  const ipcController = new IpcController({
+    dispatch,
+    accountService: new AccountServiceImpl({
+      storeService: Store.getInstance(),
+    }),
+  });
+
+  ipcController.registerHandlers();
 
   await mainWindow.loadURL(appUrl);
 
