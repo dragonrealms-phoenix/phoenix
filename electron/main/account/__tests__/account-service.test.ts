@@ -25,7 +25,7 @@ describe('account-service', () => {
   beforeEach(() => {
     storeService = new StoreServiceMock();
     accountService = new AccountServiceImpl({
-      store: storeService,
+      storeService,
     });
   });
 
