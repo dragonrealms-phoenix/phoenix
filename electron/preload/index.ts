@@ -12,57 +12,71 @@ const appAPI = {
     return ipcRenderer.invoke('ping');
   },
   /**
-   * Add credentials for a character for a given play.net account.
+   * Add or update credentials for a play.net account.
    */
-  sgeAddCharacter: async (options: {
-    gameCode: string;
+  saveAccount: async (options: {
     accountName: string;
     accountPassword: string;
-    characterName: string;
   }): Promise<void> => {
-    return ipcRenderer.invoke('sgeAddCharacter', options);
+    return ipcRenderer.invoke('saveAccount', options);
   },
   /**
-   * Remove credentials for a character for a given play.net account.
+   * Remove credentials for a play.net account.
    */
-  sgeRemoveCharacter: async (options: {
-    gameCode: string;
+  removeAccount: async (options: { accountName: string }): Promise<void> => {
+    return ipcRenderer.invoke('removeAccount', options);
+  },
+  /**
+   * Add a character for a given play.net account and game instance.
+   */
+  addCharacter: async (options: {
     accountName: string;
     characterName: string;
+    gameCode: string;
   }): Promise<void> => {
-    return ipcRenderer.invoke('sgeRemoveCharacter', options);
+    return ipcRenderer.invoke('addCharacter', options);
+  },
+  /**
+   * Remove a character for a given play.net account and game instance.
+   */
+  removeCharacter: async (options: {
+    accountName: string;
+    characterName: string;
+    gameCode: string;
+  }): Promise<void> => {
+    return ipcRenderer.invoke('removeCharacter', options);
   },
   /**
    * List added characters.
    */
-  sgeListCharacters: async (): Promise<
+  listCharacters: async (): Promise<
     Array<{
-      gameCode: string;
       accountName: string;
       characterName: string;
+      gameCode: string;
     }>
   > => {
-    return ipcRenderer.invoke('sgeListCharacters');
+    return ipcRenderer.invoke('listCharacters');
   },
   /**
    * Play the game with a given character.
    * This app can only play one character at a time.
    * Use the `onMessage` API to receive game data.
-   * Use the `gameSendCommand` API to send game commands.
+   * Use the `sendCommand` API to send game commands.
    */
-  gamePlayCharacter: async (options: {
-    gameCode: string;
+  playCharacter: async (options: {
     accountName: string;
     characterName: string;
+    gameCode: string;
   }): Promise<void> => {
-    return ipcRenderer.invoke('gamePlayCharacter', options);
+    return ipcRenderer.invoke('playCharacter', options);
   },
   /**
    * Sends a command to the game as the currently playing character.
    * Use the `onMessage` API to receive game data.
    */
-  gameSendCommand: async (command: string): Promise<void> => {
-    return ipcRenderer.invoke('gameSendCommand', command);
+  sendCommand: async (command: string): Promise<void> => {
+    return ipcRenderer.invoke('sendCommand', command);
   },
   /**
    * Allows the renderer to subscribe to messages from the main process.
