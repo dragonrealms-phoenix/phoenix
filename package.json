@@ -171,8 +171,8 @@
     ]
   },
   "lint-staged": {
-    "*.{js,ts,tsx}": "yarn lint:fix",
-    "*": "yarn prettier:fix"
+    "*.{js,ts,tsx}": "eslint --fix",
+    "*": "prettier --write"
   },
   "prettier": {
     "trailingComma": "es5",
