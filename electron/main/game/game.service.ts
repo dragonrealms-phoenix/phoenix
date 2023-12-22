@@ -197,7 +197,18 @@ class GameServiceImpl implements GameService {
 let gameInstance: Maybe<GameService>;
 
 const Game = {
-  initInstance: (options: {
+  /**
+   * There is exactly one game instance at a time,
+   * and it can be playing at most one character.
+   *
+   * To play a different character then
+   * a new game instance must be created.
+   *
+   * Creating a new game instance will disconnect the existing one.
+   *
+   * Use the `getInstance` method to get a refence to the current game instance.
+   */
+  newInstance: (options: {
     credentials: SGEGameCredentials;
     dispatch: Dispatcher;
   }): GameService => {
@@ -214,6 +225,10 @@ const Game = {
     return gameInstance;
   },
 
+  /**
+   * A reference to the current game instance.
+   * Returns undefined if the `newInstance` method has not yet been called.
+   */
   getInstance: (): Maybe<GameService> => {
     return gameInstance;
   },
