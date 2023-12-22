@@ -2180,10 +2180,10 @@
   dependencies:
     "@types/istanbul-lib-report" "*"
 
-"@types/jest@^29.5.7":
-  version "29.5.7"
-  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-29.5.7.tgz#2c0dafe2715dd958a455bc10e2ec3e1ec47b5036"
-  integrity sha512-HLyetab6KVPSiF+7pFcUyMeLsx25LDNDemw9mGsJBkai/oouwrjTycocSDYopMEwFhN2Y4s9oPyOCZNofgSt2g==
+"@types/jest@^29.5.11":
+  version "29.5.11"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-29.5.11.tgz#0c13aa0da7d0929f078ab080ae5d4ced80fa2f2c"
+  integrity sha512-S2mHmYIVe13vrm6q4kN6fLYYAka15ALQki/vgDC3mIukEOx8WJlv0kQPM+d4w8Gp6u0uSdKND04IlTXBv0rwnQ==
   dependencies:
     expect "^29.0.0"
     pretty-format "^29.0.0"
@@ -2205,10 +2205,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/lint-staged@^13.2.1":
-  version "13.2.1"
-  resolved "https://registry.yarnpkg.com/@types/lint-staged/-/lint-staged-13.2.1.tgz#e3e71d74a204f023ed156b1a9a6a73103efa29d3"
-  integrity sha512-/pIzducFqyJAdXJb2pkQJNTIYBBph/XQdsBgn9oTuNjL1fMRw7AbutYzB0ODTxi8NYqJ9KUk9WyabZvpdNT/kQ==
+"@types/lint-staged@^13.3.0":
+  version "13.3.0"
+  resolved "https://registry.yarnpkg.com/@types/lint-staged/-/lint-staged-13.3.0.tgz#e8b8829de45da02ce3b9c1924e63988a0b1367f5"
+  integrity sha512-WxGjVP+rA4OJlEdbZdT9MS9PFKQ7kVPhLn26gC+2tnBWBEFEj/KW+IbFfz6sxdxY5U6V7BvyF+3BzCGsAMHhNg==
 
 "@types/lodash@^4.14.198":
   version "4.14.200"
@@ -5177,10 +5177,19 @@ fs-extra@^10.0.0, fs-extra@^10.1.0:
     jsonfile "^6.0.1"
     universalify "^2.0.0"
 
-fs-extra@^11.0.0, fs-extra@^11.1.1:
+fs-extra@^11.0.0:
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.1.1.tgz#da69f7c39f3b002378b0954bb6ae7efdc0876e2d"
   integrity sha512-MGIE4HOvQCeUCzmlHs0vXpih4ysz4wg9qiSAu6cd42lVwPbTM1TjV7RusoyQqMmk/95gdQZX72u+YW+c3eEpFQ==
+  dependencies:
+    graceful-fs "^4.2.0"
+    jsonfile "^6.0.1"
+    universalify "^2.0.0"
+
+fs-extra@^11.2.0:
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-11.2.0.tgz#e70e17dfad64232287d01929399e0ea7c86b0e5b"
+  integrity sha512-PmDi3uwK5nFuXh7XDTlVnS17xJS7vW36is2+w3xcv8SVxiB4NyATf4ctkVY5bkSjX0Y4nbvZCq1/EjtEyr9ktw==
   dependencies:
     graceful-fs "^4.2.0"
     jsonfile "^6.0.1"
