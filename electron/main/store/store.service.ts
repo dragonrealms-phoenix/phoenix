@@ -41,8 +41,15 @@ class StoreServiceImpl implements StoreService {
 
 // There is exactly one store instance so that it's
 // easy anywhere in the app to get/set config values.
-const store = new StoreServiceImpl({
+// One place to manage the config file location.
+const storeInstance = new StoreServiceImpl({
   filepath: path.join(app.getPath('userData'), 'config.json'),
 });
 
-export { store };
+const Store = {
+  getInstance: (): StoreService => {
+    return storeInstance;
+  },
+};
+
+export { Store };
