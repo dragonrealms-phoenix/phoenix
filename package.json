@@ -31,7 +31,7 @@
     "clean:tsbuildinfo": "find electron -name '*.tsbuildinfo' -delete",
     "clean:dist": "rm -rf dist",
     "clean:build": "rm -rf electron/build",
-    "clean:nextjs": "rm -rf electron/renderer/.next",
+    "clean:nextjs": "rm -rf electron/renderer/.next electron/renderer/out",
     "clean:themes": "rm -rf electron/renderer/public/themes",
     "clean:react-grid": "rm -rf electron/renderer/public/react-grid",
     "clean": "concurrently \"yarn clean:dist\" \"yarn clean:build\" \"yarn clean:nextjs\" \"yarn clean:themes\" \"yarn clean:react-grid\" && yarn clean:tsbuildinfo",
