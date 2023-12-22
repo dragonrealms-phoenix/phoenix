@@ -27,14 +27,14 @@ const appAPI = {
     return ipcRenderer.invoke('removeAccount', options);
   },
   /**
-   * Add a character for a given play.net account and game instance.
+   * Add or update a character for a given play.net account and game instance.
    */
-  addCharacter: async (options: {
+  saveCharacter: async (options: {
     accountName: string;
     characterName: string;
     gameCode: string;
   }): Promise<void> => {
-    return ipcRenderer.invoke('addCharacter', options);
+    return ipcRenderer.invoke('saveCharacter', options);
   },
   /**
    * Remove a character for a given play.net account and game instance.
