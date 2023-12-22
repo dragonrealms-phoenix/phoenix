@@ -2298,10 +2298,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-grid-layout@^1.3.4":
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/@types/react-grid-layout/-/react-grid-layout-1.3.4.tgz#f3db2cfc0f1d591e4407b064e92500fca6078402"
-  integrity sha512-ZQqOhkizXv8t8AWyH2OcdWxeDr08gJPp/hg4mLCOz1xz6McqQc6HLBEXDIc/r0YsMeIWKOD31Br8i4DA/gilbQ==
+"@types/react-grid-layout@^1.3.5":
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/@types/react-grid-layout/-/react-grid-layout-1.3.5.tgz#f4b52bf27775290ee0523214be0987be14e66823"
+  integrity sha512-WH/po1gcEcoR6y857yAnPGug+ZhkF4PaTUxgAbwfeSH/QOgVSakKHBXoPGad/sEznmkiaK3pqHk+etdWisoeBQ==
   dependencies:
     "@types/react" "*"
 
@@ -8827,10 +8827,10 @@ react-focus-on@^3.9.1:
     use-callback-ref "^1.3.0"
     use-sidecar "^1.1.2"
 
-react-grid-layout@^1.4.2:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/react-grid-layout/-/react-grid-layout-1.4.2.tgz#ab3577455f519ae331405c6353cf222721c6a6b3"
-  integrity sha512-LLOZogtw5XNHbdCquKQRG/Dspjyfelk+kE9DKRbLUl3UArFRQu/IiH+aPcjh+wSkSHUjf+Rv32ueEYigbGzRLQ==
+react-grid-layout@^1.4.4:
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/react-grid-layout/-/react-grid-layout-1.4.4.tgz#0bdb19d6db061556868fef1f430cc8c14d21f131"
+  integrity sha512-7+Lg8E8O8HfOH5FrY80GCIR1SHTn2QnAYKh27/5spoz+OHhMmEhU/14gIkRzJOtympDPaXcVRX/nT1FjmeOUmQ==
   dependencies:
     clsx "^2.0.0"
     fast-equals "^4.0.3"
