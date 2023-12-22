@@ -1,9 +1,9 @@
 import { ipcMain } from 'electron';
+import type { AccountService } from '../account';
 import { Game } from '../game';
 import { createLogger } from '../logger';
 import type { SGEGameCode } from '../sge';
 import { SGEServiceImpl } from '../sge';
-import { store } from '../store';
 import type { Dispatcher } from '../types';
 import type {
   IpcHandlerRegistry,
@@ -14,25 +14,30 @@ import type {
 
 const logger = createLogger('ipc');
 
-const SGE_CHARACTER_STORE_KEY_PREFIX = 'sge.character.';
-
 export class IpcController {
   private dispatch: Dispatcher;
+  private accountService: AccountService;
   private ipcHandlerRegistry: IpcHandlerRegistry;
 
-  constructor(options: { dispatch: Dispatcher }) {
+  constructor(options: {
+    dispatch: Dispatcher;
+    accountService: AccountService;
+  }) {
     this.dispatch = options.dispatch;
+    this.accountService = options.accountService;
     this.ipcHandlerRegistry = this.createIpcHandlerRegistry();
   }
 
   private createIpcHandlerRegistry(): IpcHandlerRegistry {
     return {
       ping: this.pingHandler,
-      sgeAddCharacter: this.sgeAddCharacterHandler,
-      sgeRemoveCharacter: this.sgeRemoveCharacterHandler,
-      sgeListCharacters: this.sgeListCharactersHandler,
-      gamePlayCharacter: this.gamePlayCharacterHandler,
-      gameSendCommand: this.gameSendCommandHandler,
+      saveAccount: this.saveAccountHandler,
+      removeAccount: this.removeAccountHandler,
+      saveCharacter: this.saveCharacterHandler,
+      removeCharacter: this.removeCharacterHandler,
+      listCharacters: this.listCharactersHandler,
+      playCharacter: this.playCharacterHandler,
+      sendCommand: this.sendCommandHandler,
     };
   }
 
@@ -70,155 +75,120 @@ export class IpcController {
     return 'pong';
   };
 
-  private sgeAddCharacterHandler: IpcInvokeHandler<'sgeAddCharacter'> = async (
+  private saveAccountHandler: IpcInvokeHandler<'saveAccount'> = async (
     args
   ): Promise<void> => {
-    const { gameCode, accountName, accountPassword, characterName } = args[0];
+    const { accountName, accountPassword } = args[0];
 
-    logger.debug('sgeAddCharacterHandler', {
-      gameCode,
+    logger.debug('saveAccountHandler', { accountName });
+
+    await this.accountService.saveAccount({
       accountName,
-      characterName,
+      accountPassword,
     });
-
-    const key = this.formatSgeCharacterStoreKey({
-      gameCode,
-      accountName,
-      characterName,
-    });
-
-    await store.set(key, accountPassword, { encrypted: true });
   };
 
-  private sgeRemoveCharacterHandler: IpcInvokeHandler<'sgeRemoveCharacter'> =
-    async (args): Promise<void> => {
-      const { gameCode, accountName, characterName } = args[0];
+  private removeAccountHandler: IpcInvokeHandler<'removeAccount'> = async (
+    args
+  ): Promise<void> => {
+    const { accountName } = args[0];
 
-      logger.debug('sgeRemoveCharacterHandler', {
-        gameCode,
-        accountName,
-        characterName,
-      });
+    logger.debug('removeAccountHandler', { accountName });
 
-      const key = this.formatSgeCharacterStoreKey({
-        gameCode,
-        accountName,
-        characterName,
-      });
+    await this.accountService.removeAccount({ accountName });
+  };
 
-      await store.remove(key);
-    };
+  private saveCharacterHandler: IpcInvokeHandler<'saveCharacter'> = async (
+    args
+  ): Promise<void> => {
+    const { gameCode, accountName, characterName } = args[0];
 
-  private sgeListCharactersHandler: IpcInvokeHandler<'sgeListCharacters'> =
+    logger.debug('saveCharacterHandler', {
+      accountName,
+      characterName,
+      gameCode,
+    });
+
+    await this.accountService.saveCharacter({
+      accountName,
+      characterName,
+      gameCode,
+    });
+  };
+
+  private removeCharacterHandler: IpcInvokeHandler<'removeCharacter'> = async (
+    args
+  ): Promise<void> => {
+    const { gameCode, accountName, characterName } = args[0];
+
+    logger.debug('removeCharacterHandler', {
+      accountName,
+      characterName,
+      gameCode,
+    });
+
+    await this.accountService.removeCharacter({
+      accountName,
+      characterName,
+      gameCode,
+    });
+  };
+
+  private listCharactersHandler: IpcInvokeHandler<'listCharacters'> =
     async (): Promise<Array<IpcSgeCharacter>> => {
-      logger.debug('sgeListCharactersHandler');
+      logger.debug('listCharactersHandler');
 
-      const keys = await store.keys();
-
-      const characters = keys
-        .filter((key) => {
-          return this.isSgeCharacterStoreKey(key);
-        })
-        .map((key) => {
-          return this.parseSgeCharacterStoreKey(key);
-        });
-
-      return characters;
+      return this.accountService.listCharacters();
     };
 
-  private gamePlayCharacterHandler: IpcInvokeHandler<'gamePlayCharacter'> =
-    async (args): Promise<void> => {
-      const { gameCode, accountName, characterName } = args[0];
+  private playCharacterHandler: IpcInvokeHandler<'playCharacter'> = async (
+    args
+  ): Promise<void> => {
+    const { gameCode, accountName, characterName } = args[0];
 
-      logger.debug('gamePlayCharacterHandler', {
-        gameCode,
-        accountName,
-        characterName,
-      });
+    logger.debug('playCharacterHandler', {
+      accountName,
+      characterName,
+      gameCode,
+    });
 
-      const key = this.formatSgeCharacterStoreKey({
-        gameCode,
-        accountName,
-        characterName,
-      });
+    const account = await this.accountService.getAccount({
+      accountName,
+    });
 
-      const accountPassword = await store.get<string>(key);
+    if (!account) {
+      throw new Error(`[IPC:PLAY_ACCOUNT:NOT_FOUND] ${accountName}`);
+    }
 
-      if (!accountPassword) {
-        throw new Error(
-          `[IPC:SGE:PASSWORD:NOT_FOUND] ${gameCode}:${accountName}:${characterName}`
-        );
-      }
+    const sgeService = new SGEServiceImpl({
+      gameCode: gameCode as SGEGameCode,
+      username: account.accountName,
+      password: account.accountPassword,
+    });
 
-      const sgeService = new SGEServiceImpl({
-        gameCode: gameCode as SGEGameCode,
-        username: accountName,
-        password: accountPassword,
-      });
+    const credentials = await sgeService.loginCharacter(characterName);
 
-      const credentials = await sgeService.loginCharacter(characterName);
+    const gameInstance = Game.newInstance({
+      credentials,
+      dispatch: this.dispatch,
+    });
 
-      const gameInstance = Game.initInstance({
-        credentials,
-        dispatch: this.dispatch,
-      });
+    await gameInstance.connect();
+  };
 
-      await gameInstance.connect();
-    };
-
-  private gameSendCommandHandler: IpcInvokeHandler<'gameSendCommand'> = async (
+  private sendCommandHandler: IpcInvokeHandler<'sendCommand'> = async (
     args
   ): Promise<void> => {
     const command = args[0];
 
-    logger.debug('gameSendCommandHandler', { command });
+    logger.debug('sendCommandHandler', { command });
 
     const gameInstance = Game.getInstance();
 
     if (gameInstance) {
       gameInstance.send(command);
     } else {
-      throw new Error('[IPC:GAME:INSTANCE:NOT_FOUND]');
+      throw new Error('[IPC:GAME_INSTANCE:NOT_FOUND]');
     }
   };
-
-  private formatSgeCharacterStoreKey(options: {
-    gameCode: string;
-    accountName: string;
-    characterName: string;
-  }): string {
-    const { gameCode, accountName, characterName } = options;
-
-    return [
-      SGE_CHARACTER_STORE_KEY_PREFIX,
-      gameCode,
-      accountName,
-      characterName,
-    ]
-      .join('.')
-      .toLowerCase();
-  }
-
-  private parseSgeCharacterStoreKey(key: string): IpcSgeCharacter {
-    const character: IpcSgeCharacter = {
-      gameCode: '',
-      accountName: '',
-      characterName: '',
-    };
-
-    if (this.isSgeCharacterStoreKey(key)) {
-      const [_x, _y, gameCode, accountName, characterName] = key.split('.');
-      return {
-        gameCode,
-        accountName,
-        characterName,
-      };
-    }
-
-    return character;
-  }
-
-  private isSgeCharacterStoreKey(key: string): boolean {
-    return key.startsWith(SGE_CHARACTER_STORE_KEY_PREFIX);
-  }
 }
