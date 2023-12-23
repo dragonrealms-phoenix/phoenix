@@ -263,7 +263,7 @@ async function authenticate(options: {
   if (!response.includes('\tKEY\t')) {
     const authError = parseAuthError(response);
     logger.error('authentication failed', { authError });
-    throw new Error(`[SGE:LOGIN:ERROR] ${authError}`);
+    throw new Error(`[SGE:LOGIN:ERROR:AUTHENTICATION] ${authError}`);
   }
 }
 

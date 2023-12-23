@@ -76,7 +76,9 @@ class GameServiceImpl implements GameService {
 
   public send(command: string): void {
     if (!this.socket?.writable) {
-      throw new Error(`[GAME:SOCKET:STATUS] cannot send commands: ${command}`);
+      throw new Error(
+        `[GAME:SOCKET:STATUS:INVALID] cannot send commands: ${command}`
+      );
     }
     if (this.isConnected) {
       logger.debug('sending command', { command });

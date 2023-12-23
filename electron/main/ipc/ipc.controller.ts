@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import { toUpperSnakeCase } from '../../common/string';
 import type { AccountService } from '../account';
 import { Game } from '../game';
 import { createLogger } from '../logger';
@@ -47,7 +48,7 @@ export class IpcController {
 
       if (!handler) {
         logger.error('no handler registered for channel', { channel });
-        throw new Error(`[IPC:CHANNEL:INVALID] ${channel}`);
+        throw new Error(`[IPC:CHANNEL:ERROR:HANDLER_NOT_FOUND] ${channel}`);
       }
 
       ipcMain.handle(channel, async (_event, ...params) => {
@@ -58,7 +59,9 @@ export class IpcController {
           return result;
         } catch (error) {
           logger.error('error handling channel request', { channel, error });
-          throw new Error(`[IPC:CHANNEL:ERROR] ${channel}: ${error?.message}`);
+          throw new Error(
+            `[IPC:CHANNEL:ERROR:${toUpperSnakeCase(channel)}] ${error?.message}`
+          );
         }
       });
     });
@@ -157,7 +160,9 @@ export class IpcController {
     });
 
     if (!account) {
-      throw new Error(`[IPC:PLAY_ACCOUNT:NOT_FOUND] ${accountName}`);
+      throw new Error(
+        `[IPC:PLAY_CHARACTER:ERROR:ACCOUNT_NOT_FOUND] ${accountName}`
+      );
     }
 
     const sgeService = new SGEServiceImpl({
@@ -188,7 +193,7 @@ export class IpcController {
     if (gameInstance) {
       gameInstance.send(command);
     } else {
-      throw new Error('[IPC:GAME_INSTANCE:NOT_FOUND]');
+      throw new Error('[IPC:SEND_COMMAND:ERROR:GAME_INSTANCE_NOT_FOUND]');
     }
   };
 }
