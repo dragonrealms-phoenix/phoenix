@@ -147,7 +147,7 @@ export class IpcController {
   private playCharacterHandler: IpcInvokeHandler<'playCharacter'> = async (
     args
   ): Promise<void> => {
-    const { gameCode, accountName, characterName } = args[0];
+    const { accountName, characterName, gameCode } = args[0];
 
     logger.debug('playCharacterHandler', {
       accountName,
