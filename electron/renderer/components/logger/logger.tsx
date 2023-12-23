@@ -1,5 +1,6 @@
-import { ReactNode, createContext, useContext, useEffect } from 'react';
-import { Logger } from '../../../common/logger/logger.types';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import type { Logger } from '../../../common/logger/logger.types';
 import {
   createLogger,
   startMonitoringUnhandledExceptions,
@@ -11,14 +12,12 @@ import {
  */
 interface LoggerContextValue {
   logger: Logger;
-  createLogger: typeof createLogger;
 }
 
 const logger = createLogger('renderer');
 
 const LoggerContext = createContext<LoggerContextValue>({
   logger,
-  createLogger,
 });
 
 interface LoggerProviderProps {
@@ -39,7 +38,7 @@ const LoggerProvider: React.FC<LoggerProviderProps> = (
   }, []);
 
   return (
-    <LoggerContext.Provider value={{ logger, createLogger }}>
+    <LoggerContext.Provider value={{ logger }}>
       {children}
     </LoggerContext.Provider>
   );

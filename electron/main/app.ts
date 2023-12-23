@@ -1,20 +1,19 @@
-import {
-  BrowserWindow,
-  Event,
-  WebContentsWillNavigateEventParams,
-  app,
-  ipcMain,
-  shell,
-} from 'electron';
+import type { Event, WebContentsWillNavigateEventParams } from 'electron';
+import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
+import { runInBackground } from '../common/async';
+import { AccountServiceImpl } from './account';
+import { IpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
+import { Store } from './store';
+import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
-const logger = createLogger('main');
+const logger = createLogger('app');
 
 const appEnv = process.env.APP_ENV ?? 'production';
 const appEnvIsProd = appEnv === 'production';
@@ -86,8 +85,22 @@ const createWindow = async (): Promise<void> => {
 
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
+    logger.info('showing window');
     mainWindow.show();
   });
+
+  const dispatch: Dispatcher = (channel, ...args): void => {
+    mainWindow.webContents.send(channel, ...args);
+  };
+
+  const ipcController = new IpcController({
+    dispatch,
+    accountService: new AccountServiceImpl({
+      storeService: Store.getInstance(),
+    }),
+  });
+
+  ipcController.registerHandlers();
 
   await mainWindow.loadURL(appUrl);
 
@@ -95,22 +108,10 @@ const createWindow = async (): Promise<void> => {
 };
 
 // Prepare the renderer once the app is ready
-app.on('ready', async () => {
-  createWindow();
-
-  // Listen for events emitted by the preload api
-  ipcMain.handle('ping', async (): Promise<string> => {
-    // Return response to renderer
-    return 'pong';
+app.on('ready', () => {
+  runInBackground(async () => {
+    await createWindow();
   });
-});
-
-app.on('activate', (): void => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
 });
 
 // Disable or limit creation of new windows to protect app and users.
@@ -133,9 +134,9 @@ app.on('web-contents-created', (_, contents) => {
     const domain = new URL(url).hostname;
     // If the domain is allowed, open it in the user's default browser.
     if (isAllowedDomain(domain)) {
-      logger.info('opening url in default browser', { url });
-      setImmediate(() => {
-        shell.openExternal(url);
+      runInBackground(async () => {
+        logger.info('opening url in default browser', { url });
+        await shell.openExternal(url);
       });
     } else {
       logger.warn('blocked window navigation', { url });
@@ -155,11 +156,7 @@ app.on('web-contents-created', (_, contents) => {
 });
 
 app.on('window-all-closed', (): void => {
-  // Quit when all windows are closed, except on macOS.
-  // It's convention for macOS apps to stay open until the user quits them.
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('quit', (): void => {

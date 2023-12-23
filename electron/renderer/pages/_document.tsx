@@ -1,8 +1,10 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/pages/_document.tsx
 
 import Document, { Head, Html, Main, NextScript } from 'next/document';
-import React, { LinkHTMLAttributes, ReactElement } from 'react';
-import { Theme, getDefaultThemeName, themeConfig } from '../lib/theme';
+import type { LinkHTMLAttributes, ReactElement } from 'react';
+import { createElement } from 'react';
+import type { Theme } from '../lib/theme';
+import { getDefaultThemeName, themeConfig } from '../lib/theme';
 
 function createThemeLink(theme: Theme): ReactElement {
   let disabledProps = {};
@@ -40,7 +42,7 @@ function createThemeLink(theme: Theme): ReactElement {
 function createStyleLink(
   props: LinkHTMLAttributes<HTMLLinkElement>
 ): ReactElement {
-  return React.createElement<LinkHTMLAttributes<HTMLLinkElement>>('link', {
+  return createElement<LinkHTMLAttributes<HTMLLinkElement>>('link', {
     rel: 'stylesheet',
     ...props,
   });

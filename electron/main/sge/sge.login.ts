@@ -1,22 +1,28 @@
 import tls from 'node:tls';
 import { first, last, merge } from 'lodash';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import {
   createSelfSignedCertConnectOptions,
   downloadCertificate,
   sendAndReceive,
-} from '../tls/tls.utils';
-import {
+} from '../tls';
+import type {
+  SGECharacter,
   SGEGame,
   SGEGameCode,
   SGEGameCredentials,
-  SGEGameProtocol,
   SGEGameSubscription,
   SGELoginResponse,
 } from './sge.types';
+import { SGEGameProtocol } from './sge.types';
 import { hashPassword, isProblemResponse } from './sge.utils';
 
 const logger = createLogger('sge:login');
+
+// As of November 2023, the login server's self-signed certificate
+// is valid until Nov 16, 3017. We'll cache it in memory for performance.
+let cachedTlsCertificate: Maybe<tls.PeerCertificate>;
 
 /**
  * SGE stands for Simutronics Game Entry
@@ -27,7 +33,7 @@ const logger = createLogger('sge:login');
  * https://elanthipedia.play.net/SGE_protocol_(saved_post)
  * https://github.com/WarlockFE/warlock2/wiki/EAccess-Protocol
  */
-export async function login(options: {
+export async function loginCharacter(options: {
   /**
    * Play.net account name
    */
@@ -85,6 +91,61 @@ export async function login(options: {
 }
 
 /**
+ * List the characters available to the account.
+ */
+export async function listCharacters(options: {
+  /**
+   * Play.net account name
+   */
+  username: string;
+  /**
+   * Play.net account password
+   */
+  password: string;
+  /**
+   * Which instance of the game to log in to.
+   */
+  gameCode: SGEGameCode;
+  /**
+   * Any additional options to use when making the socket connection.
+   */
+  connectOptions?: tls.ConnectionOptions;
+}): Promise<Array<SGECharacter>> {
+  const { username, password, gameCode } = options;
+
+  // Connect to login server
+  const socket = await connect(options.connectOptions);
+
+  try {
+    // Authenticate to login server
+    await authenticate({
+      socket,
+      username,
+      password,
+    });
+
+    // Confirm account has access to the game they want to play
+    await validateGameCode({ socket, gameCode });
+
+    // Confirm account's subscription status to play the game
+    // We don't need this, but the SGE protocol requires us to do it
+    // before we can list the characters available to the account
+    await getGameSubscription({ socket, gameCode });
+
+    // Retrieve list of characters available to the account
+    const characters = await listAvailableCharacters({ socket });
+
+    socket.end();
+
+    return characters;
+  } catch (error) {
+    logger.error('error listing characters', { error });
+    socket.destroy();
+    throw error;
+  }
+}
+
+/**
  * Simutronics uses a self-signed certificate.
  * This method downloads that certificate then creates
  * a new socket connection trusting that certificate and
@@ -102,8 +163,7 @@ async function connect(
 
   const { host, port } = mergedOptions;
 
-  logger.info('downloading login server certificate', { host, port });
-  const certToTrust = await downloadCertificate(mergedOptions);
+  const certToTrust = await getTrustedTlsCertificate(mergedOptions);
 
   mergedOptions = merge(
     mergedOptions,
@@ -112,36 +172,49 @@ async function connect(
     })
   );
 
-  logger.info('connecting to login server');
+  logger.info('connecting to login server', { host, port });
   const socket = tls.connect(mergedOptions, (): void => {
-    logger.info('connected to login server');
+    logger.info('connected to login server', { host, port });
   });
 
-  socket.once('end', (): void => {
+  socket.on('end', (): void => {
     logger.info('connection to login server ended', { host, port });
   });
 
-  socket.once('close', (): void => {
+  socket.on('close', (): void => {
     logger.info('connection to login server closed', { host, port });
   });
 
-  socket.once('timeout', (): void => {
+  socket.on('timeout', (): void => {
     const timeout = socket.timeout;
     logger.error('login server timed out', { host, port, timeout });
-    rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
   });
 
-  socket.once('error', (error: Error): void => {
+  socket.on('error', (error: Error): void => {
     logger.error('login server error', { host, port, error });
-    rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
   });
-
-  const rejectSocket = (error: Error): void => {
-    socket.destroy();
-    throw error;
-  };
 
   return socket;
+}
+
+/**
+ * Gets the play.net login server's self-signed certificate.
+ * Use this anytime we connect to the SGE server to get or send customer data.
+ */
+async function getTrustedTlsCertificate(
+  connectOptions: tls.ConnectionOptions
+): Promise<tls.PeerCertificate> {
+  const { host, port } = connectOptions;
+
+  if (cachedTlsCertificate) {
+    logger.info('using cached login server certificate', { host, port });
+    return cachedTlsCertificate;
+  }
+
+  logger.info('downloading login server certificate', { host, port });
+  cachedTlsCertificate = await downloadCertificate(connectOptions);
+
+  return cachedTlsCertificate;
 }
 
 /**
@@ -190,7 +263,7 @@ async function authenticate(options: {
   if (!response.includes('\tKEY\t')) {
     const authError = parseAuthError(response);
     logger.error('authentication failed', { authError });
-    throw new Error(`SGE:LOGIN:ERROR:${authError}`);
+    throw new Error(`[SGE:LOGIN:ERROR:AUTHENTICATION] ${authError}`);
   }
 }
 
@@ -242,7 +315,7 @@ async function validateGameCode(options: {
       gameCode,
       availableGames,
     });
-    throw new Error(`SGE:LOGIN:ERROR:GAME_NOT_FOUND:${gameCode}`);
+    throw new Error(`[SGE:LOGIN:ERROR:GAME_NOT_FOUND] ${gameCode}`);
   }
 }
 
@@ -310,7 +383,7 @@ async function getGameSubscription(options: {
 
   if (isProblemResponse(response)) {
     logger.error('problem with game subscription', { gameCode });
-    throw new Error(`SGE:LOGIN:ERROR:SUBSCRIPTION:${gameCode}`);
+    throw new Error(`[SGE:LOGIN:ERROR:SUBSCRIPTION] ${gameCode}`);
   }
 
   const [gameName, status] = response.split('\t').slice(1);
@@ -340,7 +413,7 @@ async function getGameCredentials(options: {
 
   if (!characterId) {
     logger.error('no character found', { characterName });
-    throw new Error(`SGE:LOGIN:ERROR:CHARACTER_NOT_FOUND:${characterName}`);
+    throw new Error(`[SGE:LOGIN:ERROR:CHARACTER_NOT_FOUND] ${characterName}`);
   }
 
   /**
@@ -360,25 +433,25 @@ async function getGameCredentials(options: {
     })
   ).toString();
 
-  const parseStatus = (text: string): string | undefined => {
+  const parseStatus = (text: string): Maybe<string> => {
     return first(text.split('\t').slice(1));
   };
 
-  const parseGameHost = (text: string): string | undefined => {
+  const parseGameHost = (text: string): Maybe<string> => {
     // https://regex101.com/r/zzHkPT/1
     const regex = /\tGAMEHOST=(?<host>[^\t]+)\b/;
     const matches = text.match(regex);
     return matches?.groups?.host ?? '';
   };
 
-  const parseGamePort = (text: string): number | undefined => {
+  const parseGamePort = (text: string): Maybe<number> => {
     // https://regex101.com/r/uhgJQK/1
     const regex = /\tGAMEPORT=(?<port>[^\t]+)\b/;
     const matches = text.match(regex);
     return Number(matches?.groups?.port);
   };
 
-  const parseGameKey = (text: string): string | undefined => {
+  const parseGameKey = (text: string): Maybe<string> => {
     // https://regex101.com/r/WMYAbs/1
     const regex = /\tKEY=(?<key>[^\t]+)\b/;
     const matches = text.match(regex);
@@ -389,10 +462,11 @@ async function getGameCredentials(options: {
 
   if (status !== 'OK') {
     logger.error('no game credentials received from login server', {
+      characterName,
       characterId,
       status,
     });
-    throw new Error(`SGE:LOGIN:ERROR:SUBSCRIPTION:${status}`);
+    throw new Error(`[SGE:LOGIN:ERROR:SUBSCRIPTION] ${status}`);
   }
 
   const gameHost = parseGameHost(response);
@@ -400,8 +474,13 @@ async function getGameCredentials(options: {
   const gameKey = parseGameKey(response);
 
   if (!gameHost || !gamePort || !gameKey) {
-    logger.error('failed to parse game credentials', { characterId });
-    throw new Error(`SGE:LOGIN:ERROR:PARSE_GAME_CREDENTIALS`);
+    logger.error('failed to parse game credentials', {
+      characterName,
+      characterId,
+    });
+    throw new Error(
+      `[SGE:LOGIN:ERROR:PARSE_GAME_CREDENTIALS] ${characterName}`
+    );
   }
 
   return {
@@ -417,8 +496,25 @@ async function getGameCredentials(options: {
 async function getCharacterId(options: {
   socket: tls.TLSSocket;
   characterName: string;
-}): Promise<string | undefined> {
+}): Promise<Maybe<string>> {
   const { socket, characterName } = options;
+
+  const characters = await listAvailableCharacters({ socket });
+
+  const character = characters.find((character: SGECharacter): boolean => {
+    return character.name === characterName;
+  });
+
+  return character?.id;
+}
+
+/**
+ * Get list of the account's available characters.
+ */
+async function listAvailableCharacters(options: {
+  socket: tls.TLSSocket;
+}): Promise<Array<SGECharacter>> {
+  const { socket } = options;
 
   /**
    * Get list of the account's available character names and ids
@@ -431,13 +527,18 @@ async function getCharacterId(options: {
     })
   ).toString();
 
+  const characters = new Array<SGECharacter>();
+
   const pairs = response.split('\t').slice(5);
   for (let i = 0; i < pairs.length - 1; i += 2) {
     const id = pairs[i];
     const name = pairs[i + 1];
 
-    if (name === characterName) {
-      return id;
-    }
+    characters.push({
+      id,
+      name,
+    });
   }
+
+  return characters;
 }

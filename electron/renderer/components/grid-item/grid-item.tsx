@@ -9,22 +9,31 @@ import {
   useEuiOverflowScroll,
 } from '@elastic/eui';
 import { css } from '@emotion/react';
-import {
+import type {
   CSSProperties,
   MouseEvent,
   ReactNode,
   Ref,
   TouchEvent,
-  forwardRef,
 } from 'react';
+import { forwardRef, useCallback } from 'react';
 
 interface GridItemProps {
+  /**
+   * The unique identifier for the grid item.
+   */
+  itemId: string;
   /**
    * Text to display in the title bar of the grid item.
    * Note the prop `title` is reserved and refers to titling a DOM element,
    * not for passing data to child components. So using a more specific name.
    */
   titleBarText: string;
+  /**
+   * Handler when the user clicks the close button in the title bar.
+   * Passes the `itemId` of the grid item being closed.
+   */
+  onClose?: (itemId: string) => void;
   /**
    * Required when using custom components as react-grid-layout children.
    */
@@ -80,13 +89,15 @@ function separateResizeHandleComponents(nodes: ReactNode): {
 
   if (Array.isArray(nodes)) {
     for (const child of nodes) {
-      if (child.key?.startsWith('resizableHandle-')) {
-        resizeHandles.push(child);
-      } else {
-        children.push(child);
+      if (child) {
+        if (child.key?.startsWith('resizableHandle-')) {
+          resizeHandles.push(child);
+        } else {
+          children.push(child);
+        }
       }
     }
-  } else {
+  } else if (nodes) {
     children.push(nodes);
   }
 
@@ -104,13 +115,32 @@ function separateResizeHandleComponents(nodes: ReactNode): {
 const GridItem: React.FC<GridItemProps> = forwardRef<
   HTMLDivElement,
   GridItemProps
->((props, ref): JSX.Element => {
-  const { titleBarText, style, className, children, ...otherProps } = props;
+>((props, ref): ReactNode => {
+  const {
+    itemId,
+    titleBarText,
+    onClose,
+    style,
+    className,
+    children,
+    ...otherProps
+  } = props;
 
   const gridItemContentStyles = css`
     white-space: pre-wrap;
     ${useEuiOverflowScroll('y', false)}
   `;
+
+  // Handle when the user clicks the close button in the title bar.
+  const onCloseClick = useCallback(
+    (evt: MouseEvent<HTMLElement>) => {
+      evt.preventDefault();
+      if (onClose) {
+        onClose(itemId);
+      }
+    },
+    [onClose, itemId]
+  );
 
   const { resizeHandles, children: gridItemChildren } =
     separateResizeHandleComponents(children);
@@ -148,6 +178,7 @@ const GridItem: React.FC<GridItemProps> = forwardRef<
                 iconType="cross"
                 color="accent"
                 size="xs"
+                onClick={onCloseClick}
               />
             </EuiFlexGroup>
           </EuiFlexItem>

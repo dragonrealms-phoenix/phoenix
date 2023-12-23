@@ -36,7 +36,7 @@ export function hashPassword(options: {
 
   // For each index, do a computation with the bytes from
   // the password and the hash to generate a new, hashed value.
-  for (let i = 0; i < maxBytesLen; i++) {
+  for (let i = 0; i < maxBytesLen; i += 1) {
     const hashedByte = ((passwordBytes[i] - 0x20) ^ hashSaltBytes[i]) + 0x20;
     hashValueBytes.push(hashedByte);
   }

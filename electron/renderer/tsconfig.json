@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES5",
+    "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "Node16",
+    "moduleResolution": "Bundler",
+    "incremental": true,
     "noEmit": true,
     "allowJs": true,
     "strict": true,
@@ -11,9 +12,9 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
-    "incremental": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "useUnknownInCatchVariables": false,
     "skipLibCheck": true,
     "isolatedModules": true,
     "jsx": "preserve",

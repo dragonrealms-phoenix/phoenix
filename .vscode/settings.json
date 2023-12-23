@@ -18,5 +18,11 @@
     "editor.formatOnSave": true,
     "editor.rulers": [80],
     "editor.tabSize": 2
+  },
+  "[typescript][typescriptreact]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "never"
+    }
   }
 }

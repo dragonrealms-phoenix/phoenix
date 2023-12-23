@@ -1,72 +1,187 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
+import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-import { Ref, createRef, useMemo, useRef, useState } from 'react';
-import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
+import type { ReactNode, Ref } from 'react';
+import {
+  createRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import type { Layout } from 'react-grid-layout';
+import GridLayout from 'react-grid-layout';
+import { useWindowDimensions } from '../../hooks/window-dimensions';
+import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
-import { useLogger } from '../logger';
 
-const Grid: React.FC = (): JSX.Element => {
-  const { logger } = useLogger('component:grid');
+interface GridItemProps {
+  itemId: string;
+  title: string;
+  content: ReactNode;
+}
+
+interface GridProps {
+  items: Array<GridItemProps>;
+}
+
+const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
+  const { items } = props;
 
   const { euiTheme } = useEuiTheme();
 
-  const gridLayoutStyles = css`
-    .react-grid-item.react-grid-placeholder {
+  const windowDimensions = useWindowDimensions();
+
+  const [gridLayoutStyles, setGridLayoutStyles] = useState<SerializedStyles>();
+
+  useEffect(() => {
+    setGridLayoutStyles(css`
       ${css({
-        background: euiTheme.colors.warning,
+        height: windowDimensions.height,
+        width: windowDimensions.width,
       })}
-    }
-    .react-grid-item .grab-handle {
-      ${css({
-        cursor: 'grab',
-      })}
-    }
-    .react-grid-item .grab-handle:active {
-      ${css({
-        cursor: 'grabbing',
-      })}
-    }
-  `;
+      .react-grid-item.react-grid-placeholder {
+        ${css({
+          background: euiTheme.colors.warning,
+        })}
+      }
+      .react-grid-item .grab-handle {
+        ${css({
+          cursor: 'grab',
+        })}
+      }
+      .react-grid-item .grab-handle:active {
+        ${css({
+          cursor: 'grabbing',
+        })}
+      }
+    `);
+  }, [windowDimensions]);
 
   const gridItemTextStyles = css({
     fontFamily: euiTheme.font.familyCode,
     fontSize: euiTheme.size.m,
     lineHeight: 'initial',
+    paddingLeft: euiTheme.size.s,
+    paddingRight: euiTheme.size.s,
   });
 
   /**
-   * Using hooks to save the layout state on change will cause the layouts to
-   * re-render because the layout component's value keeps changing every render.
-   * To avoid this we memoize the layout component using the `useMemo` hook.
-   * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#react-hooks-performance
+   * When grid items are resized the increment is based on the the layout size.
+   * Horizontal resize increments are based on the number of columns.
+   * Vertical resize increments are based on row height.
+   * Why two different units? I don't know.
    */
-  const ResponsiveGridLayout = useMemo(() => {
-    return WidthProvider(Responsive);
+
+  /* Horizontal Resizing */
+
+  // The grid layout is divided into columns.
+  // The resize increment is the layout's width divided by the number of columns.
+  // Use larger values to give users fine-grained control.
+  // Use smaller values for coarse-grained control.
+  const gridMaxColumns = 50;
+
+  /* Vertical Resizing */
+
+  // A grid item has a height, and if the layout has margins then there
+  // is a number of pixels margin between each row, too. Therefore, the
+  // total height of a grid item is the height plus the margin.
+  // Playing around with different row heights, I deduced that the margin
+  // size in pixels when the layout's margin is [1, 1] is ~1.03 pixels.
+  const gridRowHeight = 10;
+  const gridRowMargin = 1.03;
+  const gridRowHeightWithMargin = gridRowHeight + gridRowMargin;
+
+  /* Window Resizing */
+
+  // As the window dimensions change, we need to update the layout, too,
+  // so that the layout always fits the window exactly.
+  // This allows the user to drag grid items anywhere within the window.
+  const [gridMaxRows, setGridMaxRows] = useState<number>();
+  const [gridMaxWidth, setGridMaxWidth] = useState<number>(1200); // app.ts
+
+  useEffect(() => {
+    const { height, width } = windowDimensions;
+    if (height) {
+      setGridMaxRows(Math.floor(height / gridRowHeightWithMargin));
+    }
+    if (width) {
+      setGridMaxWidth(width);
+    }
+  }, [windowDimensions]);
+
+  /**
+   * Load the layout from storage or build a default layout.
+   */
+  const buildDefaultLayout = (): Array<Layout> => {
+    let layout = LocalStorage.get<Array<Layout>>('layout');
+
+    if (layout) {
+      layout = layout.filter((layoutItem) => {
+        return items.find((item) => item.itemId === layoutItem.i);
+      });
+      return layout;
+    }
+
+    // We'll tile the items three per row.
+    const maxItemsPerRow = 3;
+
+    // The min width and height are used to prevent the grid item from being
+    //resized so small that it's unusable and hides its title bar.
+    const minWidth = 5;
+    const minHeight = 2;
+
+    // The number of columns and rows the item will span.
+    const defaultWidth = Math.floor(gridMaxColumns / maxItemsPerRow);
+    const defaultHeight = gridRowHeight;
+
+    let rowOffset = 0;
+    let colOffset = 0;
+
+    layout = items.map((item, index): Layout => {
+      // If time to move to next row then adjust the offsets.
+      if (index > 0 && index % maxItemsPerRow === 0) {
+        rowOffset += gridRowHeight;
+        colOffset = 0;
+      }
+
+      const newItem = {
+        i: item.itemId,
+        x: defaultWidth * colOffset,
+        y: rowOffset,
+        w: defaultWidth,
+        h: defaultHeight,
+        minW: minWidth,
+        minH: minHeight,
+      };
+
+      colOffset += 1;
+
+      return newItem;
+    });
+
+    return layout;
+  };
+
+  const [layout, setLayout] = useState<Array<Layout>>(buildDefaultLayout);
+
+  // Save the layout when it changes in the grid.
+  const onLayoutChange = useCallback((layout: Array<Layout>) => {
+    setLayout(layout);
+    LocalStorage.set('layout', layout);
+  }, []);
+
+  // Remove the item from the layout.
+  const onGridItemClose = useCallback((itemId: string) => {
+    const newLayout = layout.filter((layoutItem) => {
+      return layoutItem.i !== itemId;
+    });
+    onLayoutChange(newLayout);
   }, []);
 
   /**
-   * Define the initial layout state.
-   *
-   * The min width and height are used to prevent the grid item from being
-   * resized so small that it's unusable and hides its title bar.
-   *
-   * TODO save the layout on changes
-   * TODO load the layout according to user's preferences
-   * TODO create an item per game window that is open (e.g. Room, Spells, etc)
-   *      and one of the properties should be the game window's title
-   *      and one of the properties should be the game window's text
-   *      Probably make the property another component to encapsulate use of rxjs
-   *      and then exposes a property that is the text so that when that changes
-   *      then the grid item will rerender.
-   */
-  const [layout, setLayout] = useState<Array<Layout & { [key: string]: any }>>([
-    { i: 'a', x: 0, y: 0, w: 4, minW: 5, h: 10, minH: 2, title: 'Room' },
-    { i: 'b', x: 4, y: 0, w: 5, minW: 5, h: 10, minH: 2, title: 'Spells' },
-    { i: 'c', x: 9, y: 0, w: 6, minW: 5, h: 10, minH: 2, title: 'Combat' },
-  ]);
-
-  /**
-   * Originally I called `useRef` in the `children` `useMemo` hook below but
+   * Originally I called `useRef` in the children's `useMemo` hook below but
    * that caused "Error: Rendered fewer hooks than expected" to be thrown.
    * I later learned the "Rule of Hooks" which forbid what I was doing.
    * Found a workaround on stackoverflow to store the refs in a ref. Ironic.
@@ -86,45 +201,57 @@ const Grid: React.FC = (): JSX.Element => {
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
   const children = useMemo(() => {
-    logger.info('creating children');
-    return layout.map((item, i) => {
+    return layout.map((layoutItem, i) => {
+      const item = items.find((item) => item.itemId === layoutItem.i);
       return (
         <GridItem
-          key={item.i}
+          key={item!.itemId}
           ref={childRefs.current[i]}
-          titleBarText={item.title}
+          itemId={item!.itemId}
+          titleBarText={item!.title}
+          onClose={onGridItemClose}
         >
-          <EuiText css={gridItemTextStyles}>Hello World</EuiText>
+          <EuiText css={gridItemTextStyles}>{item!.content}</EuiText>
         </GridItem>
       );
     });
   }, [layout.length]);
 
-  /**
-   * When resize horizontally or vertically, this is the number
-   * of pixels the grid item will grow or shrink per increment.
-   * Use smaller numbers to give users more granular and precise control.
-   * Use larger numbers to give users more coarse and quick control.
-   */
-  const resizeMaxColumns = 50; // increment = divide page width by this value
-  const resizeRowHeightIncrement = 10; // approx. pixels to change vertically
-
   return (
-    <ResponsiveGridLayout
+    <GridLayout
       css={gridLayoutStyles}
-      layouts={{ lg: layout }}
-      breakpoints={{ lg: 1200 }}
-      cols={{ lg: resizeMaxColumns }}
-      rowHeight={resizeRowHeightIncrement}
+      layout={layout}
+      cols={gridMaxColumns}
+      width={gridMaxWidth}
+      rowHeight={gridRowHeight}
+      maxRows={gridMaxRows}
+      // Disable the grid from managing its own height.
+      // We manage it explicitly in the `gridLayoutStyles` above.
+      autoSize={false}
+      // Provide nominal spacing between grid items.
+      // If this value changes then review the grid row height variables.
+      margin={[1, 1]}
+      // Handle each time the layout changes (e.g. an item is moved or resized)
+      onLayoutChange={onLayoutChange}
+      // Allow items to be placed anywhere in the grid.
+      compactType={null}
+      // Prevent items from overlapping or being pushed.
+      preventCollision={true}
+      // Prevent items from being dragged outside the grid.
       isBounded={true}
+      // Allow items to be dragged around the grid.
       isDraggable={true}
+      // Allow items to be dropped around the grid.
       isDroppable={true}
+      // Allow items to be resized within the grid.
       isResizable={true}
+      // The grid item's bottom right corner is used as the handle for resizing.
       resizeHandles={['se']}
+      // The grid item's title bar is used as the handle for dragging.
       draggableHandle={'.grab-handle'}
     >
       {children}
-    </ResponsiveGridLayout>
+    </GridLayout>
   );
 };
 

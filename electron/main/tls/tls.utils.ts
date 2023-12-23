@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
 import tls from 'node:tls';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
-import { SelfSignedCertConnectOptions } from './tls.types';
+import type { SelfSignedCertConnectOptions } from './tls.types';
 
 const logger = createLogger('tls:utils');
 
@@ -15,12 +16,23 @@ const logger = createLogger('tls:utils');
 export async function sendAndReceive(options: {
   socket: tls.TLSSocket;
   payload: Buffer;
+  /**
+   * The number of milliseconds to wait for a response before timing out.
+   * Default is the socket's timeout value.
+   */
+  requestTimeout?: number;
 }): Promise<Buffer> {
-  const { socket, payload } = options;
+  const { socket, payload, requestTimeout = socket.timeout } = options;
 
   return new Promise<Buffer>((resolve, reject): void => {
+    let requestTimeoutId: Maybe<NodeJS.Timeout>;
+
     const dataListener = (response: Buffer): void => {
       resolveSocket(response);
+    };
+
+    const closedListener = (): void => {
+      rejectSocket(new Error('ERR:SOCKET:CLOSED'));
     };
 
     const timeoutListener = (): void => {
@@ -34,27 +46,39 @@ export async function sendAndReceive(options: {
 
     const addListeners = (): void => {
       socket.once('data', dataListener);
+      socket.once('end', closedListener);
+      socket.once('close', closedListener);
       socket.once('timeout', timeoutListener);
       socket.once('error', errorListener);
     };
 
     const removeListeners = (): void => {
       socket.off('data', dataListener);
+      socket.off('end', closedListener);
+      socket.off('close', closedListener);
       socket.off('timeout', timeoutListener);
       socket.off('error', errorListener);
     };
 
     const resolveSocket = (response: Buffer): void => {
+      clearTimeout(requestTimeoutId);
       removeListeners();
       resolve(response);
     };
 
     const rejectSocket = (error: Error): void => {
+      clearTimeout(requestTimeoutId);
       removeListeners();
       reject(error);
     };
 
     addListeners();
+
+    if (requestTimeout) {
+      requestTimeoutId = setTimeout(() => {
+        rejectSocket(new Error(`ERR:SOCKET:REQ:TIMEOUT:${requestTimeout}`));
+      }, requestTimeout);
+    }
 
     socket.write(payload);
   });
@@ -156,7 +180,7 @@ export function createSelfSignedCertConnectOptions(options: {
        * The server's certificate to check.
        */
       certToCheck: tls.PeerCertificate
-    ): Error | undefined => {
+    ): Maybe<Error> => {
       const pemToCheck = convertDERtoPEM(certToCheck.raw);
 
       if (pemToCheck !== pemToTrust) {

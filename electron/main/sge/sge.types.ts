@@ -7,7 +7,7 @@ export enum SGEGameProtocol {
  * Only interested in DragonRealms, though.
  */
 export enum SGEGameCode {
-  DRAGONREALMS = 'DR',
+  DRAGONREALMS_PRIME = 'DR',
   DRAGONREALMS_DEVELOPMENT = 'DRD',
   DRAGONREALMS_THE_FALLEN = 'DRF',
   DRAGONREALMS_PRIME_TEST = 'DRT',
@@ -58,4 +58,23 @@ export interface SGEGameCredentials {
 export interface SGELoginResponse {
   subscription: SGEGameSubscription;
   credentials: SGEGameCredentials;
+}
+
+export interface SGECharacter {
+  /**
+   * Unique identifier of the character.
+   * Retrieved and used automatically during login protocol.
+   * Players rarely know what this is.
+   */
+  id: string;
+  /**
+   * Name of the character.
+   * What player's know their character as.
+   */
+  name: string;
+}
+
+export interface SGEService {
+  loginCharacter(characterName: string): Promise<SGEGameCredentials>;
+  listCharacters(): Promise<Array<SGECharacter>>;
 }
