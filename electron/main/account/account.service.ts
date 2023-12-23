@@ -160,6 +160,15 @@ export class AccountServiceImpl implements AccountService {
 
     logger.info('saving character', { accountName, characterName, gameCode });
 
+    // Confirm the account exists, otherwise we have
+    // no credentials by which to play the character.
+    const account = await this.getAccount({ accountName });
+    if (!account) {
+      throw new Error(
+        `[ACCOUNT:SERVICE:ERROR:ACCOUNT_NOT_FOUND] ${accountName}`
+      );
+    }
+
     const characterKey = this.getCharacterStoreKey({
       characterName,
       gameCode,

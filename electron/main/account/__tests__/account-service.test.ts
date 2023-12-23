@@ -331,7 +331,33 @@ describe('account-service', () => {
   });
 
   describe('#saveCharacter', () => {
+    it('should not save a character if no account is found', async () => {
+      try {
+        await accountService.saveCharacter({
+          gameCode: 'DR',
+          accountName: 'test-account',
+          characterName: 'test-character',
+        });
+        fail('it should throw an error');
+      } catch (error) {
+        expect(error.message).toBe(
+          `[ACCOUNT:SERVICE:ERROR:ACCOUNT_NOT_FOUND] test-account`
+        );
+      }
+    });
+
     it('should save a character', async () => {
+      storeService.get.mockImplementation((key) => {
+        if (key === 'sge.account.test-account') {
+          return {
+            accountName: 'test-account',
+            accountPassword: 'test-encrypted',
+          };
+        }
+
+        return undefined;
+      });
+
       await accountService.saveCharacter({
         gameCode: 'DR',
         accountName: 'test-account',
