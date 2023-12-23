@@ -112,6 +112,7 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.1.1",
     "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "glob": "^10.3.10",
     "husky": "^8.0.3",
@@ -276,6 +277,7 @@
           "plugin:@typescript-eslint/recommended",
           "plugin:react/recommended",
           "plugin:react/jsx-runtime",
+          "plugin:react-hooks/recommended",
           "plugin:prettier/recommended",
           "plugin:import/recommended",
           "plugin:import/electron",
@@ -285,6 +287,7 @@
         "plugins": [
           "@typescript-eslint",
           "react",
+          "react-hooks",
           "prettier",
           "import",
           "unused-imports"
