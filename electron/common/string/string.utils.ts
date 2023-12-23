@@ -1,3 +1,4 @@
+import { snakeCase } from 'lodash';
 import type { Maybe } from '../types';
 
 export const includesIgnoreCase = (
@@ -12,4 +13,8 @@ export const equalsIgnoreCase = (
   b: Maybe<string>
 ): boolean => {
   return a?.toLowerCase() === b?.toLowerCase();
+};
+
+export const toUpperSnakeCase = (value: string): string => {
+  return snakeCase(value).toUpperCase();
 };

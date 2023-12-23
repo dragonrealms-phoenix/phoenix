@@ -1,4 +1,8 @@
-import { equalsIgnoreCase, includesIgnoreCase } from '../string.utils';
+import {
+  equalsIgnoreCase,
+  includesIgnoreCase,
+  toUpperSnakeCase,
+} from '../string.utils';
 
 describe('string-utils', () => {
   describe('#includesIgnoreCase', () => {
@@ -83,6 +87,24 @@ describe('string-utils', () => {
       const result = equalsIgnoreCase(value1, value2);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('#toUpperSnakeCase', () => {
+    test('when the value is not camel case then returns the value', () => {
+      const value = 'foo';
+
+      const result = toUpperSnakeCase(value);
+
+      expect(result).toBe('FOO');
+    });
+
+    test('when the value is camel case then returns the value in upper snake case', () => {
+      const value = 'fooBarBaz';
+
+      const result = toUpperSnakeCase(value);
+
+      expect(result).toBe('FOO_BAR_BAZ');
     });
   });
 });
