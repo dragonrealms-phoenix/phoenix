@@ -13,7 +13,6 @@ describe('GameSocket', () => {
   };
 
   const mockNetConnect = (options?: {
-    isWritable?: boolean;
     emitError?: boolean;
     emitTimeout?: boolean;
   }) => {
@@ -21,14 +20,15 @@ describe('GameSocket', () => {
       connectOptions: any & net.NetConnectOpts,
       connectionListener: any & (() => void)
     ) => {
-      connectionListener();
-
       const mockSocket = new NetSocketMock({
         timeout: connectOptions.timeout ?? 30_000,
-        writable: options?.isWritable ?? true,
         emitError: options?.emitError ?? false,
         emitTimeout: options?.emitTimeout ?? false,
       });
+
+      mockSocket.connect(connectOptions);
+
+      connectionListener();
 
       mockSockets.push(mockSocket);
 
@@ -319,6 +319,112 @@ describe('GameSocket', () => {
 
       // Since we never connected then no mock socket was created.
       expect(mockSockets).toHaveLength(0);
+    });
+  });
+
+  describe('#send', () => {
+    it('should send commands when connected to the game server', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+
+      socket = new GameSocketImpl({
+        credentials,
+      });
+
+      // ---
+
+      await socket.connect();
+
+      await sleep(1000);
+
+      socket.send('test-command');
+
+      expect(mockSockets[0].writeSpy).toHaveBeenCalledWith('test-command\n');
+    });
+
+    it('should throw error when never connected to the game server', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+
+      socket = new GameSocketImpl({
+        credentials,
+      });
+
+      // ---
+
+      // We never connect so the underlying socket is not writable.
+      // This could happen if someone uses the game socket just like this test:
+      // tries to send the command but never called `connect` first.
+
+      try {
+        socket.send('test-command');
+        fail('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(
+          new Error(
+            `[GAME:SOCKET:STATUS:NOT_WRITABLE] cannot send commands: test-command`
+          )
+        );
+      }
+    });
+
+    it('should throw error when socket is not writable', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(
+        mockNetConnect({
+          emitError: true,
+        })
+      );
+
+      socket = new GameSocketImpl({
+        credentials,
+      });
+
+      // ---
+
+      // We connect, but by the time we send the commands
+      // then we simulate that the underlying socket is not writable anymore.
+      // This could happen if the game server disconnects us.
+      await socket.connect();
+
+      await sleep(1000);
+
+      try {
+        socket.send('test-command');
+        fail('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(
+          new Error(
+            `[GAME:SOCKET:STATUS:NOT_WRITABLE] cannot send commands: test-command`
+          )
+        );
+      }
+    });
+
+    it('should throw error when socket has been disconnected', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+
+      socket = new GameSocketImpl({
+        credentials,
+      });
+
+      // ---
+
+      await socket.connect();
+
+      await sleep(1000);
+
+      await socket.disconnect();
+
+      await sleep(1000);
+
+      try {
+        socket.send('test-command');
+        fail('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(
+          new Error(
+            `[GAME:SOCKET:STATUS:NOT_WRITABLE] cannot send commands: test-command`
+          )
+        );
+      }
     });
   });
 });

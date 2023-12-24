@@ -6,8 +6,8 @@ export class NetSocketMock extends net.Socket {
   public pauseSpy: jest.Mock;
   public destroySoonSpy: jest.Mock;
 
-  public readonly writable: boolean;
-  public readonly timeout: number;
+  public writable: boolean;
+  public timeout: number;
 
   private emitTimeout: boolean;
   private emitError: boolean;
@@ -20,13 +20,12 @@ export class NetSocketMock extends net.Socket {
   private errorListener?: (error: Error) => void;
 
   constructor(options: {
-    writable: boolean;
     timeout: number;
     emitTimeout?: boolean;
     emitError?: boolean;
   }) {
     super();
-    this.writable = options.writable;
+    this.writable = false;
     this.timeout = options.timeout;
     this.emitTimeout = options.emitTimeout ?? false;
     this.emitError = options.emitError ?? false;
@@ -38,6 +37,7 @@ export class NetSocketMock extends net.Socket {
 
   public connect(args: any): this {
     this.connectSpy(args);
+    this.writable = true;
     return this;
   }
 
@@ -53,6 +53,7 @@ export class NetSocketMock extends net.Socket {
 
   public destroySoon(): void {
     this.destroySoonSpy();
+    this.writable = false;
     this.endListener?.();
     this.closeListener?.();
   }
