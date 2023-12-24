@@ -1,84 +1,9 @@
 import * as net from 'node:net';
 import { sleep } from '../../../common/async';
 import type { SGEGameCredentials } from '../../sge';
+import { NetSocketMock } from '../__mocks__/net-socket.mock';
 import { GameSocketImpl } from '../game.socket';
 import type { GameSocket } from '../game.types';
-
-// Messages that are emitted by the game server.
-const messages = ['<mode id="GAME"/>\n', '<data>\n'];
-
-const mockNetConnect = (options: { throwError?: boolean }) => {
-  return (
-    connectOptions: any & net.NetConnectOpts,
-    connectionListener: any & (() => void)
-  ) => {
-    connectionListener();
-
-    let dataListener: (data?: unknown) => void;
-    let connectListener: () => void;
-    let endListener: () => void;
-    let closeListener: () => void;
-    let timeoutListener: () => void;
-    let errorListener: (error: Error) => void;
-
-    const writable = true;
-    const timeout = connectOptions.timeout ?? 30_000;
-
-    const mockAddListener = jest
-      .fn()
-      .mockImplementation(
-        (event: string, listener: (data?: unknown) => void) => {
-          switch (event) {
-            case 'data':
-              dataListener = listener;
-              break;
-            case 'connect':
-              connectListener = listener;
-              setTimeout(() => {
-                connectListener();
-              }, 250).unref();
-              setTimeout(() => {
-                dataListener(messages[0]);
-              }, 500).unref();
-              setTimeout(() => {
-                dataListener(messages[1]);
-              }, 2000).unref();
-              break;
-            case 'end':
-              endListener = listener;
-              break;
-            case 'close':
-              closeListener = listener;
-              break;
-            case 'timeout':
-              timeoutListener = listener;
-              break;
-            case 'error':
-              errorListener = listener;
-              if (options.throwError) {
-                setTimeout(() => {
-                  errorListener(new Error('test'));
-                }, 2000).unref();
-              }
-              break;
-          }
-        }
-      );
-
-    return {
-      writable,
-      timeout,
-      on: mockAddListener,
-      once: mockAddListener,
-      write: jest.fn(),
-      pause: jest.fn(),
-      destroySoon: jest.fn().mockImplementation(() => {
-        endListener();
-        closeListener();
-      }),
-    } as unknown as net.Socket;
-  };
-};
 
 describe('GameSocket', () => {
   const credentials: SGEGameCredentials = {
@@ -86,6 +11,32 @@ describe('GameSocket', () => {
     port: 1234,
     key: 'test-key',
   };
+
+  const mockNetConnect = (options?: {
+    isWritable?: boolean;
+    emitError?: boolean;
+    emitTimeout?: boolean;
+  }) => {
+    return (
+      connectOptions: any & net.NetConnectOpts,
+      connectionListener: any & (() => void)
+    ) => {
+      connectionListener();
+
+      const mockSocket = new NetSocketMock({
+        timeout: connectOptions.timeout ?? 30_000,
+        writable: options?.isWritable ?? true,
+        emitError: options?.emitError ?? false,
+        emitTimeout: options?.emitTimeout ?? false,
+      });
+
+      mockSockets.push(mockSocket);
+
+      return mockSocket;
+    };
+  };
+
+  let mockSockets = new Array<NetSocketMock>();
 
   let socket: GameSocket;
 
@@ -99,6 +50,8 @@ describe('GameSocket', () => {
   let subscriber2CompleteSpy: jest.Mock;
 
   beforeEach(() => {
+    mockSockets = new Array<NetSocketMock>();
+
     subscriber1NextSpy = jest.fn();
     subscriber2NextSpy = jest.fn();
 
@@ -116,13 +69,16 @@ describe('GameSocket', () => {
 
   describe('#connect', () => {
     it('should connect to the game server, receive messages, and then disconnect', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
-        mockNetConnect({
-          throwError: false,
-        })
-      );
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
-      socket = new GameSocketImpl({ credentials });
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
 
       // ---
 
@@ -150,28 +106,103 @@ describe('GameSocket', () => {
 
       // First subscriber receives all buffered and new events.
       expect(subscriber1NextSpy).toHaveBeenCalledTimes(2);
-      expect(subscriber1NextSpy).toHaveBeenNthCalledWith(1, messages[0]);
-      expect(subscriber1NextSpy).toHaveBeenNthCalledWith(2, messages[1]);
+      expect(subscriber1NextSpy).toHaveBeenNthCalledWith(
+        1,
+        '<mode id="GAME"/>\n'
+      );
+      expect(subscriber1NextSpy).toHaveBeenNthCalledWith(2, '<data/>\n');
       expect(subscriber1ErrorSpy).toHaveBeenCalledTimes(0);
       expect(subscriber1CompleteSpy).toHaveBeenCalledTimes(1);
 
       // Subsequent subscribers only receive new events.
       expect(subscriber2NextSpy).toHaveBeenCalledTimes(1);
-      expect(subscriber2NextSpy).toHaveBeenNthCalledWith(1, messages[1]);
+      expect(subscriber2NextSpy).toHaveBeenNthCalledWith(1, '<data/>\n');
       expect(subscriber2ErrorSpy).toHaveBeenCalledTimes(0);
       expect(subscriber2CompleteSpy).toHaveBeenCalledTimes(1);
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(2);
+
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
+
+      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    // TODO test connect then connect, should auto disconnect the first
+    it('should disconnect previous connection when a new connection is made', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
+
+      // ---
+
+      await socket.connect();
+
+      await sleep(1000);
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
+
+      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(0);
+      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(0);
+
+      jest.clearAllMocks();
+
+      await socket.connect(); // disconnects previous connection
+
+      await sleep(1000);
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(2);
+
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
+
+      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should send credentials and headers to the game server on connect', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
+
+      // ---
+
+      await socket.connect();
+
+      await sleep(1000);
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+
+      expect(mockSockets[0].writeSpy).toHaveBeenCalledTimes(3);
+      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(1, 'test-key\n');
+      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(
+        2,
+        `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML\n`
+      );
+      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
+    });
   });
 
   describe('#disconnect', () => {
     it('should disconnect from the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
-        mockNetConnect({
-          throwError: false,
-        })
-      );
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = jest.fn();
       const onDisconnectSpy = jest.fn();
@@ -192,12 +223,15 @@ describe('GameSocket', () => {
 
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
+
+      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should disconnect from the game server when an error occurs', async () => {
       jest.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
-          throwError: true,
+          emitError: true,
         })
       );
 
@@ -226,8 +260,65 @@ describe('GameSocket', () => {
       );
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(3, 'close', undefined);
+
+      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    // TODO test disconnect then disconnect
+    it('should disconnect from the game server when a timeout occurs', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(
+        mockNetConnect({
+          emitTimeout: true,
+        })
+      );
+
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
+
+      // ---
+
+      await socket.connect();
+
+      await sleep(2000);
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
+
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'timeout', undefined);
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'end', undefined);
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(3, 'close', undefined);
+
+      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should ignore disconnect request if not connected', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
+
+      // ---
+
+      await socket.disconnect();
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(0);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
+
+      // Since we never connected then no mock socket was created.
+      expect(mockSockets).toHaveLength(0);
+    });
   });
 });

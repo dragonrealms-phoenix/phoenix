@@ -251,7 +251,7 @@ export class GameSocketImpl implements GameSocket {
         if (socket.writable) {
           socket.write(`\n\n`);
         }
-      }, 1000);
+      }, 1000).unref();
     });
 
     socket.once('end', (): void => {
