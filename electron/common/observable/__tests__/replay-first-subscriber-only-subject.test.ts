@@ -78,7 +78,7 @@ describe('ReplayFirstSubscriberOnlySubject', () => {
   it('should emit error to the first subscriber only', () => {
     // buffer events for the first subscriber
     subject.next('A');
-    subject.error(new Error('test error'));
+    subject.error(new Error('test'));
 
     // first subscriber
     subject.subscribe({
@@ -139,7 +139,7 @@ describe('ReplayFirstSubscriberOnlySubject', () => {
     });
 
     // new event to all current subscribers
-    subject.error(new Error('test error'));
+    subject.error(new Error('test'));
     subject.next('D'); // no subscriber will receive this because of the error
 
     // done
