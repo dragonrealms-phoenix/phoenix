@@ -203,7 +203,7 @@ export function createSelfSignedCertConnectOptions(options: {
         const validFrom = certToCheck.valid_from;
         const validTo = certToCheck.valid_to;
         logger.error('certificate expired', { host, validFrom, validTo });
-        return new Error(`[TLS:SOCKET:CERT:EXPIRED] ${validFrom} ${validTo}`);
+        return new Error(`[TLS:SOCKET:CERT:EXPIRED] ${validFrom} - ${validTo}`);
       }
 
       return; // certificate is valid
