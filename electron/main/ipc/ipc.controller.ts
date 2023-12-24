@@ -60,7 +60,7 @@ export class IpcController {
         } catch (error) {
           logger.error('error handling channel request', { channel, error });
           throw new Error(
-            `[IPC:CHANNEL:ERROR:${toUpperSnakeCase(channel)}] ${error?.message}`
+            `[IPC:CHANNEL:ERROR:${toUpperSnakeCase(channel)}] ${error.message}`
           );
         }
       });
