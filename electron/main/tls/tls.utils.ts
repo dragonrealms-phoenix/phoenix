@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import tls from 'node:tls';
+import { toUpperSnakeCase } from '../../common/string';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import type { SelfSignedCertConnectOptions } from './tls.types';
@@ -32,16 +33,20 @@ export async function sendAndReceive(options: {
     };
 
     const closedListener = (): void => {
-      rejectSocket(new Error('ERR:SOCKET:CLOSED'));
+      rejectSocket(new Error(`[TLS:SOCKET:STATUS:CLOSED]`));
     };
 
     const timeoutListener = (): void => {
       const timeout = socket.timeout;
-      rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
+      rejectSocket(new Error(`[TLS:SOCKET:STATUS:TIMEOUT] ${timeout}`));
     };
 
     const errorListener = (error: Error): void => {
-      rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
+      rejectSocket(
+        new Error(
+          `[TLS:SOCKET:ERROR:${toUpperSnakeCase(error.name)}] ${error.message}`
+        )
+      );
     };
 
     const addListeners = (): void => {
@@ -76,7 +81,9 @@ export async function sendAndReceive(options: {
 
     if (requestTimeout) {
       requestTimeoutId = setTimeout(() => {
-        rejectSocket(new Error(`ERR:SOCKET:REQ:TIMEOUT:${requestTimeout}`));
+        rejectSocket(
+          new Error(`[TLS:SOCKET:REQUEST:TIMEOUT] ${requestTimeout}`)
+        );
       }, requestTimeout);
     }
 
@@ -119,13 +126,17 @@ export async function downloadCertificate(
 
     socket.once('timeout', (): void => {
       const timeout = socket.timeout;
-      logger.error('socket timed out', { host, port, timeout });
-      rejectSocket(new Error(`ERR:SOCKET:TIMEOUT:${timeout}`));
+      logger.error('socket inactivity timeout', { host, port, timeout });
+      rejectSocket(new Error(`[TLS:SOCKET:STATUS:TIMEOUT] ${timeout}`));
     });
 
     socket.once('error', (error: Error): void => {
       logger.error('socket error', { host, port, error });
-      rejectSocket(new Error(`ERR:SOCKET:${error.name}:${error.message}`));
+      rejectSocket(
+        new Error(
+          `[TLS:SOCKET:ERROR:${toUpperSnakeCase(error.name)}] ${error.message}`
+        )
+      );
     });
 
     const resolveSocket = (result: tls.PeerCertificate): void => {
@@ -185,14 +196,14 @@ export function createSelfSignedCertConnectOptions(options: {
 
       if (pemToCheck !== pemToTrust) {
         logger.error('certificate is untrusted, insecure connection', { host });
-        return new Error('ERR:TLS:CERT:UNTRUSTED');
+        return new Error('[TLS:SOCKET:CERT:UNTRUSTED]');
       }
 
       if (!isValidForNow(certToCheck)) {
         const validFrom = certToCheck.valid_from;
         const validTo = certToCheck.valid_to;
         logger.error('certificate expired', { host, validFrom, validTo });
-        return new Error(`ERR:TLS:CERT:EXPIRED:${validFrom}:${validTo}`);
+        return new Error(`[TLS:SOCKET:CERT:EXPIRED] ${validFrom} ${validTo}`);
       }
 
       return; // certificate is valid
