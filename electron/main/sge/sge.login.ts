@@ -77,16 +77,15 @@ export async function loginCharacter(options: {
     // Select character to play and get back game credentials
     const credentials = await getGameCredentials({ socket, characterName });
 
-    socket.end();
-
     return {
       subscription,
       credentials,
     };
   } catch (error) {
     logger.error('error logging in', { error });
-    socket.destroy();
     throw error;
+  } finally {
+    socket.destroySoon();
   }
 }
 
@@ -135,13 +134,12 @@ export async function listCharacters(options: {
     // Retrieve list of characters available to the account
     const characters = await listAvailableCharacters({ socket });
 
-    socket.end();
-
     return characters;
   } catch (error) {
     logger.error('error listing characters', { error });
-    socket.destroy();
     throw error;
+  } finally {
+    socket.destroySoon();
   }
 }
 
