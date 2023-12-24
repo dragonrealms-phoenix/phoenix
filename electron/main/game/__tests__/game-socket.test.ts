@@ -36,13 +36,13 @@ const mockNetConnect = (options: { throwError?: boolean }) => {
               connectListener = listener;
               setTimeout(() => {
                 connectListener();
-              }, 250);
+              }, 250).unref();
               setTimeout(() => {
                 dataListener(messages[0]);
-              }, 500);
+              }, 500).unref();
               setTimeout(() => {
                 dataListener(messages[1]);
-              }, 2000);
+              }, 2000).unref();
               break;
             case 'end':
               endListener = listener;
@@ -58,7 +58,7 @@ const mockNetConnect = (options: { throwError?: boolean }) => {
               if (options.throwError) {
                 setTimeout(() => {
                   errorListener(new Error('test'));
-                }, 2000);
+                }, 2000).unref();
               }
               break;
           }
@@ -161,5 +161,73 @@ describe('GameSocket', () => {
       expect(subscriber2ErrorSpy).toHaveBeenCalledTimes(0);
       expect(subscriber2CompleteSpy).toHaveBeenCalledTimes(1);
     });
+
+    // TODO test connect then connect, should auto disconnect the first
+  });
+
+  describe('#disconnect', () => {
+    it('should disconnect from the game server', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(
+        mockNetConnect({
+          throwError: false,
+        })
+      );
+
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
+
+      // ---
+
+      await socket.connect();
+      await socket.disconnect();
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(2);
+
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
+    });
+
+    it('should disconnect from the game server when an error occurs', async () => {
+      jest.spyOn(net, 'connect').mockImplementation(
+        mockNetConnect({
+          throwError: true,
+        })
+      );
+
+      const onConnectSpy = jest.fn();
+      const onDisconnectSpy = jest.fn();
+
+      socket = new GameSocketImpl({
+        credentials,
+        onConnect: onConnectSpy,
+        onDisconnect: onDisconnectSpy,
+      });
+
+      // ---
+
+      await socket.connect();
+
+      await sleep(2000);
+
+      expect(onConnectSpy).toHaveBeenCalledTimes(1);
+      expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
+
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(
+        1,
+        'error',
+        new Error('test')
+      );
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'end', undefined);
+      expect(onDisconnectSpy).toHaveBeenNthCalledWith(3, 'close', undefined);
+    });
+
+    // TODO test disconnect then disconnect
   });
 });

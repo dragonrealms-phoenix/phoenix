@@ -71,7 +71,10 @@ export class GameSocketImpl implements GameSocket {
      * If the socket disconnects unexpectedly then this callback will be called.
      * It does help with unit testing though.
      */
-    onDisconnect?: (event: string, error?: Error) => void;
+    onDisconnect?: (
+      event: 'end' | 'close' | 'timeout' | 'error',
+      error?: Error
+    ) => void;
   }) {
     this.credentials = options.credentials;
     this.onConnectCallback = options.onConnect ?? (() => {});
