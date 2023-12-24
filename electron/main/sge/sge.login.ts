@@ -185,7 +185,7 @@ async function connect(
 
   socket.on('timeout', (): void => {
     const timeout = socket.timeout;
-    logger.error('login server timed out', { host, port, timeout });
+    logger.error('login server inactivity timeout', { host, port, timeout });
   });
 
   socket.on('error', (error: Error): void => {
