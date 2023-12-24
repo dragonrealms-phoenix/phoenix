@@ -12,8 +12,8 @@ export const sleep = (ms: number): Promise<void> => {
  * a function but it *is* async and so you want the errors logged, if any.
  */
 export const runInBackground = (fn: () => Promise<unknown>): void => {
-  Promise.resolve(fn()).catch((error) => {
-    logger.error(`unhandled promise exception: ${error?.message}`, {
+  Promise.resolve(fn()).catch((error: Error) => {
+    logger.error(`unhandled promise exception: ${error.message}`, {
       error,
     });
   });
