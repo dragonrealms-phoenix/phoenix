@@ -12,7 +12,7 @@ describe('string-utils', () => {
 
       const result = includesIgnoreCase(values, valueToFind);
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
     });
 
     test('when the value is not included in the array then returns false', () => {
@@ -21,7 +21,7 @@ describe('string-utils', () => {
 
       const result = includesIgnoreCase(values, valueToFind);
 
-      expect(result).toBe(false);
+      expect(result).toEqual(false);
     });
 
     test('when value is included in the array but with different casing then returns true', () => {
@@ -30,7 +30,7 @@ describe('string-utils', () => {
 
       const result = includesIgnoreCase(values, valueToFind);
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
     });
   });
 
@@ -41,7 +41,7 @@ describe('string-utils', () => {
 
       const result = equalsIgnoreCase(value1, value2);
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
     });
 
     test('when the values are not equal then returns false', () => {
@@ -50,7 +50,7 @@ describe('string-utils', () => {
 
       const result = equalsIgnoreCase(value1, value2);
 
-      expect(result).toBe(false);
+      expect(result).toEqual(false);
     });
 
     test('when the values are equal but with different casing then returns true', () => {
@@ -59,7 +59,7 @@ describe('string-utils', () => {
 
       const result = equalsIgnoreCase(value1, value2);
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
     });
 
     test('when first value is undefined then returns false', () => {
@@ -68,7 +68,7 @@ describe('string-utils', () => {
 
       const result = equalsIgnoreCase(value1, value2);
 
-      expect(result).toBe(false);
+      expect(result).toEqual(false);
     });
 
     test('when second value is undefined then returns false', () => {
@@ -77,7 +77,7 @@ describe('string-utils', () => {
 
       const result = equalsIgnoreCase(value1, value2);
 
-      expect(result).toBe(false);
+      expect(result).toEqual(false);
     });
 
     test('when both values are undefined then returns true', () => {
@@ -86,7 +86,7 @@ describe('string-utils', () => {
 
       const result = equalsIgnoreCase(value1, value2);
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
     });
   });
 
@@ -96,7 +96,7 @@ describe('string-utils', () => {
 
       const result = toUpperSnakeCase(value);
 
-      expect(result).toBe('FOO');
+      expect(result).toEqual('FOO');
     });
 
     test('when the value is camel case then returns the value in upper snake case', () => {
@@ -104,7 +104,7 @@ describe('string-utils', () => {
 
       const result = toUpperSnakeCase(value);
 
-      expect(result).toBe('FOO_BAR_BAZ');
+      expect(result).toEqual('FOO_BAR_BAZ');
     });
   });
 });

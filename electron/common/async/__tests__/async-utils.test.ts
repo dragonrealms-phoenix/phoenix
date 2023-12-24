@@ -81,7 +81,7 @@ describe('async-utils', () => {
 
       const result = await waitUntil({ condition, interval, timeout });
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
       expect(condition).toHaveBeenCalledTimes(1);
     });
 
@@ -92,7 +92,7 @@ describe('async-utils', () => {
 
       const result = await waitUntil({ condition, interval, timeout });
 
-      expect(result).toBe(false);
+      expect(result).toEqual(false);
       expect(condition).toHaveBeenCalledTimes(9);
     });
 
@@ -109,7 +109,7 @@ describe('async-utils', () => {
 
       const result = await waitUntil({ condition, interval, timeout });
 
-      expect(result).toBe(true);
+      expect(result).toEqual(true);
       expect(condition).toHaveBeenCalledTimes(5);
     });
   });
