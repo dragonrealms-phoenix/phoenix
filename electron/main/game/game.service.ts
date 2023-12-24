@@ -183,7 +183,7 @@ class GameServiceImpl implements GameService {
 
     socket.on('timeout', (): void => {
       const timeout = socket.timeout;
-      logger.error('game server timed out', { host, port, timeout });
+      logger.error('game server inactivity timeout', { host, port, timeout });
       onGameDisconnect();
     });
 
