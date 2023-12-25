@@ -71,7 +71,7 @@
     "dotenv": "^16.3.1",
     "dotenv-flow": "^4.0.1",
     "electron-is-dev": "^2.0.0",
-    "electron-log": "^5.0.1",
+    "electron-log": "^5.0.2",
     "electron-serve": "^1.2.0",
     "fs-extra": "^11.2.0",
     "lodash": "^4.17.21",
