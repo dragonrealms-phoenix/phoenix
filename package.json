@@ -54,6 +54,7 @@
     "build:mac": "yarn build && electron-builder --mac --config",
     "build:linux": "yarn build && electron-builder --linux --config",
     "test": "yarn clean && jest",
+    "test:coverage": "yarn test --coverage",
     "prepare": "npx husky install && electron-builder install-app-deps",
     "postinstall": "npx patch-package",
     "semantic-release": "npx semantic-release",
