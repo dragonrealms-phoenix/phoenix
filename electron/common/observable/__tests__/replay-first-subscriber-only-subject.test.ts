@@ -1,7 +1,7 @@
 import type * as rxjs from 'rxjs';
 import { ReplayFirstSubscriberOnlySubject } from '../replay-first-subscriber-only.subject';
 
-describe('ReplayFirstSubscriberOnlySubject', () => {
+describe('replay-first-subscriber-only-subject', () => {
   let subscriber1NextSpy: jest.Mock;
   let subscriber2NextSpy: jest.Mock;
 

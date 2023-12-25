@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import { DiskCacheServiceImpl } from '../disk-cache.service';
 
-describe('DiskCacheService tests', () => {
+describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
   beforeEach(() => {

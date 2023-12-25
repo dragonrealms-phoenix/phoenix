@@ -5,7 +5,7 @@ import { NetSocketMock } from '../__mocks__/net-socket.mock';
 import { GameSocketImpl } from '../game.socket';
 import type { GameSocket } from '../game.types';
 
-describe('GameSocket', () => {
+describe('game-socket', () => {
   const credentials: SGEGameCredentials = {
     host: 'localhost',
     port: 1234,

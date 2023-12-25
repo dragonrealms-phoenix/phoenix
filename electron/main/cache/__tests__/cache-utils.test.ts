@@ -2,7 +2,7 @@ import type { CacheService } from '../cache.types';
 import { getCacheValue } from '../cache.utils';
 import { MemoryCacheServiceImpl } from '../memory-cache.service';
 
-describe('CacheUtils tests', () => {
+describe('cache-utils', () => {
   let cacheService: CacheService;
 
   beforeEach(() => {
