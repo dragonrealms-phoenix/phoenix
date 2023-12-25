@@ -65,7 +65,7 @@
     "@elastic/eui": "^91.3.1",
     "@emotion/cache": "^11.11.0",
     "@emotion/css": "^11.11.2",
-    "@emotion/react": "^11.11.1",
+    "@emotion/react": "^11.11.3",
     "@sentry/electron": "^4.15.1",
     "@sentry/nextjs": "^7.90.0",
     "dotenv": "^16.3.1",
