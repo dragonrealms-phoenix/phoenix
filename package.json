@@ -67,7 +67,7 @@
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.3",
     "@sentry/electron": "^4.15.1",
-    "@sentry/nextjs": "^7.90.0",
+    "@sentry/nextjs": "^7.91.0",
     "dotenv": "^16.3.1",
     "dotenv-flow": "^4.0.1",
     "electron-is-dev": "^2.0.0",
