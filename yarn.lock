@@ -1856,7 +1856,7 @@
     "@sentry/utils" "7.84.0"
     https-proxy-agent "^5.0.0"
 
-"@sentry/node@7.91.0":
+"@sentry/node@7.91.0", "@sentry/node@^7.36.0":
   version "7.91.0"
   resolved "https://registry.yarnpkg.com/@sentry/node/-/node-7.91.0.tgz#26bf13c3daf988f9725afd1a3cc38ba2ff90d62a"
   integrity sha512-hTIfSQxD7L+AKIqyjoq8CWBRkEQrrMZmA3GSZgPI5JFWBHgO0HBo5TH/8TU81oEJh6kqqHAl2ObMhmcnaFqlzg==
@@ -9687,6 +9687,14 @@ smart-buffer@^4.0.2, smart-buffer@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
+
+snyk@^1.1266.0:
+  version "1.1266.0"
+  resolved "https://registry.yarnpkg.com/snyk/-/snyk-1.1266.0.tgz#93689dccc5c0384b84771bf3c1a2a9a8a51ccabb"
+  integrity sha512-upsITfOo/ioJn4F9BmKUIHeVtHNijvk4fx/2u5SfsNCHYabWSbMR2bmGdB1aD1TUonm92VB2hTJTBTYL2FRo5A==
+  dependencies:
+    "@sentry/node" "^7.36.0"
+    global-agent "^3.0.0"
 
 socks-proxy-agent@^7.0.0:
   version "7.0.0"
