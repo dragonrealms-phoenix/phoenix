@@ -12,10 +12,8 @@ import type { LogFunction, Logger } from './logger.types';
 export function createLogger(scope?: string): Logger {
   let electronLogger: ElectronLogger;
   if (typeof window === 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     electronLogger = require('electron-log/main');
   } else {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     electronLogger = require('electron-log/renderer');
   }
   return scope ? electronLogger.scope(scope) : electronLogger;
