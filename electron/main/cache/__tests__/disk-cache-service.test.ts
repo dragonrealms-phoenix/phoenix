@@ -170,4 +170,16 @@ describe('disk-cache-service', () => {
 
     expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
   });
+
+  test('create cache file if not exists', async () => {
+    fs.removeSync(filepath);
+
+    const cacheService = new DiskCacheServiceImpl({
+      filepath,
+    });
+
+    expect(await cacheService.readCache()).toEqual({});
+
+    expect(fs.pathExistsSync(filepath)).toBeTruthy();
+  });
 });
