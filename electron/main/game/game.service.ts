@@ -1,4 +1,4 @@
-import net from 'node:net';
+import * as net from 'node:net';
 import { merge } from 'lodash';
 import { runInBackground, sleep } from '../../common/async';
 import type { Maybe } from '../../common/types';
