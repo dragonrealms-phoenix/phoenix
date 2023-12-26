@@ -235,6 +235,7 @@
           "allowSeparatedGroups": true
         }
       ],
+      "import/default": "off",
       "import/no-unresolved": "error",
       "import/order": [
         "error",
@@ -332,6 +333,7 @@
               "varsIgnorePattern": "^_"
             }
           ],
+          "import/default": "off",
           "react/no-unknown-property": [
             "error",
             {
