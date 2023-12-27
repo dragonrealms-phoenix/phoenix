@@ -70,7 +70,7 @@ class GameServiceImpl implements GameService {
       },
     });
 
-    return {} as any;
+    return gameStream.asObservable();
   }
 
   public async disconnect(): Promise<void> {
