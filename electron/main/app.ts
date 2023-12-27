@@ -4,6 +4,7 @@ import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
 import { AccountServiceImpl } from './account';
+import { Game } from './game';
 import { IpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
@@ -90,7 +91,12 @@ const createWindow = async (): Promise<void> => {
   });
 
   const dispatch: Dispatcher = (channel, ...args): void => {
-    mainWindow.webContents.send(channel, ...args);
+    // When the window is closed or destroyed, we might still
+    // receive async events from the ipc controller. Ignore them.
+    // This usually happens when the app is quit while a game is being played.
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(channel, ...args);
+    }
   };
 
   const ipcController = new IpcController({
@@ -157,6 +163,40 @@ app.on('web-contents-created', (_, contents) => {
 
 app.on('window-all-closed', (): void => {
   app.quit();
+});
+
+/**
+ * Trick to await async operations before quitting.
+ * https://github.com/electron/electron/issues/9433#issuecomment-960635576
+ */
+enum BeforeQuitActionStatus {
+  NOT_STARTED = 'NOT_STARTED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+}
+
+let beforeQuitActionStatus = BeforeQuitActionStatus.NOT_STARTED;
+
+app.on('before-quit', (event: Event): void => {
+  switch (beforeQuitActionStatus) {
+    case BeforeQuitActionStatus.NOT_STARTED:
+      // don't quit yet, start our async before-quit operations instead
+      event.preventDefault();
+      beforeQuitActionStatus = BeforeQuitActionStatus.IN_PROGRESS;
+      runInBackground(async () => {
+        await Game.getInstance()?.disconnect();
+        beforeQuitActionStatus = BeforeQuitActionStatus.COMPLETED;
+        app.quit();
+      });
+      break;
+    case BeforeQuitActionStatus.IN_PROGRESS:
+      // don't quit yet, we are still awaiting our before-quit operations
+      event.preventDefault();
+      break;
+    case BeforeQuitActionStatus.COMPLETED:
+      // no further action needed, continue to quit the app like normal
+      break;
+  }
 });
 
 app.on('quit', (): void => {

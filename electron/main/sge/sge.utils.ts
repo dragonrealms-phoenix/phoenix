@@ -3,10 +3,10 @@
  * Matches the format `{letter}\tPROBLEM`.
  * Examples: `A\tPROBLEM` or `X\tPROBLEM`.
  */
-export const isProblemResponse = (text: string): boolean => {
+export function isProblemResponse(text: string): boolean {
   const [_, problem] = text.split('\t');
   return problem === 'PROBLEM';
-};
+}
 
 /**
  * Hashes a password per the SGE Protocol.
