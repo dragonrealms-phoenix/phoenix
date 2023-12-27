@@ -7,7 +7,7 @@ import type { SGEGameCredentials } from '../sge';
 import { GameSocketImpl } from './game.socket';
 import type { GameEvent, GameService, GameSocket } from './game.types';
 
-const logger = createLogger('game');
+const logger = createLogger('game:service');
 
 class GameServiceImpl implements GameService {
   /**

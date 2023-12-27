@@ -5,7 +5,7 @@ import { AbstractCacheService } from './abstract-cache.service';
 import type { Cache, CacheService, DiskCacheOptions } from './cache.types';
 import { MemoryCacheServiceImpl } from './memory-cache.service';
 
-const logger = createLogger('disk-cache');
+const logger = createLogger('cache:disk');
 
 /**
  * Caches all data as properties of a single JSON object written to disk.

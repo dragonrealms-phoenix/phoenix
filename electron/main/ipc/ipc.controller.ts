@@ -13,7 +13,7 @@ import type {
   IpcSgeCharacter,
 } from './ipc.types';
 
-const logger = createLogger('ipc');
+const logger = createLogger('ipc:controller');
 
 export class IpcController {
   private dispatch: Dispatcher;
