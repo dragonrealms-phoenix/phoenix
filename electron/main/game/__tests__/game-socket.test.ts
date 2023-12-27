@@ -82,10 +82,10 @@ describe('game-socket', () => {
 
       // ---
 
-      const observable = await socket.connect();
+      const socketData$ = await socket.connect();
 
       // first subscriber
-      observable.subscribe({
+      socketData$.subscribe({
         next: subscriber1NextSpy,
         error: subscriber1ErrorSpy,
         complete: subscriber1CompleteSpy,
@@ -94,7 +94,7 @@ describe('game-socket', () => {
       await sleep(1000);
 
       // second subscriber
-      observable.subscribe({
+      socketData$.subscribe({
         next: subscriber2NextSpy,
         error: subscriber2ErrorSpy,
         complete: subscriber2CompleteSpy,

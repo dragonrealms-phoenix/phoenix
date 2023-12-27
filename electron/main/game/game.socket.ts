@@ -51,7 +51,7 @@ export class GameSocketImpl implements GameSocket {
   /**
    * Stream to notify subscribers of received game feed.
    */
-  private subject$?: rxjs.SubjectLike<string>;
+  private socketDataSubject$?: rxjs.SubjectLike<string>;
 
   constructor(options: {
     /**
@@ -88,7 +88,10 @@ export class GameSocketImpl implements GameSocket {
 
     logger.info('connecting');
 
-    this.subject$ = new ReplayFirstSubscriberOnlySubject<string>();
+    // We use this special replay subject so that we are only holding
+    // events in memory until the first subscriber. This ensures no events
+    // are missed, and that we efficiently don't record all subsequent events.
+    this.socketDataSubject$ = new ReplayFirstSubscriberOnlySubject<string>();
     this.socket = this.createGameSocket();
 
     // Delay returning until the socket is connected and ready for commands.
@@ -104,11 +107,11 @@ export class GameSocketImpl implements GameSocket {
       );
     }
 
-    const observable = new rxjs.Observable<string>((subscriber) => {
-      return this.subject$?.subscribe(subscriber);
+    const socketData$ = new rxjs.Observable<string>((subscriber) => {
+      return this.socketDataSubject$?.subscribe(subscriber);
     });
 
-    return observable;
+    return socketData$;
   }
 
   public async disconnect(): Promise<void> {
@@ -226,7 +229,7 @@ export class GameSocketImpl implements GameSocket {
         if (!this.isConnected && message.startsWith('<mode id="GAME"/>')) {
           onGameConnect();
         }
-        this.subject$?.next(message);
+        this.socketDataSubject$?.next(message);
         buffer = '';
       }
     });
@@ -287,8 +290,8 @@ export class GameSocketImpl implements GameSocket {
     socket.pause(); // stop receiving data
     socket.destroySoon(); // flush writes then end socket connection
 
-    this.subject$?.complete(); // notify subscribers that stream has ended
-    this.subject$ = undefined; // release reference to be garbage collected
+    this.socketDataSubject$?.complete(); // notify subscribers that stream has ended
+    this.socketDataSubject$ = undefined; // release reference to be garbage collected
     this.socket = undefined; // release reference to be garbage collected
   }
 }

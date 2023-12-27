@@ -46,31 +46,31 @@ class GameServiceImpl implements GameService {
     logger.info('connecting');
 
     const writeStream = fs.createWriteStream('game.log'); // TODO remove
-    const gameStream = new rxjs.Subject<GameEvent>();
-    const socketStream = await this.socket.connect();
+    const gameEventsSubject$ = new rxjs.Subject<GameEvent>();
+    const socketData$ = await this.socket.connect();
 
-    socketStream.subscribe({
-      next: (data) => {
+    socketData$.subscribe({
+      next: (data: string) => {
         writeStream.write(data);
         // TODO parse data into game event(s)
         const gameEvents = new Array<any>() as Array<GameEvent>;
         gameEvents.forEach((gameEvent) => {
-          gameStream.next(gameEvent);
+          gameEventsSubject$.next(gameEvent);
         });
       },
-      error: (error) => {
+      error: (error: Error) => {
         logger.error('game socket stream error', { error });
         writeStream.end();
-        gameStream.error(error);
+        gameEventsSubject$.error(error);
       },
       complete: () => {
         logger.info('game socket stream completed');
         writeStream.end();
-        gameStream.complete();
+        gameEventsSubject$.complete();
       },
     });
 
-    return gameStream.asObservable();
+    return gameEventsSubject$.asObservable();
   }
 
   public async disconnect(): Promise<void> {

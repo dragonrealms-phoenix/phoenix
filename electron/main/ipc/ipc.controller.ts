@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 import { toUpperSnakeCase } from '../../common/string';
 import type { AccountService } from '../account';
+import type { GameEvent } from '../game';
 import { Game } from '../game';
 import { createLogger } from '../logger';
 import type { SGEGameCode } from '../sge';
@@ -177,7 +178,7 @@ export class IpcController {
       credentials,
     });
 
-    const gameStream = await gameInstance.connect();
+    const gameEvents$ = await gameInstance.connect();
 
     this.dispatch('game:connect', {
       accountName,
@@ -185,12 +186,12 @@ export class IpcController {
       gameCode,
     });
 
-    gameStream.subscribe({
-      next: (gameEvent) => {
+    gameEvents$.subscribe({
+      next: (gameEvent: GameEvent) => {
         const channel = `game:event:${gameEvent.eventType}`.toLowerCase();
         this.dispatch(channel, gameEvent);
       },
-      error: (error) => {
+      error: (error: Error) => {
         logger.error('game service stream error', { error });
         this.dispatch('game:error', error);
       },
