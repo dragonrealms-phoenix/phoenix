@@ -3,12 +3,10 @@ import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
-import { AccountServiceImpl } from './account';
-import { Game } from './game';
-import { IpcController } from './ipc';
+import type { IpcController } from './ipc';
+import { newIpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
-import { Store } from './store';
 import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
@@ -48,6 +46,8 @@ if (appEnvIsProd) {
     directory: prodRendererPath,
   });
 }
+
+let ipcController: IpcController;
 
 const createWindow = async (): Promise<void> => {
   if (appEnvIsDev) {
@@ -99,14 +99,7 @@ const createWindow = async (): Promise<void> => {
     }
   };
 
-  const ipcController = new IpcController({
-    dispatch,
-    accountService: new AccountServiceImpl({
-      storeService: Store.getInstance(),
-    }),
-  });
-
-  ipcController.registerHandlers();
+  ipcController = newIpcController({ dispatch });
 
   await mainWindow.loadURL(appUrl);
 
@@ -184,7 +177,7 @@ app.on('before-quit', (event: Event): void => {
       event.preventDefault();
       beforeQuitActionStatus = BeforeQuitActionStatus.IN_PROGRESS;
       runInBackground(async () => {
-        await Game.getInstance()?.disconnect();
+        await ipcController?.destroy();
         beforeQuitActionStatus = BeforeQuitActionStatus.COMPLETED;
         app.quit();
       });
