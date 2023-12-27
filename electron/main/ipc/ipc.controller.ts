@@ -173,12 +173,36 @@ export class IpcController {
 
     const credentials = await sgeService.loginCharacter(characterName);
 
-    const gameInstance = Game.newInstance({
+    const gameInstance = await Game.newInstance({
       credentials,
-      dispatch: this.dispatch,
     });
 
-    await gameInstance.connect();
+    const gameStream = await gameInstance.connect();
+
+    this.dispatch('game:connect', {
+      accountName,
+      characterName,
+      gameCode,
+    });
+
+    gameStream.subscribe({
+      next: (gameEvent) => {
+        const channel = `game:event:${gameEvent.eventType}`.toLowerCase();
+        this.dispatch(channel, gameEvent);
+      },
+      error: (error) => {
+        logger.error('game service stream error', { error });
+        this.dispatch('game:error', error);
+      },
+      complete: () => {
+        logger.info('game service stream completed');
+        this.dispatch('game:disconnect', {
+          accountName,
+          characterName,
+          gameCode,
+        });
+      },
+    });
   };
 
   private sendCommandHandler: IpcInvokeHandler<'sendCommand'> = async (
