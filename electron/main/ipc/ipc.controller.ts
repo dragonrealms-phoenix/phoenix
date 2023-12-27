@@ -28,6 +28,17 @@ export class IpcController {
     this.dispatch = options.dispatch;
     this.accountService = options.accountService;
     this.ipcHandlerRegistry = this.createIpcHandlerRegistry();
+    this.registerHandlers(this.ipcHandlerRegistry);
+  }
+
+  /**
+   * Unregisters all ipc handlers and disconnects from the game server.
+   */
+  public async destroy(): Promise<void> {
+    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
+      ipcMain.removeHandler(channel);
+    });
+    await Game.getInstance()?.disconnect();
   }
 
   private createIpcHandlerRegistry(): IpcHandlerRegistry {
@@ -43,9 +54,9 @@ export class IpcController {
     };
   }
 
-  public registerHandlers(): void {
-    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
-      const handler = this.ipcHandlerRegistry[channel as IpcInvokableEvent];
+  private registerHandlers(registry: IpcHandlerRegistry): void {
+    Object.keys(registry).forEach((channel) => {
+      const handler = registry[channel as IpcInvokableEvent];
 
       if (!handler) {
         logger.error('no handler registered for channel', { channel });
@@ -65,13 +76,6 @@ export class IpcController {
           );
         }
       });
-    });
-  }
-
-  public deregisterHandlers(): void {
-    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
-      ipcMain.removeHandler(channel);
-      ipcMain.removeAllListeners(channel);
     });
   }
 
