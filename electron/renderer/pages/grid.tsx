@@ -1,8 +1,7 @@
 import dynamic from 'next/dynamic';
 import type { ReactNode } from 'react';
 import { createElement, isValidElement, useEffect, useState } from 'react';
-import type { Observable } from 'rxjs';
-import { interval, map, take } from 'rxjs';
+import * as rxjs from 'rxjs';
 import { Grid } from '../components/grid';
 import { useLogger } from '../components/logger';
 
@@ -12,7 +11,7 @@ import { useLogger } from '../components/logger';
 const GridNoSSR = dynamic(async () => Grid, { ssr: false });
 
 interface DougProps {
-  stream$: Observable<ReactNode>;
+  stream$: rxjs.Observable<ReactNode>;
 }
 
 const DougCmp: React.FC<DougProps> = (props: DougProps): ReactNode => {
@@ -53,9 +52,9 @@ const GridPage: React.FC = (): ReactNode => {
   //      a lot of these we know, but DR may introduce others in the future
   //      so there will be our default data plus user-defined data
 
-  const gamePushStream$ = interval(1000).pipe(
-    take(10),
-    map((i) => {
+  const gamePushStream$ = rxjs.interval(1000).pipe(
+    rxjs.take(10),
+    rxjs.map((i) => {
       if (i % 2 === 0) {
         return createElement(
           'pushStream',
