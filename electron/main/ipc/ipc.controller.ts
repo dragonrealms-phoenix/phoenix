@@ -192,7 +192,7 @@ export class IpcController {
 
     gameEvents$.subscribe({
       next: (gameEvent: GameEvent) => {
-        const channel = `game:event:${gameEvent.eventType}`.toLowerCase();
+        const channel = `game:event:${gameEvent.type}`.toLowerCase();
         this.dispatch(channel, gameEvent);
       },
       error: (error: Error) => {
