@@ -112,7 +112,7 @@ describe('string-utils', () => {
   describe('#sliceStart', () => {
     test('when the pattern is found at the start of the string then returns the original string, the matched pattern, and the remaining string', () => {
       const text = 'foo bar baz';
-      const regex = /^foo/;
+      const regex = /^(foo)/;
 
       const result = sliceStart({ text, regex });
 
@@ -125,7 +125,7 @@ describe('string-utils', () => {
 
     test('when the pattern is not found at the start of the string then returns the original string, undefined for the matched pattern, and the original string for the remaining string', () => {
       const text = 'foo bar baz';
-      const regex = /^bar/;
+      const regex = /^(bar)/;
 
       const result = sliceStart({ text, regex });
 

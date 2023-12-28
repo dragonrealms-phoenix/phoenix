@@ -29,11 +29,17 @@ export function sliceStart(options: {
   /**
    * The pattern to match at the start of the input text.
    * Must include the ^ anchor to match the start of the string.
+   * Must include one capturing group, which will be the returned matched text.
+   *
+   * Examples:
+   *  Good: /^(.+)/  One capturing group and ^ anchor
+   *   Bad: /^.+/    Missing capturing group
+   *   Bad: /(.+)/   Missing ^ anchor
    */
   regex: RegExp;
 }): {
   /**
-   * The string that matched the pattern at the start of the input text.
+   * The first captured group matched by the pattern in the input text.
    */
   match?: string;
   /**
@@ -52,12 +58,15 @@ export function sliceStart(options: {
   const matchResult = text.match(regex);
 
   if (matchResult) {
-    const [match] = matchResult;
+    // The matched text is everything the regex pattern matched,
+    // which may be more than what the capturing groups matched.
+    // The captured text is only what was in the first captured group.
+    const [matchedText, capturedText] = matchResult;
     const original = text;
-    const remaining = text.slice(match.length);
+    const remaining = text.slice(matchedText.length);
 
     return {
-      match,
+      match: capturedText,
       original,
       remaining,
     };
