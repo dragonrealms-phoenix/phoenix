@@ -1,6 +1,7 @@
 import {
   equalsIgnoreCase,
   includesIgnoreCase,
+  sliceStart,
   toUpperSnakeCase,
 } from '../string.utils';
 
@@ -105,6 +106,34 @@ describe('string-utils', () => {
       const result = toUpperSnakeCase(value);
 
       expect(result).toEqual('FOO_BAR_BAZ');
+    });
+  });
+
+  describe('#sliceStart', () => {
+    test('when the pattern is found at the start of the string then returns the original string, the matched pattern, and the remaining string', () => {
+      const text = 'foo bar baz';
+      const regex = /^foo/;
+
+      const result = sliceStart({ text, regex });
+
+      expect(result).toEqual({
+        match: 'foo',
+        original: 'foo bar baz',
+        remaining: ' bar baz',
+      });
+    });
+
+    test('when the pattern is not found at the start of the string then returns the original string, undefined for the matched pattern, and the original string for the remaining string', () => {
+      const text = 'foo bar baz';
+      const regex = /^bar/;
+
+      const result = sliceStart({ text, regex });
+
+      expect(result).toEqual({
+        match: undefined,
+        original: 'foo bar baz',
+        remaining: 'foo bar baz',
+      });
     });
   });
 });
