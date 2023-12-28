@@ -3,6 +3,7 @@ import {
   includesIgnoreCase,
   sliceStart,
   toUpperSnakeCase,
+  unescapeEntities,
 } from '../string.utils';
 
 describe('string-utils', () => {
@@ -134,6 +135,48 @@ describe('string-utils', () => {
         original: 'foo bar baz',
         remaining: 'foo bar baz',
       });
+    });
+  });
+
+  describe('#unescapeEntities', () => {
+    test('when the text does not contain any entities then returns the original text', () => {
+      const text = 'foo bar baz';
+
+      const result = unescapeEntities(text);
+
+      expect(result).toEqual('foo bar baz');
+    });
+
+    test('when the text contains an entity then returns the text with the entity unescaped', () => {
+      const text = '&lt;foo&gt;';
+
+      const result = unescapeEntities(text);
+
+      expect(result).toEqual('<foo>');
+    });
+
+    test('when the text contains multiple entities then returns the text with the entities unescaped', () => {
+      const text = '&lt;foo&gt;&lt;bar&gt;';
+
+      const result = unescapeEntities(text);
+
+      expect(result).toEqual('<foo><bar>');
+    });
+
+    test('when the text contains an unknown entity then returns the text with the entity unescaped', () => {
+      const text = '&bt;';
+
+      const result = unescapeEntities(text);
+
+      expect(result).toEqual('&bt;');
+    });
+
+    test('when custom entities are provided then returns the text with the entities unescaped', () => {
+      const text = '&foo;';
+
+      const result = unescapeEntities(text, { entities: { foo: 'bar' } });
+
+      expect(result).toEqual('bar');
     });
   });
 });
