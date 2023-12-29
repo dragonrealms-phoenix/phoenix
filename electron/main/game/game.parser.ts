@@ -1,13 +1,14 @@
 import * as rxjs from 'rxjs';
-import { sliceStart } from '../../common/string';
+import { sliceStart, unescapeEntities } from '../../common/string';
+import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
-import { GameEventType } from './game.types';
 import type {
+  ExperienceGameEvent,
   GameEvent,
   GameParser,
-  IndicatorType,
   RoomGameEvent,
 } from './game.types';
+import { GameEventType, IndicatorType } from './game.types';
 
 /**
  * Match all text up to the next tag.
@@ -50,8 +51,17 @@ const END_TAG_REGEX = /^(<\/[^<]+>)/;
 const END_TAG_NAME_REGEX = /^<\/([^\s>/]+)/;
 
 /**
+ * Matches the skill, rank, percent, and mindstate from a
+ * line of experience information.
+ * https://regex101.com/r/MO3pml/1
+ */
+const EXPERIENCE_REGEX =
+  /^\s*(?<skill>[\w\s]+)\s*:\s*(?<rank>\d+)\s+(?<percent>\d+)%\s+(?<mindstate>[\w\s]+)/;
+
+/**
  * Map of the component ids that describe a part of the current room
  * to their room game event property name.
+ * Example: `<component id='room desc'>The hustle...</component>`
  */
 const ROOM_ID_TO_EVENT_PROPERTY_MAP: Record<string, keyof RoomGameEvent> = {
   'room name': 'roomName',
@@ -60,6 +70,31 @@ const ROOM_ID_TO_EVENT_PROPERTY_MAP: Record<string, keyof RoomGameEvent> = {
   'room objects': 'roomObjects',
   'room players': 'roomPlayers',
   'room exits': 'roomExits',
+};
+
+/**
+ * Map of the indicator ids to their indicator type.
+ * Example: `<indicator id='IconBLEEDING' visible='n'/>`
+ */
+const INDICATOR_ID_TO_TYPE_MAP: Record<string, IndicatorType> = {
+  IconDEAD: IndicatorType.DEAD,
+
+  IconSTANDING: IndicatorType.STANDING,
+  IconKNEELING: IndicatorType.KNEELING,
+  IconSITTING: IndicatorType.SITTING,
+  IconPRONE: IndicatorType.PRONE,
+
+  IconBLEEDING: IndicatorType.BLEEDING,
+  IconDISEASED: IndicatorType.DISEASED,
+  IconPOISONED: IndicatorType.POISONED,
+
+  IconSTUNNED: IndicatorType.STUNNED,
+  IconWEBBED: IndicatorType.WEBBED,
+
+  IconJOINED: IndicatorType.JOINED,
+
+  IconHIDDEN: IndicatorType.HIDDEN,
+  IconINVISIBLE: IndicatorType.INVISIBLE,
 };
 
 /**
@@ -88,7 +123,7 @@ const logger = createLogger('game:parser');
 
 /**
  * Inspired by Lich's XMLParser.
- * https://github.dev/elanthia-online/lich-5/blob/master/lib/xmlparser.rb
+ * https://github.com/elanthia-online/lich-5/blob/master/lib/xmlparser.rb
  */
 export class GameParserImpl implements GameParser {
   /**
@@ -103,16 +138,31 @@ export class GameParserImpl implements GameParser {
   private activeTags: Array<Tag>;
 
   /**
+   * When parsing a <compass> tag, these are the directions we find.
+   * Example: `<compass><dir value="e"/><dir value="sw"/></compass>`
+   */
+  private compassDirections: Array<string>;
+
+  /**
    * Any text that should be emitted as a game event.
    * This might be a room description, inventory, whispers, etc.
    * Is set, updated, cleared, and emitted based on the game events.
    */
   private gameText: string;
 
+  /**
+   * To mitigate sending multiple blank newlines.
+   * If the previous sent text was '\n' and the next text is '\n',
+   * then we'll skip emitting the second newline.
+   */
+  private previousGameText: string;
+
   constructor() {
     this.gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     this.activeTags = [];
+    this.compassDirections = [];
     this.gameText = '';
+    this.previousGameText = '';
   }
 
   /**
@@ -256,62 +306,79 @@ export class GameParserImpl implements GameParser {
     }
 
     if (this.gameText.length > 0) {
-      this.emitTextGameEvent();
+      const previousWasNewline = this.previousGameText === '\n';
+      const currentIsNewline = this.gameText === '\n';
+
+      // Avoid sending multiple blank newlines.
+      if (previousWasNewline && !currentIsNewline) {
+        this.emitTextGameEvent(this.gameText);
+      }
+
+      this.previousGameText = this.gameText;
+      this.gameText = '';
     }
   }
 
   protected processText(text: string): void {
-    const activeTag = this.getActiveTag();
-    const { id: tagId = '', name: tagName = '' } = activeTag ?? {};
+    const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
 
+    // There are no tags so just keep collecting up the text.
     if (this.activeTags.length === 0) {
       this.gameText += text;
       return;
     }
 
-    // This is a style information tag about the current room description.
-    // The text is intended for the player.
-    // For example, `<preset id='roomDesc'>The hustle...</preset>`.
-    // In this example, the text would be 'The hustle...'.
-    if (tagName === 'preset' && tagId === 'roomDesc') {
-      this.gameText += text;
-      return;
-    }
-
-    // This is information about the current room.
-    // The text is intended for the player.
-    // For example, `<component id='room desc'>The hustle...</component>`.
-    // In this example, the text would be 'The hustle...'.
-    if (
-      ['component', 'compDef'].includes(tagName) &&
-      tagId?.startsWith('room ')
-    ) {
-      this.gameText += text;
-      return;
-    }
-
-    // This is a hyperlink, we only need the text.
-    // For example, `<a href='https://drwiki.play.net'>Elanthipedia</a>`.
-    // In this example, the text would be 'Elanthipedia'.
-    if ('a' === tagName) {
-      this.gameText += text;
-      return;
-    }
-
-    // This is a movement direction in text destined for the player.
-    // For example, `Obvious paths: <d>north</d>, <d>east</d>.`
-    // In this example, the text would be either 'north' or 'east'.
-    if ('d' === tagName) {
-      this.gameText += text;
-      return;
-    }
-
-    // This is a periodic terminal-like prompt that appears in the game.
-    // For example, `<prompt time="1703804031">&gt;</prompt>`
-    // In this example, the text would be '&gt;'.
-    if ('prompt' === tagName) {
-      this.gameText += text;
-      return;
+    switch (tagName) {
+      case 'preset':
+        // This is a style information tag about the current room description.
+        // Example: `<preset id='roomDesc'>The hustle...</preset>`.
+        // In this example, the text would be 'The hustle...'.
+        if (tagId === 'roomDesc') {
+          this.gameText += text;
+        } else {
+          const componentTag = this.getAncestorTag('component');
+          // This is updated information about the character's experience.
+          // I don't know why the component tag sometimes nests a preset tag.
+          // Example: `<component id='exp Attunement'><preset id='whisper'>      Attunement:    1 46% attentive    </preset></component>`
+          // In this example, the text would be '      Attunement:    1 46% attentive    '.
+          if (componentTag?.id?.startsWith('exp ')) {
+            this.gameText += text;
+          }
+        }
+        break;
+      case 'component':
+      case 'compDef':
+        // This is updated information about the current room.
+        // Example: `<component id='room desc'>The hustle...</component>`.
+        // In this example, the text would be 'The hustle...'.
+        if (tagId.startsWith('room ')) {
+          this.gameText += text;
+        }
+        // This is updated information about the character's experience.
+        // Example: `<component id='exp Attunement'>      Attunement:    1 46% attentive    </component>`.
+        // In this example, the text would be '      Attunement:    1 46% attentive    '.
+        else if (tagId.startsWith('exp ')) {
+          this.gameText += text;
+        }
+        break;
+      case 'a':
+        // This is a hyperlink, we only need the text.
+        // Example: `<a href='https://drwiki.play.net'>Elanthipedia</a>`.
+        // In this example, the text would be 'Elanthipedia'.
+        this.gameText += text;
+        break;
+      case 'd':
+        // This is a movement direction in text destined for the player.
+        // Example: `Obvious paths: <d>north</d>, <d>east</d>.`
+        // In this example, the text would be either 'north' or 'east'.
+        this.gameText += text;
+        break;
+      case 'prompt':
+        // This is a periodic terminal-like prompt that appears in the game.
+        // Example: `<prompt time="1703804031">&gt;</prompt>`
+        // In this example, the text would be '&gt;'.
+        this.gameText += text;
+        break;
     }
   }
 
@@ -325,22 +392,91 @@ export class GameParserImpl implements GameParser {
       attributes,
     });
 
-    // Example: `<clearStream id="inv"/>`
-    if ('clearStream' === tagName) {
-      this.emitClearStreamGameEvent(attributes.id);
+    switch (tagName) {
+      case 'pushBold': // <pushBold/>
+        this.emitPushBoldGameEvent();
+        break;
+      case 'popBold': // <popBold/>
+        this.emitPopBoldGameEvent();
+        break;
+      case 'output': // <output class="mono"/>
+        this.emitTextOutputClassGameEvent(attributes.class);
+        break;
+      case 'style': // <style id="roomName"/>
+      case 'preset': // <preset id="roomDesc">...</preset>
+        this.emitTextStylePresetGameEvent(attributes.id);
+        break;
+      case 'indicator': // <indicator id='IconBLEEDING' visible='n'/>
+        this.emitIndicatorGameEvent({
+          tagId: attributes.id,
+          active: attributes.visible === 'y',
+        });
+        break;
+      case 'clearStream': // <clearStream id="percWindow"/>
+        this.emitClearStreamGameEvent(attributes.id);
+        break;
+      case 'pushStream': // <pushStream id="percWindow"/>
+        this.emitPushStreamGameEvent(attributes.id);
+        break;
+      case 'popStream': // <popStream/>
+        this.emitPopStreamGameEvent();
+        break;
+      case 'compass': // <compass>...</compass>
+        this.compassDirections = [];
+        break;
+      case 'dir': // <dir value="e"/>
+        this.compassDirections.push(attributes.value);
+        break;
+      case 'vitals': // <progressBar id="mana" value="100"/>
+        this.emitVitalsGameEvent({
+          vitalId: attributes.id,
+          value: parseInt(attributes.value),
+        });
+        break;
+      case 'prompt': // <prompt time="1703804031">&gt;</prompt>
+        this.emitServerTimeGameEvent(parseInt(attributes.time));
+        break;
+      case 'roundTime': // <roundTime value='1703617016'/>
+        this.emitRoundTimeGameEvent(parseInt(attributes.value));
+        break;
     }
   }
 
   protected processTagEnd(): void {
-    const activeTag = this.getActiveTag();
-    const { id: tagId = '', name: tagName = '' } = activeTag ?? {};
+    const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
 
-    if (
-      ['component', 'compDef'].includes(tagName) &&
-      tagId.startsWith('room ')
-    ) {
-      this.emitRoomGameEvent(tagId);
-      this.gameText = '';
+    switch (tagName) {
+      case 'compDef':
+      case 'component':
+        // Emit the room info because we are at the end of the tag.
+        // Example: `<component id='room desc'>The hustle...</component>`
+        if (tagId.startsWith('room ')) {
+          this.emitRoomGameEvent({
+            tagId,
+            roomText: this.gameText,
+          });
+          this.gameText = '';
+        }
+        // Emit the experience info because we are at the end of the tag.
+        // Example: `<component id='exp Attunement'>      Attunement:    1 46% attentive    </component>`
+        else if (tagId.startsWith('exp ')) {
+          this.emitExperienceGameEvent(
+            this.parseToExperienceGameEvent(this.gameText)
+          );
+          this.gameText = '';
+        }
+        break;
+      case 'preset':
+        // Turn off the text style because we are at the end of the tag.
+        // Example: `<preset id='roomDesc'>A neat row...</preset>`.
+        this.emitTextStylePresetGameEvent('');
+        break;
+      case 'compass':
+        // Emit the compass directions because we are at the end of the tag.
+        // Example: `<compass><dir value="e"/><dir value="sw"/></compass>`
+        this.emitCompassGameEvent(this.compassDirections);
+        this.compassDirections = [];
+        break;
     }
 
     if (this.activeTags.length > 0) {
@@ -348,14 +484,59 @@ export class GameParserImpl implements GameParser {
     }
   }
 
-  protected getActiveTag(): { id?: string; name: string } | undefined {
+  /**
+   * Parses an experience line of text into an experience game event.
+   *
+   * Input:
+   *  'Attunement: 1 46% attentive'
+   *
+   * Output:
+   *  {
+   *    type: GameEventType.EXPERIENCE,
+   *    skill: 'Attunement',
+   *    rank: 1,
+   *    percent: 46,
+   *    mindState: 'attentive'
+   *  }
+   */
+  protected parseToExperienceGameEvent(line: string): ExperienceGameEvent {
+    const matchResult = line?.trim()?.match(EXPERIENCE_REGEX);
+    if (matchResult) {
+      return {
+        type: GameEventType.EXPERIENCE,
+        skill: matchResult.groups?.skill ?? '',
+        rank: parseInt(matchResult.groups?.rank ?? '0'),
+        percent: parseInt(matchResult.groups?.percent ?? '0'),
+        mindState: matchResult.groups?.mindstate ?? '',
+      };
+    }
+    return {
+      type: GameEventType.EXPERIENCE,
+      skill: '',
+      rank: 0,
+      percent: 0,
+      mindState: '',
+    };
+  }
+
+  protected getActiveTag(): Maybe<Tag> {
     return this.activeTags[this.activeTags.length - 1];
   }
 
-  protected emitTextGameEvent(): void {
+  protected getAncestorTag(tagName: string): Maybe<Tag> {
+    return this.activeTags.find((tag) => {
+      return tag.name === tagName;
+    });
+  }
+
+  protected isAncestorTag(tagName: string): boolean {
+    return this.getAncestorTag(tagName) !== undefined;
+  }
+
+  protected emitTextGameEvent(text: string): void {
     this.gameEventsSubject$.next({
       type: GameEventType.TEXT,
-      text: unescapeEntities(this.gameText),
+      text: unescapeEntities(text),
     });
   }
 
@@ -385,45 +566,53 @@ export class GameParserImpl implements GameParser {
     });
   }
 
-  protected emitIndicatorGameEvent(indicator: IndicatorType | string): void {
-    this.gameEventsSubject$.next({
-      type: GameEventType.INDICATOR,
-      indicator: indicator as IndicatorType,
-    });
+  protected emitIndicatorGameEvent(options: {
+    tagId: string;
+    active: boolean;
+  }): void {
+    const { tagId, active } = options;
+    const indicator = INDICATOR_ID_TO_TYPE_MAP[tagId];
+    if (indicator) {
+      this.gameEventsSubject$.next({
+        type: GameEventType.INDICATOR,
+        indicator,
+        active,
+      });
+    }
   }
 
   protected emitSpellGameEvent(spell: string): void {
     this.gameEventsSubject$.next({
       type: GameEventType.SPELL,
-      spell,
+      spell: unescapeEntities(spell),
     });
   }
 
   protected emitLeftHandGameEvent(item: string): void {
     this.gameEventsSubject$.next({
       type: GameEventType.LEFT_HAND,
-      item,
+      item: unescapeEntities(item),
     });
   }
 
   protected emitRightHandGameEvent(item: string): void {
     this.gameEventsSubject$.next({
       type: GameEventType.RIGHT_HAND,
-      item,
+      item: unescapeEntities(item),
     });
   }
 
   protected emitClearStreamGameEvent(streamId: string): void {
     this.gameEventsSubject$.next({
       type: GameEventType.CLEAR_STREAM,
-      streamId,
+      streamId: streamId,
     });
   }
 
   protected emitPushStreamGameEvent(streamId: string): void {
     this.gameEventsSubject$.next({
       type: GameEventType.PUSH_STREAM,
-      streamId,
+      streamId: streamId,
     });
   }
 
@@ -468,12 +657,16 @@ export class GameParserImpl implements GameParser {
     });
   }
 
-  protected emitRoomGameEvent(tagId: string): void {
+  protected emitRoomGameEvent(options: {
+    tagId: string;
+    roomText: string;
+  }): void {
+    const { tagId, roomText } = options;
     const roomProperty = ROOM_ID_TO_EVENT_PROPERTY_MAP[tagId];
     if (roomProperty) {
       this.gameEventsSubject$.next({
         type: GameEventType.ROOM,
-        [roomProperty]: unescapeEntities(this.gameText),
+        [roomProperty]: unescapeEntities(roomText),
       });
     }
   }

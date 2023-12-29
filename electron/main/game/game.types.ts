@@ -13,7 +13,7 @@ export type GameEvent =
   | PushStreamGameEvent
   | PopStreamGameEvent
   | CompassGameEvent
-  | VitalsProgressBarGameEvent
+  | VitalsGameEvent
   | ExperienceGameEvent
   | RoomGameEvent
   | ServerTimeGameEvent
@@ -68,6 +68,7 @@ export interface TextStylePresetGameEvent {
 export interface IndicatorGameEvent {
   type: GameEventType.INDICATOR;
   indicator: IndicatorType;
+  active: boolean;
 }
 
 /**
@@ -121,7 +122,7 @@ export interface CompassGameEvent {
 /**
  * <progressBar id='mana' value='100'/>
  */
-export interface VitalsProgressBarGameEvent {
+export interface VitalsGameEvent {
   type: GameEventType.VITALS;
   vitalId: string; // health, mana, concentration, spirit, stamina
   value: number; // 0-100 (percentage)
