@@ -1,14 +1,24 @@
 import fs from 'fs-extra';
-import * as rxjs from 'rxjs';
+import type * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import type { SGEGameCredentials } from '../sge';
+import { GameParserImpl } from './game.parser';
 import { GameSocketImpl } from './game.socket';
-import type { GameEvent, GameService, GameSocket } from './game.types';
+import type {
+  GameEvent,
+  GameParser,
+  GameService,
+  GameSocket,
+} from './game.types';
 
 const logger = createLogger('game:service');
 
+/**
+ * This class isn't exported. To ensure a single instance exists then
+ * it's exposed through the exported `Game` object at bottom of this file.
+ */
 class GameServiceImpl implements GameService {
   /**
    * Indicates if the protocol to authenticate to the game server has completed.
@@ -23,8 +33,14 @@ class GameServiceImpl implements GameService {
    */
   private socket: GameSocket;
 
+  /**
+   * Parses game socket output into game events.
+   */
+  private parser: GameParser;
+
   constructor(options: { credentials: SGEGameCredentials }) {
     const { credentials } = options;
+    this.parser = new GameParserImpl();
     this.socket = new GameSocketImpl({
       credentials,
       onConnect: () => {
@@ -45,32 +61,24 @@ class GameServiceImpl implements GameService {
 
     logger.info('connecting');
 
-    const writeStream = fs.createWriteStream('game.log'); // TODO remove
-    const gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     const socketData$ = await this.socket.connect();
+    const gameEvents$ = this.parser.parse(socketData$);
 
+    // TODO remove writing to file; just helpful for early development
+    const writeStream = fs.createWriteStream('game.log');
     socketData$.subscribe({
       next: (data: string) => {
-        writeStream.write(data);
-        // TODO parse data into game event(s)
-        const gameEvents = new Array<any>() as Array<GameEvent>;
-        gameEvents.forEach((gameEvent) => {
-          gameEventsSubject$.next(gameEvent);
-        });
+        writeStream.write(`---\n${data}`);
       },
-      error: (error: Error) => {
-        logger.error('game socket stream error', { error });
+      error: () => {
         writeStream.end();
-        gameEventsSubject$.error(error);
       },
       complete: () => {
-        logger.info('game socket stream completed');
         writeStream.end();
-        gameEventsSubject$.complete();
       },
     });
 
-    return gameEventsSubject$.asObservable();
+    return gameEvents$;
   }
 
   public async disconnect(): Promise<void> {
@@ -82,7 +90,9 @@ class GameServiceImpl implements GameService {
   }
 
   public send(command: string): void {
-    this.socket.send(command);
+    if (this.isConnected) {
+      this.socket.send(command);
+    }
   }
 
   protected async waitUntilDestroyed(): Promise<void> {
