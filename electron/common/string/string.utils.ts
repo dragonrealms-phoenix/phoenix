@@ -3,7 +3,7 @@ import type { Maybe } from '../types';
 
 export function includesIgnoreCase(
   values: Array<string>,
-  valueToFind: string
+  valueToFind: Maybe<string>
 ): boolean {
   return values.some((value) => equalsIgnoreCase(value, valueToFind));
 }

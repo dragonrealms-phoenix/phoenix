@@ -34,6 +34,15 @@ describe('string-utils', () => {
 
       expect(result).toEqual(true);
     });
+
+    test('when value is undefined then returns false', () => {
+      const values = ['foo', 'bar', 'baz'];
+      const valueToFind = undefined;
+
+      const result = includesIgnoreCase(values, valueToFind);
+
+      expect(result).toEqual(false);
+    });
   });
 
   describe('#equalsIgnoreCase', () => {
