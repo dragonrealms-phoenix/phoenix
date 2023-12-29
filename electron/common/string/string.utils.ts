@@ -91,7 +91,7 @@ const UNESCAPABLE_ENTITIES: Record<string, string> = {
   amp: '&',
 };
 
-const UNESCAPE_ENTITIES_REGEX = /&([A-z]+);/g;
+const UNESCAPE_ENTITIES_REGEX = /&([a-zA-Z]+);/g;
 
 /**
  * Unescapes XML entities.

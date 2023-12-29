@@ -32,9 +32,9 @@ const START_TAG_NAME_REGEX = /^<([^\s>/]+)/;
  * Matches all the key="value" pairs in a start tag.
  * For each match, the first captured group is the attribute name
  * and the third captured group is the attribute value.
- * https://regex101.com/r/lj4WgD/1
+ * https://regex101.com/r/d76B05/1
  */
-const START_TAG_ATTRIBUTES_REGEX = /([A-z][A-z0-9_-]*)=(["'])(.*?)\2/g;
+const START_TAG_ATTRIBUTES_REGEX = /([a-zA-Z][\w-]*)=(["'])(.*?)\2/g;
 
 /**
  * Match the entirety of an end tag.
