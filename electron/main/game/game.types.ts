@@ -15,8 +15,9 @@ export type GameEvent =
   | CompassGameEvent
   | VitalsProgressBarGameEvent
   | ExperienceGameEvent
-  | PromptGameEvent
-  | RoundtimeGameEvent;
+  | RoomGameEvent
+  | ServerTimeGameEvent
+  | RoundTimeGameEvent;
 
 /**
  * Indicates text to display to the player.
@@ -121,7 +122,7 @@ export interface CompassGameEvent {
  * <progressBar id='mana' value='100'/>
  */
 export interface VitalsProgressBarGameEvent {
-  type: GameEventType.VITALS_PROGRESS_BAR;
+  type: GameEventType.VITALS;
   vitalId: string; // health, mana, concentration, spirit, stamina
   value: number; // 0-100 (percentage)
 }
@@ -141,18 +142,39 @@ export interface ExperienceGameEvent {
 }
 
 /**
+ * One or more properties might be specified.
+ * If defined then that property has changed.
+ * If undefined then that property has not changed.
+ *
+ * <streamWindow id='room' title='Room' subtitle=" - [The Crossing, Hodierna Way]"/>
+ * <component id='room desc'>The hustle...</component>
+ * <component id='room objs'>You also see ...</component>
+ * <component id='room players'>Also here: Katoak.</component>
+ * <component id='room exits'>Obvious paths: <d>east</d>, <d>southwest</d>, <d>northwest</d>.<compass></compass></component>
+ */
+export interface RoomGameEvent {
+  type: GameEventType.ROOM;
+  roomName?: string;
+  roomDescription?: string;
+  roomCreatures?: string;
+  roomObjects?: string;
+  roomPlayers?: string;
+  roomExits?: string;
+}
+
+/**
  * <prompt time="1703617000">&gt;</prompt>
  */
-export interface PromptGameEvent {
-  type: GameEventType.PROMPT;
+export interface ServerTimeGameEvent {
+  type: GameEventType.SERVER_TIME;
   time: number;
 }
 
 /**
  * <roundTime value='1703617016'/>
  */
-export interface RoundtimeGameEvent {
-  type: GameEventType.ROUNDTIME;
+export interface RoundTimeGameEvent {
+  type: GameEventType.ROUND_TIME;
   time: number;
 }
 
@@ -214,26 +236,31 @@ export enum GameEventType {
    */
   COMPASS = 'COMPASS',
   /**
-   * Indicates one of the character's vital progress bars.
-   * For example, health, energy (mana, conc. or inner fire), stamina, spirit
+   * Indicates one of the character's vitals.
+   * For example, health, energy (mana, conc. or inner fire), stamina, spirit.
    */
-  VITALS_PROGRESS_BAR = 'VITALS_PROGRESS_BAR',
+  VITALS = 'VITALS',
   /**
    * Indicates a change in the character's experience for a specific skill.
    */
   EXPERIENCE = 'EXPERIENCE',
   /**
-   * Tells us the game server time, as well as outputting a `>` line
-   * to the main game window.
+   * Indicates a change in the current room.
+   * For example, the name, description, attendees, etc.
    */
-  PROMPT = 'PROMPT',
+  ROOM = 'ROOM',
+  /**
+   * Tells us the game server time.
+   * Use this in round time and cast time calculations.
+   */
+  SERVER_TIME = 'SERVER_TIME',
   /**
    * Indicates the character took an action that they must now wait
    * until the game server time reaches the specified roundtime.
    * Subtracting the roundtime from the current game time tells you
    * the number of seconds to wait.
    */
-  ROUNDTIME = 'ROUNDTIME',
+  ROUND_TIME = 'ROUND_TIME',
 }
 
 export enum IndicatorType {
@@ -304,4 +331,11 @@ export interface GameSocket {
    * https://elanthipedia.play.net/Category:Commands
    */
   send(command: string): void;
+}
+
+export interface GameParser {
+  /**
+   * Parses the game socket stream to emit game events.
+   */
+  parse(gameSocketStream: rxjs.Observable<string>): rxjs.Observable<GameEvent>;
 }
