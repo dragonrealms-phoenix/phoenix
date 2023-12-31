@@ -2,6 +2,7 @@
 // to use depends on if the code runs in the main or renderer process.
 // It's in those modules that the correct logger instance will be imported.
 import type {
+  LogFunctions as ElectronLogFunctions,
   Logger as ElectronLogger,
   LogLevel,
   LogMessage,
@@ -9,14 +10,45 @@ import type {
 import { formatLogData } from './logger.format';
 import type { LogFunction, Logger } from './logger.types';
 
-export function createLogger(scope?: string): Logger {
-  let electronLogger: ElectronLogger;
+interface ElectronLogFunctionsExtended extends ElectronLogFunctions {
+  /**
+   * Alias for silly.
+   */
+  trace: LogFunction;
+}
+
+/**
+ * Get the electron-log instance to use, appropriate for
+ * the current process (e.g. main vs. renderer).
+ */
+function getElectronLoggerInstance(): ElectronLogger {
   if (typeof window === 'undefined') {
-    electronLogger = require('electron-log/main');
-  } else {
-    electronLogger = require('electron-log/renderer');
+    return require('electron-log/main');
   }
-  return scope ? electronLogger.scope(scope) : electronLogger;
+  return require('electron-log/renderer');
+}
+
+function addTraceLevel(logger: ElectronLogger): void {
+  if (!logger.levels.includes('trace')) {
+    logger.addLevel('trace');
+  }
+}
+
+export function createLogger(scope?: string): Logger {
+  const electronLogger = getElectronLoggerInstance();
+
+  addTraceLevel(electronLogger);
+
+  const logger: ElectronLogFunctions = scope
+    ? electronLogger.scope(scope)
+    : electronLogger;
+
+  // Have to cast because typescript isn't aware of the new `trace` function.
+  const extendedLogger = logger as ElectronLogFunctionsExtended as Logger;
+
+  extendedLogger.trace('created logger', { scope });
+
+  return extendedLogger;
 }
 
 export function initializeLogging(logger: ElectronLogger): void {
