@@ -174,7 +174,7 @@ export class GameSocketImpl implements GameSocket {
   }
 
   protected createGameSocket(connectOptions?: net.NetConnectOpts): net.Socket {
-    logger.info('creating game socket');
+    logger.debug('creating game socket');
 
     const defaultOptions: net.NetConnectOpts = {
       host: 'dr.simutronics.net',
@@ -214,9 +214,9 @@ export class GameSocketImpl implements GameSocket {
       }
     };
 
-    logger.info('connecting to game server', { host, port });
+    logger.debug('connecting to game server', { host, port });
     const socket = net.connect(mergedOptions, (): void => {
-      logger.info('connected to game server', { host, port });
+      logger.debug('connected to game server', { host, port });
     });
 
     let buffer: string = '';
@@ -235,7 +235,7 @@ export class GameSocketImpl implements GameSocket {
     });
 
     socket.once('connect', () => {
-      logger.info('authenticating with game key');
+      logger.debug('authenticating with game key');
 
       // The frontend used to be named "StormFront" or "Storm" but around 2023
       // it was renamed to "Wrayth". The version is something I found common
@@ -258,12 +258,12 @@ export class GameSocketImpl implements GameSocket {
     });
 
     socket.once('end', (): void => {
-      logger.info('connection to game server ended', { host, port });
+      logger.debug('connection to game server ended', { host, port });
       onGameDisconnect('end');
     });
 
     socket.once('close', (): void => {
-      logger.info('connection to game server closed', { host, port });
+      logger.debug('connection to game server closed', { host, port });
       onGameDisconnect('close');
     });
 
@@ -282,7 +282,7 @@ export class GameSocketImpl implements GameSocket {
   }
 
   protected destroyGameSocket(socket: net.Socket): void {
-    logger.info('destroying game socket');
+    logger.debug('destroying game socket');
 
     this.isConnected = false;
     this.isDestroyed = true;

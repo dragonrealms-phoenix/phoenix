@@ -190,8 +190,10 @@ export class IpcController {
       gameCode,
     });
 
+    logger.debug('subscribing to game service stream');
     gameEvents$.subscribe({
       next: (gameEvent: GameEvent) => {
+        logger.debug('game service stream event', { gameEvent });
         this.dispatch('game:event', gameEvent);
       },
       error: (error: Error) => {
@@ -199,7 +201,7 @@ export class IpcController {
         this.dispatch('game:error', error);
       },
       complete: () => {
-        logger.info('game service stream completed');
+        logger.debug('game service stream completed');
         this.dispatch('game:disconnect', {
           accountName,
           characterName,

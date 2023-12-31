@@ -99,7 +99,7 @@ export async function downloadCertificate(
 ): Promise<tls.PeerCertificate> {
   const { host, port } = options;
 
-  logger.info('downloading certificate', { host, port });
+  logger.debug('downloading certificate', { host, port });
 
   return new Promise<tls.PeerCertificate>((resolve, reject): void => {
     const connectOptions: tls.ConnectionOptions = {
@@ -112,16 +112,16 @@ export async function downloadCertificate(
     };
 
     const socket = tls.connect(connectOptions, (): void => {
-      logger.info('socket connected', { host, port });
+      logger.debug('socket connected', { host, port });
       resolveSocket(socket.getPeerCertificate());
     });
 
     socket.once('end', (): void => {
-      logger.info('socket connection ended', { host, port });
+      logger.debug('socket connection ended', { host, port });
     });
 
     socket.once('close', (): void => {
-      logger.info('socket connection closed', { host, port });
+      logger.debug('socket connection closed', { host, port });
     });
 
     socket.once('timeout', (): void => {
@@ -140,7 +140,7 @@ export async function downloadCertificate(
     });
 
     const resolveSocket = (result: tls.PeerCertificate): void => {
-      logger.info('downloaded certificate', {
+      logger.debug('downloaded certificate', {
         host,
         port,
         issuer: result.issuer,

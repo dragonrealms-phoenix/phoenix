@@ -174,7 +174,7 @@ export class GameParserImpl implements GameParser {
   public parse(
     gameSocketStream: rxjs.Observable<string>
   ): rxjs.Observable<GameEvent> {
-    logger.info('subscribing to game socket stream');
+    logger.debug('subscribing to game socket stream');
     gameSocketStream.subscribe({
       next: (socketData: string) => {
         logger.debug('parsing game socket data', { socketData });
@@ -186,7 +186,7 @@ export class GameParserImpl implements GameParser {
         this.gameEventsSubject$.error(error);
       },
       complete: () => {
-        logger.info('game socket stream completed');
+        logger.debug('game socket stream completed');
         this.gameEventsSubject$.complete();
       },
     });

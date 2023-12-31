@@ -86,7 +86,7 @@ const createMainWindow = async (): Promise<void> => {
 
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
-    logger.info('showing main window');
+    logger.debug('showing main window');
     mainWindow.show();
   });
 
@@ -101,7 +101,7 @@ const createMainWindow = async (): Promise<void> => {
 
   ipcController = newIpcController({ dispatch });
 
-  logger.info('loading main window', { appUrl });
+  logger.debug('loading main window', { appUrl });
   await mainWindow.loadURL(appUrl);
 
   initializeMenu(mainWindow);
@@ -135,7 +135,7 @@ app.on('web-contents-created', (_, contents) => {
     // If the domain is allowed, open it in the user's default browser.
     if (isAllowedDomain(domain)) {
       runInBackground(async () => {
-        logger.info('opening url in default browser', { url });
+        logger.debug('opening url in default browser', { url });
         await shell.openExternal(url);
       });
     } else {
@@ -145,12 +145,12 @@ app.on('web-contents-created', (_, contents) => {
   };
 
   contents.on('will-navigate', (event, url) => {
-    logger.info('will-navigate', { url });
+    logger.debug('will-navigate', { url });
     blockOrOpenURL(event, url);
   });
 
   contents.on('will-redirect', (event, url) => {
-    logger.info('will-redirect', { url });
+    logger.debug('will-redirect', { url });
     blockOrOpenURL(event, url);
   });
 });
