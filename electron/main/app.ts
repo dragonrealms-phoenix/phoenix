@@ -49,7 +49,7 @@ if (appEnvIsProd) {
 
 let ipcController: IpcController;
 
-const createWindow = async (): Promise<void> => {
+const createMainWindow = async (): Promise<void> => {
   if (appEnvIsDev) {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
@@ -86,7 +86,7 @@ const createWindow = async (): Promise<void> => {
 
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
-    logger.info('showing window');
+    logger.info('showing main window');
     mainWindow.show();
   });
 
@@ -101,6 +101,7 @@ const createWindow = async (): Promise<void> => {
 
   ipcController = newIpcController({ dispatch });
 
+  logger.info('loading main window', { appUrl });
   await mainWindow.loadURL(appUrl);
 
   initializeMenu(mainWindow);
@@ -109,7 +110,7 @@ const createWindow = async (): Promise<void> => {
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
   runInBackground(async () => {
-    await createWindow();
+    await createMainWindow();
   });
 });
 
@@ -155,6 +156,7 @@ app.on('web-contents-created', (_, contents) => {
 });
 
 app.on('window-all-closed', (): void => {
+  logger.debug('windows all closed, quitting app');
   app.quit();
 });
 
@@ -177,6 +179,7 @@ app.on('before-quit', (event: Event): void => {
       event.preventDefault();
       beforeQuitActionStatus = BeforeQuitActionStatus.IN_PROGRESS;
       runInBackground(async () => {
+        logger.debug('performing before-quit operations');
         await ipcController?.destroy();
         beforeQuitActionStatus = BeforeQuitActionStatus.COMPLETED;
         app.quit();
@@ -193,5 +196,6 @@ app.on('before-quit', (event: Event): void => {
 });
 
 app.on('quit', (): void => {
+  logger.debug('quitting app');
   logger.info('until next time, brave adventurer');
 });
