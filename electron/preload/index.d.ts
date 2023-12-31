@@ -63,6 +63,16 @@ declare const appAPI: {
     channel: string,
     callback: (event: Electron.IpcRendererEvent, ...args: any[]) => void
   ) => void;
+  /**
+   * Allows the renderer to unsubscribe from messages from the main process.
+   * Removes all listeners added by the `onMessage` API for a channel.
+   *
+   * For example, when subscribing to messages in a react app, the
+   * `useEffect` hook will subscribe multiple times, once per time the hook
+   * is regenerated. To prevent this, ensure to unsubscribe in the hook's
+   * destroy function. https://stackoverflow.com/a/73458622/470818
+   */
+  removeAllListeners(channel: string): void;
 };
 declare global {
   type TypeOfAppAPI = typeof appAPI;
