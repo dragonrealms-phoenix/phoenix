@@ -192,8 +192,7 @@ export class IpcController {
 
     gameEvents$.subscribe({
       next: (gameEvent: GameEvent) => {
-        const channel = `game:event`.toLowerCase();
-        this.dispatch(channel, gameEvent);
+        this.dispatch('game:event', gameEvent);
       },
       error: (error: Error) => {
         logger.error('game service stream error', { error });
