@@ -44,12 +44,17 @@ const LoggerProvider: React.FC<LoggerProviderProps> = (
   );
 };
 
+const scopedLoggers: Record<string, Logger> = {};
+
 const useLogger = (scope?: string): LoggerContextValue => {
   const context = useContext(LoggerContext);
   if (scope) {
+    if (!scopedLoggers[scope]) {
+      scopedLoggers[scope] = createLogger(scope);
+    }
     return {
       ...context,
-      logger: createLogger(scope),
+      logger: scopedLoggers[scope],
     };
   }
   return context;
