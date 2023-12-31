@@ -477,6 +477,24 @@ export class GameParserImpl implements GameParser {
         this.emitCompassGameEvent(this.compassDirections);
         this.compassDirections = [];
         break;
+      case 'spell':
+        // Emit the spell because we are at the end of the tag.
+        // Example: `<spell>Fire Shards</spell>`
+        this.emitSpellGameEvent(this.gameText);
+        this.gameText = '';
+        break;
+      case 'left':
+        // Emit the left hand item because we are at the end of the tag.
+        // Example: `<left>red backpack</left>`
+        this.emitLeftHandGameEvent(this.gameText);
+        this.gameText = '';
+        break;
+      case 'right':
+        // Emit the right hand item because we are at the end of the tag.
+        // Example: `<right>Empty</right>`
+        this.emitRightHandGameEvent(this.gameText);
+        this.gameText = '';
+        break;
     }
 
     if (this.activeTags.length > 0) {

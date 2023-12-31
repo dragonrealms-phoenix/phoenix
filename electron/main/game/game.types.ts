@@ -72,7 +72,7 @@ export interface IndicatorGameEvent {
 }
 
 /**
- * <spell>Fire Ball</spell>
+ * <spell>Fire Shards</spell>
  */
 export interface SpellGameEvent {
   type: GameEventType.SPELL;
