@@ -217,7 +217,8 @@ export class GameParserImpl implements GameParser {
   }
 
   protected parseLine(line: string): void {
-    this.gameText = '';
+    // Ensure we start fresh with each line.
+    this.consumeGameText();
 
     logger.debug('parsing line', { line });
 
@@ -311,11 +312,8 @@ export class GameParserImpl implements GameParser {
 
       // Avoid sending multiple blank newlines.
       if (previousWasNewline && !currentIsNewline) {
-        this.emitTextGameEvent(this.gameText);
+        this.emitTextGameEvent(this.consumeGameText());
       }
-
-      this.previousGameText = this.gameText;
-      this.gameText = '';
     }
   }
 
@@ -459,17 +457,15 @@ export class GameParserImpl implements GameParser {
         if (tagId.startsWith('room ')) {
           this.emitRoomGameEvent({
             tagId,
-            roomText: this.gameText,
+            roomText: this.consumeGameText(),
           });
-          this.gameText = '';
         }
         // Emit the experience info because we are at the end of the tag.
         // Example: `<component id='exp Attunement'>      Attunement:    1 46% attentive    </component>`
         else if (tagId.startsWith('exp ')) {
           this.emitExperienceGameEvent(
-            this.parseToExperienceGameEvent(this.gameText)
+            this.parseToExperienceGameEvent(this.consumeGameText())
           );
-          this.gameText = '';
         }
         break;
       case 'preset':
@@ -486,20 +482,17 @@ export class GameParserImpl implements GameParser {
       case 'spell':
         // Emit the spell because we are at the end of the tag.
         // Example: `<spell>Fire Shards</spell>`
-        this.emitSpellGameEvent(this.gameText);
-        this.gameText = '';
+        this.emitSpellGameEvent(this.consumeGameText());
         break;
       case 'left':
         // Emit the left hand item because we are at the end of the tag.
         // Example: `<left>red backpack</left>`
-        this.emitLeftHandGameEvent(this.gameText);
-        this.gameText = '';
+        this.emitLeftHandGameEvent(this.consumeGameText());
         break;
       case 'right':
         // Emit the right hand item because we are at the end of the tag.
         // Example: `<right>Empty</right>`
-        this.emitRightHandGameEvent(this.gameText);
-        this.gameText = '';
+        this.emitRightHandGameEvent(this.consumeGameText());
         break;
     }
 
@@ -555,6 +548,23 @@ export class GameParserImpl implements GameParser {
 
   protected isAncestorTag(tagName: string): boolean {
     return this.getAncestorTag(tagName) !== undefined;
+  }
+
+  /**
+   * Returns the current value of game text then clears it.
+   * Moves the old value to the previous game text variable.
+   * This is a convenience method for performing these two steps.
+   */
+  protected consumeGameText(): string {
+    const oldValue = this.gameText; // what we're consuming
+    const newValue = ''; // what to reset to
+
+    // Track the previous consumed game text.
+    // This is how we mitigate sending multiple blank newlines.
+    this.previousGameText = oldValue;
+    this.gameText = newValue;
+
+    return oldValue;
   }
 
   protected emitTextGameEvent(text: string): void {
