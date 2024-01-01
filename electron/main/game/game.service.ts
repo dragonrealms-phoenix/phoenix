@@ -65,16 +65,30 @@ class GameServiceImpl implements GameService {
     const gameEvents$ = this.parser.parse(socketData$);
 
     // TODO remove writing to file; just helpful for early development
-    const writeStream = fs.createWriteStream('game.log');
+    const socketWriteStream = fs.createWriteStream('game-socket.log');
     socketData$.subscribe({
       next: (data: string) => {
-        writeStream.write(`---\n${data}`);
+        socketWriteStream.write(`---\n${data}`);
       },
       error: () => {
-        writeStream.end();
+        socketWriteStream.end();
       },
       complete: () => {
-        writeStream.end();
+        socketWriteStream.end();
+      },
+    });
+
+    // TODO remove writing to file; just helpful for early development
+    const gameEventWriteStream = fs.createWriteStream('game-event.log');
+    gameEvents$.subscribe({
+      next: (data: GameEvent) => {
+        gameEventWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
+      },
+      error: () => {
+        gameEventWriteStream.end();
+      },
+      complete: () => {
+        gameEventWriteStream.end();
       },
     });
 
