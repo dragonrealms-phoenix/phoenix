@@ -225,6 +225,8 @@ export class GameParserImpl implements GameParser {
     logger.debug('parsing line', { line });
 
     while (line.length > 0) {
+      logger.debug('remaining line fragment', { line });
+
       /*
        * TEXT
        */
@@ -332,7 +334,12 @@ export class GameParserImpl implements GameParser {
   protected processText(text: string): void {
     const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
 
-    logger.debug('processing text', { tagId, tagName, text });
+    logger.debug('processing text', {
+      text,
+      tagId,
+      tagName,
+      activeTags: this.activeTags,
+    });
 
     // There are no tags so just keep collecting up the text.
     if (this.activeTags.length === 0) {
@@ -485,7 +492,12 @@ export class GameParserImpl implements GameParser {
   protected processTagEnd(): void {
     const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
 
-    logger.debug('processing tag end', { tagId, tagName });
+    logger.debug('processing tag end', {
+      tagId,
+      tagName,
+      gameText: this.gameText,
+      activeTags: this.activeTags,
+    });
 
     switch (tagName) {
       case 'compDef':
