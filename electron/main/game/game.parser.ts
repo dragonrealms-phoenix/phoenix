@@ -7,6 +7,7 @@ import type {
   GameEvent,
   GameParser,
   RoomGameEvent,
+  TextGameEvent,
 } from './game.types';
 import { GameEventType, IndicatorType } from './game.types';
 
@@ -156,14 +157,14 @@ export class GameParserImpl implements GameParser {
    * If the previous sent text was '\n' and the next text is '\n',
    * then we'll skip emitting the second newline.
    */
-  private previousGameText: string;
+  private previousTextGameEvent: TextGameEvent;
 
   constructor() {
     this.gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     this.activeTags = [];
     this.compassDirections = [];
     this.gameText = '';
-    this.previousGameText = '';
+    this.previousTextGameEvent = { type: GameEventType.TEXT, text: '' };
   }
 
   /**
@@ -219,7 +220,7 @@ export class GameParserImpl implements GameParser {
 
   protected parseLine(line: string): void {
     // Ensure we start fresh with each line.
-    this.consumeGameText();
+    this.gameText = '';
 
     logger.debug('parsing line', { line });
 
@@ -308,12 +309,22 @@ export class GameParserImpl implements GameParser {
     }
 
     if (this.gameText.length > 0) {
-      const previousWasNewline = this.previousGameText === '\n';
-      const currentIsNewline = this.gameText === '\n';
+      const previousText = this.previousTextGameEvent.text;
+      const currentText = this.gameText;
+
+      const previousWasNewline = /^(\n+)$/.test(previousText);
+      const currentIsNewline = /^(\n+)$/.test(currentText);
+
+      logger.debug('comparing previous and current game text', {
+        previousText,
+        currentText,
+        previousWasNewline,
+        currentIsNewline,
+      });
 
       // Avoid sending multiple blank newlines.
-      if (previousWasNewline && !currentIsNewline) {
-        this.emitTextGameEvent(this.consumeGameText());
+      if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
+        this.emitTextGameEvent(this.gameText);
       }
     }
   }
@@ -458,14 +469,14 @@ export class GameParserImpl implements GameParser {
         if (tagId.startsWith('room ')) {
           this.emitRoomGameEvent({
             tagId,
-            roomText: this.consumeGameText(),
+            roomText: this.gameText,
           });
         }
         // Emit the experience info because we are at the end of the tag.
         // Example: `<component id='exp Attunement'>      Attunement:    1 46% attentive    </component>`
         else if (tagId.startsWith('exp ')) {
           this.emitExperienceGameEvent(
-            this.parseToExperienceGameEvent(this.consumeGameText())
+            this.parseToExperienceGameEvent(this.gameText)
           );
         }
         break;
@@ -483,17 +494,17 @@ export class GameParserImpl implements GameParser {
       case 'spell':
         // Emit the spell because we are at the end of the tag.
         // Example: `<spell>Fire Shards</spell>`
-        this.emitSpellGameEvent(this.consumeGameText());
+        this.emitSpellGameEvent(this.gameText);
         break;
       case 'left':
         // Emit the left hand item because we are at the end of the tag.
         // Example: `<left>red backpack</left>`
-        this.emitLeftHandGameEvent(this.consumeGameText());
+        this.emitLeftHandGameEvent(this.gameText);
         break;
       case 'right':
         // Emit the right hand item because we are at the end of the tag.
         // Example: `<right>Empty</right>`
-        this.emitRightHandGameEvent(this.consumeGameText());
+        this.emitRightHandGameEvent(this.gameText);
         break;
     }
 
@@ -551,28 +562,16 @@ export class GameParserImpl implements GameParser {
     return this.getAncestorTag(tagName) !== undefined;
   }
 
-  /**
-   * Returns the current value of game text then clears it.
-   * Moves the old value to the previous game text variable.
-   * This is a convenience method for performing these two steps.
-   */
-  protected consumeGameText(): string {
-    const oldValue = this.gameText; // what we're consuming
-    const newValue = ''; // what to reset to
-
-    // Track the previous consumed game text.
-    // This is how we mitigate sending multiple blank newlines.
-    this.previousGameText = oldValue;
-    this.gameText = newValue;
-
-    return oldValue;
-  }
-
   protected emitTextGameEvent(text: string): void {
-    this.emitGameEvent({
+    // Keep track of the last text game event so we can avoid sending
+    // multiple blank newlines. Before sending a new text game event,
+    // we compare the outgoing text with the previously sent.
+    const event: GameEvent = {
       type: GameEventType.TEXT,
       text: unescapeEntities(text),
-    });
+    };
+    this.emitGameEvent(event);
+    this.previousTextGameEvent = event;
   }
 
   protected emitPushBoldGameEvent(): void {
@@ -607,13 +606,11 @@ export class GameParserImpl implements GameParser {
   }): void {
     const { tagId, active } = options;
     const indicator = INDICATOR_ID_TO_TYPE_MAP[tagId];
-    if (indicator) {
-      this.emitGameEvent({
-        type: GameEventType.INDICATOR,
-        indicator,
-        active,
-      });
-    }
+    this.emitGameEvent({
+      type: GameEventType.INDICATOR,
+      indicator,
+      active,
+    });
   }
 
   protected emitSpellGameEvent(spell: string): void {
@@ -698,12 +695,10 @@ export class GameParserImpl implements GameParser {
   }): void {
     const { tagId, roomText } = options;
     const roomProperty = ROOM_ID_TO_EVENT_PROPERTY_MAP[tagId];
-    if (roomProperty) {
-      this.emitGameEvent({
-        type: GameEventType.ROOM,
-        [roomProperty]: unescapeEntities(roomText),
-      });
-    }
+    this.emitGameEvent({
+      type: GameEventType.ROOM,
+      [roomProperty]: unescapeEntities(roomText),
+    });
   }
 
   protected emitServerTimeGameEvent(time: number): void {
@@ -723,5 +718,6 @@ export class GameParserImpl implements GameParser {
   protected emitGameEvent(gameEvent: GameEvent): void {
     logger.debug('emitting game event', { gameEvent });
     this.gameEventsSubject$.next(gameEvent);
+    this.gameText = '';
   }
 }
