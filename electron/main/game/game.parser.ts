@@ -453,6 +453,14 @@ export class GameParserImpl implements GameParser {
       case 'popStream': // <popStream/>
         this.emitPopStreamGameEvent();
         break;
+      case 'streamWindow': // <streamWindow id='room' subtitle=' - [The Crossing, Hodierna Way]' />
+        if (attributes.id === 'room') {
+          this.emitRoomGameEvent({
+            tagId: 'room name',
+            roomText: attributes.subtitle?.slice(3) ?? '[unknown]',
+          });
+        }
+        break;
       case 'compass': // <compass>...</compass>
         this.compassDirections = [];
         break;
