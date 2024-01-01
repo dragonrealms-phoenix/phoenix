@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import type * as rxjs from 'rxjs';
+import * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
@@ -12,6 +12,7 @@ import type {
   GameService,
   GameSocket,
 } from './game.types';
+import { GameEventType } from './game.types';
 
 const logger = createLogger('game:service');
 
@@ -38,6 +39,13 @@ class GameServiceImpl implements GameService {
    */
   private parser: GameParser;
 
+  /**
+   * As commands are sent to the game server they are emitted here.
+   * This allows us to re-emit them as text game events so that
+   * they can be echoed to the player in the game stream.
+   */
+  private sentCommandsSubject$?: rxjs.Subject<GameEvent>;
+
   constructor(options: { credentials: SGEGameCredentials }) {
     const { credentials } = options;
     this.parser = new GameParserImpl();
@@ -61,8 +69,16 @@ class GameServiceImpl implements GameService {
 
     logger.info('connecting');
 
+    // As commands are sent to the game server they are emitted here.
+    // We merge them with the game events from the parser so that
+    // the commands can be echoed to the player in the game stream.
+    this.sentCommandsSubject$ = new rxjs.Subject<GameEvent>();
+
     const socketData$ = await this.socket.connect();
-    const gameEvents$ = this.parser.parse(socketData$);
+    const gameEvents$ = rxjs.merge(
+      this.parser.parse(socketData$),
+      this.sentCommandsSubject$
+    );
 
     // TODO remove writing to file; just helpful for early development
     const socketWriteStream = fs.createWriteStream('game-socket.log');
@@ -98,6 +114,7 @@ class GameServiceImpl implements GameService {
   public async disconnect(): Promise<void> {
     if (!this.isDestroyed) {
       logger.info('disconnecting');
+      this.sentCommandsSubject$?.complete();
       await this.socket.disconnect();
       await this.waitUntilDestroyed();
     }
@@ -105,8 +122,18 @@ class GameServiceImpl implements GameService {
 
   public send(command: string): void {
     if (this.isConnected) {
+      logger.debug('sending command', { command });
+      this.emitCommandAsTextGameEvent(command);
       this.socket.send(command);
     }
+  }
+
+  protected emitCommandAsTextGameEvent(command: string): void {
+    logger.debug('emitting command as text game event', { command });
+    this.sentCommandsSubject$?.next({
+      type: GameEventType.TEXT,
+      text: `> ${command}\n`,
+    });
   }
 
   protected async waitUntilDestroyed(): Promise<void> {
