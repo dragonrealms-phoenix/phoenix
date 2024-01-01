@@ -391,6 +391,24 @@ export class GameParserImpl implements GameParser {
         // In this example, the text would be '&gt;'.
         this.gameText += text;
         break;
+      case 'spell':
+        // This is a spell name.
+        // Example: `<spell>Fire Shards</spell>`
+        // In this example, the text would be 'Fire Shards'.
+        this.gameText += text;
+        break;
+      case 'left':
+        // This is the name of the item in the character's left hand.
+        // Example: `<left>red backpack</left>`
+        // In this example, the text would be 'red backpack'.
+        this.gameText += text;
+        break;
+      case 'right':
+        // This is the name of the item in the character's right hand.
+        // Example: `<right>Empty</right>`
+        // In this example, the text would be 'Empty'.
+        this.gameText += text;
+        break;
     }
   }
 
