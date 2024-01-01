@@ -75,6 +75,7 @@
     "electron-serve": "^1.2.0",
     "fs-extra": "^11.2.0",
     "lodash": "^4.17.21",
+    "observable-hooks": "^4.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-grid-layout": "^1.4.4",
