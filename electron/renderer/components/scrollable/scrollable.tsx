@@ -1,3 +1,4 @@
+import { css } from '@emotion/react';
 import { merge } from 'lodash';
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
@@ -17,10 +18,10 @@ interface ScrollableProps {
   children?: ReactNode;
 }
 
-const defaultStyle: CSSProperties = {
-  height: 500,
-  overflow: 'scroll',
-};
+const defaultStyle = css({
+  height: '100%',
+  overflowY: 'scroll',
+});
 
 /**
  * A component that enables vertical scrolling and will auto-scroll
@@ -38,8 +39,10 @@ const defaultStyle: CSSProperties = {
 const Scrollable: React.FC<ScrollableProps> = (
   props: ScrollableProps
 ): ReactNode => {
-  const { className, children } = props;
+  const { children } = props;
+
   const style = merge({}, defaultStyle, props.style);
+  const className = ['eui-yScroll', props.className].join(' ');
 
   const scrollableRef = useRef<HTMLDivElement>(null);
   const scrollBottomRef = useRef<HTMLSpanElement>(null);
