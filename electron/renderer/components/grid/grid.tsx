@@ -1,7 +1,7 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-import type { ReactNode, Ref } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import {
   createRef,
   useCallback,
@@ -57,7 +57,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         })}
       }
     `);
-  }, [windowDimensions]);
+  }, [windowDimensions, euiTheme]);
 
   const gridItemTextStyles = css({
     fontFamily: euiTheme.font.familyCode,
@@ -109,7 +109,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     if (width) {
       setGridMaxWidth(width);
     }
-  }, [windowDimensions]);
+  }, [windowDimensions, gridRowHeightWithMargin]);
 
   /**
    * Load the layout from storage or build a default layout.
@@ -167,17 +167,20 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const [layout, setLayout] = useState<Array<Layout>>(buildDefaultLayout);
 
   // Save the layout when it changes in the grid.
-  const onLayoutChange = useCallback((layout: Array<Layout>) => {
-    setLayout(layout);
-    LocalStorage.set('layout', layout);
+  const onLayoutChange = useCallback((newLayout: Array<Layout>) => {
+    setLayout(newLayout);
+    LocalStorage.set('layout', newLayout);
   }, []);
 
   // Remove the item from the layout.
   const onGridItemClose = useCallback((itemId: string) => {
-    const newLayout = layout.filter((layoutItem) => {
-      return layoutItem.i !== itemId;
+    setLayout((oldLayout) => {
+      const newLayout = oldLayout.filter((layoutItem) => {
+        return layoutItem.i !== itemId;
+      });
+      LocalStorage.set('layout', newLayout);
+      return newLayout;
     });
-    onLayoutChange(newLayout);
   }, []);
 
   /**
@@ -188,7 +191,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
    * https://react.dev/warnings/invalid-hook-call-warning
    * https://stackoverflow.com/questions/65350114/useref-for-element-in-loop-in-react/65350394#65350394
    */
-  const childRefs = useRef<Array<Ref<HTMLDivElement>>>([]);
+  const childRefs = useRef<Array<RefObject<HTMLDivElement>>>([]);
   childRefs.current = layout.map((_item, i) => {
     // Note we use `createRef` and not `useRef` per "Rule of Hooks"
     return childRefs.current[i] ?? createRef<HTMLDivElement>();
@@ -203,10 +206,11 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const children = useMemo(() => {
     return layout.map((layoutItem, i) => {
       const item = items.find((item) => item.itemId === layoutItem.i);
+      const ref = childRefs.current[i];
       return (
         <GridItem
+          ref={ref}
           key={item!.itemId}
-          ref={childRefs.current[i]}
           itemId={item!.itemId}
           titleBarText={item!.title}
           onClose={onGridItemClose}
@@ -215,6 +219,9 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         </GridItem>
       );
     });
+    // For performance, I only want to recalculate the children
+    // if the number of items in the layout changes. No other reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout.length]);
 
   return (
