@@ -15,6 +15,7 @@ import GridLayout from 'react-grid-layout';
 import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
+import { Scrollable } from '../scrollable';
 
 interface GridItemProps {
   itemId: string;
@@ -215,7 +216,9 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
           titleBarText={item!.title}
           onClose={onGridItemClose}
         >
-          <EuiText css={gridItemTextStyles}>{item!.content}</EuiText>
+          <Scrollable>
+            <EuiText css={gridItemTextStyles}>{item!.content}</EuiText>
+          </Scrollable>
         </GridItem>
       );
     });
