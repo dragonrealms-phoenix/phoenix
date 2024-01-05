@@ -1,8 +1,7 @@
 import { EuiListGroup, EuiListGroupItem, EuiPanel } from '@elastic/eui';
-import { useObservable, useSubscription } from 'observable-hooks';
+import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import * as rxjs from 'rxjs';
+import { useCallback, useState } from 'react';
 import { runInBackground, sleep } from '../../common/async';
 import { equalsIgnoreCase } from '../../common/string';
 import { useLogger } from '../components/logger';
@@ -13,46 +12,10 @@ interface IpcSgeCharacter {
   characterName: string;
 }
 
-// I started tracking this via `useState` but when calling it's setter
-// the value did not update fast enough before a text game event
-// was received, resulting in text routing to the wrong stream window.
-let gameStreamId = '';
-
 const HomePage: React.FC = (): ReactNode => {
   const { logger } = useLogger('page:home');
 
-  // TODO for each runInBackground, need to catch and display errors
-
-  // TODO add state to track when any of the callbacks are running
-  //      so that we show a loading indicator or overlay or something
-  //      to prevent the user issuing more commands concurrently
-
-  const gameEventsSubject$ = useObservable(() => {
-    return new rxjs.Subject<{ type: string } & Record<string, any>>();
-  });
-
-  useSubscription(gameEventsSubject$, (gameEvent) => {
-    switch (gameEvent.type) {
-      case 'TEXT':
-        appendGameText(`[${gameStreamId}] ${gameEvent.text}`);
-        break;
-      case 'POP_STREAM':
-        gameStreamId = '';
-        break;
-      case 'PUSH_STREAM':
-        gameStreamId = gameEvent.streamId;
-        break;
-    }
-  });
-
-  const [gameText, setGameText] = useState<Array<string>>([]);
-
-  const appendGameText = useCallback((newText: string) => {
-    // TODO get user's scrollback buffer preference
-    const scrollbackBuffer = 500; // max number of most recent lines to keep
-    newText = newText.replace(/\n/g, '<br/>');
-    setGameText((texts) => texts.concat(newText).slice(scrollbackBuffer * -1));
-  }, []);
+  const router = useRouter();
 
   const [characters, setCharacters] = useState<Array<IpcSgeCharacter>>([]);
 
@@ -196,6 +159,8 @@ const HomePage: React.FC = (): ReactNode => {
         gameCode,
       });
       //--
+      await router.push('/grid');
+      //--
       await sleep(2000);
       await window.api.sendCommand('health');
       await sleep(1000);
@@ -216,7 +181,7 @@ const HomePage: React.FC = (): ReactNode => {
       await window.api.sendCommand('go window');
       //--
     },
-    [logger]
+    [logger, router]
   );
 
   const onClickPlayCharacter = useCallback(
@@ -232,66 +197,56 @@ const HomePage: React.FC = (): ReactNode => {
     [playCharacter]
   );
 
-  useEffect(() => {
-    window.api.onMessage(
-      'game:connect',
-      (_event, { accountName, characterName, gameCode }) => {
-        logger.info('game:connect', { accountName, characterName, gameCode });
-      }
-    );
+  // useEffect(() => {
+  //   window.api.onMessage(
+  //     'game:connect',
+  //     (_event, { accountName, characterName, gameCode }) => {
+  //       logger.info('game:connect', { accountName, characterName, gameCode });
+  //     }
+  //   );
 
-    return () => {
-      window.api.removeAllListeners('game:connect');
-    };
-  }, [logger]);
+  //   return () => {
+  //     window.api.removeAllListeners('game:connect');
+  //   };
+  // }, [logger]);
 
-  useEffect(() => {
-    window.api.onMessage(
-      'game:disconnect',
-      (_event, { accountName, characterName, gameCode }) => {
-        logger.info('game:disconnect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      }
-    );
+  // useEffect(() => {
+  //   window.api.onMessage(
+  //     'game:disconnect',
+  //     (_event, { accountName, characterName, gameCode }) => {
+  //       logger.info('game:disconnect', {
+  //         accountName,
+  //         characterName,
+  //         gameCode,
+  //       });
+  //     }
+  //   );
 
-    return () => {
-      window.api.removeAllListeners('game:disconnect');
-    };
-  }, [logger]);
+  //   return () => {
+  //     window.api.removeAllListeners('game:disconnect');
+  //   };
+  // }, [logger]);
 
-  useEffect(() => {
-    window.api.onMessage('game:error', (_event, error: Error) => {
-      logger.error('game:error', { error });
-    });
+  // useEffect(() => {
+  //   window.api.onMessage('game:error', (_event, error: Error) => {
+  //     logger.error('game:error', { error });
+  //   });
 
-    return () => {
-      window.api.removeAllListeners('game:error');
-    };
-  }, [logger]);
+  //   return () => {
+  //     window.api.removeAllListeners('game:error');
+  //   };
+  // }, [logger]);
 
-  useEffect(() => {
-    window.api.onMessage('game:event', (_event, gameEvent) => {
-      logger.info('game:event', { gameEvent });
-      gameEventsSubject$.next(gameEvent);
-    });
+  // useEffect(() => {
+  //   window.api.onMessage('game:event', (_event, gameEvent) => {
+  //     logger.info('game:event', { gameEvent });
+  //     gameEventsSubject$.next(gameEvent);
+  //   });
 
-    return () => {
-      window.api.removeAllListeners('game:event');
-    };
-  }, [logger, gameEventsSubject$]);
-
-  // TODO don't scroll to bottom if user has scrolled up
-  // https://stackoverflow.com/questions/37620694/how-to-scroll-to-bottom-in-react
-  const scrollBottomRef = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (scrollBottomRef.current) {
-      scrollBottomRef.current.scrollIntoView();
-    }
-  }, [gameText]);
-
+  //   return () => {
+  //     window.api.removeAllListeners('game:event');
+  //   };
+  // }, [logger, gameEventsSubject$]);
   const accountName = 'xxx';
   const accountPassword = 'xxx';
   const characterName = 'xxx';
@@ -363,14 +318,6 @@ const HomePage: React.FC = (): ReactNode => {
           </EuiPanel>
         );
       })}
-      {gameText.map((text, index) => {
-        return (
-          <span key={index} style={{ fontFamily: 'Verdana' }}>
-            <span dangerouslySetInnerHTML={{ __html: text }} />
-          </span>
-        );
-      })}
-      <span ref={scrollBottomRef} />
     </div>
   );
 };
