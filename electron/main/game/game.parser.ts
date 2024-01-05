@@ -687,14 +687,14 @@ export class GameParserImpl implements GameParser {
   protected emitClearStreamGameEvent(streamId: string): void {
     this.emitGameEvent({
       type: GameEventType.CLEAR_STREAM,
-      streamId: streamId,
+      streamId,
     });
   }
 
   protected emitPushStreamGameEvent(streamId: string): void {
     this.emitGameEvent({
       type: GameEventType.PUSH_STREAM,
-      streamId: streamId,
+      streamId,
     });
   }
 
