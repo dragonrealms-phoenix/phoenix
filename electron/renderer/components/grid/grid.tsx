@@ -1,4 +1,4 @@
-import { EuiText, useEuiTheme } from '@elastic/eui';
+import { useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
 import type { ReactNode, RefObject } from 'react';
@@ -15,7 +15,6 @@ import GridLayout from 'react-grid-layout';
 import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
-import { Scrollable } from '../scrollable';
 
 interface GridItemProps {
   itemId: string;
@@ -59,14 +58,6 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       }
     `);
   }, [windowDimensions, euiTheme]);
-
-  const gridItemTextStyles = css({
-    fontFamily: euiTheme.font.familyCode,
-    fontSize: euiTheme.size.m,
-    lineHeight: 'initial',
-    paddingLeft: euiTheme.size.s,
-    paddingRight: euiTheme.size.s,
-  });
 
   /**
    * When grid items are resized the increment is based on the the layout size.
@@ -216,9 +207,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
           titleBarText={item!.title}
           onClose={onGridItemClose}
         >
-          <Scrollable>
-            <EuiText css={gridItemTextStyles}>{item!.content}</EuiText>
-          </Scrollable>
+          {item!.content}
         </GridItem>
       );
     });
