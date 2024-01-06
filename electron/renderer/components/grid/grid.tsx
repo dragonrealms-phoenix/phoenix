@@ -110,6 +110,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     let layout = LocalStorage.get<Array<Layout>>('layout');
 
     if (layout) {
+      // Discard any old layout items that are not in the grid's items list.
       layout = layout.filter((layoutItem) => {
         return items.find((item) => item.itemId === layoutItem.i);
       });
@@ -164,7 +165,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     LocalStorage.set('layout', newLayout);
   }, []);
 
-  // Remove the item from the layout.
+  // Remove the item from the layout then save the layout.
   const onGridItemClose = useCallback((itemId: string) => {
     setLayout((oldLayout) => {
       const newLayout = oldLayout.filter((layoutItem) => {
@@ -176,17 +177,17 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   }, []);
 
   /**
-   * Originally I called `useRef` in the children's `useMemo` hook below but
+   * Originally I called `useRef` in the grid item's `useMemo` hook below but
    * that caused "Error: Rendered fewer hooks than expected" to be thrown.
    * I later learned the "Rule of Hooks" which forbid what I was doing.
    * Found a workaround on stackoverflow to store the refs in a ref. Ironic.
    * https://react.dev/warnings/invalid-hook-call-warning
    * https://stackoverflow.com/questions/65350114/useref-for-element-in-loop-in-react/65350394#65350394
    */
-  const childRefs = useRef<Array<RefObject<HTMLDivElement>>>([]);
-  childRefs.current = layout.map((_item, i) => {
-    // Note we use `createRef` and not `useRef` per "Rule of Hooks"
-    return childRefs.current[i] ?? createRef<HTMLDivElement>();
+  const itemRefs = useRef<Array<RefObject<HTMLDivElement>>>([]);
+  itemRefs.current = layout.map((_layoutItem, i) => {
+    // Note we use `createRef` and not `useRef` per "Rule of Hooks" for loops.
+    return itemRefs.current[i] ?? createRef<HTMLDivElement>();
   });
 
   /**
@@ -195,16 +196,16 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
    * components within the layout won't rerender either.
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
-  const children = useMemo(() => {
+  const gridItems = useMemo(() => {
     return layout.map((layoutItem, i) => {
       const item = items.find((item) => item.itemId === layoutItem.i);
-      const ref = childRefs.current[i];
+      const itemRef = itemRefs.current[i];
       return (
         <GridItem
-          ref={ref}
-          key={item!.itemId}
-          itemId={item!.itemId}
-          titleBarText={item!.title}
+          ref={itemRef}
+          key={item!.itemId} // assuming the item will always be found
+          itemId={item!.itemId} // will come back to haunt me
+          titleBarText={item!.title} // I just don't know when or why
           onClose={onGridItemClose}
         >
           {item!.content}
@@ -249,7 +250,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       // The grid item's title bar is used as the handle for dragging.
       draggableHandle={'.grab-handle'}
     >
-      {children}
+      {gridItems}
     </GridLayout>
   );
 };
