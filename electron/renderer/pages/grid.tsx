@@ -1,15 +1,21 @@
+import { EuiText, useEuiTheme } from '@elastic/eui';
+import { css } from '@emotion/react';
+import { isNil } from 'lodash';
 import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { Grid } from '../components/grid';
 import { useLogger } from '../components/logger';
+import { createLogger } from '../lib/logger';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
 // https://nextjs.org/docs/messages/react-hydration-error
 const GridNoSSR = dynamic(async () => Grid, { ssr: false });
+
+const dougLogger = createLogger('component:doug-cmp');
 
 interface DougCmpProps {
   stream$: rxjs.Observable<{ streamId: string; text: string }>;
@@ -21,13 +27,32 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
   useSubscription(stream$, (stream) => {
     if (stream.text === '__CLEAR_STREAM__') {
       setGameText([]);
-    } else {
+    } else if (!isNil(stream.text)) {
       appendGameText(stream.text);
     }
   });
 
+  const { euiTheme } = useEuiTheme();
+
+  const scrollableRef = useRef<HTMLDivElement>(null);
+  const scrollBottomRef = useRef<HTMLSpanElement>(null);
+
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
+
+  // TODO make this be dynamically created in `appendGameText`
+  //      based on the game event props sent to us
+  const textStyles = css({
+    fontFamily: euiTheme.font.family,
+    fontSize: euiTheme.size.m,
+    lineHeight: 'initial',
+    paddingLeft: euiTheme.size.s,
+    paddingRight: euiTheme.size.s,
+  });
+
+  // TODO make array of object with text and style
   const [gameText, setGameText] = useState<Array<string>>([]);
 
+  // TODO make callback take in object with text and style
   const appendGameText = useCallback((newText: string) => {
     const scrollbackBuffer = 500; // max number of most recent lines to keep
     newText = newText.replace(/\n/g, '<br/>');
@@ -36,15 +61,62 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
     });
   }, []);
 
+  useEffect(() => {
+    let scrollableElmt = scrollableRef.current;
+
+    const onScroll = () => {
+      scrollableElmt = scrollableRef.current;
+
+      if (!scrollableElmt) {
+        return;
+      }
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollableElmt;
+      const difference = scrollHeight - clientHeight - scrollTop;
+      const enableAutoScroll = difference <= clientHeight;
+
+      dougLogger.debug('*** onScroll', {
+        scrollHeight,
+        clientHeight,
+        scrollTop,
+        difference,
+        enableAutoScroll,
+      });
+
+      setAutoScrollEnabled(enableAutoScroll);
+    };
+
+    scrollableElmt?.addEventListener('scroll', onScroll);
+
+    return () => {
+      scrollableElmt?.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
+  if (autoScrollEnabled) {
+    scrollBottomRef.current?.scrollIntoView({
+      behavior: 'instant',
+      block: 'end',
+      inline: 'nearest',
+    });
+  }
+
   return (
-    <div>
+    <div
+      ref={scrollableRef}
+      className={'eui-yScroll'}
+      style={{ height: '100%', overflowY: 'scroll' }}
+    >
       {gameText.map((text, index) => {
         return (
-          <span key={index} style={{ fontFamily: 'Verdana' }}>
-            <span dangerouslySetInnerHTML={{ __html: text }} />
-          </span>
+          <EuiText
+            key={index}
+            css={textStyles}
+            dangerouslySetInnerHTML={{ __html: text }}
+          />
         );
       })}
+      <span ref={scrollBottomRef} />
     </div>
   );
 };
@@ -73,12 +145,6 @@ const GridPage: React.FC = (): ReactNode => {
   // Re-emit text events to the game stream subject to get to grid items.
   useSubscription(gameEventsSubject$, (gameEvent) => {
     switch (gameEvent.type) {
-      case 'TEXT':
-        gameStreamSubject$.next({
-          streamId: gameStreamId,
-          text: gameEvent.text,
-        });
-        break;
       case 'CLEAR_STREAM':
         gameStreamSubject$.next({
           streamId: gameEvent.streamId,
@@ -90,6 +156,51 @@ const GridPage: React.FC = (): ReactNode => {
         break;
       case 'POP_STREAM':
         gameStreamId = '';
+        break;
+      case 'TEXT_OUTPUT_CLASS':
+        // TODO
+        break;
+      case 'TEXT_STYLE_PRESET':
+        // TODO
+        break;
+      case 'TEXT':
+        gameStreamSubject$.next({
+          streamId: gameStreamId,
+          text: gameEvent.text,
+        });
+        break;
+      case 'EXPERIENCE':
+        gameStreamSubject$.next({
+          streamId: 'experience',
+          text: gameEvent.text,
+        });
+        break;
+      case 'ROOM':
+        // TODO
+        break;
+      case 'COMPASS':
+        // TODO
+        break;
+      case 'VITALS':
+        // TODO
+        break;
+      case 'INDICATOR':
+        // TODO
+        break;
+      case 'SPELL':
+        // TODO
+        break;
+      case 'LEFT_HAND':
+        // TODO
+        break;
+      case 'RIGHT_HAND':
+        // TODO
+        break;
+      case 'SERVER_TIME':
+        // TODO
+        break;
+      case 'ROUND_TIME':
+        // TODO
         break;
     }
   });
@@ -162,6 +273,17 @@ const GridPage: React.FC = (): ReactNode => {
             <DougCmp
               stream$={gameStreamSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'room')
+              )}
+            />
+          ),
+        },
+        {
+          itemId: 'experience',
+          title: 'Experience',
+          content: (
+            <DougCmp
+              stream$={gameStreamSubject$.pipe(
+                rxjs.filter((m) => m.streamId === 'experience')
               )}
             />
           ),

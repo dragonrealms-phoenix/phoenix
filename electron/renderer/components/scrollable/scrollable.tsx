@@ -47,12 +47,14 @@ const Scrollable: React.FC<ScrollableProps> = (
   const scrollableRef = useRef<HTMLDivElement>(null);
   const scrollBottomRef = useRef<HTMLSpanElement>(null);
 
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
 
   useEffect(() => {
-    const scrollableElmt = scrollableRef.current;
+    let scrollableElmt = scrollableRef.current;
 
     const onScroll = () => {
+      scrollableElmt = scrollableRef.current;
+
       if (!scrollableElmt) {
         return;
       }
@@ -61,7 +63,7 @@ const Scrollable: React.FC<ScrollableProps> = (
       const difference = scrollHeight - clientHeight - scrollTop;
       const enableAutoScroll = difference <= clientHeight;
 
-      setAutoScroll(enableAutoScroll);
+      setAutoScrollEnabled(enableAutoScroll);
     };
 
     scrollableElmt?.addEventListener('scroll', onScroll);
@@ -71,8 +73,12 @@ const Scrollable: React.FC<ScrollableProps> = (
     };
   }, []);
 
-  if (autoScroll) {
-    scrollBottomRef.current?.scrollIntoView({ behavior: 'instant' });
+  if (autoScrollEnabled) {
+    scrollBottomRef.current?.scrollIntoView({
+      behavior: 'instant',
+      block: 'end',
+      inline: 'nearest',
+    });
   }
 
   return (
