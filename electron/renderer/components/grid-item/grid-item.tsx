@@ -18,7 +18,7 @@ import type {
 } from 'react';
 import { forwardRef, useCallback } from 'react';
 
-interface GridItemProps {
+export interface GridItemProps {
   /**
    * The unique identifier for the grid item.
    */
@@ -112,7 +112,7 @@ function separateResizeHandleComponents(nodes: ReactNode): {
  * https://github.com/react-grid-layout/react-grid-layout/tree/master?tab=readme-ov-file#custom-child-components-and-draggable-handles
  * https://stackoverflow.com/questions/67053157/react-grid-layout-error-draggablecore-not-mounted-on-dragstart
  */
-const GridItem: React.FC<GridItemProps> = forwardRef<
+export const GridItem: React.FC<GridItemProps> = forwardRef<
   HTMLDivElement,
   GridItemProps
 >((props, ref): ReactNode => {
@@ -198,5 +198,3 @@ const GridItem: React.FC<GridItemProps> = forwardRef<
 });
 
 GridItem.displayName = 'GridItem';
-
-export { GridItem };

@@ -5,7 +5,7 @@ import type { Cache } from './cache.types';
 /**
  * Caches all data as properties of a single JSON object stored in memory.
  */
-class MemoryCacheServiceImpl extends AbstractCacheService {
+export class MemoryCacheServiceImpl extends AbstractCacheService {
   constructor(private cache: Cache = {}) {
     super();
   }
@@ -30,5 +30,3 @@ class MemoryCacheServiceImpl extends AbstractCacheService {
     return this.cache;
   }
 }
-
-export { MemoryCacheServiceImpl };

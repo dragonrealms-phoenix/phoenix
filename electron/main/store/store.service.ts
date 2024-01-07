@@ -46,10 +46,12 @@ const storeInstance = new StoreServiceImpl({
   filepath: path.join(app.getPath('userData'), 'config.json'),
 });
 
-const Store = {
+export const Store = {
+  /**
+   * Get the current store instance.
+   * Use it to get/set config values.
+   */
   getInstance: (): StoreService => {
     return storeInstance;
   },
 };
-
-export { Store };

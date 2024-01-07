@@ -16,17 +16,17 @@ import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
 
-interface GridItemProps {
+export interface GridItemProps {
   itemId: string;
   title: string;
   content: ReactNode;
 }
 
-interface GridProps {
+export interface GridProps {
   items: Array<GridItemProps>;
 }
 
-const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
+export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { items } = props;
 
   const { euiTheme } = useEuiTheme();
@@ -255,4 +255,4 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   );
 };
 
-export { Grid };
+Grid.displayName = 'Grid';

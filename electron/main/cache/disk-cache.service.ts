@@ -10,7 +10,7 @@ const logger = createLogger('cache:disk');
 /**
  * Caches all data as properties of a single JSON object written to disk.
  */
-class DiskCacheServiceImpl extends AbstractCacheService {
+export class DiskCacheServiceImpl extends AbstractCacheService {
   /**
    * To avoid repeatedly reading and parsing a file from disk,
    * we read the file and cache it in memory.
@@ -81,5 +81,3 @@ class DiskCacheServiceImpl extends AbstractCacheService {
     }
   }
 }
-
-export { DiskCacheServiceImpl };

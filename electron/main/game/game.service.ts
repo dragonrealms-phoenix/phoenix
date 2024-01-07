@@ -149,9 +149,11 @@ class GameServiceImpl implements GameService {
   }
 }
 
+// There is exactly one game instance at a time,
+// and it can be playing at most one character.
 let gameInstance: Maybe<GameService>;
 
-const Game = {
+export const Game = {
   /**
    * There is exactly one game instance at a time,
    * and it can be playing at most one character.
@@ -184,5 +186,3 @@ const Game = {
     return gameInstance;
   },
 };
-
-export { Game };
