@@ -1,11 +1,10 @@
-import { EuiText, useEuiTheme } from '@elastic/eui';
-import type { SerializedStyles } from '@emotion/react';
+import { useEuiTheme } from '@elastic/eui';
 import { css } from '@emotion/react';
 import { isEmpty } from 'lodash';
 import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { GameEventType } from '../../common/game';
@@ -14,135 +13,15 @@ import type {
   GameEvent,
   RoomGameEvent,
 } from '../../common/game';
+import { GameContent } from '../components/game';
+import type { GameLogLine } from '../components/game';
 import { Grid } from '../components/grid';
-import { useLogger } from '../components/logger';
+import { useLogger } from '../hooks/logger';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
 // https://nextjs.org/docs/messages/react-hydration-error
 const GridNoSSR = dynamic(async () => Grid, { ssr: false });
-
-interface GameLogLine {
-  /**
-   * A unique id for this log line.
-   * Primarily used for React keys.
-   * https://react.dev/learn/rendering-lists
-   */
-  eventId: string;
-  /**
-   * The game stream id that this line is destined for.
-   */
-  streamId: string;
-  /**
-   * The text formatting to apply to this line.
-   */
-  styles: SerializedStyles;
-  /**
-   * The text to display.
-   */
-  text: string;
-}
-
-interface DougCmpProps {
-  /**
-   * The stream of game text to display.
-   * The stream is additive, so each new line will be appended to the end.
-   * The special log line text '__CLEAR_STREAM__' will clear all prior lines.
-   */
-  stream$: rxjs.Observable<GameLogLine>;
-  /**
-   * Enable to automatically scroll to the bottom of the game stream window
-   * as new log lines are added. This effect only occurs if the user
-   * is already scrolled to the bottom to ensure they see latest content.
-   */
-  enableScrollToNewLogLines: boolean;
-}
-
-const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
-  const { stream$, enableScrollToNewLogLines } = props;
-
-  useSubscription(stream$, (logLine) => {
-    if (logLine.text === '__CLEAR_STREAM__') {
-      setGameLogLines([]);
-    } else {
-      appendGameLogLine(logLine);
-    }
-  });
-
-  const scrollableRef = useRef<HTMLDivElement>(null);
-  const scrollBottomRef = useRef<HTMLSpanElement>(null);
-
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(
-    enableScrollToNewLogLines
-  );
-
-  const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
-
-  const appendGameLogLine = useCallback((newLogLine: GameLogLine) => {
-    // Max number of most recent lines to keep.
-    const scrollbackBuffer = 500;
-    setGameLogLines((oldLogLines) => {
-      // Append new log line to the list.
-      let newLogLines = oldLogLines.concat(newLogLine);
-      // Trim the back of the list to keep it within the scrollback buffer.
-      newLogLines = newLogLines.slice(scrollbackBuffer * -1);
-      return newLogLines;
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!enableScrollToNewLogLines) {
-      return;
-    }
-
-    let scrollableElmt = scrollableRef.current;
-
-    const onScroll = () => {
-      scrollableElmt = scrollableRef.current;
-
-      if (!scrollableElmt) {
-        return;
-      }
-
-      const { scrollTop, scrollHeight, clientHeight } = scrollableElmt;
-      const difference = scrollHeight - clientHeight - scrollTop;
-      const enableAutoScroll = difference <= clientHeight;
-
-      setAutoScrollEnabled(enableAutoScroll);
-    };
-
-    scrollableElmt?.addEventListener('scroll', onScroll);
-
-    return () => {
-      scrollableElmt?.removeEventListener('scroll', onScroll);
-    };
-  }, [enableScrollToNewLogLines]);
-
-  if (autoScrollEnabled) {
-    scrollBottomRef.current?.scrollIntoView({
-      behavior: 'instant',
-      block: 'end',
-      inline: 'nearest',
-    });
-  }
-
-  return (
-    <div
-      ref={scrollableRef}
-      className={'eui-yScroll'}
-      style={{ height: '100%', overflowY: 'scroll' }}
-    >
-      {gameLogLines.map((logLine) => {
-        return (
-          <EuiText key={logLine.eventId} css={logLine.styles}>
-            {logLine.text}
-          </EuiText>
-        );
-      })}
-      <span ref={scrollBottomRef} />
-    </div>
-  );
-};
 
 // I started tracking this via `useState` but when calling it's setter
 // the value did not update fast enough before a text game event
@@ -394,11 +273,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'room',
           title: 'Room',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['room']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={false}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'room')
-              )}
             />
           ),
         },
@@ -406,11 +284,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'experience',
           title: 'Experience',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['experience']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={false}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'experience')
-              )}
             />
           ),
         },
@@ -418,11 +295,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'percWindow',
           title: 'Spells',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['percWindow']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={false}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'percWindow')
-              )}
             />
           ),
         },
@@ -430,11 +306,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'inv',
           title: 'Inventory',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['inv']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={false}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'inv')
-              )}
             />
           ),
         },
@@ -442,11 +317,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'familiar',
           title: 'Familiar',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['familiar']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'familiar')
-              )}
             />
           ),
         },
@@ -454,11 +328,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'thoughts',
           title: 'Thoughts',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['thoughts']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'thoughts')
-              )}
             />
           ),
         },
@@ -466,11 +339,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'combat',
           title: 'Combat',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['combat']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'combat')
-              )}
             />
           ),
         },
@@ -478,11 +350,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'logons',
           title: 'Logons',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['logons']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'logons')
-              )}
             />
           ),
         },
@@ -490,11 +361,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'death',
           title: 'Deaths',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['death']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === 'death')
-              )}
             />
           ),
         },
@@ -502,11 +372,10 @@ const GridPage: React.FC = (): ReactNode => {
           itemId: 'main',
           title: 'Main',
           content: (
-            <DougCmp
+            <GameContent
+              gameStreamIds={['']}
+              stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
-              stream$={gameLogLineSubject$.pipe(
-                rxjs.filter((m) => m.streamId === '')
-              )}
             />
           ),
         },
