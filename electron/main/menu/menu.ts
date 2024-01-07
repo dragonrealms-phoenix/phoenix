@@ -7,12 +7,20 @@ import { runInBackground } from '../../common/async';
  * https://github.com/RedisInsight/RedisInsight/blob/2.34.0/redisinsight/desktop/src/lib/menu/menu.ts
  */
 
+const GITHUB_BASE_URL = 'https://github.com/dragonrealms-phoenix/phoenix';
+const PHOENIX_DOCS_URL = `${GITHUB_BASE_URL}#readme`;
+const PHOENIX_ISSUES_URL = `${GITHUB_BASE_URL}/issues`;
+const PHOENIX_RELEASES_URL = `${GITHUB_BASE_URL}/releases`;
+const PHOENIX_LICENSE_URL = `${GITHUB_BASE_URL}/blob/main/LICENSE.md`;
+const PHOENIX_PRIVACY_URL = `${GITHUB_BASE_URL}/blob/main/PRIVACY.md`;
+const PHOENIX_SECURITY_URL = `${GITHUB_BASE_URL}/blob/main/SECURITY.md`;
+
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
   submenu?: Array<DarwinMenuItemConstructorOptions> | Menu;
 }
 
-function initializeMenu(window: BrowserWindow): void {
+export function initializeMenu(window: BrowserWindow): void {
   const template = getMenuTemplate(window);
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
@@ -211,9 +219,7 @@ function buildDarwinTemplate(
         label: 'Documentation',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix#readme'
-            );
+            await shell.openExternal(PHOENIX_DOCS_URL);
           });
         },
       },
@@ -221,9 +227,7 @@ function buildDarwinTemplate(
         label: 'Release Notes',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/releases'
-            );
+            await shell.openExternal(PHOENIX_RELEASES_URL);
           });
         },
       },
@@ -231,9 +235,7 @@ function buildDarwinTemplate(
         label: 'Report Issue',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/issues'
-            );
+            await shell.openExternal(PHOENIX_ISSUES_URL);
           });
         },
       },
@@ -244,9 +246,7 @@ function buildDarwinTemplate(
         label: 'View License',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/blob/main/LICENSE.md'
-            );
+            await shell.openExternal(PHOENIX_LICENSE_URL);
           });
         },
       },
@@ -254,9 +254,7 @@ function buildDarwinTemplate(
         label: 'Privacy Policy',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/blob/main/PRIVACY.md'
-            );
+            await shell.openExternal(PHOENIX_PRIVACY_URL);
           });
         },
       },
@@ -264,9 +262,7 @@ function buildDarwinTemplate(
         label: 'Security Policy',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/blob/main/SECURITY.md'
-            );
+            await shell.openExternal(PHOENIX_SECURITY_URL);
           });
         },
       },
@@ -352,9 +348,7 @@ function buildDefaultTemplate(
         label: 'Documentation',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix#readme'
-            );
+            await shell.openExternal(PHOENIX_DOCS_URL);
           });
         },
       },
@@ -362,9 +356,7 @@ function buildDefaultTemplate(
         label: 'Release Notes',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/releases'
-            );
+            await shell.openExternal(PHOENIX_RELEASES_URL);
           });
         },
       },
@@ -372,9 +364,7 @@ function buildDefaultTemplate(
         label: 'Report Issue',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/issues'
-            );
+            await shell.openExternal(PHOENIX_ISSUES_URL);
           });
         },
       },
@@ -385,9 +375,7 @@ function buildDefaultTemplate(
         label: 'View License',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/blob/main/LICENSE.md'
-            );
+            await shell.openExternal(PHOENIX_LICENSE_URL);
           });
         },
       },
@@ -395,9 +383,7 @@ function buildDefaultTemplate(
         label: 'Privacy Policy',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/blob/main/PRIVACY.md'
-            );
+            await shell.openExternal(PHOENIX_PRIVACY_URL);
           });
         },
       },
@@ -405,9 +391,7 @@ function buildDefaultTemplate(
         label: 'Security Policy',
         click() {
           runInBackground(async () => {
-            await shell.openExternal(
-              'https://github.com/dragonrealms-phoenix/phoenix/blob/main/SECURITY.md'
-            );
+            await shell.openExternal(PHOENIX_SECURITY_URL);
           });
         },
       },
@@ -423,5 +407,3 @@ function buildDefaultTemplate(
 
   return [subMenuWindow, subMenuView, subMenuHelp];
 }
-
-export { initializeMenu };
