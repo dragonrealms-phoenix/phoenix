@@ -442,6 +442,28 @@ const GridPage: React.FC = (): ReactNode => {
           ),
         },
         {
+          itemId: 'logons',
+          title: 'Logons',
+          content: (
+            <DougCmp
+              stream$={gameLogLineSubject$.pipe(
+                rxjs.filter((m) => m.streamId === 'logons')
+              )}
+            />
+          ),
+        },
+        {
+          itemId: 'death',
+          title: 'Deaths',
+          content: (
+            <DougCmp
+              stream$={gameLogLineSubject$.pipe(
+                rxjs.filter((m) => m.streamId === 'death')
+              )}
+            />
+          ),
+        },
+        {
           itemId: 'main',
           title: 'Main',
           content: (
