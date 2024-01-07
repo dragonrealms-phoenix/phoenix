@@ -44,11 +44,22 @@ interface GameLogLine {
 }
 
 interface DougCmpProps {
+  /**
+   * The stream of game text to display.
+   * The stream is additive, so each new line will be appended to the end.
+   * The special log line text '__CLEAR_STREAM__' will clear all prior lines.
+   */
   stream$: rxjs.Observable<GameLogLine>;
+  /**
+   * Enable to automatically scroll to the bottom of the game stream window
+   * as new log lines are added. This effect only occurs if the user
+   * is already scrolled to the bottom to ensure they see latest content.
+   */
+  enableScrollToNewLogLines: boolean;
 }
 
 const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
-  const { stream$ } = props;
+  const { stream$, enableScrollToNewLogLines } = props;
 
   useSubscription(stream$, (logLine) => {
     if (logLine.text === '__CLEAR_STREAM__') {
@@ -60,7 +71,10 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
 
   const scrollableRef = useRef<HTMLDivElement>(null);
   const scrollBottomRef = useRef<HTMLSpanElement>(null);
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
+
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(
+    enableScrollToNewLogLines
+  );
 
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
 
@@ -77,6 +91,10 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
   }, []);
 
   useEffect(() => {
+    if (!enableScrollToNewLogLines) {
+      return;
+    }
+
     let scrollableElmt = scrollableRef.current;
 
     const onScroll = () => {
@@ -98,7 +116,7 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
     return () => {
       scrollableElmt?.removeEventListener('scroll', onScroll);
     };
-  }, []);
+  }, [enableScrollToNewLogLines]);
 
   if (autoScrollEnabled) {
     scrollBottomRef.current?.scrollIntoView({
@@ -157,8 +175,9 @@ const GridPage: React.FC = (): ReactNode => {
       const { skill, rank, percent, mindState } = gameEvent;
       const txtSkill = skill.padStart(15);
       const txtRank = String(rank).padStart(3);
-      const txtPercent = String(percent).padStart(2);
+      const txtPercent = String(percent).padStart(2) + '%';
       const txtMindState = mindState.padEnd(15);
+      // TODO add option to show mind state as the numbers (x/34)
       return `${txtSkill} ${txtRank} ${txtPercent} ${txtMindState}`;
     },
     []
@@ -376,6 +395,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Room',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={false}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'room')
               )}
@@ -387,6 +407,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Experience',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={false}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'experience')
               )}
@@ -398,6 +419,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Spells',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={false}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'percWindow')
               )}
@@ -409,6 +431,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Inventory',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={false}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'inv')
               )}
@@ -420,6 +443,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Familiar',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={true}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'familiar')
               )}
@@ -431,6 +455,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Thoughts',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={true}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'thoughts')
               )}
@@ -442,6 +467,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Combat',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={true}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'combat')
               )}
@@ -453,6 +479,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Logons',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={true}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'logons')
               )}
@@ -464,6 +491,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Deaths',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={true}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'death')
               )}
@@ -475,6 +503,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Main',
           content: (
             <DougCmp
+              enableScrollToNewLogLines={true}
               stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === '')
               )}
