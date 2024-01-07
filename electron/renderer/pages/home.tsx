@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import { runInBackground, sleep } from '../../common/async';
 import { equalsIgnoreCase } from '../../common/string';
-import { useLogger } from '../components/logger';
+import { useLogger } from '../hooks/logger';
 
 interface IpcSgeCharacter {
   gameCode: string;
