@@ -1,4 +1,5 @@
 import { useEuiTheme } from '@elastic/eui';
+import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
 import { isEmpty } from 'lodash';
 import dynamic from 'next/dynamic';
@@ -49,6 +50,47 @@ const GridPage: React.FC = (): ReactNode => {
 
   const { euiTheme } = useEuiTheme();
 
+  // Do no memoize this function with `useCallback` or `useMemo`
+  // because it needs to reference the current values of both
+  // tracked and non-tracked variables.
+  // If we memoize it then stale values would be used.
+  const computeTextStyles = (): SerializedStyles => {
+    // TODO user pref for 'mono' or 'serif' font family and size
+    let fontFamily = `Verdana, ${euiTheme.font.familySerif}`;
+    let fontSize = '14px';
+    let fontWeight = euiTheme.font.weight.regular;
+    let fontColor = euiTheme.colors.text;
+
+    if (textOutputClass === 'mono') {
+      fontFamily = `${euiTheme.font.familyCode}`;
+      fontSize = euiTheme.size.m;
+    }
+
+    if (textStyleBold) {
+      fontWeight = euiTheme.font.weight.bold;
+    }
+
+    if (textStylePreset === 'roomName') {
+      fontColor = euiTheme.colors.title;
+      fontWeight = euiTheme.font.weight.bold;
+    }
+
+    const textStyles = css({
+      fontFamily,
+      fontSize,
+      fontWeight,
+      color: fontColor,
+      lineHeight: 'initial',
+      paddingLeft: euiTheme.size.s,
+      paddingRight: euiTheme.size.s,
+    });
+
+    return textStyles;
+  };
+
+  // TODO refactor to a ExperienceGameContent component
+  //      it will know all skills to render and can highlight
+  //      ones that pulse, toggle between mind state and mind state rate, etc
   const formatExperienceText = useCallback(
     (gameEvent: ExperienceGameEvent): string => {
       const { skill, rank, percent, mindState } = gameEvent;
@@ -73,6 +115,10 @@ const GridPage: React.FC = (): ReactNode => {
     []
   );
 
+  // TODO refactor to a RoomGameContent component
+  //      so that it subscribes to all the room events
+  //      and updates and formats the text as needed
+  //      This would allow the room name to be formatted
   const formatRoomText = useCallback((gameEvent: RoomGameEvent): string => {
     const { roomName, roomDescription } = gameEvent;
     const { roomObjects, roomPlayers, roomExits } = gameEvent;
@@ -97,19 +143,7 @@ const GridPage: React.FC = (): ReactNode => {
   // Track high level game events such as stream ids and formatting.
   // Re-emit text events to the game stream subject to get to grid items.
   useSubscription(gameEventsSubject$, (gameEvent: GameEvent) => {
-    const textStyles = css({
-      fontFamily:
-        textOutputClass === 'mono'
-          ? euiTheme.font.familyCode
-          : euiTheme.font.family,
-      fontSize: euiTheme.size.m,
-      fontWeight: textStyleBold
-        ? euiTheme.font.weight.bold
-        : euiTheme.font.weight.regular,
-      lineHeight: 'initial',
-      paddingLeft: euiTheme.size.s,
-      paddingRight: euiTheme.size.s,
-    });
+    const textStyles = computeTextStyles();
 
     switch (gameEvent.type) {
       case GameEventType.CLEAR_STREAM:
@@ -358,6 +392,17 @@ const GridPage: React.FC = (): ReactNode => {
           ),
         },
         {
+          itemId: 'assess',
+          title: 'Assess',
+          content: (
+            <GameContent
+              gameStreamIds={['assess']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
           itemId: 'logons',
           title: 'Logons',
           content: (
@@ -374,6 +419,39 @@ const GridPage: React.FC = (): ReactNode => {
           content: (
             <GameContent
               gameStreamIds={['death']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
+          itemId: 'atmospherics',
+          title: 'Atmospherics',
+          content: (
+            <GameContent
+              gameStreamIds={['atmospherics']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
+          itemId: 'whispers',
+          title: 'Whispers',
+          content: (
+            <GameContent
+              gameStreamIds={['whispers']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
+          itemId: 'ooc',
+          title: 'OOC',
+          content: (
+            <GameContent
+              gameStreamIds={['ooc']}
               stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
             />
