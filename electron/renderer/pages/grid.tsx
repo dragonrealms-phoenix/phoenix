@@ -1,63 +1,77 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
+import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-import { isNil } from 'lodash';
+// import purify from 'dompurify';
 import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
+import { GameEventType } from '../../common/game';
+import type {
+  ExperienceGameEvent,
+  GameEvent,
+  RoomGameEvent,
+} from '../../common/game';
 import { Grid } from '../components/grid';
 import { useLogger } from '../components/logger';
-import { createLogger } from '../lib/logger';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
 // https://nextjs.org/docs/messages/react-hydration-error
 const GridNoSSR = dynamic(async () => Grid, { ssr: false });
 
-const dougLogger = createLogger('component:doug-cmp');
+interface GameLogLine {
+  /**
+   * The game stream id that this line is destined for.
+   */
+  streamId: string;
+  /**
+   * The text formatting to apply to this line.
+   */
+  styles: SerializedStyles;
+  /**
+   * The text to display.
+   */
+  text: string;
+}
 
 interface DougCmpProps {
-  stream$: rxjs.Observable<{ streamId: string; text: string }>;
+  stream$: rxjs.Observable<GameLogLine>;
 }
 
 const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
   const { stream$ } = props;
 
-  useSubscription(stream$, (stream) => {
-    if (stream.text === '__CLEAR_STREAM__') {
-      setGameText([]);
-    } else if (!isNil(stream.text)) {
-      appendGameText(stream.text);
+  const { logger } = useLogger('cmp:doug');
+
+  useSubscription(stream$, (logLine) => {
+    if (logLine.text === '__CLEAR_STREAM__') {
+      setGameLogLines([]);
+    } else {
+      appendGameLogLine(logLine);
     }
   });
 
-  const { euiTheme } = useEuiTheme();
-
   const scrollableRef = useRef<HTMLDivElement>(null);
   const scrollBottomRef = useRef<HTMLSpanElement>(null);
-
   const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
 
-  // TODO make this be dynamically created in `appendGameText`
-  //      based on the game event props sent to us
-  const textStyles = css({
-    fontFamily: euiTheme.font.family,
-    fontSize: euiTheme.size.m,
-    lineHeight: 'initial',
-    paddingLeft: euiTheme.size.s,
-    paddingRight: euiTheme.size.s,
-  });
+  const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
 
-  // TODO make array of object with text and style
-  const [gameText, setGameText] = useState<Array<string>>([]);
+  const appendGameLogLine = useCallback((newLogLine: GameLogLine) => {
+    // Max number of most recent lines to keep.
+    const scrollbackBuffer = 500;
 
-  // TODO make callback take in object with text and style
-  const appendGameText = useCallback((newText: string) => {
-    const scrollbackBuffer = 500; // max number of most recent lines to keep
-    newText = newText.replace(/\n/g, '<br/>');
-    setGameText((oldTexts) => {
-      return oldTexts.concat(newText).slice(scrollbackBuffer * -1);
+    // Translate newlines to HTML breaks.
+    // newLogLine.text = newLogLine.text.replace(/\n/g, '<br/>');
+
+    setGameLogLines((oldLogLines) => {
+      // Append new text to the list.
+      let newLogLines = oldLogLines.concat(newLogLine);
+      // Trim the back of the list to keep it within the scrollback buffer.
+      newLogLines = newLogLines.slice(scrollbackBuffer * -1);
+      return newLogLines;
     });
   }, []);
 
@@ -74,14 +88,6 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
       const { scrollTop, scrollHeight, clientHeight } = scrollableElmt;
       const difference = scrollHeight - clientHeight - scrollTop;
       const enableAutoScroll = difference <= clientHeight;
-
-      dougLogger.debug('*** onScroll', {
-        scrollHeight,
-        clientHeight,
-        scrollTop,
-        difference,
-        enableAutoScroll,
-      });
 
       setAutoScrollEnabled(enableAutoScroll);
     };
@@ -107,13 +113,11 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
       className={'eui-yScroll'}
       style={{ height: '100%', overflowY: 'scroll' }}
     >
-      {gameText.map((text, index) => {
+      {gameLogLines.map((logLine, index) => {
         return (
-          <EuiText
-            key={index}
-            css={textStyles}
-            dangerouslySetInnerHTML={{ __html: text }}
-          />
+          <EuiText key={index} css={logLine.styles}>
+            {logLine.text}
+          </EuiText>
         );
       })}
       <span ref={scrollBottomRef} />
@@ -125,81 +129,175 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
 // the value did not update fast enough before a text game event
 // was received, resulting in text routing to the wrong stream window.
 let gameStreamId = '';
+let textOutputClass = '';
+let textStylePreset = '';
+let textStyleBold = false;
 
 const GridPage: React.FC = (): ReactNode => {
   const { logger } = useLogger('page:grid');
 
-  // Game events by subscribing to the game event IPC channel.
-  // Are routed to the correct game stream window via `gameStreamSubject$`.
+  // Game events will be emitted from the IPC `game:event` channel.
+  // Here we subscribe and route them to the correct grid item.
   const gameEventsSubject$ = useObservable(() => {
-    return new rxjs.Subject<{ type: string } & Record<string, any>>();
+    return new rxjs.Subject<GameEvent>();
   });
 
-  // Content destined for a specific game stream window.
-  // For example, 'room' or 'combat'.
-  const gameStreamSubject$ = useObservable(() => {
-    return new rxjs.Subject<{ streamId: string; text: string }>();
+  // Content destined for a specific game stream window (aka grid item).
+  // These include any applicable styling and formatting.
+  // Example stream ids include 'room', 'experience', 'combat', etc.
+  const gameLogLineSubject$ = useObservable(() => {
+    return new rxjs.Subject<GameLogLine>();
+  });
+
+  const { euiTheme } = useEuiTheme();
+
+  const formatExperienceText = useCallback(
+    (gameEvent: ExperienceGameEvent): string => {
+      const { skill, rank, percent, mindState } = gameEvent;
+      const txtSkill = skill.padStart(15);
+      const txtRank = String(rank).padStart(3);
+      const txtPercent = String(percent).padStart(2);
+      const txtMindState = mindState.padEnd(15);
+      return `${txtSkill} ${txtRank} ${txtPercent} ${txtMindState}`;
+    },
+    []
+  );
+
+  const formatRoomText = useCallback((gameEvent: RoomGameEvent): string => {
+    const { roomName, roomDescription } = gameEvent;
+    const { roomObjects, roomPlayers, roomCreatures, roomExits } = gameEvent;
+
+    const text = [
+      roomName,
+      // separate each with two spaces
+      [roomDescription, roomObjects, roomCreatures].join('  '),
+      roomPlayers,
+      roomExits,
+    ].join('\n');
+
+    return text;
+  }, []);
+
+  const [_roomGameEvent, setRoomGameEvent] = useState<RoomGameEvent>({
+    type: GameEventType.ROOM,
   });
 
   // Track high level game events such as stream ids and formatting.
   // Re-emit text events to the game stream subject to get to grid items.
-  useSubscription(gameEventsSubject$, (gameEvent) => {
+  useSubscription(gameEventsSubject$, (gameEvent: GameEvent) => {
+    const textStyles = css({
+      fontFamily:
+        textOutputClass === 'mono'
+          ? euiTheme.font.familyCode
+          : euiTheme.font.family,
+      fontSize: euiTheme.size.m,
+      fontWeight: textStyleBold
+        ? euiTheme.font.weight.bold
+        : euiTheme.font.weight.regular,
+      lineHeight: 'initial',
+      paddingLeft: euiTheme.size.s,
+      paddingRight: euiTheme.size.s,
+    });
+
     switch (gameEvent.type) {
-      case 'CLEAR_STREAM':
-        gameStreamSubject$.next({
+      case GameEventType.CLEAR_STREAM:
+        gameLogLineSubject$.next({
           streamId: gameEvent.streamId,
+          styles: textStyles,
           text: '__CLEAR_STREAM__',
         });
         break;
-      case 'PUSH_STREAM':
+      case GameEventType.PUSH_STREAM:
         gameStreamId = gameEvent.streamId;
         break;
-      case 'POP_STREAM':
+      case GameEventType.POP_STREAM:
         gameStreamId = '';
         break;
-      case 'TEXT_OUTPUT_CLASS':
-        // TODO
+      case GameEventType.PUSH_BOLD:
+        textStyleBold = true;
         break;
-      case 'TEXT_STYLE_PRESET':
-        // TODO
+      case GameEventType.POP_BOLD:
+        textStyleBold = false;
         break;
-      case 'TEXT':
-        gameStreamSubject$.next({
+      case GameEventType.TEXT_OUTPUT_CLASS:
+        textOutputClass = gameEvent.textOutputClass;
+        break;
+      case GameEventType.TEXT_STYLE_PRESET:
+        textStylePreset = gameEvent.textStylePreset;
+        break;
+      case GameEventType.TEXT:
+        gameLogLineSubject$.next({
           streamId: gameStreamId,
+          styles: textStyles,
           text: gameEvent.text,
         });
         break;
-      case 'EXPERIENCE':
-        gameStreamSubject$.next({
+      case GameEventType.EXPERIENCE:
+        // TODO need to track a map of skill names to their latest event
+        //      so that when we receive a new event we can update that skill
+        //      then clear the exp stream and render all skills again
+        gameLogLineSubject$.next({
           streamId: 'experience',
-          text: gameEvent.text,
+          styles: css(textStyles, { fontFamily: euiTheme.font.familyCode }),
+          text: formatExperienceText(gameEvent),
         });
         break;
-      case 'ROOM':
+      case GameEventType.ROOM:
+        setRoomGameEvent((oldRoom: RoomGameEvent) => {
+          let newRoom: RoomGameEvent;
+
+          // Each room game event only contains the field that has changed.
+          // If this is a new room then clear the other fields.
+          // Otherwise merge the new fields into the existing room.
+          if (gameEvent.roomName) {
+            newRoom = gameEvent;
+          } else {
+            newRoom = {
+              ...oldRoom,
+              ...gameEvent,
+            };
+          }
+
+          // The room stream is special in that it only displays
+          // the text for the current room, not a history of rooms.
+          // Therefore, we clear the stream before displaying the new room.
+          gameLogLineSubject$.next({
+            streamId: 'room',
+            styles: textStyles,
+            text: '__CLEAR_STREAM__',
+          });
+
+          gameLogLineSubject$.next({
+            streamId: 'room',
+            styles: textStyles,
+            text: formatRoomText(newRoom),
+          });
+
+          return newRoom;
+        });
+        break;
+      case GameEventType.COMPASS:
         // TODO
         break;
-      case 'COMPASS':
+      case GameEventType.VITALS:
         // TODO
         break;
-      case 'VITALS':
+      case GameEventType.INDICATOR:
         // TODO
         break;
-      case 'INDICATOR':
+      case GameEventType.SPELL:
         // TODO
         break;
-      case 'SPELL':
+      case GameEventType.LEFT_HAND:
         // TODO
         break;
-      case 'LEFT_HAND':
+      case GameEventType.RIGHT_HAND:
         // TODO
         break;
-      case 'RIGHT_HAND':
+      case GameEventType.SERVER_TIME:
         // TODO
         break;
-      case 'SERVER_TIME':
-        // TODO
-        break;
-      case 'ROUND_TIME':
+      case GameEventType.ROUND_TIME:
         // TODO
         break;
     }
@@ -271,7 +369,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Room',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'room')
               )}
             />
@@ -282,7 +380,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Experience',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'experience')
               )}
             />
@@ -293,7 +391,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Spells',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'percWindow')
               )}
             />
@@ -304,7 +402,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Inventory',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'inv')
               )}
             />
@@ -315,7 +413,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Familiar',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'familiar')
               )}
             />
@@ -326,7 +424,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Thoughts',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'thoughts')
               )}
             />
@@ -337,7 +435,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Combat',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === 'combat')
               )}
             />
@@ -348,7 +446,7 @@ const GridPage: React.FC = (): ReactNode => {
           title: 'Main',
           content: (
             <DougCmp
-              stream$={gameStreamSubject$.pipe(
+              stream$={gameLogLineSubject$.pipe(
                 rxjs.filter((m) => m.streamId === '')
               )}
             />
