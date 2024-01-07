@@ -34,11 +34,31 @@ export const GameContent: React.FC<GameContentProps> = (
     return stream$.pipe(rxjs.filter((m) => gameStreamIds.includes(m.streamId)));
   });
 
+  const clearStreamTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Ensure the timeout is cleared when the component is unmounted.
+  useEffect(() => {
+    return () => {
+      clearTimeout(clearStreamTimeoutRef.current);
+    };
+  }, []);
+
   useSubscription(filteredStream$, (logLine) => {
     if (logLine.text === '__CLEAR_STREAM__') {
-      setGameLogLines([]);
+      // Clear the stream after a short delay to prevent flickering.
+      clearStreamTimeoutRef.current = setTimeout(() => {
+        setGameLogLines([]);
+      }, 1000);
     } else {
-      appendGameLogLine(logLine);
+      // If we receieved a new log line, cancel any pending clear stream.
+      // Set the game log lines to the new log line to prevent flickering.
+      if (clearStreamTimeoutRef.current) {
+        clearTimeout(clearStreamTimeoutRef.current);
+        clearStreamTimeoutRef.current = undefined;
+        setGameLogLines([logLine]);
+      } else {
+        appendGameLogLine(logLine);
+      }
     }
   });
 
