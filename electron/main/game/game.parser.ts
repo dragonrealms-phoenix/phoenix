@@ -1,15 +1,15 @@
 import * as rxjs from 'rxjs';
-import { sliceStart, unescapeEntities } from '../../common/string';
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
 import type {
   ExperienceGameEvent,
   GameEvent,
-  GameParser,
   RoomGameEvent,
   TextGameEvent,
-} from './game.types';
-import { GameEventType, IndicatorType } from './game.types';
+} from '../../common/game';
+import { GameEventType, IndicatorType } from '../../common/game';
+import { sliceStart, unescapeEntities } from '../../common/string';
+import type { Maybe } from '../../common/types';
+import { createLogger } from '../logger';
+import type { GameParser } from './game.types';
 
 /**
  * Match all text up to the next tag.

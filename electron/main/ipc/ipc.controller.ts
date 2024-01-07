@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron';
+import type { GameEvent } from '../../common/game';
 import { toUpperSnakeCase } from '../../common/string';
 import type { AccountService } from '../account';
-import type { GameEvent } from '../game';
 import { Game } from '../game';
 import { createLogger } from '../logger';
 import type { SGEGameCode } from '../sge';

@@ -1,18 +1,13 @@
 import fs from 'fs-extra';
 import * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async';
+import { type GameEvent, GameEventType } from '../../common/game';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import type { SGEGameCredentials } from '../sge';
 import { GameParserImpl } from './game.parser';
 import { GameSocketImpl } from './game.socket';
-import type {
-  GameEvent,
-  GameParser,
-  GameService,
-  GameSocket,
-} from './game.types';
-import { GameEventType } from './game.types';
+import type { GameParser, GameService, GameSocket } from './game.types';
 
 const logger = createLogger('game:service');
 
