@@ -366,7 +366,6 @@ export class GameParserImpl implements GameParser {
         }
         break;
       case 'component':
-      case 'compDef':
         // This is updated information about the current room.
         // Example: `<component id='room desc'>The hustle...</component>`.
         // In this example, the text would be 'The hustle...'.
@@ -500,7 +499,6 @@ export class GameParserImpl implements GameParser {
     });
 
     switch (tagName) {
-      case 'compDef':
       case 'component':
         // Emit the room info because we are at the end of the tag.
         // Example: `<component id='room desc'>The hustle...</component>`
