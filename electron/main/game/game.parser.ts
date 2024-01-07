@@ -510,9 +510,13 @@ export class GameParserImpl implements GameParser {
         }
         // Emit the experience info because we are at the end of the tag.
         // Example: `<component id='exp Attunement'>      Attunement:    1 46% attentive    </component>`
+        // Example: `<component id='exp Attunement'></component>` (empty)
         else if (tagId.startsWith('exp ')) {
           this.emitExperienceGameEvent(
-            this.parseToExperienceGameEvent(this.consumeGameText())
+            this.parseToExperienceGameEvent({
+              tagId,
+              expText: this.consumeGameText(),
+            })
           );
         }
         break;
@@ -550,12 +554,16 @@ export class GameParserImpl implements GameParser {
   }
 
   /**
+   * Parses a component's tag id into an experience skill name.
    * Parses an experience line of text into an experience game event.
    *
-   * Input:
+   * Tag ID Input:
+   *  'exp Attunement'
+   *
+   * Line Input:
    *  'Attunement: 1 46% attentive'
    *
-   * Output:
+   * Event Output:
    *  {
    *    type: GameEventType.EXPERIENCE,
    *    skill: 'Attunement',
@@ -564,23 +572,37 @@ export class GameParserImpl implements GameParser {
    *    mindState: 'attentive'
    *  }
    */
-  protected parseToExperienceGameEvent(line: string): ExperienceGameEvent {
-    const matchResult = line?.trim()?.match(EXPERIENCE_REGEX);
+  protected parseToExperienceGameEvent(options: {
+    /**
+     * The tag id of the component that contains the experience information.
+     * Example: 'exp Attunement'
+     */
+    tagId: string;
+    /**
+     * The line of text that contains the experience information.
+     * This may be blank if the character has no experience for the skill.
+     * Example: 'Attunement: 1 46% attentive'
+     * Example: ''
+     */
+    expText: string;
+  }): ExperienceGameEvent {
+    const { tagId, expText } = options;
+    const matchResult = expText?.trim()?.match(EXPERIENCE_REGEX);
     if (matchResult) {
       return {
         type: GameEventType.EXPERIENCE,
-        skill: matchResult.groups?.skill ?? '',
+        skill: matchResult.groups?.skill ?? 'PARSE_ERROR',
         rank: parseInt(matchResult.groups?.rank ?? '0'),
         percent: parseInt(matchResult.groups?.percent ?? '0'),
-        mindState: matchResult.groups?.mindstate ?? '',
+        mindState: matchResult.groups?.mindstate ?? 'clear',
       };
     }
     return {
       type: GameEventType.EXPERIENCE,
-      skill: '',
+      skill: tagId.slice(4),
       rank: 0,
       percent: 0,
-      mindState: '',
+      mindState: 'clear',
     };
   }
 
