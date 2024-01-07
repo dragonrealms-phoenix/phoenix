@@ -18,12 +18,18 @@ function getWindowDimensions(): WindowDimensions {
   };
 }
 
+/**
+ * To use this hook, the `window` object must be defined
+ * and emit the `resize` event.
+ */
 export function useWindowDimensions(): WindowDimensions {
   const [dimensions, setDimensions] = useState<WindowDimensions>(
     getWindowDimensions()
   );
 
   const onWindowResize = useMemo(() => {
+    // When resizing a window, this event fires rapidly.
+    // For performance, debounce so we react more efficiently.
     return debounce(() => {
       setDimensions(getWindowDimensions());
     }, 100);
