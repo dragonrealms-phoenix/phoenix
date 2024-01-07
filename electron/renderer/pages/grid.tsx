@@ -165,12 +165,12 @@ const GridPage: React.FC = (): ReactNode => {
 
   const formatRoomText = useCallback((gameEvent: RoomGameEvent): string => {
     const { roomName, roomDescription } = gameEvent;
-    const { roomObjects, roomPlayers, roomCreatures, roomExits } = gameEvent;
+    const { roomObjects, roomPlayers, roomExits } = gameEvent;
 
     const text = [
       roomName,
       // separate each with two spaces
-      [roomDescription, roomObjects, roomCreatures].join('  '),
+      [roomDescription, roomObjects].join('  '),
       roomPlayers,
       roomExits,
     ].join('\n');

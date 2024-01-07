@@ -67,7 +67,6 @@ const EXPERIENCE_REGEX =
 const ROOM_ID_TO_EVENT_PROPERTY_MAP: Record<string, keyof RoomGameEvent> = {
   'room name': 'roomName',
   'room desc': 'roomDescription',
-  'room creatures': 'roomCreatures',
   'room objects': 'roomObjects', // sometimes the tag id is long
   'room objs': 'roomObjects', // sometimes it's short
   'room players': 'roomPlayers',

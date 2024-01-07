@@ -158,7 +158,6 @@ export interface RoomGameEvent {
   type: GameEventType.ROOM;
   roomName?: string;
   roomDescription?: string;
-  roomCreatures?: string;
   roomObjects?: string;
   roomPlayers?: string;
   roomExits?: string;
