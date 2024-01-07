@@ -185,9 +185,9 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
    * https://stackoverflow.com/questions/65350114/useref-for-element-in-loop-in-react/65350394#65350394
    */
   const itemRefs = useRef<Array<RefObject<HTMLDivElement>>>([]);
-  itemRefs.current = layout.map((_layoutItem, i) => {
+  itemRefs.current = layout.map((_layoutItem, index) => {
     // Note we use `createRef` and not `useRef` per "Rule of Hooks" for loops.
-    return itemRefs.current[i] ?? createRef<HTMLDivElement>();
+    return itemRefs.current[index] ?? createRef<HTMLDivElement>();
   });
 
   /**
@@ -197,9 +197,9 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
   const gridItems = useMemo(() => {
-    return layout.map((layoutItem, i) => {
+    return layout.map((layoutItem, index) => {
       const item = items.find((item) => item.itemId === layoutItem.i);
-      const itemRef = itemRefs.current[i];
+      const itemRef = itemRefs.current[index];
       return (
         <GridItem
           ref={itemRef}

@@ -7,6 +7,7 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { GameEventType } from '../../common/game';
 import type {
   ExperienceGameEvent,
@@ -22,6 +23,12 @@ import { useLogger } from '../components/logger';
 const GridNoSSR = dynamic(async () => Grid, { ssr: false });
 
 interface GameLogLine {
+  /**
+   * A unique id for this log line.
+   * Primarily used for React keys.
+   * https://react.dev/learn/rendering-lists
+   */
+  eventId: string;
   /**
    * The game stream id that this line is destined for.
    */
@@ -43,8 +50,6 @@ interface DougCmpProps {
 const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
   const { stream$ } = props;
 
-  const { logger } = useLogger('cmp:doug');
-
   useSubscription(stream$, (logLine) => {
     if (logLine.text === '__CLEAR_STREAM__') {
       setGameLogLines([]);
@@ -62,12 +67,8 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
   const appendGameLogLine = useCallback((newLogLine: GameLogLine) => {
     // Max number of most recent lines to keep.
     const scrollbackBuffer = 500;
-
-    // Translate newlines to HTML breaks.
-    // newLogLine.text = newLogLine.text.replace(/\n/g, '<br/>');
-
     setGameLogLines((oldLogLines) => {
-      // Append new text to the list.
+      // Append new log line to the list.
       let newLogLines = oldLogLines.concat(newLogLine);
       // Trim the back of the list to keep it within the scrollback buffer.
       newLogLines = newLogLines.slice(scrollbackBuffer * -1);
@@ -113,9 +114,9 @@ const DougCmp: React.FC<DougCmpProps> = (props: DougCmpProps): ReactNode => {
       className={'eui-yScroll'}
       style={{ height: '100%', overflowY: 'scroll' }}
     >
-      {gameLogLines.map((logLine, index) => {
+      {gameLogLines.map((logLine) => {
         return (
-          <EuiText key={index} css={logLine.styles}>
+          <EuiText key={logLine.eventId} css={logLine.styles}>
             {logLine.text}
           </EuiText>
         );
@@ -181,6 +182,7 @@ const GridPage: React.FC = (): ReactNode => {
 
   const [_roomGameEvent, setRoomGameEvent] = useState<RoomGameEvent>({
     type: GameEventType.ROOM,
+    eventId: uuid(),
   });
 
   // Track high level game events such as stream ids and formatting.
@@ -203,6 +205,7 @@ const GridPage: React.FC = (): ReactNode => {
     switch (gameEvent.type) {
       case GameEventType.CLEAR_STREAM:
         gameLogLineSubject$.next({
+          eventId: gameEvent.eventId,
           streamId: gameEvent.streamId,
           styles: textStyles,
           text: '__CLEAR_STREAM__',
@@ -228,6 +231,7 @@ const GridPage: React.FC = (): ReactNode => {
         break;
       case GameEventType.TEXT:
         gameLogLineSubject$.next({
+          eventId: gameEvent.eventId,
           streamId: gameStreamId,
           styles: textStyles,
           text: gameEvent.text,
@@ -238,6 +242,7 @@ const GridPage: React.FC = (): ReactNode => {
         //      so that when we receive a new event we can update that skill
         //      then clear the exp stream and render all skills again
         gameLogLineSubject$.next({
+          eventId: gameEvent.eventId,
           streamId: 'experience',
           styles: css(textStyles, { fontFamily: euiTheme.font.familyCode }),
           text: formatExperienceText(gameEvent),
@@ -263,12 +268,14 @@ const GridPage: React.FC = (): ReactNode => {
           // the text for the current room, not a history of rooms.
           // Therefore, we clear the stream before displaying the new room.
           gameLogLineSubject$.next({
+            eventId: oldRoom.eventId,
             streamId: 'room',
             styles: textStyles,
             text: '__CLEAR_STREAM__',
           });
 
           gameLogLineSubject$.next({
+            eventId: newRoom.eventId,
             streamId: 'room',
             styles: textStyles,
             text: formatRoomText(newRoom),
@@ -357,10 +364,9 @@ const GridPage: React.FC = (): ReactNode => {
 
   // TODO the list of items we inject should come from user preferences
   //      if none then provide our own default list
+
   // TODO users should be able to add/remove items from the grid
   //      we already support closing grid items, but not synced to prefs yet
-
-  // TODO subscribe to game events and route them to the correct grid item
 
   return (
     <GridNoSSR

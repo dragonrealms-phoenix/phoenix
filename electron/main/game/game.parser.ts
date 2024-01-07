@@ -1,4 +1,5 @@
 import * as rxjs from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import type {
   ExperienceGameEvent,
   GameEvent,
@@ -163,7 +164,11 @@ export class GameParserImpl implements GameParser {
     this.activeTags = [];
     this.compassDirections = [];
     this.gameText = '';
-    this.previousTextGameEvent = { type: GameEventType.TEXT, text: '' };
+    this.previousTextGameEvent = {
+      type: GameEventType.TEXT,
+      eventId: '',
+      text: '',
+    };
   }
 
   /**
@@ -590,6 +595,7 @@ export class GameParserImpl implements GameParser {
     if (matchResult) {
       return {
         type: GameEventType.EXPERIENCE,
+        eventId: uuid(),
         skill: matchResult.groups?.skill ?? 'PARSE_ERROR',
         rank: parseInt(matchResult.groups?.rank ?? '0'),
         percent: parseInt(matchResult.groups?.percent ?? '0'),
@@ -598,6 +604,7 @@ export class GameParserImpl implements GameParser {
     }
     return {
       type: GameEventType.EXPERIENCE,
+      eventId: uuid(),
       skill: tagId.slice(4),
       rank: 0,
       percent: 0,
@@ -637,6 +644,7 @@ export class GameParserImpl implements GameParser {
     // we compare the outgoing text with the previously sent.
     const event: GameEvent = {
       type: GameEventType.TEXT,
+      eventId: uuid(),
       text: unescapeEntities(text),
     };
     this.emitGameEvent(event);
@@ -646,18 +654,21 @@ export class GameParserImpl implements GameParser {
   protected emitPushBoldGameEvent(): void {
     this.emitGameEvent({
       type: GameEventType.PUSH_BOLD,
+      eventId: uuid(),
     });
   }
 
   protected emitPopBoldGameEvent(): void {
     this.emitGameEvent({
       type: GameEventType.POP_BOLD,
+      eventId: uuid(),
     });
   }
 
   protected emitTextOutputClassGameEvent(className: string): void {
     this.emitGameEvent({
       type: GameEventType.TEXT_OUTPUT_CLASS,
+      eventId: uuid(),
       textOutputClass: className,
     });
   }
@@ -665,6 +676,7 @@ export class GameParserImpl implements GameParser {
   protected emitTextStylePresetGameEvent(presetName: string): void {
     this.emitGameEvent({
       type: GameEventType.TEXT_STYLE_PRESET,
+      eventId: uuid(),
       textStylePreset: presetName,
     });
   }
@@ -677,6 +689,7 @@ export class GameParserImpl implements GameParser {
     const indicator = INDICATOR_ID_TO_TYPE_MAP[tagId];
     this.emitGameEvent({
       type: GameEventType.INDICATOR,
+      eventId: uuid(),
       indicator,
       active,
     });
@@ -685,6 +698,7 @@ export class GameParserImpl implements GameParser {
   protected emitSpellGameEvent(spell: string): void {
     this.emitGameEvent({
       type: GameEventType.SPELL,
+      eventId: uuid(),
       spell: unescapeEntities(spell),
     });
   }
@@ -692,6 +706,7 @@ export class GameParserImpl implements GameParser {
   protected emitLeftHandGameEvent(item: string): void {
     this.emitGameEvent({
       type: GameEventType.LEFT_HAND,
+      eventId: uuid(),
       item: unescapeEntities(item),
     });
   }
@@ -699,6 +714,7 @@ export class GameParserImpl implements GameParser {
   protected emitRightHandGameEvent(item: string): void {
     this.emitGameEvent({
       type: GameEventType.RIGHT_HAND,
+      eventId: uuid(),
       item: unescapeEntities(item),
     });
   }
@@ -706,6 +722,7 @@ export class GameParserImpl implements GameParser {
   protected emitClearStreamGameEvent(streamId: string): void {
     this.emitGameEvent({
       type: GameEventType.CLEAR_STREAM,
+      eventId: uuid(),
       streamId,
     });
   }
@@ -713,6 +730,7 @@ export class GameParserImpl implements GameParser {
   protected emitPushStreamGameEvent(streamId: string): void {
     this.emitGameEvent({
       type: GameEventType.PUSH_STREAM,
+      eventId: uuid(),
       streamId,
     });
   }
@@ -720,12 +738,14 @@ export class GameParserImpl implements GameParser {
   protected emitPopStreamGameEvent(): void {
     this.emitGameEvent({
       type: GameEventType.POP_STREAM,
+      eventId: uuid(),
     });
   }
 
   protected emitCompassGameEvent(directions: Array<string>): void {
     this.emitGameEvent({
       type: GameEventType.COMPASS,
+      eventId: uuid(),
       directions,
     });
   }
@@ -737,6 +757,7 @@ export class GameParserImpl implements GameParser {
     const { vitalId, value } = options;
     this.emitGameEvent({
       type: GameEventType.VITALS,
+      eventId: uuid(),
       vitalId,
       value,
     });
@@ -751,6 +772,7 @@ export class GameParserImpl implements GameParser {
     const { skill, rank, percent, mindState } = options;
     this.emitGameEvent({
       type: GameEventType.EXPERIENCE,
+      eventId: uuid(),
       skill,
       rank,
       percent,
@@ -766,6 +788,7 @@ export class GameParserImpl implements GameParser {
     const roomProperty = ROOM_ID_TO_EVENT_PROPERTY_MAP[tagId];
     this.emitGameEvent({
       type: GameEventType.ROOM,
+      eventId: uuid(),
       [roomProperty]: unescapeEntities(roomText),
     });
   }
@@ -773,6 +796,7 @@ export class GameParserImpl implements GameParser {
   protected emitServerTimeGameEvent(time: number): void {
     this.emitGameEvent({
       type: GameEventType.SERVER_TIME,
+      eventId: uuid(),
       time,
     });
   }
@@ -780,6 +804,7 @@ export class GameParserImpl implements GameParser {
   protected emitRoundTimeGameEvent(time: number): void {
     this.emitGameEvent({
       type: GameEventType.ROUND_TIME,
+      eventId: uuid(),
       time,
     });
   }

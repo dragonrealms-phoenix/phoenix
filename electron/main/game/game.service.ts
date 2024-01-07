@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import * as rxjs from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { waitUntil } from '../../common/async';
 import { type GameEvent, GameEventType } from '../../common/game';
 import type { Maybe } from '../../common/types';
@@ -127,6 +128,7 @@ class GameServiceImpl implements GameService {
     logger.debug('emitting command as text game event', { command });
     this.sentCommandsSubject$?.next({
       type: GameEventType.TEXT,
+      eventId: uuid(),
       text: `> ${command}\n`,
     });
   }

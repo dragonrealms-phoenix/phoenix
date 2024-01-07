@@ -20,12 +20,23 @@ export type GameEvent =
   | ServerTimeGameEvent
   | RoundTimeGameEvent;
 
+export interface GameEventBase {
+  /**
+   * Unique identifier for this game event.
+   */
+  eventId: string;
+  /**
+   * Indicates the type of game event.
+   */
+  type: GameEventType;
+}
+
 /**
  * Indicates text to display to the player.
  * Note that previous game events may indicate how the
  * text should be styled and to which window to display it.
  */
-export interface TextGameEvent {
+export interface TextGameEvent extends GameEventBase {
   type: GameEventType.TEXT;
   text: string;
 }
@@ -33,14 +44,14 @@ export interface TextGameEvent {
 /**
  * <pushBold/>
  */
-export interface PushBoldGameEvent {
+export interface PushBoldGameEvent extends GameEventBase {
   type: GameEventType.PUSH_BOLD;
 }
 
 /**
  * <popBold/>
  */
-export interface PopBoldGameEvent {
+export interface PopBoldGameEvent extends GameEventBase {
   type: GameEventType.POP_BOLD;
 }
 
@@ -48,7 +59,7 @@ export interface PopBoldGameEvent {
  * <output class="mono"/>
  * <output class=""/>
  */
-export interface TextOutputClassGameEvent {
+export interface TextOutputClassGameEvent extends GameEventBase {
   type: GameEventType.TEXT_OUTPUT_CLASS;
   textOutputClass: string;
 }
@@ -58,7 +69,7 @@ export interface TextOutputClassGameEvent {
  * <preset id='roomDesc'>A neat row...</preset> You also see ...
  * Obvious exits: <d>out</d>.
  */
-export interface TextStylePresetGameEvent {
+export interface TextStylePresetGameEvent extends GameEventBase {
   type: GameEventType.TEXT_STYLE_PRESET;
   textStylePreset: string;
 }
@@ -66,7 +77,7 @@ export interface TextStylePresetGameEvent {
 /**
  * <indicator id='IconBLEEDING' visible='n'/>
  */
-export interface IndicatorGameEvent {
+export interface IndicatorGameEvent extends GameEventBase {
   type: GameEventType.INDICATOR;
   indicator: IndicatorType;
   active: boolean;
@@ -75,7 +86,7 @@ export interface IndicatorGameEvent {
 /**
  * <spell>Fire Shards</spell>
  */
-export interface SpellGameEvent {
+export interface SpellGameEvent extends GameEventBase {
   type: GameEventType.SPELL;
   spell: string;
 }
@@ -84,7 +95,7 @@ export interface SpellGameEvent {
  * <left>Empty</left>
  * <right>red backpack</right>
  */
-export interface HandGameEvent {
+export interface HandGameEvent extends GameEventBase {
   type: GameEventType.LEFT_HAND | GameEventType.RIGHT_HAND;
   item: string;
 }
@@ -92,7 +103,7 @@ export interface HandGameEvent {
 /**
  * <clearStream id='inv'/>
  */
-export interface ClearStreamGameEvent {
+export interface ClearStreamGameEvent extends GameEventBase {
   type: GameEventType.CLEAR_STREAM;
   streamId: string;
 }
@@ -100,7 +111,7 @@ export interface ClearStreamGameEvent {
 /**
  * <pushStream id='experience'/>
  */
-export interface PushStreamGameEvent {
+export interface PushStreamGameEvent extends GameEventBase {
   type: GameEventType.PUSH_STREAM;
   streamId: string;
 }
@@ -108,14 +119,14 @@ export interface PushStreamGameEvent {
 /**
  * <popStream/>
  */
-export interface PopStreamGameEvent {
+export interface PopStreamGameEvent extends GameEventBase {
   type: GameEventType.POP_STREAM;
 }
 
 /**
  * <compass><dir value="e"/><dir value="sw"/><dir value="out"/></compass>
  */
-export interface CompassGameEvent {
+export interface CompassGameEvent extends GameEventBase {
   type: GameEventType.COMPASS;
   directions: Array<string>; // e.g. 'nw', 'n', 'up', or 'out'
 }
@@ -123,7 +134,7 @@ export interface CompassGameEvent {
 /**
  * <progressBar id='mana' value='100'/>
  */
-export interface VitalsGameEvent {
+export interface VitalsGameEvent extends GameEventBase {
   type: GameEventType.VITALS;
   vitalId: string; // health, mana, concentration, spirit, stamina
   value: number; // 0-100 (percentage)
@@ -135,7 +146,7 @@ export interface VitalsGameEvent {
  * <component id='exp Attunement'>      Attunement:    1 46% attentive    </component>
  * <component id='exp Attunement'><preset id='whisper'>      Attunement:    1 46% attentive    </preset></component>
  */
-export interface ExperienceGameEvent {
+export interface ExperienceGameEvent extends GameEventBase {
   type: GameEventType.EXPERIENCE;
   skill: string; // e.g. Attunement, First Aid, etc.
   rank: number; // integer of the skill's rank
@@ -154,7 +165,7 @@ export interface ExperienceGameEvent {
  * <component id='room players'>Also here: Katoak.</component>
  * <component id='room exits'>Obvious paths: <d>east</d>, <d>southwest</d>, <d>northwest</d>.<compass></compass></component>
  */
-export interface RoomGameEvent {
+export interface RoomGameEvent extends GameEventBase {
   type: GameEventType.ROOM;
   roomName?: string;
   roomDescription?: string;
@@ -166,7 +177,7 @@ export interface RoomGameEvent {
 /**
  * <prompt time="1703617000">&gt;</prompt>
  */
-export interface ServerTimeGameEvent {
+export interface ServerTimeGameEvent extends GameEventBase {
   type: GameEventType.SERVER_TIME;
   time: number;
 }
@@ -174,7 +185,7 @@ export interface ServerTimeGameEvent {
 /**
  * <roundTime value='1703617016'/>
  */
-export interface RoundTimeGameEvent {
+export interface RoundTimeGameEvent extends GameEventBase {
   type: GameEventType.ROUND_TIME;
   time: number;
 }
