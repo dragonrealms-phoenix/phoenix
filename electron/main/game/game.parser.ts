@@ -440,7 +440,7 @@ export class GameParserImpl implements GameParser {
         this.emitTextOutputClassGameEvent(attributes.class);
         break;
       case 'style': // <style id="roomName"/>
-      case 'preset': // <preset id="roomDesc">...</preset>
+      case 'preset': // <preset id="roomDesc|speech|whisper|thought">...</preset>
         this.emitTextStylePresetGameEvent(attributes.id);
         break;
       case 'indicator': // <indicator id='IconBLEEDING' visible='n'/>
