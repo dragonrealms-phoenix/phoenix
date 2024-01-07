@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { GameEventType } from '../../common/game';
+import { ExperienceMindStateMap, GameEventType } from '../../common/game';
 import type {
   ExperienceGameEvent,
   GameEvent,
@@ -52,12 +52,23 @@ const GridPage: React.FC = (): ReactNode => {
   const formatExperienceText = useCallback(
     (gameEvent: ExperienceGameEvent): string => {
       const { skill, rank, percent, mindState } = gameEvent;
+      const mindStateRate = ExperienceMindStateMap[mindState];
+
       const txtSkill = skill.padStart(15);
       const txtRank = String(rank).padStart(3);
       const txtPercent = String(percent).padStart(2) + '%';
-      const txtMindState = mindState.padEnd(15);
-      // TODO add option to show mind state as the numbers (x/34)
-      return `${txtSkill} ${txtRank} ${txtPercent} ${txtMindState}`;
+
+      // TODO add user pref to toggle between mind state rate and mind state
+      const txtMindStateRate = `(${mindStateRate}/34)`.padStart(7);
+      // const txtMindState = mindState.padEnd(15);
+
+      return [
+        txtSkill,
+        txtRank,
+        txtPercent,
+        txtMindStateRate,
+        // txtMindState,
+      ].join(' ');
     },
     []
   );
