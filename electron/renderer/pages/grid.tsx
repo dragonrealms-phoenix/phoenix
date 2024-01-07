@@ -1,7 +1,7 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-// import purify from 'dompurify';
+import { isEmpty } from 'lodash';
 import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
@@ -169,11 +169,12 @@ const GridPage: React.FC = (): ReactNode => {
 
     const text = [
       roomName,
-      // separate each with two spaces
-      [roomDescription, roomObjects].join('  '),
+      [roomDescription, roomObjects].join('  '), // two spaces between sentences
       roomPlayers,
       roomExits,
-    ].join('\n');
+    ]
+      .filter((s) => !isEmpty(s?.trim()))
+      .join('\n');
 
     return text;
   }, []);
