@@ -166,11 +166,7 @@ export const GameContent: React.FC<GameContentProps> = (
   }
 
   return (
-    <div
-      ref={scrollableRef}
-      className={'eui-yScroll'}
-      style={{ height: '100%', overflowY: 'scroll' }}
-    >
+    <div ref={scrollableRef}>
       {gameLogLines.map((logLine) => {
         return (
           <EuiText key={logLine.eventId} css={logLine.styles}>
