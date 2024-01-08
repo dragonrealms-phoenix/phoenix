@@ -404,7 +404,7 @@ const GridPage: React.FC = (): ReactNode => {
         },
         {
           itemId: 'logons',
-          title: 'Logons',
+          title: 'Arrivals',
           content: (
             <GameContent
               gameStreamIds={['logons']}
@@ -436,6 +436,28 @@ const GridPage: React.FC = (): ReactNode => {
           ),
         },
         {
+          itemId: 'chatter',
+          title: 'Chatter',
+          content: (
+            <GameContent
+              gameStreamIds={['chatter']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
+          itemId: 'conversation',
+          title: 'Conversation',
+          content: (
+            <GameContent
+              gameStreamIds={['conversation']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
           itemId: 'whispers',
           title: 'Whispers',
           content: (
@@ -447,11 +469,33 @@ const GridPage: React.FC = (): ReactNode => {
           ),
         },
         {
+          itemId: 'talk',
+          title: 'Talk',
+          content: (
+            <GameContent
+              gameStreamIds={['talk']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
           itemId: 'ooc',
           title: 'OOC',
           content: (
             <GameContent
               gameStreamIds={['ooc']}
+              stream$={gameLogLineSubject$}
+              enableScrollToNewLogLines={true}
+            />
+          ),
+        },
+        {
+          itemId: 'group',
+          title: 'Group',
+          content: (
+            <GameContent
+              gameStreamIds={['group']}
               stream$={gameLogLineSubject$}
               enableScrollToNewLogLines={true}
             />
