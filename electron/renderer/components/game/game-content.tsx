@@ -1,4 +1,5 @@
 import { EuiText } from '@elastic/eui';
+import { css } from '@emotion/react';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -25,18 +26,76 @@ export interface GameContentProps {
   enableScrollToNewLogLines: boolean;
 }
 
+/**
+ * To help filter out duplicate empty log lines.
+ * See the rxjs filter logic in the GameContent component's stream.
+ */
+const emptyLogLine: GameLogLine = {
+  eventId: '',
+  streamId: '',
+  text: '',
+  styles: css(),
+};
+
+/**
+ * Matches a log line that is either a newline or a prompt.
+ * Effectively, an "empty" log line to the player.
+ * https://regex101.com/r/TbkDIb/1
+ */
+const emptyLogLineRegex = /^(>?)(\n+)$/;
+
 export const GameContent: React.FC<GameContentProps> = (
   props: GameContentProps
 ): ReactNode => {
   const { stream$, gameStreamIds, enableScrollToNewLogLines } = props;
 
   const filteredStream$ = useObservable(() => {
-    return stream$.pipe(rxjs.filter((m) => gameStreamIds.includes(m.streamId)));
+    return stream$.pipe(
+      // Filter to only the game stream ids we care about.
+      rxjs.filter((logLine) => {
+        return gameStreamIds.includes(logLine.streamId);
+      }),
+      // Avoid sending multiple blank newlines or prompts.
+      // To do this, we need to compare the previous and current log lines.
+      // We start with a blank log line so that the first real one is emitted.
+      rxjs.startWith(emptyLogLine),
+      rxjs.pairwise(),
+      rxjs.filter(([prev, curr]) => {
+        const previousText = prev.text;
+        const currentText = curr.text;
+
+        const previousWasNewline = emptyLogLineRegex.test(previousText);
+        const currentIsNewline = emptyLogLineRegex.test(currentText);
+
+        if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
+          return true;
+        }
+        return false;
+      }),
+      // Unwind the pairwise to emit the current log line.
+      rxjs.map(([_prev, curr]) => {
+        return curr;
+      })
+    );
   });
+
+  const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
+
+  const appendGameLogLine = useCallback((newLogLine: GameLogLine) => {
+    // Max number of most recent lines to keep.
+    const scrollbackBuffer = 500;
+    setGameLogLines((oldLogLines) => {
+      // Append new log line to the list.
+      let newLogLines = oldLogLines.concat(newLogLine);
+      // Trim the back of the list to keep it within the scrollback buffer.
+      newLogLines = newLogLines.slice(scrollbackBuffer * -1);
+      return newLogLines;
+    });
+  }, []);
 
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  // Ensure the timeout is cleared when the component is unmounted.
+  // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
     return () => {
       clearTimeout(clearStreamTimeoutRef.current);
@@ -45,7 +104,8 @@ export const GameContent: React.FC<GameContentProps> = (
 
   useSubscription(filteredStream$, (logLine) => {
     if (logLine.text === '__CLEAR_STREAM__') {
-      // Clear the stream after a short delay to prevent flickering.
+      // Clear the stream after a short delay to prevent flickering
+      // caused by a flash of empty content then the new content.
       clearStreamTimeoutRef.current = setTimeout(() => {
         setGameLogLines([]);
       }, 1000);
@@ -68,20 +128,6 @@ export const GameContent: React.FC<GameContentProps> = (
   const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(
     enableScrollToNewLogLines
   );
-
-  const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
-
-  const appendGameLogLine = useCallback((newLogLine: GameLogLine) => {
-    // Max number of most recent lines to keep.
-    const scrollbackBuffer = 500;
-    setGameLogLines((oldLogLines) => {
-      // Append new log line to the list.
-      let newLogLines = oldLogLines.concat(newLogLine);
-      // Trim the back of the list to keep it within the scrollback buffer.
-      newLogLines = newLogLines.slice(scrollbackBuffer * -1);
-      return newLogLines;
-    });
-  }, []);
 
   useEffect(() => {
     if (!enableScrollToNewLogLines) {

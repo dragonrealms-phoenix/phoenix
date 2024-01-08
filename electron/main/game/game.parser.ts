@@ -4,7 +4,6 @@ import type {
   ExperienceGameEvent,
   GameEvent,
   RoomGameEvent,
-  TextGameEvent,
 } from '../../common/game';
 import { GameEventType, IndicatorType } from '../../common/game';
 import { sliceStart, unescapeEntities } from '../../common/string';
@@ -152,23 +151,11 @@ export class GameParserImpl implements GameParser {
    */
   private gameText: string;
 
-  /**
-   * To mitigate sending multiple blank newlines.
-   * If the previous sent text was '\n' and the next text is '\n',
-   * then we'll skip emitting the second newline.
-   */
-  private previousTextGameEvent: TextGameEvent;
-
   constructor() {
     this.gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     this.activeTags = [];
     this.compassDirections = [];
     this.gameText = '';
-    this.previousTextGameEvent = {
-      type: GameEventType.TEXT,
-      eventId: '',
-      text: '',
-    };
   }
 
   /**
@@ -315,23 +302,7 @@ export class GameParserImpl implements GameParser {
     }
 
     if (this.gameText.length > 0) {
-      const previousText = this.previousTextGameEvent.text;
-      const currentText = this.gameText;
-
-      const previousWasNewline = /^(\n+)$/.test(previousText);
-      const currentIsNewline = /^(\n+)$/.test(currentText);
-
-      logger.debug('comparing previous and current game text', {
-        previousText,
-        currentText,
-        previousWasNewline,
-        currentIsNewline,
-      });
-
-      // Avoid sending multiple blank newlines.
-      if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
-        this.emitTextGameEvent(this.consumeGameText());
-      }
+      this.emitTextGameEvent(this.consumeGameText());
     }
   }
 
@@ -639,16 +610,11 @@ export class GameParserImpl implements GameParser {
   }
 
   protected emitTextGameEvent(text: string): void {
-    // Keep track of the last text game event so we can avoid sending
-    // multiple blank newlines. Before sending a new text game event,
-    // we compare the outgoing text with the previously sent.
-    const event: GameEvent = {
+    this.emitGameEvent({
       type: GameEventType.TEXT,
       eventId: uuid(),
       text: unescapeEntities(text),
-    };
-    this.emitGameEvent(event);
-    this.previousTextGameEvent = event;
+    });
   }
 
   protected emitPushBoldGameEvent(): void {
