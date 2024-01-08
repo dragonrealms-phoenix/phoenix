@@ -16,7 +16,13 @@ const createMockLogger = (options: {
     // When the scope function is called it will call the scopeReturnValue
     // function which will return the desired mock.
     scope: jest.fn().mockImplementation(options.scopeReturnValue),
+    error: jest.fn(),
+    warn: jest.fn(),
     info: jest.fn(),
+    debug: jest.fn(),
+    trace: jest.fn(),
+    addLevel: jest.fn(),
+    levels: ['debug', 'info', 'warn', 'error'],
     hooks: [],
     transports: {
       console: {},
