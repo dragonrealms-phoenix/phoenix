@@ -1,12 +1,12 @@
 import type { Maybe } from '../../common/types';
-import { Store, type StoreService } from '../store';
+import type { StoreService } from '../store';
 import type {
   PreferenceKey,
   PreferenceKeyToTypeMap,
   PreferenceService,
 } from './preference.types';
 
-class PreferenceServiceImpl implements PreferenceService {
+export class PreferenceServiceImpl implements PreferenceService {
   private storeService: StoreService;
 
   constructor(options: { storeService: StoreService }) {
@@ -30,9 +30,3 @@ class PreferenceServiceImpl implements PreferenceService {
     await this.storeService.remove(key);
   }
 }
-
-// There is exactly one preference service instance so that it's
-// easy anywhere in the app to get/set preference values.
-export const Preferences = new PreferenceServiceImpl({
-  storeService: Store.getInstance(),
-});

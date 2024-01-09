@@ -1,2 +1,2 @@
-export * from './preference.service';
 export * from './preference.types';
+export * from './preference.instance';
