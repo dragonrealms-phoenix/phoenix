@@ -1,2 +1,2 @@
-export * from './store.service';
 export * from './store.types';
+export * from './store.instance';

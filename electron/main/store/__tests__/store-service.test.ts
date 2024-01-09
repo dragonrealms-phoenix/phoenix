@@ -1,7 +1,5 @@
 import { merge } from 'lodash';
-import type { CacheService } from '../../cache';
-import { MemoryCacheServiceImpl } from '../../cache';
-import { Store } from '../store.service';
+import { StoreServiceImpl } from '../store.service';
 import type { StoreService } from '../store.types';
 
 jest.mock('../../cache', () => {
@@ -11,27 +9,18 @@ jest.mock('../../cache', () => {
   });
 });
 
-jest.mock('electron', () => {
-  const actualModule = jest.requireActual('electron');
-  return merge({}, actualModule, {
-    app: {
-      getPath: jest.fn().mockReturnValue('/tmp/hxmn2'),
-    },
-  });
-});
-
 describe('store-service', () => {
-  let cacheService: CacheService;
   let storeService: StoreService;
 
   beforeEach(async () => {
-    cacheService = new MemoryCacheServiceImpl();
-    storeService = Store.getInstance();
+    storeService = new StoreServiceImpl({ filepath: 'test' });
+    // We mocked the cache module and swapped out the disk-cache for
+    // memory-cache, so we need to remove all the keys from the cache
+    // because the constructor arg populated the cache with 'filepath' key.
     await storeService.removeAll();
   });
 
   afterEach(async () => {
-    await cacheService.clear();
     jest.clearAllMocks();
     jest.clearAllTimers();
   });
