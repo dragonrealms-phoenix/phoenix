@@ -1,26 +1,22 @@
-import net from 'node:net';
-import { merge } from 'lodash';
-import { runInBackground, sleep } from '../../common/async';
+import fs from 'fs-extra';
+import * as rxjs from 'rxjs';
+import { v4 as uuid } from 'uuid';
+import { waitUntil } from '../../common/async';
+import { type GameEvent, GameEventType } from '../../common/game';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import type { SGEGameCredentials } from '../sge';
-import type { Dispatcher } from '../types';
-import type { GameService } from './game.types';
+import { GameParserImpl } from './game.parser';
+import { GameSocketImpl } from './game.socket';
+import type { GameParser, GameService, GameSocket } from './game.types';
 
-const logger = createLogger('game');
+const logger = createLogger('game:service');
 
+/**
+ * This class isn't exported. To ensure a single instance exists then
+ * it's exposed through the exported `Game` object at bottom of this file.
+ */
 class GameServiceImpl implements GameService {
-  /**
-   * Psuedo-observable pattern.
-   * The process that instantiates this class can subscribe to events.
-   */
-  private dispatch: Dispatcher;
-
-  /**
-   * Credentials used to connect to the game server.
-   */
-  private credentials: SGEGameCredentials;
-
   /**
    * Indicates if the protocol to authenticate to the game server has completed.
    * There is a brief delay after sending credentials before the game server
@@ -32,173 +28,132 @@ class GameServiceImpl implements GameService {
   /**
    * Socket to communicate with the game server.
    */
-  private socket?: net.Socket;
+  private socket: GameSocket;
 
-  constructor(options: {
-    credentials: SGEGameCredentials;
-    dispatch: Dispatcher;
-  }) {
-    const { credentials, dispatch } = options;
-    this.dispatch = dispatch;
-    this.credentials = credentials;
+  /**
+   * Parses game socket output into game events.
+   */
+  private parser: GameParser;
+
+  /**
+   * As commands are sent to the game server they are emitted here.
+   * This allows us to re-emit them as text game events so that
+   * they can be echoed to the player in the game stream.
+   */
+  private sentCommandsSubject$?: rxjs.Subject<GameEvent>;
+
+  constructor(options: { credentials: SGEGameCredentials }) {
+    const { credentials } = options;
+    this.parser = new GameParserImpl();
+    this.socket = new GameSocketImpl({
+      credentials,
+      onConnect: () => {
+        this.isConnected = true;
+        this.isDestroyed = false;
+      },
+      onDisconnect: () => {
+        this.isConnected = false;
+        this.isDestroyed = true;
+      },
+    });
   }
 
-  public async connect(): Promise<boolean> {
-    logger.info('connecting');
-    if (this.socket) {
-      // Due to async nature of socket event handling and that we need
-      // to manage instance variable state, we cannot allow the socket
-      // to be recreated because it causes inconsistent and invalid state.
-      logger.warn('instance may only connect once, ignoring request');
-      return false;
+  public async connect(): Promise<rxjs.Observable<GameEvent>> {
+    if (this.isConnected) {
+      await this.disconnect();
     }
-    const { host, port } = this.credentials;
-    this.socket = this.createGameSocket({ host, port });
-    await this.waitUntilConnectedOrDestroyed();
-    return this.isConnected;
+
+    logger.info('connecting');
+
+    // As commands are sent to the game server they are emitted here.
+    // We merge them with the game events from the parser so that
+    // the commands can be echoed to the player in the game stream.
+    this.sentCommandsSubject$ = new rxjs.Subject<GameEvent>();
+
+    const socketData$ = await this.socket.connect();
+    const gameEvents$ = rxjs.merge(
+      this.parser.parse(socketData$),
+      this.sentCommandsSubject$
+    );
+
+    // TODO remove writing to file; just helpful for early development
+    const socketWriteStream = fs.createWriteStream('game-socket.log');
+    socketData$.subscribe({
+      next: (data: string) => {
+        socketWriteStream.write(`---\n${data}`);
+      },
+      error: () => {
+        socketWriteStream.end();
+      },
+      complete: () => {
+        socketWriteStream.end();
+      },
+    });
+
+    // TODO remove writing to file; just helpful for early development
+    const gameEventWriteStream = fs.createWriteStream('game-event.log');
+    gameEvents$.subscribe({
+      next: (data: GameEvent) => {
+        gameEventWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
+      },
+      error: () => {
+        gameEventWriteStream.end();
+      },
+      complete: () => {
+        gameEventWriteStream.end();
+      },
+    });
+
+    return gameEvents$;
   }
 
   public async disconnect(): Promise<void> {
-    logger.info('disconnecting');
-    if (!this.socket) {
-      logger.warn('instance never connected, ignoring request');
-      return;
+    if (!this.isDestroyed) {
+      logger.info('disconnecting');
+      this.sentCommandsSubject$?.complete();
+      await this.socket.disconnect();
+      await this.waitUntilDestroyed();
     }
-    if (this.isDestroyed) {
-      logger.warn('instance already disconnected, ignoring request');
-      return;
-    }
-    this.send('quit'); // log character out of game
-    this.socket.destroySoon(); // flush writes then end socket connection
-    this.isConnected = false;
-    this.isDestroyed = true;
   }
 
   public send(command: string): void {
-    if (!this.socket?.writable) {
-      throw new Error(
-        `[GAME:SOCKET:STATUS:INVALID] cannot send commands: ${command}`
-      );
-    }
     if (this.isConnected) {
       logger.debug('sending command', { command });
-      this.socket.write(`${command}\n`);
+      this.emitCommandAsTextGameEvent(command);
+      this.socket.send(command);
     }
   }
 
-  protected async waitUntilConnectedOrDestroyed(): Promise<void> {
-    // TODO add timeout
-    while (!this.isConnected && !this.isDestroyed) {
-      await sleep(200);
-    }
+  protected emitCommandAsTextGameEvent(command: string): void {
+    logger.debug('emitting command as text game event', { command });
+    this.sentCommandsSubject$?.next({
+      type: GameEventType.TEXT,
+      eventId: uuid(),
+      text: `> ${command}\n`,
+    });
   }
 
-  protected createGameSocket(connectOptions?: net.NetConnectOpts): net.Socket {
-    const defaultOptions: net.NetConnectOpts = {
-      host: 'dr.simutronics.net',
-      port: 11024,
-    };
+  protected async waitUntilDestroyed(): Promise<void> {
+    const interval = 200;
+    const timeout = 5000;
 
-    const mergedOptions = merge(defaultOptions, connectOptions);
-
-    const { host, port } = mergedOptions;
-
-    this.isConnected = false;
-    this.isDestroyed = false;
-
-    const onGameConnect = (): void => {
-      if (!this.isConnected) {
-        this.isConnected = true;
-        this.isDestroyed = false;
-        this.dispatch('TODO-channel-name', 'connect');
-      }
-    };
-
-    const onGameDisconnect = (): void => {
-      if (!this.isDestroyed) {
-        this.isConnected = false;
-        this.isDestroyed = true;
-        socket.destroySoon();
-        this.dispatch('TODO-channel-name', 'disconnect');
-      }
-    };
-
-    logger.info('connecting to game server', { host, port });
-    const socket = net.connect(mergedOptions, (): void => {
-      logger.info('connected to game server', { host, port });
+    const result = await waitUntil({
+      condition: () => this.isDestroyed,
+      interval,
+      timeout,
     });
 
-    let buffer: string = '';
-    socket.on('data', (data: Buffer): void => {
-      // TODO parse game data
-      // TODO eventually emit formatted messages via this.dispatch
-      // TODO explore if should use rxjs with socket
-
-      logger.debug('socket received fragment');
-      buffer += data.toString('utf8');
-      if (buffer.endsWith('\n')) {
-        const message = buffer;
-        logger.debug('socket received message', { message });
-        if (!this.isConnected && message.startsWith('<mode id="GAME"/>')) {
-          onGameConnect();
-        }
-        // TODO this is when I would emit a payload via rxjs
-        this.dispatch('TODO-channel-name', message);
-        buffer = '';
-      }
-    });
-
-    socket.on('connect', () => {
-      logger.info('authenticating with game key');
-
-      // The frontend used to be named "StormFront" or "Storm" but around 2023
-      // it was renamed to "Wrayth". The version is something I found common
-      // on GitHub among other clients. I did not notice a theme for the platform
-      // of the code I reviewed. I assume the last flag is to request XML formatted feed.
-      const frontendHeader = `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML`;
-
-      socket.write(`${this.credentials.key}\n`);
-      socket.write(`${frontendHeader}\n`);
-
-      // Once authenticated, send newlines to get to the game prompt.
-      // Otherwise the game may not begin streaming data to us.
-      // There needs to be a delay to allow the server to negotiate the connect.
-      setTimeout(() => {
-        // Handle if socket is closed before this timeout.
-        if (socket.writable) {
-          socket.write(`\n\n`);
-        }
-      }, 1000);
-    });
-
-    socket.on('end', (): void => {
-      logger.info('connection to game server ended', { host, port });
-      onGameDisconnect();
-    });
-
-    socket.on('close', (): void => {
-      logger.info('connection to game server closed', { host, port });
-      onGameDisconnect();
-    });
-
-    socket.on('timeout', (): void => {
-      const timeout = socket.timeout;
-      logger.error('game server timed out', { host, port, timeout });
-      onGameDisconnect();
-    });
-
-    socket.on('error', (error: Error): void => {
-      logger.error('game server error', { host, port, error });
-      onGameDisconnect();
-    });
-
-    return socket;
+    if (!result) {
+      throw new Error(`[GAME:SERVICE:DISCONNECT:TIMEOUT] ${timeout}`);
+    }
   }
 }
 
+// There is exactly one game instance at a time,
+// and it can be playing at most one character.
 let gameInstance: Maybe<GameService>;
 
-const Game = {
+export const Game = {
   /**
    * There is exactly one game instance at a time,
    * and it can be playing at most one character.
@@ -210,20 +165,16 @@ const Game = {
    *
    * Use the `getInstance` method to get a refence to the current game instance.
    */
-  newInstance: (options: {
+  newInstance: async (options: {
     credentials: SGEGameCredentials;
-    dispatch: Dispatcher;
-  }): GameService => {
-    const { credentials, dispatch } = options;
+  }): Promise<GameService> => {
+    const { credentials } = options;
     if (gameInstance) {
       logger.info('disconnecting from existing game instance');
-      const oldInstance = gameInstance;
-      runInBackground(async () => {
-        await oldInstance.disconnect();
-      });
+      await gameInstance.disconnect();
     }
     logger.info('creating new game instance');
-    gameInstance = new GameServiceImpl({ credentials, dispatch });
+    gameInstance = new GameServiceImpl({ credentials });
     return gameInstance;
   },
 
@@ -235,5 +186,3 @@ const Game = {
     return gameInstance;
   },
 };
-
-export { Game };

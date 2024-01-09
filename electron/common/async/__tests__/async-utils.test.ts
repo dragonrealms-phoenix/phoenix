@@ -1,7 +1,7 @@
 import { createLogger } from '../../logger';
-import { runInBackground, sleep } from '../async.utils';
+import { runInBackground, sleep, waitUntil } from '../async.utils';
 
-jest.mock('../../logger/logger.utils', () => {
+jest.mock('../../logger', () => {
   const actualModule = jest.requireActual('../../logger');
   return {
     ...actualModule,
@@ -29,7 +29,7 @@ describe('async-utils', () => {
 
       const end = Date.now();
 
-      expect(timeoutSpy).toBeCalledTimes(1);
+      expect(timeoutSpy).toHaveBeenCalledTimes(1);
       expect(end - start).toBeGreaterThanOrEqual(sleepMillis - varianceMillis);
       expect(end - start).toBeLessThanOrEqual(sleepMillis + varianceMillis);
     });
@@ -70,6 +70,47 @@ describe('async-utils', () => {
         );
         done();
       }, 250);
+    });
+  });
+
+  describe('#waitUntil', () => {
+    test('when condition is true then it resolves true', async () => {
+      const condition = jest.fn().mockReturnValue(true);
+      const interval = 100;
+      const timeout = 1000;
+
+      const result = await waitUntil({ condition, interval, timeout });
+
+      expect(result).toEqual(true);
+      expect(condition).toHaveBeenCalledTimes(1);
+    });
+
+    test('when condition is false then it resolves false', async () => {
+      const condition = jest.fn().mockReturnValue(false);
+      const interval = 100;
+      const timeout = 1000;
+
+      const result = await waitUntil({ condition, interval, timeout });
+
+      expect(result).toEqual(false);
+      expect(condition).toHaveBeenCalledTimes(9);
+    });
+
+    test('when condition is true after 5 intervals then it resolves true', async () => {
+      const condition = jest
+        .fn()
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+      const interval = 100;
+      const timeout = 1000;
+
+      const result = await waitUntil({ condition, interval, timeout });
+
+      expect(result).toEqual(true);
+      expect(condition).toHaveBeenCalledTimes(5);
     });
   });
 });

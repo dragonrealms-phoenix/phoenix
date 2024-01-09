@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import { DiskCacheServiceImpl } from '../disk-cache.service';
 
-describe('DiskCacheService tests', () => {
+describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
   beforeEach(() => {
@@ -169,5 +169,17 @@ describe('DiskCacheService tests', () => {
     await cacheService.writeCache({ key: 42, foo: 'bar' });
 
     expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
+  });
+
+  test('create cache file if not exists', async () => {
+    fs.removeSync(filepath);
+
+    const cacheService = new DiskCacheServiceImpl({
+      filepath,
+    });
+
+    expect(await cacheService.readCache()).toEqual({});
+
+    expect(fs.pathExistsSync(filepath)).toBeTruthy();
   });
 });

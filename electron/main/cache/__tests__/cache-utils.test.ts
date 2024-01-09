@@ -2,7 +2,7 @@ import type { CacheService } from '../cache.types';
 import { getCacheValue } from '../cache.utils';
 import { MemoryCacheServiceImpl } from '../memory-cache.service';
 
-describe('CacheUtils tests', () => {
+describe('cache-utils', () => {
   let cacheService: CacheService;
 
   beforeEach(() => {
@@ -30,15 +30,15 @@ describe('CacheUtils tests', () => {
         onCacheMiss: async () => 'cacheMiss',
       });
 
-      expect(value).toBe('cacheMiss');
+      expect(value).toEqual('cacheMiss');
 
-      expect(await cacheService.get('mykey')).toBe('cacheMiss');
+      expect(await cacheService.get('mykey')).toEqual('cacheMiss');
     });
 
     test('when cache hit then return it regardless of callback', async () => {
       await cacheService.set('mykey', 'cacheHit');
 
-      expect(await cacheService.get('mykey')).toBe('cacheHit');
+      expect(await cacheService.get('mykey')).toEqual('cacheHit');
 
       const value = await getCacheValue({
         cacheService,
@@ -46,9 +46,9 @@ describe('CacheUtils tests', () => {
         onCacheMiss: async () => 'cacheMiss',
       });
 
-      expect(value).toBe('cacheHit');
+      expect(value).toEqual('cacheHit');
 
-      expect(await cacheService.get('mykey')).toBe('cacheHit');
+      expect(await cacheService.get('mykey')).toEqual('cacheHit');
     });
   });
 });

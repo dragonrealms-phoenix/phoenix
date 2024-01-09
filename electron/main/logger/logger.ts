@@ -4,7 +4,7 @@ import {
   createLogger,
 } from '../../common/logger/logger.utils';
 
-function initializeLogging(): void {
+export function initializeLogging(): void {
   // Continue with common logger initialization.
   _initializeLogging(electronLog);
 
@@ -16,4 +16,4 @@ function initializeLogging(): void {
   electronLog.errorHandler.startCatching();
 }
 
-export { initializeLogging, createLogger };
+export { createLogger };

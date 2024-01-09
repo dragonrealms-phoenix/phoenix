@@ -3,11 +3,10 @@ import { BrowserWindow, app, shell } from 'electron';
 import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
-import { AccountServiceImpl } from './account';
-import { IpcController } from './ipc';
+import type { IpcController } from './ipc';
+import { newIpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
-import { Store } from './store';
 import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
@@ -48,7 +47,9 @@ if (appEnvIsProd) {
   });
 }
 
-const createWindow = async (): Promise<void> => {
+let ipcController: IpcController;
+
+const createMainWindow = async (): Promise<void> => {
   if (appEnvIsDev) {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
@@ -85,23 +86,22 @@ const createWindow = async (): Promise<void> => {
 
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
-    logger.info('showing window');
+    logger.debug('showing main window');
     mainWindow.show();
   });
 
   const dispatch: Dispatcher = (channel, ...args): void => {
-    mainWindow.webContents.send(channel, ...args);
+    // When the window is closed or destroyed, we might still
+    // receive async events from the ipc controller. Ignore them.
+    // This usually happens when the app is quit while a game is being played.
+    if (!mainWindow.isDestroyed()) {
+      mainWindow.webContents.send(channel, ...args);
+    }
   };
 
-  const ipcController = new IpcController({
-    dispatch,
-    accountService: new AccountServiceImpl({
-      storeService: Store.getInstance(),
-    }),
-  });
+  ipcController = newIpcController({ dispatch });
 
-  ipcController.registerHandlers();
-
+  logger.debug('loading main window', { appUrl });
   await mainWindow.loadURL(appUrl);
 
   initializeMenu(mainWindow);
@@ -110,7 +110,7 @@ const createWindow = async (): Promise<void> => {
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
   runInBackground(async () => {
-    await createWindow();
+    await createMainWindow();
   });
 });
 
@@ -135,7 +135,7 @@ app.on('web-contents-created', (_, contents) => {
     // If the domain is allowed, open it in the user's default browser.
     if (isAllowedDomain(domain)) {
       runInBackground(async () => {
-        logger.info('opening url in default browser', { url });
+        logger.debug('opening url in default browser', { url });
         await shell.openExternal(url);
       });
     } else {
@@ -145,20 +145,57 @@ app.on('web-contents-created', (_, contents) => {
   };
 
   contents.on('will-navigate', (event, url) => {
-    logger.info('will-navigate', { url });
+    logger.debug('will-navigate', { url });
     blockOrOpenURL(event, url);
   });
 
   contents.on('will-redirect', (event, url) => {
-    logger.info('will-redirect', { url });
+    logger.debug('will-redirect', { url });
     blockOrOpenURL(event, url);
   });
 });
 
 app.on('window-all-closed', (): void => {
+  logger.debug('windows all closed, quitting app');
   app.quit();
 });
 
+/**
+ * Trick to await async operations before quitting.
+ * https://github.com/electron/electron/issues/9433#issuecomment-960635576
+ */
+enum BeforeQuitActionStatus {
+  NOT_STARTED = 'NOT_STARTED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+}
+
+let beforeQuitActionStatus = BeforeQuitActionStatus.NOT_STARTED;
+
+app.on('before-quit', (event: Event): void => {
+  switch (beforeQuitActionStatus) {
+    case BeforeQuitActionStatus.NOT_STARTED:
+      // don't quit yet, start our async before-quit operations instead
+      event.preventDefault();
+      beforeQuitActionStatus = BeforeQuitActionStatus.IN_PROGRESS;
+      runInBackground(async () => {
+        logger.debug('performing before-quit operations');
+        await ipcController?.destroy();
+        beforeQuitActionStatus = BeforeQuitActionStatus.COMPLETED;
+        app.quit();
+      });
+      break;
+    case BeforeQuitActionStatus.IN_PROGRESS:
+      // don't quit yet, we are still awaiting our before-quit operations
+      event.preventDefault();
+      break;
+    case BeforeQuitActionStatus.COMPLETED:
+      // no further action needed, continue to quit the app like normal
+      break;
+  }
+});
+
 app.on('quit', (): void => {
+  logger.debug('quitting app');
   logger.info('until next time, brave adventurer');
 });

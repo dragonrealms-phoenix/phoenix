@@ -340,7 +340,7 @@ describe('account-service', () => {
         });
         fail('it should throw an error');
       } catch (error) {
-        expect(error.message).toBe(
+        expect(error.message).toEqual(
           `[ACCOUNT:SERVICE:ERROR:ACCOUNT_NOT_FOUND] test-account`
         );
       }

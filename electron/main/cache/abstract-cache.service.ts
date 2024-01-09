@@ -1,7 +1,7 @@
 import type { Maybe } from '../../common/types';
 import type { Cache, CacheService } from './cache.types';
 
-abstract class AbstractCacheService implements CacheService {
+export abstract class AbstractCacheService implements CacheService {
   public abstract set<T>(key: string, data: T): Promise<void>;
 
   public abstract get<T>(key: string): Promise<Maybe<T>>;
@@ -20,5 +20,3 @@ abstract class AbstractCacheService implements CacheService {
     }
   }
 }
-
-export { AbstractCacheService };

@@ -42,7 +42,7 @@ export function getStoredThemeName(): string | null {
 }
 
 export function getDefaultThemeName(): string {
-  return 'light';
+  return 'dark';
 }
 
 export interface Theme {

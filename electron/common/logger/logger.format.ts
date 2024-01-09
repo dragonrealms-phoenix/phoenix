@@ -28,7 +28,23 @@ export function formatLogData(data: LogData): LogData {
     } else if (value instanceof Set) {
       data[key] = Array.from(value.keys());
     } else if (value instanceof Map) {
-      data[key] = Array.from(value.entries());
+      data[key] = Array.from(value.entries()).reduce(
+        (map, [key, value]) => {
+          if (value instanceof Date) {
+            map[key] = value.toJSON();
+          } else if (
+            value === null ||
+            value === undefined ||
+            typeof value !== 'object'
+          ) {
+            map[key] = value;
+          } else {
+            map[key] = formatLogData(value);
+          }
+          return map;
+        },
+        {} as Record<string, unknown>
+      );
     }
   }
 

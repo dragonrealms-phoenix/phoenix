@@ -1,7 +1,7 @@
-import { EuiText, useEuiTheme } from '@elastic/eui';
+import { useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-import type { ReactNode, Ref } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import {
   createRef,
   useCallback,
@@ -16,17 +16,17 @@ import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
 
-interface GridItemProps {
+export interface GridItemProps {
   itemId: string;
   title: string;
   content: ReactNode;
 }
 
-interface GridProps {
+export interface GridProps {
   items: Array<GridItemProps>;
 }
 
-const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
+export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { items } = props;
 
   const { euiTheme } = useEuiTheme();
@@ -57,15 +57,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         })}
       }
     `);
-  }, [windowDimensions]);
-
-  const gridItemTextStyles = css({
-    fontFamily: euiTheme.font.familyCode,
-    fontSize: euiTheme.size.m,
-    lineHeight: 'initial',
-    paddingLeft: euiTheme.size.s,
-    paddingRight: euiTheme.size.s,
-  });
+  }, [windowDimensions, euiTheme]);
 
   /**
    * When grid items are resized the increment is based on the the layout size.
@@ -109,7 +101,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     if (width) {
       setGridMaxWidth(width);
     }
-  }, [windowDimensions]);
+  }, [windowDimensions, gridRowHeightWithMargin]);
 
   /**
    * Load the layout from storage or build a default layout.
@@ -118,6 +110,7 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     let layout = LocalStorage.get<Array<Layout>>('layout');
 
     if (layout) {
+      // Discard any old layout items that are not in the grid's items list.
       layout = layout.filter((layoutItem) => {
         return items.find((item) => item.itemId === layoutItem.i);
       });
@@ -167,31 +160,34 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const [layout, setLayout] = useState<Array<Layout>>(buildDefaultLayout);
 
   // Save the layout when it changes in the grid.
-  const onLayoutChange = useCallback((layout: Array<Layout>) => {
-    setLayout(layout);
-    LocalStorage.set('layout', layout);
+  const onLayoutChange = useCallback((newLayout: Array<Layout>) => {
+    setLayout(newLayout);
+    LocalStorage.set('layout', newLayout);
   }, []);
 
-  // Remove the item from the layout.
+  // Remove the item from the layout then save the layout.
   const onGridItemClose = useCallback((itemId: string) => {
-    const newLayout = layout.filter((layoutItem) => {
-      return layoutItem.i !== itemId;
+    setLayout((oldLayout) => {
+      const newLayout = oldLayout.filter((layoutItem) => {
+        return layoutItem.i !== itemId;
+      });
+      LocalStorage.set('layout', newLayout);
+      return newLayout;
     });
-    onLayoutChange(newLayout);
   }, []);
 
   /**
-   * Originally I called `useRef` in the children's `useMemo` hook below but
+   * Originally I called `useRef` in the grid item's `useMemo` hook below but
    * that caused "Error: Rendered fewer hooks than expected" to be thrown.
    * I later learned the "Rule of Hooks" which forbid what I was doing.
    * Found a workaround on stackoverflow to store the refs in a ref. Ironic.
    * https://react.dev/warnings/invalid-hook-call-warning
    * https://stackoverflow.com/questions/65350114/useref-for-element-in-loop-in-react/65350394#65350394
    */
-  const childRefs = useRef<Array<Ref<HTMLDivElement>>>([]);
-  childRefs.current = layout.map((_item, i) => {
-    // Note we use `createRef` and not `useRef` per "Rule of Hooks"
-    return childRefs.current[i] ?? createRef<HTMLDivElement>();
+  const itemRefs = useRef<Array<RefObject<HTMLDivElement>>>([]);
+  itemRefs.current = layout.map((_layoutItem, index) => {
+    // Note we use `createRef` and not `useRef` per "Rule of Hooks" for loops.
+    return itemRefs.current[index] ?? createRef<HTMLDivElement>();
   });
 
   /**
@@ -200,21 +196,25 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
    * components within the layout won't rerender either.
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
-  const children = useMemo(() => {
-    return layout.map((layoutItem, i) => {
+  const gridItems = useMemo(() => {
+    return layout.map((layoutItem, index) => {
       const item = items.find((item) => item.itemId === layoutItem.i);
+      const itemRef = itemRefs.current[index];
       return (
         <GridItem
-          key={item!.itemId}
-          ref={childRefs.current[i]}
-          itemId={item!.itemId}
-          titleBarText={item!.title}
+          ref={itemRef}
+          key={item!.itemId} // assuming the item will always be found
+          itemId={item!.itemId} // will come back to haunt me
+          titleBarText={item!.title} // I just don't know when or why
           onClose={onGridItemClose}
         >
-          <EuiText css={gridItemTextStyles}>{item!.content}</EuiText>
+          {item!.content}
         </GridItem>
       );
     });
+    // For performance, I only want to recalculate the children
+    // if the number of items in the layout changes. No other reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout.length]);
 
   return (
@@ -250,9 +250,9 @@ const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       // The grid item's title bar is used as the handle for dragging.
       draggableHandle={'.grab-handle'}
     >
-      {children}
+      {gridItems}
     </GridLayout>
   );
 };
 
-export { Grid };
+Grid.displayName = 'Grid';

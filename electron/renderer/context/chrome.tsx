@@ -4,10 +4,10 @@ import type { EuiThemeColorMode } from '@elastic/eui';
 import { EuiProvider } from '@elastic/eui';
 import createCache from '@emotion/cache';
 import type { ReactNode } from 'react';
-import type { Maybe } from '../../../common/types';
-import { useTheme } from '../theme/theme';
+import type { Maybe } from '../../common/types';
+import { useTheme } from '../hooks/theme';
 
-interface ChromeProviderProps {
+export interface ChromeProviderProps {
   children?: ReactNode;
 }
 
@@ -15,7 +15,7 @@ interface ChromeProviderProps {
  * Renders the UI that surrounds the page content.
  * Must be nested within the `ThemeProvider`.
  */
-const ChromeProvider: React.FC<ChromeProviderProps> = (
+export const ChromeProvider: React.FC<ChromeProviderProps> = (
   props: ChromeProviderProps
 ) => {
   const { children } = props;
@@ -55,5 +55,3 @@ function getNodeBySelector(selector: string): Maybe<Node> {
     return document.querySelector(selector) ?? undefined;
   }
 }
-
-export { ChromeProvider };

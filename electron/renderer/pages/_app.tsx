@@ -3,9 +3,9 @@
 import { EuiErrorBoundary } from '@elastic/eui';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import { ChromeProvider } from '../components/chrome';
-import { LoggerProvider } from '../components/logger';
-import { ThemeProvider } from '../components/theme';
+import { ChromeProvider } from '../context/chrome';
+import { LoggerProvider } from '../context/logger';
+import { ThemeProvider } from '../context/theme';
 
 /**
  * Next.js uses the App component to initialize pages. You can override it

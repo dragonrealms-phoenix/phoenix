@@ -57,6 +57,8 @@ export async function loginCharacter(options: {
 }): Promise<SGELoginResponse> {
   const { username, password, characterName, gameCode } = options;
 
+  logger.debug('logging in', { username, characterName, gameCode });
+
   // Connect to login server
   const socket = await connect(options.connectOptions);
 
@@ -77,16 +79,15 @@ export async function loginCharacter(options: {
     // Select character to play and get back game credentials
     const credentials = await getGameCredentials({ socket, characterName });
 
-    socket.end();
-
     return {
       subscription,
       credentials,
     };
   } catch (error) {
     logger.error('error logging in', { error });
-    socket.destroy();
     throw error;
+  } finally {
+    socket.destroySoon();
   }
 }
 
@@ -135,13 +136,12 @@ export async function listCharacters(options: {
     // Retrieve list of characters available to the account
     const characters = await listAvailableCharacters({ socket });
 
-    socket.end();
-
     return characters;
   } catch (error) {
     logger.error('error listing characters', { error });
-    socket.destroy();
     throw error;
+  } finally {
+    socket.destroySoon();
   }
 }
 
@@ -172,22 +172,22 @@ async function connect(
     })
   );
 
-  logger.info('connecting to login server', { host, port });
+  logger.debug('connecting to login server', { host, port });
   const socket = tls.connect(mergedOptions, (): void => {
-    logger.info('connected to login server', { host, port });
+    logger.debug('connected to login server', { host, port });
   });
 
   socket.on('end', (): void => {
-    logger.info('connection to login server ended', { host, port });
+    logger.debug('connection to login server ended', { host, port });
   });
 
   socket.on('close', (): void => {
-    logger.info('connection to login server closed', { host, port });
+    logger.debug('connection to login server closed', { host, port });
   });
 
   socket.on('timeout', (): void => {
     const timeout = socket.timeout;
-    logger.error('login server timed out', { host, port, timeout });
+    logger.error('login server inactivity timeout', { host, port, timeout });
   });
 
   socket.on('error', (error: Error): void => {
@@ -207,11 +207,11 @@ async function getTrustedTlsCertificate(
   const { host, port } = connectOptions;
 
   if (cachedTlsCertificate) {
-    logger.info('using cached login server certificate', { host, port });
+    logger.debug('using cached login server certificate', { host, port });
     return cachedTlsCertificate;
   }
 
-  logger.info('downloading login server certificate', { host, port });
+  logger.debug('downloading login server certificate', { host, port });
   cachedTlsCertificate = await downloadCertificate(connectOptions);
 
   return cachedTlsCertificate;
@@ -226,6 +226,8 @@ async function authenticate(options: {
   password: string;
 }): Promise<void> {
   const { socket, username, password } = options;
+
+  logger.debug('authenticating', { username });
 
   // Request salt for hashing the account password
   const hashSalt = await getPasswordHashSalt({ socket });
@@ -265,6 +267,8 @@ async function authenticate(options: {
     logger.error('authentication failed', { authError });
     throw new Error(`[SGE:LOGIN:ERROR:AUTHENTICATION] ${authError}`);
   }
+
+  logger.debug('authenticated', { username });
 }
 
 /**
@@ -275,6 +279,8 @@ async function getPasswordHashSalt(options: {
   socket: tls.TLSSocket;
 }): Promise<string> {
   const { socket } = options;
+
+  logger.debug('getting password hash salt');
 
   /**
    * Send request for password hash salt:
@@ -290,6 +296,8 @@ async function getPasswordHashSalt(options: {
     })
   ).toString();
 
+  logger.debug('got password hash salt');
+
   return hashSalt;
 }
 
@@ -302,6 +310,8 @@ async function validateGameCode(options: {
   gameCode: SGEGameCode;
 }): Promise<void> {
   const { socket, gameCode } = options;
+
+  logger.debug('validating game code', { gameCode });
 
   const availableGames = await listAvailableGames({ socket });
   const availableGameCodes = availableGames.map(
@@ -317,6 +327,8 @@ async function validateGameCode(options: {
     });
     throw new Error(`[SGE:LOGIN:ERROR:GAME_NOT_FOUND] ${gameCode}`);
   }
+
+  logger.debug('game code is valid', { gameCode });
 }
 
 /**
@@ -326,6 +338,8 @@ async function listAvailableGames(options: {
   socket: tls.TLSSocket;
 }): Promise<Array<SGEGame>> {
   const { socket } = options;
+
+  logger.debug('listing available games');
 
   /**
    * Get list of available games:
@@ -352,6 +366,8 @@ async function listAvailableGames(options: {
     });
   }
 
+  logger.debug('available games', { games });
+
   return games;
 }
 
@@ -363,6 +379,8 @@ async function getGameSubscription(options: {
   gameCode: SGEGameCode;
 }): Promise<SGEGameSubscription> {
   const { socket, gameCode } = options;
+
+  logger.debug('getting game subscription', { gameCode });
 
   /**
    * Send game code:
@@ -396,6 +414,8 @@ async function getGameSubscription(options: {
     status,
   };
 
+  logger.debug('got game subscription', { subscription });
+
   return subscription;
 }
 
@@ -407,6 +427,8 @@ async function getGameCredentials(options: {
   characterName: string;
 }): Promise<SGEGameCredentials> {
   const { socket, characterName } = options;
+
+  logger.debug('getting game credentials for character', { characterName });
 
   // Get the character id to play
   const characterId = await getCharacterId({ socket, characterName });
@@ -471,7 +493,7 @@ async function getGameCredentials(options: {
 
   const gameHost = parseGameHost(response);
   const gamePort = parseGamePort(response);
-  const gameKey = parseGameKey(response);
+  const gameKey = parseGameKey(response); // sensitive, don't log
 
   if (!gameHost || !gamePort || !gameKey) {
     logger.error('failed to parse game credentials', {
@@ -483,10 +505,17 @@ async function getGameCredentials(options: {
     );
   }
 
+  logger.debug('got game credentials', {
+    characterName,
+    characterId,
+    gameHost,
+    gamePort,
+  });
+
   return {
     host: gameHost,
     port: gamePort,
-    key: gameKey,
+    key: gameKey, // secret key used to authenticate to the game server
   };
 }
 
@@ -499,10 +528,17 @@ async function getCharacterId(options: {
 }): Promise<Maybe<string>> {
   const { socket, characterName } = options;
 
+  logger.debug('getting character id', { characterName });
+
   const characters = await listAvailableCharacters({ socket });
 
   const character = characters.find((character: SGECharacter): boolean => {
     return character.name === characterName;
+  });
+
+  logger.debug('got character id', {
+    characterName,
+    characterId: character?.id ?? null,
   });
 
   return character?.id;
@@ -515,6 +551,8 @@ async function listAvailableCharacters(options: {
   socket: tls.TLSSocket;
 }): Promise<Array<SGECharacter>> {
   const { socket } = options;
+
+  logger.debug('listing available characters');
 
   /**
    * Get list of the account's available character names and ids
@@ -539,6 +577,8 @@ async function listAvailableCharacters(options: {
       name,
     });
   }
+
+  logger.debug('available characters', { characters });
 
   return characters;
 }

@@ -1,6 +1,6 @@
 import { MemoryCacheServiceImpl } from '../memory-cache.service';
 
-describe('MemoryCacheService', () => {
+describe('memory-cache-service', () => {
   let cacheService: MemoryCacheServiceImpl;
 
   beforeEach(() => {

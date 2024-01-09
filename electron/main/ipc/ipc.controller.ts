@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import type { GameEvent } from '../../common/game';
 import { toUpperSnakeCase } from '../../common/string';
 import type { AccountService } from '../account';
 import { Game } from '../game';
@@ -13,7 +14,7 @@ import type {
   IpcSgeCharacter,
 } from './ipc.types';
 
-const logger = createLogger('ipc');
+const logger = createLogger('ipc:controller');
 
 export class IpcController {
   private dispatch: Dispatcher;
@@ -27,6 +28,17 @@ export class IpcController {
     this.dispatch = options.dispatch;
     this.accountService = options.accountService;
     this.ipcHandlerRegistry = this.createIpcHandlerRegistry();
+    this.registerHandlers(this.ipcHandlerRegistry);
+  }
+
+  /**
+   * Unregisters all ipc handlers and disconnects from the game server.
+   */
+  public async destroy(): Promise<void> {
+    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
+      ipcMain.removeHandler(channel);
+    });
+    await Game.getInstance()?.disconnect();
   }
 
   private createIpcHandlerRegistry(): IpcHandlerRegistry {
@@ -42,9 +54,9 @@ export class IpcController {
     };
   }
 
-  public registerHandlers(): void {
-    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
-      const handler = this.ipcHandlerRegistry[channel as IpcInvokableEvent];
+  private registerHandlers(registry: IpcHandlerRegistry): void {
+    Object.keys(registry).forEach((channel) => {
+      const handler = registry[channel as IpcInvokableEvent];
 
       if (!handler) {
         logger.error('no handler registered for channel', { channel });
@@ -60,17 +72,10 @@ export class IpcController {
         } catch (error) {
           logger.error('error handling channel request', { channel, error });
           throw new Error(
-            `[IPC:CHANNEL:ERROR:${toUpperSnakeCase(channel)}] ${error?.message}`
+            `[IPC:CHANNEL:ERROR:${toUpperSnakeCase(channel)}] ${error.message}`
           );
         }
       });
-    });
-  }
-
-  public deregisterHandlers(): void {
-    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
-      ipcMain.removeHandler(channel);
-      ipcMain.removeAllListeners(channel);
     });
   }
 
@@ -147,7 +152,7 @@ export class IpcController {
   private playCharacterHandler: IpcInvokeHandler<'playCharacter'> = async (
     args
   ): Promise<void> => {
-    const { gameCode, accountName, characterName } = args[0];
+    const { accountName, characterName, gameCode } = args[0];
 
     logger.debug('playCharacterHandler', {
       accountName,
@@ -173,12 +178,37 @@ export class IpcController {
 
     const credentials = await sgeService.loginCharacter(characterName);
 
-    const gameInstance = Game.newInstance({
+    const gameInstance = await Game.newInstance({
       credentials,
-      dispatch: this.dispatch,
     });
 
-    await gameInstance.connect();
+    const gameEvents$ = await gameInstance.connect();
+
+    this.dispatch('game:connect', {
+      accountName,
+      characterName,
+      gameCode,
+    });
+
+    logger.debug('subscribing to game service stream');
+    gameEvents$.subscribe({
+      next: (gameEvent: GameEvent) => {
+        logger.debug('game service stream event', { gameEvent });
+        this.dispatch('game:event', gameEvent);
+      },
+      error: (error: Error) => {
+        logger.error('game service stream error', { error });
+        this.dispatch('game:error', error);
+      },
+      complete: () => {
+        logger.debug('game service stream completed');
+        this.dispatch('game:disconnect', {
+          accountName,
+          characterName,
+          gameCode,
+        });
+      },
+    });
   };
 
   private sendCommandHandler: IpcInvokeHandler<'sendCommand'> = async (

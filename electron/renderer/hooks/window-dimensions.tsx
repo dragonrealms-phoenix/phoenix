@@ -1,14 +1,14 @@
 // https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
 
 import { debounce } from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export interface WindowDimensions {
   height?: number;
   width?: number;
 }
 
-const getWindowDimensions = (): WindowDimensions => {
+function getWindowDimensions(): WindowDimensions {
   if (typeof window === 'undefined') {
     return {};
   }
@@ -16,26 +16,31 @@ const getWindowDimensions = (): WindowDimensions => {
     width: window.innerWidth,
     height: window.innerHeight,
   };
-};
+}
 
-export const useWindowDimensions = (): WindowDimensions => {
+/**
+ * To use this hook, the `window` object must be defined
+ * and emit the `resize` event.
+ */
+export function useWindowDimensions(): WindowDimensions {
   const [dimensions, setDimensions] = useState<WindowDimensions>(
     getWindowDimensions()
   );
 
-  const onWindowResize = useCallback(
-    debounce(() => {
+  const onWindowResize = useMemo(() => {
+    // When resizing a window, this event fires rapidly.
+    // For performance, debounce so we react more efficiently.
+    return debounce(() => {
       setDimensions(getWindowDimensions());
-    }, 100),
-    []
-  );
+    }, 100);
+  }, []);
 
   useEffect(() => {
     window.addEventListener('resize', onWindowResize);
     return () => {
       window.removeEventListener('resize', onWindowResize);
     };
-  }, []);
+  }, [onWindowResize]);
 
   return dimensions;
-};
+}
