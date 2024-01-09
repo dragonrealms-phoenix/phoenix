@@ -1,3 +1,4 @@
+import { merge } from 'lodash';
 import { StoreServiceMock } from '../../store/__mocks__/store-service.mock';
 import { AccountServiceImpl } from '../account.service';
 import type { AccountService } from '../account.types';
@@ -9,13 +10,13 @@ jest.mock('../../logger', () => {
 });
 
 jest.mock('electron', () => {
-  return {
-    ...jest.requireActual('electron'),
+  const actualModule = jest.requireActual('electron');
+  return merge({}, actualModule, {
     safeStorage: {
       encryptString: jest.fn().mockReturnValue(Buffer.from('test-encrypted')),
       decryptString: jest.fn().mockReturnValue('test-password'),
     },
-  };
+  });
 });
 
 describe('account-service', () => {
