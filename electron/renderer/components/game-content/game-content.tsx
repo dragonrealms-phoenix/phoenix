@@ -4,7 +4,7 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
-import type { GameLogLine } from './game.types';
+import type { GameLogLine } from '../../types/game.types';
 
 export interface GameContentProps {
   /**

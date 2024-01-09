@@ -1,6 +1,7 @@
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell } from 'electron';
 import { runInBackground } from '../../common/async';
+import { PreferenceKey, Preferences } from '../preference';
 
 /**
  * Inspired by RedisInsight
@@ -34,6 +35,12 @@ function getMenuTemplate(
     : buildDefaultTemplate(window);
 }
 
+const saveZoomFactorPreference = (zoomFactor: number) => {
+  runInBackground(async () => {
+    await Preferences.set(PreferenceKey.WINDOW_ZOOM_FACTOR, zoomFactor);
+  });
+};
+
 /**
  * Gets the current zoom factor of the window.
  * Returns a value between 0 < zoomFactor <= 1
@@ -48,6 +55,7 @@ function getZoomFactor(window: BrowserWindow): number {
  */
 function setZoomFactor(window: BrowserWindow, zoomFactor: number): void {
   window.webContents.setZoomFactor(zoomFactor);
+  saveZoomFactorPreference(zoomFactor);
 }
 
 function resetZoomFactor(window: BrowserWindow): void {

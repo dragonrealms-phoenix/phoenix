@@ -1,14 +1,14 @@
+import { merge } from 'lodash';
 import { createLogger } from '../../logger';
 import { runInBackground, sleep, waitUntil } from '../async.utils';
 
 jest.mock('../../logger', () => {
   const actualModule = jest.requireActual('../../logger');
-  return {
-    ...actualModule,
+  return merge({}, actualModule, {
     createLogger: jest.fn().mockReturnValue({
       error: jest.fn(),
     }),
-  };
+  });
 });
 
 describe('async-utils', () => {

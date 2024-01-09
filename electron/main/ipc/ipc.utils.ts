@@ -1,4 +1,5 @@
-import { type AccountService, AccountServiceImpl } from '../account';
+import type { AccountService } from '../account';
+import { AccountServiceImpl } from '../account';
 import { Store } from '../store';
 import type { Dispatcher } from '../types';
 import { IpcController } from './ipc.controller';

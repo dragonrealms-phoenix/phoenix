@@ -1,4 +1,6 @@
 import * as fs from 'fs-extra';
+import type { DebouncedFunc } from 'lodash';
+import { debounce } from 'lodash';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
 import { AbstractCacheService } from './abstract-cache.service';
@@ -19,9 +21,15 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
    */
   private delegate: CacheService;
 
+  /**
+   * Debounce writes to disk for performance.
+   */
+  private writeToDisk: DebouncedFunc<() => Promise<void>>;
+
   constructor(private options: DiskCacheOptions) {
     super();
     this.delegate = this.createCacheServiceFromDisk();
+    this.writeToDisk = this.createDebouncedWriteToDisk();
   }
 
   private createCacheServiceFromDisk(): CacheService {
@@ -42,6 +50,21 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
     }
 
     return new MemoryCacheServiceImpl(cache);
+  }
+
+  private createDebouncedWriteToDisk(): DebouncedFunc<() => Promise<void>> {
+    return debounce(async () => {
+      const { filepath } = this.options;
+      try {
+        const cache = await this.delegate.readCache();
+        await fs.writeJson(filepath, cache);
+      } catch (error) {
+        logger.error('error writing cache to disk', {
+          filepath,
+          error,
+        });
+      }
+    }, 1000);
   }
 
   public async set<T>(key: string, item: T): Promise<void> {
@@ -65,19 +88,5 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
 
   public async readCache(): Promise<Cache> {
     return this.delegate.readCache();
-  }
-
-  protected async writeToDisk(): Promise<void> {
-    const { filepath } = this.options;
-
-    try {
-      const cache = await this.delegate.readCache();
-      await fs.writeJson(filepath, cache);
-    } catch (error) {
-      logger.error('error writing cache to disk', {
-        filepath,
-        error,
-      });
-    }
   }
 }

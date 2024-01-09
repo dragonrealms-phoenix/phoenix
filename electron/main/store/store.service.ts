@@ -1,5 +1,3 @@
-import { app } from 'electron';
-import path from 'node:path';
 import type { Maybe } from '../../common/types';
 import type { CacheService, DiskCacheOptions } from '../cache';
 import { DiskCacheServiceImpl } from '../cache';
@@ -8,7 +6,7 @@ import type { StoreService } from './store.types';
 /**
  * Simple file-backed store for storing key-value pairs.
  */
-class StoreServiceImpl implements StoreService {
+export class StoreServiceImpl implements StoreService {
   private cacheService: CacheService;
 
   constructor(options: DiskCacheOptions) {
@@ -38,20 +36,3 @@ class StoreServiceImpl implements StoreService {
     await this.cacheService.clear();
   }
 }
-
-// There is exactly one store instance so that it's
-// easy anywhere in the app to get/set config values.
-// One place to manage the config file location.
-const storeInstance = new StoreServiceImpl({
-  filepath: path.join(app.getPath('userData'), 'config.json'),
-});
-
-export const Store = {
-  /**
-   * Get the current store instance.
-   * Use it to get/set config values.
-   */
-  getInstance: (): StoreService => {
-    return storeInstance;
-  },
-};

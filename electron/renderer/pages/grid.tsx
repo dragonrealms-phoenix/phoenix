@@ -14,19 +14,20 @@ import type {
   GameEvent,
   RoomGameEvent,
 } from '../../common/game';
-import { GameContent } from '../components/game';
-import type { GameLogLine } from '../components/game';
+import { GameContent } from '../components/game-content';
 import { Grid } from '../components/grid';
 import { useLogger } from '../hooks/logger';
+import type { GameLogLine } from '../types/game.types';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
 // https://nextjs.org/docs/messages/react-hydration-error
 const GridNoSSR = dynamic(async () => Grid, { ssr: false });
 
-// I started tracking this via `useState` but when calling it's setter
+// I started tracking these via `useState` but when calling their setter
 // the value did not update fast enough before a text game event
-// was received, resulting in text routing to the wrong stream window.
+// was received, resulting in text routing to the wrong stream window
+// or not formatting correctly. So I moved them to global variables.
 let gameStreamId = '';
 let textOutputClass = '';
 let textStylePreset = '';
