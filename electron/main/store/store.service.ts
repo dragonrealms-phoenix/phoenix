@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import path from 'node:path';
+import * as path from 'node:path';
 import type { Maybe } from '../../common/types';
 import type { CacheService, DiskCacheOptions } from '../cache';
 import { DiskCacheServiceImpl } from '../cache';
