@@ -14,10 +14,10 @@ import type {
   GameEvent,
   RoomGameEvent,
 } from '../../common/game';
-import { GameContent } from '../components/game';
-import type { GameLogLine } from '../components/game';
+import { GameContent } from '../components/game-content';
 import { Grid } from '../components/grid';
 import { useLogger } from '../hooks/logger';
+import type { GameLogLine } from '../types/game.types';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
