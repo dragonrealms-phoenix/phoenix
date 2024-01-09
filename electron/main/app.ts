@@ -7,6 +7,7 @@ import type { IpcController } from './ipc';
 import { newIpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
+import { PreferenceKey, Preferences } from './preference';
 import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
@@ -83,6 +84,9 @@ const createMainWindow = async (): Promise<void> => {
       webviewTag: false,
     },
   });
+
+  const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
+  mainWindow.webContents.setZoomFactor(zoomFactor ?? 1);
 
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
