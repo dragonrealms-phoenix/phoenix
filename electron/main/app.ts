@@ -1,6 +1,6 @@
 import type { Event, WebContentsWillNavigateEventParams } from 'electron';
 import { BrowserWindow, app, shell } from 'electron';
-import path from 'node:path';
+import * as path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
 import type { IpcController } from './ipc';

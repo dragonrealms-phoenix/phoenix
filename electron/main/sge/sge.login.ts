@@ -1,4 +1,4 @@
-import tls from 'node:tls';
+import * as tls from 'node:tls';
 import { first, last, merge } from 'lodash';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';

@@ -1,5 +1,5 @@
-import crypto from 'node:crypto';
-import tls from 'node:tls';
+import * as crypto from 'node:crypto';
+import * as tls from 'node:tls';
 import { toUpperSnakeCase } from '../../common/string';
 import type { Maybe } from '../../common/types';
 import { createLogger } from '../logger';
