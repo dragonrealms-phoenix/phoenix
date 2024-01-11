@@ -1,13 +1,14 @@
-import { useEuiTheme } from '@elastic/eui';
+import { EuiFieldText, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
 import { isEmpty } from 'lodash';
 import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
-import type { ReactNode } from 'react';
+import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { runInBackground } from '../../common/async';
 import { ExperienceMindStateMap, GameEventType } from '../../common/game';
 import type {
   ExperienceGameEvent,
@@ -306,6 +307,23 @@ const GridPage: React.FC = (): ReactNode => {
     };
   }, [logger, gameEventsSubject$]);
 
+  // TODO move to a new GameCommandInput component
+  const onKeyDownCommandInput = useCallback<
+    KeyboardEventHandler<HTMLInputElement>
+  >((event) => {
+    const command = event.currentTarget.value;
+    // TODO implement command history to track last N commands
+    //      pressing up/down arrow keys should cycle through history
+    //      pressing down arrow key when at the end of history should clear input
+    //      pressing up arrow key when at the beginning of history should do nothing
+    if (event.code === 'Enter' && !isEmpty(command)) {
+      event.currentTarget.value = '';
+      runInBackground(async () => {
+        await window.api.sendCommand(command);
+      });
+    }
+  }, []);
+
   // TODO the list of items we inject should come from user preferences
   //      if none then provide our own default list
 
@@ -313,208 +331,220 @@ const GridPage: React.FC = (): ReactNode => {
   //      we already support closing grid items, but not synced to prefs yet
 
   return (
-    <GridNoSSR
-      items={[
-        {
-          itemId: 'room',
-          title: 'Room',
-          content: (
-            <GameContent
-              gameStreamIds={['room']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={false}
-            />
-          ),
-        },
-        {
-          itemId: 'experience',
-          title: 'Experience',
-          content: (
-            <GameContent
-              gameStreamIds={['experience']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={false}
-            />
-          ),
-        },
-        {
-          itemId: 'percWindow',
-          title: 'Spells',
-          content: (
-            <GameContent
-              gameStreamIds={['percWindow']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={false}
-            />
-          ),
-        },
-        {
-          itemId: 'inv',
-          title: 'Inventory',
-          content: (
-            <GameContent
-              gameStreamIds={['inv']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={false}
-            />
-          ),
-        },
-        {
-          itemId: 'familiar',
-          title: 'Familiar',
-          content: (
-            <GameContent
-              gameStreamIds={['familiar']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'thoughts',
-          title: 'Thoughts',
-          content: (
-            <GameContent
-              gameStreamIds={['thoughts']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'combat',
-          title: 'Combat',
-          content: (
-            <GameContent
-              gameStreamIds={['combat']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'assess',
-          title: 'Assess',
-          content: (
-            <GameContent
-              gameStreamIds={['assess']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'logons',
-          title: 'Arrivals',
-          content: (
-            <GameContent
-              gameStreamIds={['logons']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'death',
-          title: 'Deaths',
-          content: (
-            <GameContent
-              gameStreamIds={['death']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'atmospherics',
-          title: 'Atmospherics',
-          content: (
-            <GameContent
-              gameStreamIds={['atmospherics']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'chatter',
-          title: 'Chatter',
-          content: (
-            <GameContent
-              gameStreamIds={['chatter']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'conversation',
-          title: 'Conversation',
-          content: (
-            <GameContent
-              gameStreamIds={['conversation']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'whispers',
-          title: 'Whispers',
-          content: (
-            <GameContent
-              gameStreamIds={['whispers']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'talk',
-          title: 'Talk',
-          content: (
-            <GameContent
-              gameStreamIds={['talk']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'ooc',
-          title: 'OOC',
-          content: (
-            <GameContent
-              gameStreamIds={['ooc']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'group',
-          title: 'Group',
-          content: (
-            <GameContent
-              gameStreamIds={['group']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-        {
-          itemId: 'main',
-          title: 'Main',
-          content: (
-            <GameContent
-              gameStreamIds={['']}
-              stream$={gameLogLineSubject$}
-              enableScrollToNewLogLines={true}
-            />
-          ),
-        },
-      ]}
-    />
+    <>
+      {/* TODO figure out sizing of grid so that when height shortens then it doesn't overlap elements below it */}
+      <GridNoSSR
+        items={[
+          {
+            itemId: 'room',
+            title: 'Room',
+            content: (
+              <GameContent
+                gameStreamIds={['room']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={false}
+              />
+            ),
+          },
+          {
+            itemId: 'experience',
+            title: 'Experience',
+            content: (
+              <GameContent
+                gameStreamIds={['experience']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={false}
+              />
+            ),
+          },
+          {
+            itemId: 'percWindow',
+            title: 'Spells',
+            content: (
+              <GameContent
+                gameStreamIds={['percWindow']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={false}
+              />
+            ),
+          },
+          {
+            itemId: 'inv',
+            title: 'Inventory',
+            content: (
+              <GameContent
+                gameStreamIds={['inv']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={false}
+              />
+            ),
+          },
+          {
+            itemId: 'familiar',
+            title: 'Familiar',
+            content: (
+              <GameContent
+                gameStreamIds={['familiar']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'thoughts',
+            title: 'Thoughts',
+            content: (
+              <GameContent
+                gameStreamIds={['thoughts']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'combat',
+            title: 'Combat',
+            content: (
+              <GameContent
+                gameStreamIds={['combat']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'assess',
+            title: 'Assess',
+            content: (
+              <GameContent
+                gameStreamIds={['assess']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'logons',
+            title: 'Arrivals',
+            content: (
+              <GameContent
+                gameStreamIds={['logons']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'death',
+            title: 'Deaths',
+            content: (
+              <GameContent
+                gameStreamIds={['death']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'atmospherics',
+            title: 'Atmospherics',
+            content: (
+              <GameContent
+                gameStreamIds={['atmospherics']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'chatter',
+            title: 'Chatter',
+            content: (
+              <GameContent
+                gameStreamIds={['chatter']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'conversation',
+            title: 'Conversation',
+            content: (
+              <GameContent
+                gameStreamIds={['conversation']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'whispers',
+            title: 'Whispers',
+            content: (
+              <GameContent
+                gameStreamIds={['whispers']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'talk',
+            title: 'Talk',
+            content: (
+              <GameContent
+                gameStreamIds={['talk']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'ooc',
+            title: 'OOC',
+            content: (
+              <GameContent
+                gameStreamIds={['ooc']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'group',
+            title: 'Group',
+            content: (
+              <GameContent
+                gameStreamIds={['group']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+          {
+            itemId: 'main',
+            title: 'Main',
+            content: (
+              <GameContent
+                gameStreamIds={['']}
+                stream$={gameLogLineSubject$}
+                enableScrollToNewLogLines={true}
+              />
+            ),
+          },
+        ]}
+      />
+      {/* TODO create a GameCommandBar component that combines GameRoundTime and GameCommandInput components */}
+      {/* TODO refactor this to its own GameCommandInput component */}
+      <EuiFieldText
+        compressed={true}
+        fullWidth={true}
+        prepend={'RT'}
+        tabIndex={0}
+        onKeyDown={onKeyDownCommandInput}
+      />
+    </>
   );
 };
 
