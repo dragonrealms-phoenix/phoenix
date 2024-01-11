@@ -1,4 +1,4 @@
-import { EuiText } from '@elastic/eui';
+import { EuiPanel, EuiSpacer, EuiText } from '@elastic/eui';
 import { css } from '@emotion/react';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
@@ -123,7 +123,7 @@ export const GameContent: React.FC<GameContentProps> = (
   });
 
   const scrollableRef = useRef<HTMLDivElement>(null);
-  const scrollBottomRef = useRef<HTMLSpanElement>(null);
+  const scrollBottomRef = useRef<HTMLDivElement>(null);
 
   const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(
     enableScrollToNewLogLines
@@ -157,16 +157,23 @@ export const GameContent: React.FC<GameContentProps> = (
     };
   }, [enableScrollToNewLogLines]);
 
-  if (autoScrollEnabled) {
-    scrollBottomRef.current?.scrollIntoView({
-      behavior: 'instant',
-      block: 'end',
-      inline: 'nearest',
-    });
-  }
+  useEffect(() => {
+    if (autoScrollEnabled) {
+      scrollBottomRef.current?.scrollIntoView({
+        behavior: 'instant',
+        block: 'end',
+        inline: 'nearest',
+      });
+    }
+  });
 
   return (
-    <div ref={scrollableRef}>
+    <EuiPanel
+      panelRef={scrollableRef}
+      paddingSize="none"
+      hasBorder={false}
+      hasShadow={false}
+    >
       {gameLogLines.map((logLine) => {
         return (
           <EuiText key={logLine.eventId} css={logLine.styles}>
@@ -174,8 +181,9 @@ export const GameContent: React.FC<GameContentProps> = (
           </EuiText>
         );
       })}
-      <span ref={scrollBottomRef} />
-    </div>
+      <EuiSpacer size="s" />
+      <div ref={scrollBottomRef} />
+    </EuiPanel>
   );
 };
 
