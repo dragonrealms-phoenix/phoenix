@@ -1,3 +1,13 @@
 {
-  "recommendations": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "DotJoshJohnson.xml",
+    "esbenp.prettier-vscode",
+    "foxundermoon.shell-format",
+    "mariusschulz.yarn-lock-syntax",
+    "mikestead.dotenv",
+    "redhat.vscode-commons",
+    "redhat.vscode-xml",
+    "redhat.vscode-yaml"
+  ]
 }
