@@ -548,4 +548,5 @@ const GridPage: React.FC = (): ReactNode => {
   );
 };
 
+// nextjs pages must be default exports
 export default GridPage;
