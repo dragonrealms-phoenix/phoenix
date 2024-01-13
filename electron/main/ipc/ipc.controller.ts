@@ -1,5 +1,4 @@
 import { ipcMain } from 'electron';
-import type { GameEvent } from '../../common/game';
 import { toUpperSnakeCase } from '../../common/string';
 import type { AccountService } from '../account';
 import { Game } from '../game';
@@ -192,11 +191,11 @@ export class IpcController {
 
     logger.debug('subscribing to game service stream');
     gameEvents$.subscribe({
-      next: (gameEvent: GameEvent) => {
+      next: (gameEvent) => {
         logger.debug('game service stream event', { gameEvent });
         this.dispatch('game:event', gameEvent);
       },
-      error: (error: Error) => {
+      error: (error) => {
         logger.error('game service stream error', { error });
         this.dispatch('game:error', error);
       },

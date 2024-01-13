@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { waitUntil } from '../../common/async';

@@ -118,6 +118,7 @@
     "eslint-plugin-prettier": "^5.1.2",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-rxjs": "^5.0.3",
     "eslint-plugin-unused-imports": "^3.0.0",
     "glob": "^10.3.10",
     "husky": "^8.0.3",
@@ -179,7 +180,7 @@
   },
   "lint-staged": {
     "*.{js,ts,tsx}": "eslint --fix",
-    "*.{js,ts,tsx,md,sh,json,yml,yaml}": "prettier --write"
+    "*.{js,ts,tsx,md,sh,json,xml,yml,yaml}": "prettier --write"
   },
   "prettier": {
     "trailingComma": "es5",
@@ -205,17 +206,28 @@
       },
       "next": {
         "rootDir": "electron/renderer/"
+      },
+      "import/ignore": [
+        "fs-extra"
+      ],
+      "comments:import/ignore": {
+        "fs-extra": [
+          "The 'fs-extra' module redefines the 'fs' namespace",
+          "something that the 'import' plugin does not support yet.",
+          "Therefore, we need to ignore it to avoid false positives.",
+          "https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/namespace.md#rule-details"
+        ]
       }
     },
     "extends": [
       "eslint:recommended",
-      "plugin:prettier/recommended",
+      "plugin:@next/next/recommended",
       "plugin:import/recommended",
-      "plugin:@next/next/recommended"
+      "plugin:prettier/recommended"
     ],
     "plugins": [
-      "prettier",
       "import",
+      "prettier",
       "unused-imports"
     ],
     "rules": {
@@ -280,23 +292,25 @@
         },
         "extends": [
           "eslint:recommended",
+          "plugin:@next/next/recommended",
           "plugin:@typescript-eslint/eslint-recommended",
           "plugin:@typescript-eslint/recommended",
-          "plugin:react/recommended",
-          "plugin:react/jsx-runtime",
-          "plugin:react-hooks/recommended",
-          "plugin:prettier/recommended",
           "plugin:import/recommended",
           "plugin:import/electron",
           "plugin:import/typescript",
-          "plugin:@next/next/recommended"
+          "plugin:prettier/recommended",
+          "plugin:react/recommended",
+          "plugin:react/jsx-runtime",
+          "plugin:react-hooks/recommended",
+          "plugin:rxjs/recommended"
         ],
         "plugins": [
           "@typescript-eslint",
+          "import",
+          "prettier",
           "react",
           "react-hooks",
-          "prettier",
-          "import",
+          "rxjs",
           "unused-imports"
         ],
         "rules": {
@@ -345,7 +359,8 @@
                 "css"
               ]
             }
-          ]
+          ],
+          "rxjs/no-implicit-any-catch": "off"
         },
         "overrides": [
           {
