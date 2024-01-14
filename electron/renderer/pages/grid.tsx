@@ -5,7 +5,7 @@ import { isEmpty } from 'lodash';
 import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { runInBackground } from '../../common/async';
@@ -15,9 +15,10 @@ import type {
   GameEvent,
   RoomGameEvent,
 } from '../../common/game';
-import { GameContent } from '../components/game-content';
+import { GameStream } from '../components/game-stream';
 import { Grid } from '../components/grid';
 import { useLogger } from '../hooks/logger';
+import { useWindowDimensions } from '../hooks/window-dimensions';
 import type { GameLogLine } from '../types/game.types';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
@@ -90,7 +91,7 @@ const GridPage: React.FC = (): ReactNode => {
     return textStyles;
   };
 
-  // TODO refactor to a ExperienceGameContent component
+  // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
   //      ones that pulse, toggle between mind state and mind state rate, etc
   const formatExperienceText = useCallback(
@@ -117,7 +118,7 @@ const GridPage: React.FC = (): ReactNode => {
     []
   );
 
-  // TODO refactor to a RoomGameContent component
+  // TODO refactor to a RoomGameStream component
   //      so that it subscribes to all the room events
   //      and updates and formats the text as needed
   //      This would allow the room name to be formatted
@@ -327,22 +328,32 @@ const GridPage: React.FC = (): ReactNode => {
     }
   }, []);
 
-  // TODO the list of items we inject should come from user preferences
-  //      if none then provide our own default list
-
-  // TODO users should be able to add/remove items from the grid
-  //      we already support closing grid items, but not synced to prefs yet
+  const windowDimensions = useWindowDimensions();
+  const dimensions = useMemo(() => {
+    const { height, width } = windowDimensions;
+    if (height && width) {
+      return {
+        height: height - 50,
+        width,
+      };
+    }
+    return {
+      height: 0,
+      width: 0,
+    };
+  }, [windowDimensions]);
 
   return (
     <>
       {/* TODO figure out sizing of grid so that when height shortens then it doesn't overlap elements below it */}
       <GridNoSSR
+        dimensions={dimensions}
         items={[
           {
             itemId: 'room',
             title: 'Room',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['room']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={false}
@@ -353,7 +364,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'experience',
             title: 'Experience',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['experience']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={false}
@@ -364,7 +375,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'percWindow',
             title: 'Spells',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['percWindow']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={false}
@@ -375,7 +386,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'inv',
             title: 'Inventory',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['inv']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={false}
@@ -386,7 +397,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'familiar',
             title: 'Familiar',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['familiar']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -397,7 +408,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'thoughts',
             title: 'Thoughts',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['thoughts']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -408,7 +419,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'combat',
             title: 'Combat',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['combat']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -419,7 +430,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'assess',
             title: 'Assess',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['assess']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -430,7 +441,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'logons',
             title: 'Arrivals',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['logons']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -441,7 +452,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'death',
             title: 'Deaths',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['death']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -452,7 +463,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'atmospherics',
             title: 'Atmospherics',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['atmospherics']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -463,7 +474,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'chatter',
             title: 'Chatter',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['chatter']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -474,7 +485,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'conversation',
             title: 'Conversation',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['conversation']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -485,7 +496,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'whispers',
             title: 'Whispers',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['whispers']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -496,7 +507,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'talk',
             title: 'Talk',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['talk']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -507,7 +518,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'ooc',
             title: 'OOC',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['ooc']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -518,7 +529,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'group',
             title: 'Group',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['group']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
@@ -529,7 +540,7 @@ const GridPage: React.FC = (): ReactNode => {
             itemId: 'main',
             title: 'Main',
             content: (
-              <GameContent
+              <GameStream
                 gameStreamIds={['']}
                 stream$={gameLogLineSubject$}
                 enableScrollToNewLogLines={true}
