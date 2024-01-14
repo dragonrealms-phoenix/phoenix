@@ -168,6 +168,7 @@ export const GameContent: React.FC<GameContentProps> = (
     <EuiPanel
       panelRef={scrollableRef}
       css={scrollablePanelStyles}
+      className="eui-scrollBar"
       paddingSize="none"
       hasBorder={false}
       hasShadow={false}
