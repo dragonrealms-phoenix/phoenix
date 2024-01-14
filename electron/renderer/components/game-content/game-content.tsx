@@ -44,6 +44,33 @@ const emptyLogLine: GameLogLine = {
  */
 const emptyLogLineRegex = /^(>?)(\n+)$/;
 
+const filterDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<GameLogLine> = (
+  observable: rxjs.Observable<GameLogLine>
+) => {
+  return observable.pipe(
+    // To do this, we need to compare the previous and current log lines.
+    // We start with a blank log line so that the first real one is emitted.
+    rxjs.startWith(emptyLogLine),
+    rxjs.pairwise(),
+    rxjs.filter(([prev, curr]) => {
+      const previousText = prev.text;
+      const currentText = curr.text;
+
+      const previousWasNewline = emptyLogLineRegex.test(previousText);
+      const currentIsNewline = emptyLogLineRegex.test(currentText);
+
+      if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
+        return true;
+      }
+      return false;
+    }),
+    // Unwind the pairwise to emit the current log line.
+    rxjs.map(([_prev, curr]) => {
+      return curr;
+    })
+  );
+};
+
 export const GameContent: React.FC<GameContentProps> = (
   props: GameContentProps
 ): ReactNode => {
@@ -56,26 +83,7 @@ export const GameContent: React.FC<GameContentProps> = (
         return gameStreamIds.includes(logLine.streamId);
       }),
       // Avoid sending multiple blank newlines or prompts.
-      // To do this, we need to compare the previous and current log lines.
-      // We start with a blank log line so that the first real one is emitted.
-      rxjs.startWith(emptyLogLine),
-      rxjs.pairwise(),
-      rxjs.filter(([prev, curr]) => {
-        const previousText = prev.text;
-        const currentText = curr.text;
-
-        const previousWasNewline = emptyLogLineRegex.test(previousText);
-        const currentIsNewline = emptyLogLineRegex.test(currentText);
-
-        if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
-          return true;
-        }
-        return false;
-      }),
-      // Unwind the pairwise to emit the current log line.
-      rxjs.map(([_prev, curr]) => {
-        return curr;
-      })
+      filterDuplicateEmptyLines
     );
   });
 
