@@ -460,6 +460,9 @@ export class GameParserImpl implements GameParser {
       case 'roundTime': // <roundTime value='1703617016'/>
         this.emitRoundTimeGameEvent(parseInt(attributes.value));
         break;
+      case 'castTime': // <castTime value='1703617016'/>
+        this.emitCastTimeGameEvent(parseInt(attributes.value));
+        break;
     }
   }
 
@@ -770,6 +773,14 @@ export class GameParserImpl implements GameParser {
   protected emitRoundTimeGameEvent(time: number): void {
     this.emitGameEvent({
       type: GameEventType.ROUND_TIME,
+      eventId: uuid(),
+      time,
+    });
+  }
+
+  protected emitCastTimeGameEvent(time: number): void {
+    this.emitGameEvent({
+      type: GameEventType.CAST_TIME,
       eventId: uuid(),
       time,
     });

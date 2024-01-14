@@ -253,6 +253,9 @@ const GridPage: React.FC = (): ReactNode => {
       case GameEventType.ROUND_TIME:
         // TODO
         break;
+      case GameEventType.CAST_TIME:
+        // TODO
+        break;
     }
   });
 

@@ -18,7 +18,8 @@ export type GameEvent =
   | ExperienceGameEvent
   | RoomGameEvent
   | ServerTimeGameEvent
-  | RoundTimeGameEvent;
+  | RoundTimeGameEvent
+  | CastTimeGameEvent;
 
 export interface GameEventBase {
   /**
@@ -190,6 +191,14 @@ export interface RoundTimeGameEvent extends GameEventBase {
   time: number;
 }
 
+/**
+ * <castTime value='1703617016'/>
+ */
+export interface CastTimeGameEvent extends GameEventBase {
+  type: GameEventType.CAST_TIME;
+  time: number;
+}
+
 export enum GameEventType {
   /**
    * Text to display to the player.
@@ -273,6 +282,14 @@ export enum GameEventType {
    * the number of seconds to wait.
    */
   ROUND_TIME = 'ROUND_TIME',
+  /**
+   * Indicates the character is preparing a spell.
+   * They must wait until the game server time reaches the specified casttime
+   * to be fully prepared to cast the spell.
+   * Subtracting the casttime from the current game time tells you
+   * the number of seconds to wait.
+   */
+  CAST_TIME = 'CAST_TIME',
 }
 
 export enum IndicatorType {
