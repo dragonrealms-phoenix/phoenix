@@ -145,7 +145,11 @@ export class GameServiceImpl implements GameService {
 
       stream$.subscribe({
         next: (data: T) => {
-          fileWriteStream.write(`---\n${data}`);
+          if (typeof data === 'object') {
+            fileWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
+          } else {
+            fileWriteStream.write(`---\n${data}`);
+          }
         },
         error: () => {
           fileWriteStream.end();
