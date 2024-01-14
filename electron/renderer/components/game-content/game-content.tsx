@@ -44,6 +44,18 @@ const emptyLogLine: GameLogLine = {
  */
 const emptyLogLineRegex = /^(>?)(\n+)$/;
 
+/**
+ * For the 'scroll' event to fire on the element, the overflow
+ * property must be set. We rely on this to know if the user has
+ * scrolled to the bottom (and we should engage in auto-scrolling)
+ * or if they have scrolled away from the bottom (and we should
+ * not auto-scroll).
+ */
+const scrollablePanelStyles = css({
+  overflowY: 'scroll',
+  height: '100%',
+});
+
 const filterDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<GameLogLine> = (
   observable: rxjs.Observable<GameLogLine>
 ) => {
@@ -178,6 +190,7 @@ export const GameContent: React.FC<GameContentProps> = (
   return (
     <EuiPanel
       panelRef={scrollableRef}
+      css={scrollablePanelStyles}
       paddingSize="none"
       hasBorder={false}
       hasShadow={false}
