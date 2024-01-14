@@ -4,6 +4,7 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
+import { useIsElementVisible } from '../../hooks/is-element-visible';
 import type { GameLogLine } from '../../types/game.types';
 
 export interface GameContentProps {
@@ -143,43 +144,19 @@ export const GameContent: React.FC<GameContentProps> = (
   });
 
   const scrollableRef = useRef<HTMLDivElement>(null);
-  const scrollBottomRef = useRef<HTMLDivElement>(null);
+  const scrollTargetRef = useRef<HTMLDivElement>(null);
 
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(
-    enableScrollToNewLogLines
-  );
-
-  useEffect(() => {
-    if (!enableScrollToNewLogLines) {
-      return;
-    }
-
-    let scrollableElmt = scrollableRef.current;
-
-    const onScroll = () => {
-      scrollableElmt = scrollableRef.current;
-
-      if (!scrollableElmt) {
-        return;
-      }
-
-      const { scrollTop, scrollHeight, clientHeight } = scrollableElmt;
-      const difference = scrollHeight - clientHeight - scrollTop;
-      const enableAutoScroll = difference <= clientHeight;
-
-      setAutoScrollEnabled(enableAutoScroll);
-    };
-
-    scrollableElmt?.addEventListener('scroll', onScroll);
-
-    return () => {
-      scrollableElmt?.removeEventListener('scroll', onScroll);
-    };
-  }, [enableScrollToNewLogLines]);
+  const [isScrollTargetVisible] = useIsElementVisible({
+    root: scrollableRef.current,
+    target: scrollTargetRef.current,
+    threshold: 0.8,
+  });
 
   useEffect(() => {
-    if (autoScrollEnabled) {
-      scrollBottomRef.current?.scrollIntoView({
+    // If the user is scrolled to the bottom, then continue
+    // to scroll to the bottom as new log lines are added.
+    if (enableScrollToNewLogLines && isScrollTargetVisible) {
+      scrollTargetRef.current?.scrollIntoView({
         behavior: 'instant',
         block: 'end',
         inline: 'nearest',
@@ -203,7 +180,7 @@ export const GameContent: React.FC<GameContentProps> = (
         );
       })}
       <EuiSpacer size="s" />
-      <div ref={scrollBottomRef} />
+      <div ref={scrollTargetRef} />
     </EuiPanel>
   );
 };
