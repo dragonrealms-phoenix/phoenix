@@ -177,7 +177,7 @@ export const GameContent: React.FC<GameContentProps> = (
       {gameLogLines.map((logLine) => {
         return (
           <EuiText key={logLine.eventId} css={logLine.styles}>
-            {logLine.text}
+            <span dangerouslySetInnerHTML={{ __html: logLine.text }} />
           </EuiText>
         );
       })}
