@@ -1,8 +1,11 @@
+import { app } from 'electron';
+import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { waitUntil } from '../../common/async';
 import { type GameEvent, GameEventType } from '../../common/game';
+import { LogLevel, isLogLevelEnabled } from '../../common/logger';
 import { createLogger } from '../logger';
 import type { SGEGameCredentials } from '../sge';
 import { GameParserImpl } from './game.parser';
@@ -75,33 +78,12 @@ export class GameServiceImpl implements GameService {
       this.sentCommandsSubject$
     );
 
-    // TODO remove writing to file; just helpful for early development
-    const socketWriteStream = fs.createWriteStream('game-socket.log');
-    socketData$.subscribe({
-      next: (data: string) => {
-        socketWriteStream.write(`---\n${data}`);
-      },
-      error: () => {
-        socketWriteStream.end();
-      },
-      complete: () => {
-        socketWriteStream.end();
-      },
-    });
-
-    // TODO remove writing to file; just helpful for early development
-    const gameEventWriteStream = fs.createWriteStream('game-event.log');
-    gameEvents$.subscribe({
-      next: (data: GameEvent) => {
-        gameEventWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
-      },
-      error: () => {
-        gameEventWriteStream.end();
-      },
-      complete: () => {
-        gameEventWriteStream.end();
-      },
-    });
+    if (isLogLevelEnabled(LogLevel.TRACE)) {
+      this.logGameStreams({
+        socketData$,
+        gameEvents$,
+      });
+    }
 
     return gameEvents$;
   }
@@ -145,5 +127,40 @@ export class GameServiceImpl implements GameService {
     if (!result) {
       throw new Error(`[GAME:SERVICE:DISCONNECT:TIMEOUT] ${timeout}`);
     }
+  }
+
+  protected logGameStreams(options: {
+    socketData$: rxjs.Observable<string>;
+    gameEvents$: rxjs.Observable<GameEvent>;
+  }): void {
+    const { socketData$, gameEvents$ } = options;
+
+    const writeStreamToFile = <T>(options: {
+      stream$: rxjs.Observable<T>;
+      filePath: string;
+    }): void => {
+      const { stream$, filePath } = options;
+
+      const fileWriteStream = fs.createWriteStream(filePath);
+
+      stream$.subscribe({
+        next: (data: T) => {
+          fileWriteStream.write(`---\n${data}`);
+        },
+        error: () => {
+          fileWriteStream.end();
+        },
+        complete: () => {
+          fileWriteStream.end();
+        },
+      });
+    };
+
+    const logPath = app.getPath('logs');
+    const socketLogPath = path.join(logPath, 'game-socket.log');
+    const eventLogPath = path.join(logPath, 'game-event.log');
+
+    writeStreamToFile({ stream$: socketData$, filePath: socketLogPath });
+    writeStreamToFile({ stream$: gameEvents$, filePath: eventLogPath });
   }
 }
