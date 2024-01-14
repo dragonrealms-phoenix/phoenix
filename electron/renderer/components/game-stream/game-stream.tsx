@@ -7,7 +7,7 @@ import * as rxjs from 'rxjs';
 import { useIsElementVisible } from '../../hooks/is-element-visible';
 import type { GameLogLine } from '../../types/game.types';
 
-export interface GameContentProps {
+export interface GameStreamProps {
   /**
    * The stream of game text to display.
    * The stream is additive, so each new line will be appended to the end.
@@ -29,7 +29,6 @@ export interface GameContentProps {
 
 /**
  * To help filter out duplicate empty log lines.
- * See the rxjs filter logic in the GameContent component's stream.
  */
 const emptyLogLine: GameLogLine = {
   eventId: '',
@@ -84,8 +83,8 @@ const filterDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<GameLogLine> = (
   );
 };
 
-export const GameContent: React.FC<GameContentProps> = (
-  props: GameContentProps
+export const GameStream: React.FC<GameStreamProps> = (
+  props: GameStreamProps
 ): ReactNode => {
   const { stream$, gameStreamIds, enableScrollToNewLogLines } = props;
 
@@ -186,4 +185,4 @@ export const GameContent: React.FC<GameContentProps> = (
   );
 };
 
-GameContent.displayName = 'GameContent';
+GameStream.displayName = 'GameStream';

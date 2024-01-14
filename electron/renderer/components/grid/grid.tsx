@@ -12,7 +12,6 @@ import {
 } from 'react';
 import type { Layout } from 'react-grid-layout';
 import GridLayout from 'react-grid-layout';
-import { useWindowDimensions } from '../../hooks/window-dimensions';
 import { LocalStorage } from '../../lib/local-storage';
 import { GridItem } from '../grid-item';
 
@@ -23,23 +22,25 @@ export interface GridItemProps {
 }
 
 export interface GridProps {
+  dimensions: {
+    height: number;
+    width: number;
+  };
   items: Array<GridItemProps>;
 }
 
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
-  const { items } = props;
+  const { dimensions, items } = props;
 
   const { euiTheme } = useEuiTheme();
-
-  const windowDimensions = useWindowDimensions();
 
   const [gridLayoutStyles, setGridLayoutStyles] = useState<SerializedStyles>();
 
   useEffect(() => {
     setGridLayoutStyles(css`
       ${css({
-        height: windowDimensions.height,
-        width: windowDimensions.width,
+        height: dimensions.height,
+        width: dimensions.width,
       })}
       .react-grid-item.react-grid-placeholder {
         ${css({
@@ -57,7 +58,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         })}
       }
     `);
-  }, [windowDimensions, euiTheme]);
+  }, [dimensions, euiTheme]);
 
   /**
    * When grid items are resized the increment is based on the the layout size.
@@ -94,14 +95,14 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const [gridMaxWidth, setGridMaxWidth] = useState<number>(1200); // app.ts
 
   useEffect(() => {
-    const { height, width } = windowDimensions;
+    const { height, width } = dimensions;
     if (height) {
       setGridMaxRows(Math.floor(height / gridRowHeightWithMargin));
     }
     if (width) {
       setGridMaxWidth(width);
     }
-  }, [windowDimensions, gridRowHeightWithMargin]);
+  }, [dimensions, gridRowHeightWithMargin]);
 
   /**
    * Load the layout from storage or build a default layout.
