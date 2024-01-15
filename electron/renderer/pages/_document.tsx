@@ -11,7 +11,7 @@ function createThemeLink(theme: Theme): ReactElement {
 
   if (theme.id !== getDefaultThemeName()) {
     disabledProps = {
-      disabled: true,
+      'disabled': true,
       'aria-disabled': true,
     };
   }

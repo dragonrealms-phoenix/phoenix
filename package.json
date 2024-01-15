@@ -186,7 +186,8 @@
     "trailingComma": "es5",
     "semi": true,
     "singleQuote": true,
-    "endOfLine": "auto"
+    "endOfLine": "auto",
+    "quoteProps": "consistent"
   },
   "eslintConfig": {
     "root": true,
