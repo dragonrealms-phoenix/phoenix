@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { runInBackground } from '../../common/async';
-import { ExperienceMindStateMap, GameEventType } from '../../common/game';
+import { GameEventType, getExperienceMindState } from '../../common/game';
 import type {
   ExperienceGameEvent,
   GameEvent,
@@ -97,7 +97,7 @@ const GridPage: React.FC = (): ReactNode => {
   const formatExperienceText = useCallback(
     (gameEvent: ExperienceGameEvent): string => {
       const { skill, rank, percent, mindState } = gameEvent;
-      const mindStateRate = ExperienceMindStateMap[mindState];
+      const mindStateRate = getExperienceMindState(mindState) ?? 0;
 
       const txtSkill = skill.padStart(15);
       const txtRank = String(rank).padStart(3);
@@ -561,6 +561,8 @@ const GridPage: React.FC = (): ReactNode => {
     </>
   );
 };
+
+GridPage.displayName = 'GridPage';
 
 // nextjs pages must be default exports
 export default GridPage;
