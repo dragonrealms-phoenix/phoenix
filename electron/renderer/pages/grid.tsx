@@ -2,7 +2,6 @@ import { EuiFieldText, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
 import { isEmpty } from 'lodash';
-import dynamic from 'next/dynamic';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -17,6 +16,7 @@ import type {
 } from '../../common/game';
 import { GameStream } from '../components/game-stream';
 import { Grid } from '../components/grid';
+import { NoSSR } from '../components/no-ssr';
 import { useLogger } from '../hooks/logger';
 import { useWindowDimensions } from '../hooks/window-dimensions';
 import type { GameLogLine } from '../types/game.types';
@@ -24,7 +24,7 @@ import type { GameLogLine } from '../types/game.types';
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
 // https://nextjs.org/docs/messages/react-hydration-error
-const GridNoSSR = dynamic(async () => Grid, { ssr: false });
+const GridNoSSR = NoSSR(Grid);
 
 // I started tracking these via `useState` but when calling their setter
 // the value did not update fast enough before a text game event
