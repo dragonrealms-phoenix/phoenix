@@ -14,7 +14,7 @@ import type {
   GameEvent,
   RoomGameEvent,
 } from '../../common/game';
-import { GameStream } from '../components/game-stream';
+import { GameStream } from '../components/game';
 import { Grid } from '../components/grid';
 import { NoSSR } from '../components/no-ssr';
 import { useLogger } from '../hooks/logger';
