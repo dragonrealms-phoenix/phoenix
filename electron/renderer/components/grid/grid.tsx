@@ -13,20 +13,18 @@ import {
 import type { Layout } from 'react-grid-layout';
 import GridLayout from 'react-grid-layout';
 import { LocalStorage } from '../../lib/local-storage';
-import { GridItem } from '../grid-item';
-
-export interface GridItemProps {
-  itemId: string;
-  title: string;
-  content: ReactNode;
-}
+import { GridItem } from '.';
 
 export interface GridProps {
   dimensions: {
     height: number;
     width: number;
   };
-  items: Array<GridItemProps>;
+  items: Array<{
+    itemId: string;
+    title: string;
+    content: ReactNode;
+  }>;
 }
 
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
