@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from 'react';
-import { GameProvider } from '../../context/game';
 import { GameBottomBar } from './game-bottom-bar';
 import { GameGrid } from './game-grid';
 import { GameSettings } from './game-settings';
@@ -15,7 +14,7 @@ export const GameContainer: React.FC<GameContainerProps> = (
   const [showSettings, setShowSettings] = useState<boolean>(true);
 
   return (
-    <GameProvider>
+    <>
       <GameTopBar />
       <GameGrid />
       <GameBottomBar />
@@ -28,7 +27,7 @@ export const GameContainer: React.FC<GameContainerProps> = (
           // }, 10_000);
         }}
       />
-    </GameProvider>
+    </>
   );
 };
 
