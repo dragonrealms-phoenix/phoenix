@@ -356,7 +356,6 @@ const GridPage: React.FC = (): ReactNode => {
               <GameStream
                 gameStreamIds={['room']}
                 stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={false}
               />
             ),
           },
@@ -367,184 +366,164 @@ const GridPage: React.FC = (): ReactNode => {
               <GameStream
                 gameStreamIds={['experience']}
                 stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={false}
               />
             ),
           },
-          {
-            itemId: 'percWindow',
-            title: 'Spells',
-            content: (
-              <GameStream
-                gameStreamIds={['percWindow']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={false}
-              />
-            ),
-          },
-          {
-            itemId: 'inv',
-            title: 'Inventory',
-            content: (
-              <GameStream
-                gameStreamIds={['inv']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={false}
-              />
-            ),
-          },
-          {
-            itemId: 'familiar',
-            title: 'Familiar',
-            content: (
-              <GameStream
-                gameStreamIds={['familiar']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'thoughts',
-            title: 'Thoughts',
-            content: (
-              <GameStream
-                gameStreamIds={['thoughts']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'combat',
-            title: 'Combat',
-            content: (
-              <GameStream
-                gameStreamIds={['combat']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'assess',
-            title: 'Assess',
-            content: (
-              <GameStream
-                gameStreamIds={['assess']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'logons',
-            title: 'Arrivals',
-            content: (
-              <GameStream
-                gameStreamIds={['logons']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'death',
-            title: 'Deaths',
-            content: (
-              <GameStream
-                gameStreamIds={['death']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'atmospherics',
-            title: 'Atmospherics',
-            content: (
-              <GameStream
-                gameStreamIds={['atmospherics']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'chatter',
-            title: 'Chatter',
-            content: (
-              <GameStream
-                gameStreamIds={['chatter']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'conversation',
-            title: 'Conversation',
-            content: (
-              <GameStream
-                gameStreamIds={['conversation']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'whispers',
-            title: 'Whispers',
-            content: (
-              <GameStream
-                gameStreamIds={['whispers']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'talk',
-            title: 'Talk',
-            content: (
-              <GameStream
-                gameStreamIds={['talk']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'ooc',
-            title: 'OOC',
-            content: (
-              <GameStream
-                gameStreamIds={['ooc']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
-          {
-            itemId: 'group',
-            title: 'Group',
-            content: (
-              <GameStream
-                gameStreamIds={['group']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
-            ),
-          },
+          // {
+          //   itemId: 'percWindow',
+          //   title: 'Spells',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['percWindow']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'inv',
+          //   title: 'Inventory',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['inv']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'familiar',
+          //   title: 'Familiar',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['familiar']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'thoughts',
+          //   title: 'Thoughts',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['thoughts']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'combat',
+          //   title: 'Combat',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['combat']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'assess',
+          //   title: 'Assess',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['assess']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'logons',
+          //   title: 'Arrivals',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['logons']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'death',
+          //   title: 'Deaths',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['death']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'atmospherics',
+          //   title: 'Atmospherics',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['atmospherics']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'chatter',
+          //   title: 'Chatter',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['chatter']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'conversation',
+          //   title: 'Conversation',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['conversation']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'whispers',
+          //   title: 'Whispers',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['whispers']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'talk',
+          //   title: 'Talk',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['talk']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'ooc',
+          //   title: 'OOC',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['ooc']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
+          // {
+          //   itemId: 'group',
+          //   title: 'Group',
+          //   content: (
+          //     <GameStream
+          //       gameStreamIds={['group']}
+          //       stream$={gameLogLineSubject$}
+          //     />
+          //   ),
+          // },
           {
             itemId: 'main',
             title: 'Main',
             content: (
-              <GameStream
-                gameStreamIds={['']}
-                stream$={gameLogLineSubject$}
-                enableScrollToNewLogLines={true}
-              />
+              <GameStream gameStreamIds={['']} stream$={gameLogLineSubject$} />
             ),
           },
         ]}

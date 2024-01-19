@@ -18,12 +18,6 @@ export interface GameStreamProps {
    * Most components will only display a single stream id.
    */
   gameStreamIds: Array<string>;
-  /**
-   * Enable to automatically scroll to the bottom of the game stream window
-   * as new log lines are added. This effect only occurs if the user
-   * is already scrolled to the bottom to ensure they see latest content.
-   */
-  enableScrollToNewLogLines: boolean;
 }
 
 /**
@@ -85,7 +79,7 @@ const filterDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<GameLogLine> = (
 export const GameStream: React.FC<GameStreamProps> = (
   props: GameStreamProps
 ): ReactNode => {
-  const { stream$, gameStreamIds, enableScrollToNewLogLines } = props;
+  const { stream$, gameStreamIds } = props;
 
   const filteredStream$ = useObservable(() => {
     return stream$.pipe(
