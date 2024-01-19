@@ -13,7 +13,7 @@ import {
 import type { Layout } from 'react-grid-layout';
 import GridLayout from 'react-grid-layout';
 import { LocalStorage } from '../../lib/local-storage';
-import { GridItem } from '.';
+import { GridItem } from './grid-item';
 
 export interface GridProps {
   dimensions: {
@@ -105,7 +105,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   /**
    * Load the layout from storage or build a default layout.
    */
-  const buildDefaultLayout = (): Array<Layout> => {
+  const buildDefaultLayout = useCallback((): Array<Layout> => {
     let layout = LocalStorage.get<Array<Layout>>('layout');
 
     if (layout) {
@@ -154,7 +154,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     });
 
     return layout;
-  };
+  }, [items]);
 
   const [layout, setLayout] = useState<Array<Layout>>(buildDefaultLayout);
 
@@ -176,18 +176,31 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   }, []);
 
   /**
-   * Originally I called `useRef` in the grid item's `useMemo` hook below but
-   * that caused "Error: Rendered fewer hooks than expected" to be thrown.
-   * I later learned the "Rule of Hooks" which forbid what I was doing.
-   * Found a workaround on stackoverflow to store the refs in a ref. Ironic.
-   * https://react.dev/warnings/invalid-hook-call-warning
-   * https://stackoverflow.com/questions/65350114/useref-for-element-in-loop-in-react/65350394#65350394
+   * How to use custom components as react-grid-layout children.
+   * https://github.com/react-grid-layout/react-grid-layout/tree/master?tab=readme-ov-file#custom-child-components-and-draggable-handles
+   * https://stackoverflow.com/questions/67053157/react-grid-layout-error-draggablecore-not-mounted-on-dragstart
    */
-  const itemRefs = useRef<Array<RefObject<HTMLDivElement>>>([]);
-  itemRefs.current = layout.map((_layoutItem, index) => {
-    // Note we use `createRef` and not `useRef` per "Rule of Hooks" for loops.
-    return itemRefs.current[index] ?? createRef<HTMLDivElement>();
-  });
+  const itemRefsMap = useRef<Map<string, RefObject<HTMLDivElement>>>(new Map());
+
+  // This section builds a stable map of refs for each grid item element.
+  itemRefsMap.current = useMemo(() => {
+    const oldMap = itemRefsMap.current;
+    const newMap = new Map<string, RefObject<HTMLDivElement>>();
+
+    // When the layout changes, reuse a ref if it already exists.
+    // When the layout grows, we create new refs for the new items.
+    layout.forEach((layoutItem) => {
+      const oldRef = oldMap.get(layoutItem.i);
+      const newRef = oldRef ?? createRef<HTMLDivElement>();
+      newMap.set(layoutItem.i, newRef);
+    });
+
+    return newMap;
+
+    // For performance, I only want to recalculate the children
+    // if the number of items in the layout changes. No other reason.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layout.length]);
 
   /**
    * To improve performance, we memoize the children so that they don't
@@ -196,18 +209,20 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
    * https://github.com/react-grid-layout/react-grid-layout?tab=readme-ov-file#performance
    */
   const gridItems = useMemo(() => {
-    return layout.map((layoutItem, index) => {
-      const item = items.find((item) => item.itemId === layoutItem.i);
-      const itemRef = itemRefs.current[index];
+    return layout.map((layoutItem) => {
+      // Assuming the item will always be found will come back to haunt me.
+      // I just don't know when or why.
+      const item = items.find((item) => item.itemId === layoutItem.i)!;
+      const itemRef = itemRefsMap.current.get(layoutItem.i)!;
       return (
         <GridItem
           ref={itemRef}
-          key={item!.itemId} // assuming the item will always be found
-          itemId={item!.itemId} // will come back to haunt me
-          titleBarText={item!.title} // I just don't know when or why
+          key={item.itemId}
+          itemId={item.itemId}
+          titleBarText={item.title}
           onClose={onGridItemClose}
         >
-          {item!.content}
+          {item.content}
         </GridItem>
       );
     });
