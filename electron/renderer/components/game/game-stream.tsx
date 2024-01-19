@@ -4,7 +4,6 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
-import { useIsElementVisible } from '../../hooks/is-element-visible';
 import type { GameLogLine } from '../../types/game.types';
 
 export interface GameStreamProps {
@@ -113,7 +112,7 @@ export const GameStream: React.FC<GameStreamProps> = (
     });
   }, []);
 
-  const clearStreamTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
@@ -142,20 +141,29 @@ export const GameStream: React.FC<GameStreamProps> = (
     }
   });
 
+  // Scroll to the bottom of the scrollable element when new content is added.
+  // https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/
   const scrollableRef = useRef<HTMLDivElement>(null);
   const scrollTargetRef = useRef<HTMLDivElement>(null);
+  const didInitialScrollRef = useRef<boolean>(false);
 
-  const [isScrollTargetVisible] = useIsElementVisible({
-    root: scrollableRef.current,
-    target: scrollTargetRef.current,
-    threshold: 0.8,
-  });
-
+  // The scroll behavior of `overflowAnchor: auto` doesn't take effect
+  // to pin the content to the bottom until after an initial scroll event.
+  // Therefore, on each render we check if sufficient content has been
+  // added to the scrollable element to warrant an initial scroll.
+  // After that, the browser handles it automatically.
   useEffect(() => {
-    // If the user is scrolled to the bottom, then continue
-    // to scroll to the bottom as new log lines are added.
-    if (enableScrollToNewLogLines && isScrollTargetVisible) {
-      scrollTargetRef.current?.scrollIntoView({
+    if (
+      // We haven't done an initial scroll yet.
+      !didInitialScrollRef.current &&
+      // There's something to scroll to.
+      scrollTargetRef.current &&
+      scrollableRef.current &&
+      // The scrollable element is scrollable.
+      scrollableRef.current.scrollHeight > scrollableRef.current.clientHeight
+    ) {
+      didInitialScrollRef.current = true;
+      scrollTargetRef.current.scrollIntoView({
         behavior: 'instant',
         block: 'end',
         inline: 'nearest',
@@ -172,13 +180,15 @@ export const GameStream: React.FC<GameStreamProps> = (
       hasBorder={false}
       hasShadow={false}
     >
-      {gameLogLines.map((logLine) => {
-        return (
-          <EuiText key={logLine.eventId} css={logLine.styles}>
-            <span dangerouslySetInnerHTML={{ __html: logLine.text }} />
-          </EuiText>
-        );
-      })}
+      <div css={{ overflowAnchor: 'none' }}>
+        {gameLogLines.map((logLine) => {
+          return (
+            <EuiText key={logLine.eventId} css={logLine.styles}>
+              <span dangerouslySetInnerHTML={{ __html: logLine.text }} />
+            </EuiText>
+          );
+        })}
+      </div>
       <EuiSpacer size="s" />
       <div ref={scrollTargetRef} />
     </EuiPanel>
