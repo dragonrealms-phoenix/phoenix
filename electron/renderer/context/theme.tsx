@@ -17,6 +17,9 @@ export interface ThemeContextValue {
 export const ThemeContext = createContext<ThemeContextValue>({});
 
 export interface ThemeProviderProps {
+  /**
+   * Nested components.
+   */
   children?: ReactNode;
 }
 

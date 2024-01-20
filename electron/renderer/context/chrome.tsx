@@ -7,6 +7,9 @@ import type { Maybe } from '../../common/types';
 import { useTheme } from '../hooks/theme';
 
 export interface ChromeProviderProps {
+  /**
+   * Nested components.
+   */
   children?: ReactNode;
 }
 
