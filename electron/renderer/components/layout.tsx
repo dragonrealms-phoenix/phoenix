@@ -1,6 +1,6 @@
 import { EuiPageTemplate } from '@elastic/eui';
 import type { ReactNode } from 'react';
-import { SidebarContainer } from './sidebar';
+import { Sidebar } from './sidebar';
 
 export interface LayoutProps {
   /**
@@ -22,7 +22,7 @@ export const Layout: React.FC<LayoutProps> = (
   return (
     <EuiPageTemplate grow={true} responsive={[]}>
       <EuiPageTemplate.Sidebar minWidth={50} paddingSize="xs" responsive={[]}>
-        <SidebarContainer />
+        <Sidebar />
       </EuiPageTemplate.Sidebar>
       <EuiPageTemplate.Section paddingSize="none" grow={true}>
         {children}
