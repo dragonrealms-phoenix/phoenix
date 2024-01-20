@@ -1,10 +1,10 @@
-import { EuiFieldText, useEuiTheme } from '@elastic/eui';
+import { EuiFieldText, EuiPageTemplate, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
 import { isEmpty } from 'lodash';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { runInBackground } from '../../common/async';
@@ -18,7 +18,8 @@ import { GameStream } from '../components/game';
 import { Grid } from '../components/grid';
 import { NoSSR } from '../components/no-ssr';
 import { useLogger } from '../hooks/logger';
-import { useWindowDimensions } from '../hooks/window-dimensions';
+import { useMeasure } from '../hooks/measure';
+import { useWindowSize } from '../hooks/window-size';
 import type { GameLogLine } from '../types/game.types';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
@@ -328,215 +329,231 @@ const GridPage: React.FC = (): ReactNode => {
     }
   }, []);
 
-  const windowDimensions = useWindowDimensions();
-  const dimensions = useMemo(() => {
-    const { height, width } = windowDimensions;
-    if (height && width) {
-      return {
-        height: height - 50,
-        width,
-      };
-    }
-    return {
-      height: 0,
-      width: 0,
-    };
-  }, [windowDimensions]);
+  // Calculating the height for the grid is tricky.
+  // Something about how `EuiPageTemplate.Section` is styled, the height
+  // is not able to be observed or measured. It's always zero.
+  // The width, however, does calculate correctly as the page resizes.
+  // As a workaround, I take the window height minus other elements in the
+  // same column as the grid to approximate the allowed grid height.
+  const windowSize = useWindowSize();
+  const [bottomBarRef, bottomBarSize] = useMeasure<HTMLInputElement>();
+  const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
+  const gridHeight = windowSize.height - bottomBarSize.height - 20;
 
   return (
     <>
-      {/* TODO figure out sizing of grid so that when height shortens then it doesn't overlap elements below it */}
-      <GridNoSSR
-        dimensions={dimensions}
-        items={[
-          {
-            itemId: 'room',
-            title: 'Room',
-            content: (
-              <GameStream
-                gameStreamIds={['room']}
-                stream$={gameLogLineSubject$}
-              />
-            ),
-          },
-          {
-            itemId: 'experience',
-            title: 'Experience',
-            content: (
-              <GameStream
-                gameStreamIds={['experience']}
-                stream$={gameLogLineSubject$}
-              />
-            ),
-          },
-          // {
-          //   itemId: 'percWindow',
-          //   title: 'Spells',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['percWindow']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'inv',
-          //   title: 'Inventory',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['inv']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'familiar',
-          //   title: 'Familiar',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['familiar']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'thoughts',
-          //   title: 'Thoughts',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['thoughts']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'combat',
-          //   title: 'Combat',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['combat']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'assess',
-          //   title: 'Assess',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['assess']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'logons',
-          //   title: 'Arrivals',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['logons']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'death',
-          //   title: 'Deaths',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['death']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'atmospherics',
-          //   title: 'Atmospherics',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['atmospherics']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'chatter',
-          //   title: 'Chatter',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['chatter']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'conversation',
-          //   title: 'Conversation',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['conversation']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'whispers',
-          //   title: 'Whispers',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['whispers']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'talk',
-          //   title: 'Talk',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['talk']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'ooc',
-          //   title: 'OOC',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['ooc']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          // {
-          //   itemId: 'group',
-          //   title: 'Group',
-          //   content: (
-          //     <GameStream
-          //       gameStreamIds={['group']}
-          //       stream$={gameLogLineSubject$}
-          //     />
-          //   ),
-          // },
-          {
-            itemId: 'main',
-            title: 'Main',
-            content: (
-              <GameStream gameStreamIds={['']} stream$={gameLogLineSubject$} />
-            ),
-          },
-        ]}
-      />
-      {/* TODO create a GameCommandBar component that combines GameRoundTime and GameCommandInput components */}
-      {/* TODO refactor this to its own GameCommandInput component */}
-      <EuiFieldText
-        compressed={true}
-        fullWidth={true}
-        prepend={'RT'}
-        tabIndex={0}
-        onKeyDown={onKeyDownCommandInput}
-      />
+      <EuiPageTemplate
+        direction="column"
+        paddingSize="s"
+        panelled={false}
+        grow={true}
+        responsive={[]}
+        css={{ height: '100%' }}
+      >
+        <EuiPageTemplate.Section grow={true}>
+          <div ref={gridWidthRef}>
+            <GridNoSSR
+              dimensions={{
+                height: gridHeight,
+                width: gridWidth,
+              }}
+              items={[
+                {
+                  itemId: 'room',
+                  title: 'Room',
+                  content: (
+                    <GameStream
+                      gameStreamIds={['room']}
+                      stream$={gameLogLineSubject$}
+                    />
+                  ),
+                },
+                {
+                  itemId: 'experience',
+                  title: 'Experience',
+                  content: (
+                    <GameStream
+                      gameStreamIds={['experience']}
+                      stream$={gameLogLineSubject$}
+                    />
+                  ),
+                },
+                // {
+                //   itemId: 'percWindow',
+                //   title: 'Spells',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['percWindow']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'inv',
+                //   title: 'Inventory',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['inv']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'familiar',
+                //   title: 'Familiar',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['familiar']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'thoughts',
+                //   title: 'Thoughts',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['thoughts']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'combat',
+                //   title: 'Combat',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['combat']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'assess',
+                //   title: 'Assess',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['assess']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'logons',
+                //   title: 'Arrivals',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['logons']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'death',
+                //   title: 'Deaths',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['death']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'atmospherics',
+                //   title: 'Atmospherics',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['atmospherics']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'chatter',
+                //   title: 'Chatter',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['chatter']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'conversation',
+                //   title: 'Conversation',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['conversation']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'whispers',
+                //   title: 'Whispers',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['whispers']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'talk',
+                //   title: 'Talk',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['talk']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'ooc',
+                //   title: 'OOC',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['ooc']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                // {
+                //   itemId: 'group',
+                //   title: 'Group',
+                //   content: (
+                //     <GameStream
+                //       gameStreamIds={['group']}
+                //       stream$={gameLogLineSubject$}
+                //     />
+                //   ),
+                // },
+                {
+                  itemId: 'main',
+                  title: 'Main',
+                  content: (
+                    <GameStream
+                      gameStreamIds={['']}
+                      stream$={gameLogLineSubject$}
+                    />
+                  ),
+                },
+              ]}
+            />
+          </div>
+        </EuiPageTemplate.Section>
+        <EuiPageTemplate.BottomBar>
+          <div ref={bottomBarRef}>
+            <EuiFieldText
+              compressed={true}
+              fullWidth={true}
+              prepend={'RT'}
+              tabIndex={0}
+              onKeyDown={onKeyDownCommandInput}
+            />
+          </div>
+        </EuiPageTemplate.BottomBar>
+      </EuiPageTemplate>
     </>
   );
 };

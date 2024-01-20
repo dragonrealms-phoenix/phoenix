@@ -239,9 +239,12 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       width={gridMaxWidth}
       rowHeight={gridRowHeight}
       maxRows={gridMaxRows}
-      // Disable the grid from managing its own height.
-      // We manage it explicitly in the `gridLayoutStyles` above.
-      autoSize={false}
+      // Enable the grid to grow and shrink to stay within
+      // the max columns and rows. Note, the items within the
+      // grid might not shrink to fit the grid, but the canvas will.
+      // The grid then becomes scrollable and ensures elements outside the
+      // grid position on page correctly rather than floating over the grid.
+      autoSize={true}
       // Provide nominal spacing between grid items.
       // If this value changes then review the grid row height variables.
       margin={[1, 1]}
