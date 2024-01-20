@@ -1,3 +1,4 @@
+// Inspired by next-eui-starter repo.
 // https://github.com/elastic/next-eui-starter/blob/master/src/lib/theme.ts
 
 import type { EuiThemeColorMode } from '@elastic/eui';

@@ -3,8 +3,12 @@ import type { ThemeContextValue } from '../context/theme';
 import { ThemeContext } from '../context/theme';
 
 /**
- * To use this hook, the component must be wrapped in a `ThemeProvider`
- * somewhere in the parent hierarchy.
+ * To use this hook, the component must be inside a `ThemeProvider` hierarchy.
+ *
+ * Usage:
+ * ```
+ * const { colorMode, setColorMode } = useTheme();
+ * ```
  */
 export const useTheme = (): ThemeContextValue => {
   return useContext(ThemeContext);

@@ -1,3 +1,4 @@
+// Inspired by next-eui-starter repo.
 // https://github.com/elastic/next-eui-starter/blob/master/src/pages/_app.tsx
 
 import { EuiErrorBoundary } from '@elastic/eui';

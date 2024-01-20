@@ -1,3 +1,4 @@
+// Sentry Config for Next.js
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as SentryNextjs from '@sentry/nextjs';
