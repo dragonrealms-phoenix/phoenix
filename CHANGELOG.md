@@ -1,3 +1,40 @@
+# [1.6.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.5.0...v1.6.0) (2024-01-21)
+
+
+### Bug Fixes
+
+* detect when not scrolled at bottom ([5eb8656](https://github.com/dragonrealms-phoenix/phoenix/commit/5eb86564760c5c3fab5cf65539b2db9b14659cfe))
+* game stream import ([f0667c3](https://github.com/dragonrealms-phoenix/phoenix/commit/f0667c33dec083078cd319dba555f8184a6acf11))
+* improve auto scroll by using useEffect ([558ce97](https://github.com/dragonrealms-phoenix/phoenix/commit/558ce9706f6750a12bcf3ce5bce2fdc09a972e02))
+* jest is peculiar about imports ([8278fb7](https://github.com/dragonrealms-phoenix/phoenix/commit/8278fb75d0b3618b0741dcf94ce32f8353cbc184))
+* pin scroll to bottom ([cac1618](https://github.com/dragonrealms-phoenix/phoenix/commit/cac1618f0f54fd25e18cbc0788406ec647782e2e))
+
+
+### Features
+
+* add preferences service ([74f7a55](https://github.com/dragonrealms-phoenix/phoenix/commit/74f7a5526dcc4cf68d44c1dbcb40c3157dc653d1))
+* add simple command input for testing ([22ef9aa](https://github.com/dragonrealms-phoenix/phoenix/commit/22ef9aa1eaeefef0882a41b3ffb8550c08802406))
+* cast time event ([cefcea8](https://github.com/dragonrealms-phoenix/phoenix/commit/cefcea8493588d8fa57797d3d0cfe12e715840c4))
+* check if log level enabled ([164c224](https://github.com/dragonrealms-phoenix/phoenix/commit/164c224475a73fc9db97c1b3e29746e9f55a2f30))
+* debounce write to disk ([01ef54d](https://github.com/dragonrealms-phoenix/phoenix/commit/01ef54dbb451af0f7d5644ef68d39ddd51ddfa4e))
+* dynamic set grid dimensions ([b70e368](https://github.com/dragonrealms-phoenix/phoenix/commit/b70e36819633e7fdde7a9a8000b10aa9d66f2c20))
+* game context provider ([9b263e7](https://github.com/dragonrealms-phoenix/phoenix/commit/9b263e74c86485238773e2bc99cf7be44898f852))
+* if trace logging enabled then log game streams ([442dda7](https://github.com/dragonrealms-phoenix/phoenix/commit/442dda7d94f9bcb1d333548b085adb09c9721c13))
+* inline style bold text ([1b92347](https://github.com/dragonrealms-phoenix/phoenix/commit/1b92347bb69073009b81931d2b26b62af18ba96d))
+* move urls to common data ([82e2c7c](https://github.com/dragonrealms-phoenix/phoenix/commit/82e2c7cc299ece4b05e3f67e8b932d2dc803ef82))
+* no-ssr component ([c1fe913](https://github.com/dragonrealms-phoenix/phoenix/commit/c1fe913a1203f8566566c565a8d2770a5192a257))
+* save zoom factor pref ([2d0af23](https://github.com/dragonrealms-phoenix/phoenix/commit/2d0af232cfbefd1704c49965caa343bc7dcc3c3d))
+* sidebar ([663dc26](https://github.com/dragonrealms-phoenix/phoenix/commit/663dc261374dfbde894ac6b2254caf166874d90a))
+* sidebar item help ([deaf246](https://github.com/dragonrealms-phoenix/phoenix/commit/deaf24629f9e6ffc97aaab7be8af32692b009262))
+* stringify objects in log ([55e5e87](https://github.com/dragonrealms-phoenix/phoenix/commit/55e5e8731f7326dccb1f9767044f1bda45ee3c90))
+* stub out game components ([b866ad3](https://github.com/dragonrealms-phoenix/phoenix/commit/b866ad38ba3ffc6a087d38362d9984a5bb2fe640))
+* styles scrollbar ([2ebb19d](https://github.com/dragonrealms-phoenix/phoenix/commit/2ebb19d9fa4c0d0819619cacb259fdf364b03e3e))
+* template layout with sidebar ([2f83b1a](https://github.com/dragonrealms-phoenix/phoenix/commit/2f83b1a40817f844e25befd4fc69a95f6bad8392))
+* update window open security ([6184188](https://github.com/dragonrealms-phoenix/phoenix/commit/618418821483bbc95b233b66efede106bf1608b8))
+* use command input bar ([38a8673](https://github.com/dragonrealms-phoenix/phoenix/commit/38a8673586c4ae7ef7f472f4e8ef5f497a8cc1d0))
+* use intersection observable api to detect if should auto scroll ([33a7102](https://github.com/dragonrealms-phoenix/phoenix/commit/33a7102e4ca2693e61c3c8ee6133c9b5628cf1fd))
+* util to convert to maybe type ([1b8c959](https://github.com/dragonrealms-phoenix/phoenix/commit/1b8c9597a28a505bf95e10f72271b67d5259af8f))
+
 # [1.5.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.4.0...v1.5.0) (2024-01-09)
 
 
