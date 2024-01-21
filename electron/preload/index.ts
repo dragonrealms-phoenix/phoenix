@@ -80,12 +80,17 @@ const appAPI = {
   },
   /**
    * Allows the renderer to subscribe to messages from the main process.
+   * Returns an unsubscribe function, useful in react hook cleanup functions.
    */
   onMessage: (
     channel: string,
     callback: (event: IpcRendererEvent, ...args: Array<any>) => void
-  ) => {
+  ): OnMessageUnsubscribe => {
     ipcRenderer.on(channel, callback);
+
+    return () => {
+      ipcRenderer.off(channel, callback);
+    };
   },
   /**
    * Allows the renderer to unsubscribe from messages from the main process.
@@ -96,12 +101,14 @@ const appAPI = {
    * is regenerated. To prevent this, ensure to unsubscribe in the hook's
    * destroy function. https://stackoverflow.com/a/73458622/470818
    */
-  removeAllListeners(channel: string) {
+  removeAllListeners(channel: string): void {
     ipcRenderer.removeAllListeners(channel);
   },
 };
 
 declare global {
+  type OnMessageUnsubscribe = () => void;
+
   type TypeOfAppAPI = typeof appAPI;
 
   type AppAPI = {

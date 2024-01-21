@@ -58,11 +58,12 @@ declare const appAPI: {
   sendCommand: (command: string) => Promise<void>;
   /**
    * Allows the renderer to subscribe to messages from the main process.
+   * Returns an unsubscribe function, useful in react hook cleanup functions.
    */
   onMessage: (
     channel: string,
     callback: (event: Electron.IpcRendererEvent, ...args: any[]) => void
-  ) => void;
+  ) => OnMessageUnsubscribe;
   /**
    * Allows the renderer to unsubscribe from messages from the main process.
    * Removes all listeners added by the `onMessage` API for a channel.
@@ -75,6 +76,7 @@ declare const appAPI: {
   removeAllListeners(channel: string): void;
 };
 declare global {
+  type OnMessageUnsubscribe = () => void;
   type TypeOfAppAPI = typeof appAPI;
   type AppAPI = {
     [K in keyof TypeOfAppAPI]: TypeOfAppAPI[K];
