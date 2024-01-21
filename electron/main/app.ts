@@ -19,6 +19,9 @@ const appEnv = process.env.APP_ENV ?? 'production';
 const appEnvIsProd = appEnv === 'production';
 const appEnvIsDev = appEnv === 'development';
 
+// Only load dev tools when running in development.
+const appEnableDevTools = appEnvIsDev && !app.isPackaged;
+
 const appPath = app.getAppPath();
 const appElectronPath = path.join(appPath, 'electron');
 const appBuildPath = path.join(appElectronPath, 'build');
@@ -65,7 +68,7 @@ const createMainWindow = async (): Promise<void> => {
     show: false, // hidden until window loads contents to avoid a blank screen
     webPreferences: {
       preload: path.join(appPreloadPath, 'index.js'),
-      devTools: !app.isPackaged,
+      devTools: appEnableDevTools,
       /**
        * Security Best Practices
        * https://www.electronjs.org/docs/latest/tutorial/security
@@ -114,6 +117,12 @@ const createMainWindow = async (): Promise<void> => {
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
   runInBackground(async () => {
+    if (appEnableDevTools) {
+      const { installChromeExtensions } = await import(
+        './chrome/install-extension'
+      );
+      await installChromeExtensions();
+    }
     await createMainWindow();
   });
 });
