@@ -20,7 +20,15 @@ export const Layout: React.FC<LayoutProps> = (
   // And that's not the UX we want.
 
   return (
-    <EuiPageTemplate grow={true} responsive={[]}>
+    <EuiPageTemplate
+      direction="row"
+      paddingSize="s"
+      panelled={true}
+      grow={true}
+      restrictWidth={false}
+      responsive={[]}
+      css={{ height: '100%', maxWidth: 'unset' }}
+    >
       <EuiPageTemplate.Sidebar minWidth={50} paddingSize="xs" responsive={[]}>
         <Sidebar />
       </EuiPageTemplate.Sidebar>
