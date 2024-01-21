@@ -79,6 +79,7 @@ export class IpcController {
   }
 
   private pingHandler: IpcInvokeHandler<'ping'> = async (): Promise<string> => {
+    this.dispatch('pong', 'pong');
     return 'pong';
   };
 
