@@ -1,10 +1,14 @@
-import { EuiPanel, EuiSpacer, EuiText } from '@elastic/eui';
-import { css } from '@emotion/react';
+import { EuiPanel, EuiSpacer } from '@elastic/eui';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import * as rxjs from 'rxjs';
+import type * as rxjs from 'rxjs';
 import type { GameLogLine } from '../../types/game.types';
+import { GameStreamText } from './game-stream-text';
+import {
+  excludeDuplicateEmptyLines,
+  filterLinesForGameStreams,
+} from './game.utils';
 
 export interface GameStreamProps {
   /**
@@ -20,62 +24,6 @@ export interface GameStreamProps {
   gameStreamIds: Array<string>;
 }
 
-/**
- * To help filter out duplicate empty log lines.
- */
-const emptyLogLine: GameLogLine = {
-  eventId: '',
-  streamId: '',
-  text: '',
-  styles: css(),
-};
-
-/**
- * Matches a log line that is either a newline or a prompt.
- * Effectively, an "empty" log line to the player.
- * https://regex101.com/r/TbkDIb/1
- */
-const emptyLogLineRegex = /^(>?)(\n+)$/;
-
-/**
- * For the 'scroll' event to fire on the element, the overflow
- * property must be set. We rely on this to know if the user has
- * scrolled to the bottom (and we should engage in auto-scrolling)
- * or if they have scrolled away from the bottom (and we should
- * not auto-scroll).
- */
-const scrollablePanelStyles = css({
-  overflowY: 'scroll',
-  height: '100%',
-});
-
-const filterDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<GameLogLine> = (
-  observable: rxjs.Observable<GameLogLine>
-) => {
-  return observable.pipe(
-    // To do this, we need to compare the previous and current log lines.
-    // We start with a blank log line so that the first real one is emitted.
-    rxjs.startWith(emptyLogLine),
-    rxjs.pairwise(),
-    rxjs.filter(([prev, curr]) => {
-      const previousText = prev.text;
-      const currentText = curr.text;
-
-      const previousWasNewline = emptyLogLineRegex.test(previousText);
-      const currentIsNewline = emptyLogLineRegex.test(currentText);
-
-      if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
-        return true;
-      }
-      return false;
-    }),
-    // Unwind the pairwise to emit the current log line.
-    rxjs.map(([_prev, curr]) => {
-      return curr;
-    })
-  );
-};
-
 export const GameStream: React.FC<GameStreamProps> = (
   props: GameStreamProps
 ): ReactNode => {
@@ -83,12 +31,8 @@ export const GameStream: React.FC<GameStreamProps> = (
 
   const filteredStream$ = useObservable(() => {
     return stream$.pipe(
-      // Filter to only the game stream ids we care about.
-      rxjs.filter((logLine) => {
-        return gameStreamIds.includes(logLine.streamId);
-      }),
-      // Avoid sending multiple blank newlines or prompts.
-      filterDuplicateEmptyLines
+      filterLinesForGameStreams({ gameStreamIds }),
+      excludeDuplicateEmptyLines
     );
   });
 
@@ -168,23 +112,32 @@ export const GameStream: React.FC<GameStreamProps> = (
   return (
     <EuiPanel
       panelRef={scrollableRef}
-      css={scrollablePanelStyles}
+      // For the 'scroll' event to fire on the element, the overflow
+      // property must be set. We rely on this to know if the user has
+      // scrolled to the bottom and we should engage in auto-scrolling,
+      // or if they have scrolled away and we should not auto-scroll.
+      css={{
+        overflowY: 'scroll',
+        height: '100%',
+      }}
       className="eui-scrollBar"
       paddingSize="none"
       hasBorder={false}
       hasShadow={false}
     >
+      {/*
+        Disable scroll anchor so that when the user scrolls up in the stream
+        then as new content arrives it doesn't force the scroll position back.
+        Only when the user is scrolled to the bottom will the scroll position
+        be pinned to the bottom because that's the element with an anchor.
+       */}
       <div css={{ overflowAnchor: 'none' }}>
         {gameLogLines.map((logLine) => {
-          return (
-            <EuiText key={logLine.eventId} css={logLine.styles}>
-              <span dangerouslySetInnerHTML={{ __html: logLine.text }} />
-            </EuiText>
-          );
+          return <GameStreamText key={logLine.eventId} logLine={logLine} />;
         })}
       </div>
       <EuiSpacer size="s" />
-      <div ref={scrollTargetRef} />
+      <div ref={scrollTargetRef} css={{ overflowAnchor: 'auto' }} />
     </EuiPanel>
   );
 };
