@@ -65,6 +65,8 @@ const createMainWindow = async (): Promise<void> => {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    minWidth: 600,
+    minHeight: 500,
     show: false, // hidden until window loads contents to avoid a blank screen
     webPreferences: {
       preload: path.join(appPreloadPath, 'index.js'),
