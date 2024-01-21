@@ -1,4 +1,4 @@
-import type { Event, WebContentsWillNavigateEventParams } from 'electron';
+import type { Event } from 'electron';
 import { BrowserWindow, app, shell } from 'electron';
 import * as path from 'node:path';
 import serve from 'electron-serve';
@@ -131,10 +131,7 @@ app.on('web-contents-created', (_, contents) => {
     return allowedDomains.some((d) => d.test(domain));
   };
 
-  const blockOrOpenURL = (
-    event: Event<WebContentsWillNavigateEventParams>,
-    url: string
-  ): void => {
+  contents.setWindowOpenHandler(({ url }) => {
     const domain = new URL(url).hostname;
     // If the domain is allowed, open it in the user's default browser.
     if (isAllowedDomain(domain)) {
@@ -145,17 +142,16 @@ app.on('web-contents-created', (_, contents) => {
     } else {
       logger.warn('blocked window navigation', { url });
     }
-    event.preventDefault();
-  };
+    // Prevent window navigation within the app.
+    return { action: 'deny' };
+  });
 
   contents.on('will-navigate', (event, url) => {
     logger.debug('will-navigate', { url });
-    blockOrOpenURL(event, url);
   });
 
   contents.on('will-redirect', (event, url) => {
     logger.debug('will-redirect', { url });
-    blockOrOpenURL(event, url);
   });
 });
 
