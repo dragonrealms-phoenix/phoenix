@@ -111,6 +111,7 @@
     "copy-webpack-plugin": "^12.0.2",
     "electron": "^28.1.4",
     "electron-builder": "^24.9.1",
+    "electron-extension-installer": "^1.2.0",
     "electron-next": "^3.1.5",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
@@ -361,6 +362,13 @@
               "ignore": [
                 "css"
               ]
+            }
+          ],
+          "react/display-name": [
+            "error",
+            {
+              "ignoreTranspilerName": false,
+              "checkContextObjects": true
             }
           ],
           "rxjs/no-implicit-any-catch": "off"
