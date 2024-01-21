@@ -1,2 +1,2 @@
-export * from './game.service';
 export * from './game.types';
+export * from './game.instance';

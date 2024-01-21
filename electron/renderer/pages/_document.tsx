@@ -1,8 +1,10 @@
+// Inspired by next-eui-starter repo.
 // https://github.com/elastic/next-eui-starter/blob/master/src/pages/_document.tsx
 
-import Document, { Head, Html, Main, NextScript } from 'next/document';
+import { Head, Html, Main, NextScript } from 'next/document';
+import { useMemo } from 'react';
 import type { LinkHTMLAttributes, ReactElement } from 'react';
-import { createElement } from 'react';
+import type React from 'react';
 import type { Theme } from '../lib/theme';
 import { getDefaultThemeName, themeConfig } from '../lib/theme';
 
@@ -11,7 +13,7 @@ function createThemeLink(theme: Theme): ReactElement {
 
   if (theme.id !== getDefaultThemeName()) {
     disabledProps = {
-      disabled: true,
+      'disabled': true,
       'aria-disabled': true,
     };
   }
@@ -42,10 +44,7 @@ function createThemeLink(theme: Theme): ReactElement {
 function createStyleLink(
   props: LinkHTMLAttributes<HTMLLinkElement>
 ): ReactElement {
-  return createElement<LinkHTMLAttributes<HTMLLinkElement>>('link', {
-    rel: 'stylesheet',
-    ...props,
-  });
+  return <link rel="stylesheet" {...props} />;
 }
 
 /**
@@ -55,33 +54,47 @@ function createStyleLink(
  *
  * @see https://nextjs.org/docs/advanced-features/custom-document
  */
-export default class MyDocument extends Document {
-  render(): ReactElement {
-    return (
-      <Html lang="en">
-        <Head>
-          <meta name="eui-styles" />
-          {themeConfig.availableThemes.map((theme) => createThemeLink(theme))}
-          <meta name="eui-styles-utility" />
-          {createStyleLink({ href: '/react-grid/layout.min.css' })}
-          {createStyleLink({ href: '/react-grid/resizable.min.css' })}
-          <meta
-            httpEquiv="Content-Security-Policy"
-            content={`
-              default-src 'none';
-              script-src 'self' 'unsafe-eval';
-              img-src 'self' data:;
-              style-src 'self' 'unsafe-inline';
-              font-src 'self';
-              connect-src 'self' ${process.env.SENTRY_INGEST_DOMAIN};
-            `}
-          />
-        </Head>
-        <body>
-          <Main />
-          <NextScript />
-        </body>
-      </Html>
-    );
-  }
-}
+const Document: React.FC = () => {
+  const euiThemeLinks = useMemo(() => {
+    return themeConfig.availableThemes.map((theme) => createThemeLink(theme));
+  }, []);
+
+  const reactGridLayoutStyleLink = useMemo(() => {
+    return createStyleLink({ href: '/react-grid/layout.min.css' });
+  }, []);
+
+  const reactGridResizableStyleLink = useMemo(() => {
+    return createStyleLink({ href: '/react-grid/resizable.min.css' });
+  }, []);
+
+  return (
+    <Html lang="en">
+      <Head>
+        <meta name="eui-styles" />
+        {euiThemeLinks}
+        <meta name="eui-styles-utility" />
+        {reactGridLayoutStyleLink}
+        {reactGridResizableStyleLink}
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content={`
+            default-src 'none';
+            script-src 'self' 'unsafe-eval';
+            img-src 'self' data:;
+            style-src 'self' 'unsafe-inline';
+            font-src 'self';
+            connect-src 'self' ${process.env.SENTRY_INGEST_DOMAIN};
+          `}
+        />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+};
+
+Document.displayName = 'Document';
+
+export default Document;

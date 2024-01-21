@@ -1,6 +1,13 @@
 import * as rxjs from 'rxjs';
 
 /**
+ * The maximum number of events to buffer to replay upon subscription.
+ * Once this limit is reached, any new events are dropped until
+ * the subject is subscribed to.
+ */
+const REPLAY_BUFFER_SIZE = 100;
+
+/**
  * A custom `ReplaySubject` that only replays the buffered events
  * to the first subscriber. All subsequent subscribers will only
  * receive new events, as if subscribed to a `Subject`.
@@ -22,7 +29,7 @@ export class ReplayFirstSubscriberOnlySubject<T>
   private subject?: rxjs.Subject<T>;
 
   constructor() {
-    this.replaySubject = new rxjs.ReplaySubject<T>();
+    this.replaySubject = new rxjs.ReplaySubject<T>(REPLAY_BUFFER_SIZE);
   }
 
   public next(value: T): void {

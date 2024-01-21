@@ -1,12 +1,13 @@
-import type { Event, WebContentsWillNavigateEventParams } from 'electron';
+import type { Event } from 'electron';
 import { BrowserWindow, app, shell } from 'electron';
-import path from 'node:path';
+import * as path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
 import type { IpcController } from './ipc';
 import { newIpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
+import { PreferenceKey, Preferences } from './preference';
 import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
@@ -84,6 +85,9 @@ const createMainWindow = async (): Promise<void> => {
     },
   });
 
+  const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
+  mainWindow.webContents.setZoomFactor(zoomFactor ?? 1);
+
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
     logger.debug('showing main window');
@@ -127,10 +131,7 @@ app.on('web-contents-created', (_, contents) => {
     return allowedDomains.some((d) => d.test(domain));
   };
 
-  const blockOrOpenURL = (
-    event: Event<WebContentsWillNavigateEventParams>,
-    url: string
-  ): void => {
+  contents.setWindowOpenHandler(({ url }) => {
     const domain = new URL(url).hostname;
     // If the domain is allowed, open it in the user's default browser.
     if (isAllowedDomain(domain)) {
@@ -141,17 +142,16 @@ app.on('web-contents-created', (_, contents) => {
     } else {
       logger.warn('blocked window navigation', { url });
     }
-    event.preventDefault();
-  };
+    // Prevent window navigation within the app.
+    return { action: 'deny' };
+  });
 
   contents.on('will-navigate', (event, url) => {
     logger.debug('will-navigate', { url });
-    blockOrOpenURL(event, url);
   });
 
   contents.on('will-redirect', (event, url) => {
     logger.debug('will-redirect', { url });
-    blockOrOpenURL(event, url);
   });
 });
 

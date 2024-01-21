@@ -1,9 +1,11 @@
-import fs from 'fs-extra';
+import { app } from 'electron';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { waitUntil } from '../../common/async';
 import { type GameEvent, GameEventType } from '../../common/game';
-import type { Maybe } from '../../common/types';
+import { LogLevel, isLogLevelEnabled } from '../../common/logger';
 import { createLogger } from '../logger';
 import type { SGEGameCredentials } from '../sge';
 import { GameParserImpl } from './game.parser';
@@ -16,7 +18,7 @@ const logger = createLogger('game:service');
  * This class isn't exported. To ensure a single instance exists then
  * it's exposed through the exported `Game` object at bottom of this file.
  */
-class GameServiceImpl implements GameService {
+export class GameServiceImpl implements GameService {
   /**
    * Indicates if the protocol to authenticate to the game server has completed.
    * There is a brief delay after sending credentials before the game server
@@ -76,33 +78,12 @@ class GameServiceImpl implements GameService {
       this.sentCommandsSubject$
     );
 
-    // TODO remove writing to file; just helpful for early development
-    const socketWriteStream = fs.createWriteStream('game-socket.log');
-    socketData$.subscribe({
-      next: (data: string) => {
-        socketWriteStream.write(`---\n${data}`);
-      },
-      error: () => {
-        socketWriteStream.end();
-      },
-      complete: () => {
-        socketWriteStream.end();
-      },
-    });
-
-    // TODO remove writing to file; just helpful for early development
-    const gameEventWriteStream = fs.createWriteStream('game-event.log');
-    gameEvents$.subscribe({
-      next: (data: GameEvent) => {
-        gameEventWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
-      },
-      error: () => {
-        gameEventWriteStream.end();
-      },
-      complete: () => {
-        gameEventWriteStream.end();
-      },
-    });
+    if (isLogLevelEnabled(LogLevel.TRACE)) {
+      this.logGameStreams({
+        socketData$,
+        gameEvents$,
+      });
+    }
 
     return gameEvents$;
   }
@@ -147,42 +128,43 @@ class GameServiceImpl implements GameService {
       throw new Error(`[GAME:SERVICE:DISCONNECT:TIMEOUT] ${timeout}`);
     }
   }
+
+  protected logGameStreams(options: {
+    socketData$: rxjs.Observable<string>;
+    gameEvents$: rxjs.Observable<GameEvent>;
+  }): void {
+    const { socketData$, gameEvents$ } = options;
+
+    const writeStreamToFile = <T>(options: {
+      stream$: rxjs.Observable<T>;
+      filePath: string;
+    }): void => {
+      const { stream$, filePath } = options;
+
+      const fileWriteStream = fs.createWriteStream(filePath);
+
+      stream$.subscribe({
+        next: (data: T) => {
+          if (typeof data === 'object') {
+            fileWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
+          } else {
+            fileWriteStream.write(`---\n${data}`);
+          }
+        },
+        error: () => {
+          fileWriteStream.end();
+        },
+        complete: () => {
+          fileWriteStream.end();
+        },
+      });
+    };
+
+    const logPath = app.getPath('logs');
+    const socketLogPath = path.join(logPath, 'game-socket.log');
+    const eventLogPath = path.join(logPath, 'game-event.log');
+
+    writeStreamToFile({ stream$: socketData$, filePath: socketLogPath });
+    writeStreamToFile({ stream$: gameEvents$, filePath: eventLogPath });
+  }
 }
-
-// There is exactly one game instance at a time,
-// and it can be playing at most one character.
-let gameInstance: Maybe<GameService>;
-
-export const Game = {
-  /**
-   * There is exactly one game instance at a time,
-   * and it can be playing at most one character.
-   *
-   * To play a different character then
-   * a new game instance must be created.
-   *
-   * Creating a new game instance will disconnect the existing one.
-   *
-   * Use the `getInstance` method to get a refence to the current game instance.
-   */
-  newInstance: async (options: {
-    credentials: SGEGameCredentials;
-  }): Promise<GameService> => {
-    const { credentials } = options;
-    if (gameInstance) {
-      logger.info('disconnecting from existing game instance');
-      await gameInstance.disconnect();
-    }
-    logger.info('creating new game instance');
-    gameInstance = new GameServiceImpl({ credentials });
-    return gameInstance;
-  },
-
-  /**
-   * A reference to the current game instance.
-   * Returns undefined if the `newInstance` method has not yet been called.
-   */
-  getInstance: (): Maybe<GameService> => {
-    return gameInstance;
-  },
-};

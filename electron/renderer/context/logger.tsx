@@ -28,7 +28,7 @@ export interface LoggerProviderProps {
   /**
    * Nested components.
    */
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export const LoggerProvider: React.FC<LoggerProviderProps> = (

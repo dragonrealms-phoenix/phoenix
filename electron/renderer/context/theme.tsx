@@ -1,5 +1,7 @@
+// Inspired by next-eui-starter repo.
 // https://github.com/elastic/next-eui-starter/blob/master/src/components/theme.tsx
 
+import type { EuiThemeColorMode } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
 import { enableTheme, getDefaultThemeName, getThemeName } from '../lib/theme';
@@ -9,13 +11,16 @@ import { enableTheme, getDefaultThemeName, getThemeName } from '../lib/theme';
  * Color mode is usually either 'light' or 'dark'.
  */
 export interface ThemeContextValue {
-  colorMode?: string;
-  setColorMode?: (colorMode: string) => void;
+  colorMode?: EuiThemeColorMode;
+  setColorMode?: (colorMode: EuiThemeColorMode) => void;
 }
 
 export const ThemeContext = createContext<ThemeContextValue>({});
 
 export interface ThemeProviderProps {
+  /**
+   * Nested components.
+   */
   children?: ReactNode;
 }
 

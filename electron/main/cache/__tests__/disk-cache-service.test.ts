@@ -1,6 +1,9 @@
 import * as fs from 'fs-extra';
 import { DiskCacheServiceImpl } from '../disk-cache.service';
 
+// To quickly skip past the debounced write to disk time.
+jest.useFakeTimers();
+
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
@@ -10,6 +13,8 @@ describe('disk-cache-service', () => {
 
   afterEach(() => {
     fs.removeSync(filepath);
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   test('set - primitive', async () => {
@@ -20,6 +25,8 @@ describe('disk-cache-service', () => {
     });
 
     await cacheService.set('key', 42);
+
+    await jest.advanceTimersToNextTimerAsync();
 
     const cacheAfter = await fs.readJson(filepath);
 
@@ -35,6 +42,8 @@ describe('disk-cache-service', () => {
     });
 
     await cacheService.set('key', { value: 42 });
+
+    await jest.advanceTimersToNextTimerAsync();
 
     const cacheAfter = await fs.readJson(filepath);
 
@@ -87,6 +96,8 @@ describe('disk-cache-service', () => {
 
     await cacheService.remove('key');
 
+    await jest.advanceTimersToNextTimerAsync();
+
     const cacheAfter = await fs.readJson(filepath);
 
     expect(cacheBefore.key).toEqual(42);
@@ -104,6 +115,8 @@ describe('disk-cache-service', () => {
 
     await cacheService.remove('key');
 
+    await jest.advanceTimersToNextTimerAsync();
+
     const cacheAfter = await fs.readJson(filepath);
 
     expect(cacheBefore.key).toEqual({ value: 42 });
@@ -118,6 +131,8 @@ describe('disk-cache-service', () => {
     });
 
     await cacheService.remove('non-existant-key');
+
+    await jest.advanceTimersToNextTimerAsync();
 
     const cacheAfter = await fs.readJson(filepath);
 
@@ -135,6 +150,8 @@ describe('disk-cache-service', () => {
     });
 
     await cacheService.clear();
+
+    await jest.advanceTimersToNextTimerAsync();
 
     const cacheAfter = await fs.readJson(filepath);
 

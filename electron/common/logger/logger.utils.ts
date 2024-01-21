@@ -3,16 +3,18 @@
 // It's in those modules that the correct logger instance will be imported.
 import type {
   LogFunctions as ElectronLogFunctions,
+  LogLevel as ElectronLogLevel,
+  LogMessage as ElectronLogMessage,
   Logger as ElectronLogger,
-  LogLevel,
-  LogMessage,
 } from 'electron-log';
+import { includesIgnoreCase } from '../string';
 import { formatLogData } from './logger.format';
 import type { LogFunction, Logger } from './logger.types';
+import { LogLevel } from './logger.types';
 
 interface ElectronLogFunctionsExtended extends ElectronLogFunctions {
   /**
-   * Alias for silly.
+   * Alias for electron logger's 'silly' level.
    */
   trace: LogFunction;
 }
@@ -29,8 +31,8 @@ function getElectronLoggerInstance(): ElectronLogger {
 }
 
 function addTraceLevel(logger: ElectronLogger): void {
-  if (!logger.levels.includes('trace')) {
-    logger.addLevel('trace');
+  if (!includesIgnoreCase(logger.levels, LogLevel.TRACE)) {
+    logger.addLevel(LogLevel.TRACE);
   }
 }
 
@@ -53,7 +55,7 @@ export function createLogger(scope?: string): Logger {
 
 export function initializeLogging(logger: ElectronLogger): void {
   // Add our custom log formatter.
-  logger.hooks.push((message: LogMessage): LogMessage => {
+  logger.hooks.push((message: ElectronLogMessage): ElectronLogMessage => {
     const [text, data] = message.data as Parameters<LogFunction>;
     if (data) {
       message.data = [text, formatLogData(data)];
@@ -62,15 +64,28 @@ export function initializeLogging(logger: ElectronLogger): void {
   });
 
   // Set the log level.
-  // eslint-disable-next-line no-restricted-globals -- process.env is allowed
-  const logLevel = (process.env.LOG_LEVEL ?? 'info') as LogLevel;
   Object.keys(logger.transports).forEach((transportKey) => {
     const transport = logger.transports[transportKey];
     if (transport) {
-      transport.level = logLevel;
+      transport.level = getLogLevel() as ElectronLogLevel;
     }
   });
+}
 
-  // Overwrite the console.log/warn/etc methods
-  //Object.assign(console, logger.functions);
+export function isLogLevelEnabled(logLevelToCheck: LogLevel): boolean {
+  const allLogLevels = Object.values(LogLevel);
+  const currentIndex = allLogLevels.indexOf(getLogLevel());
+  const indexToCheck = allLogLevels.indexOf(logLevelToCheck);
+
+  // If neither log level is found then the log level is not enabled.
+  if (currentIndex < 0 || indexToCheck < 0) {
+    return false;
+  }
+
+  return currentIndex >= indexToCheck;
+}
+
+export function getLogLevel(): LogLevel {
+  // eslint-disable-next-line no-restricted-globals -- process.env is allowed
+  return (process.env.LOG_LEVEL ?? 'info') as LogLevel;
 }

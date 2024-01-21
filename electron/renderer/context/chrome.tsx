@@ -1,6 +1,6 @@
+// Inspired by next-eui-starter repo.
 // https://github.com/elastic/next-eui-starter/blob/master/src/components/chrome/index.tsx
 
-import type { EuiThemeColorMode } from '@elastic/eui';
 import { EuiProvider } from '@elastic/eui';
 import createCache from '@emotion/cache';
 import type { ReactNode } from 'react';
@@ -8,6 +8,9 @@ import type { Maybe } from '../../common/types';
 import { useTheme } from '../hooks/theme';
 
 export interface ChromeProviderProps {
+  /**
+   * Nested components.
+   */
   children?: ReactNode;
 }
 
@@ -41,7 +44,7 @@ export const ChromeProvider: React.FC<ChromeProviderProps> = (
 
   return (
     <EuiProvider
-      colorMode={colorMode as EuiThemeColorMode}
+      colorMode={colorMode}
       cache={{ default: defaultCache, utility: utilityCache }}
     >
       {children}

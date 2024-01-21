@@ -1,4 +1,9 @@
+// Inspired by next-eui-starter repo.
 // https://github.com/elastic/next-eui-starter/blob/master/src/lib/theme.ts
+
+import type { EuiThemeColorMode } from '@elastic/eui';
+import type { Maybe } from '../../common/types';
+import { LocalStorage } from './local-storage';
 
 /**
  * The functions here are for tracking and setting the current theme.
@@ -11,9 +16,9 @@ function getAllThemes(): Array<HTMLLinkElement> {
   return [...document.querySelectorAll('link[data-name="eui-theme"]')];
 }
 
-export function enableTheme(newThemeName: string): void {
+export function enableTheme(newThemeName: EuiThemeColorMode): void {
   const oldThemeName = getThemeName();
-  localStorage.setItem('theme', newThemeName);
+  LocalStorage.set<EuiThemeColorMode>('theme', newThemeName);
 
   for (const themeLink of getAllThemes()) {
     // Disable all theme links, except for the desired theme, which we enable
@@ -33,15 +38,15 @@ export function enableTheme(newThemeName: string): void {
   }
 }
 
-export function getThemeName(): string {
+export function getThemeName(): EuiThemeColorMode {
   return getStoredThemeName() || getDefaultThemeName();
 }
 
-export function getStoredThemeName(): string | null {
-  return localStorage.getItem('theme');
+export function getStoredThemeName(): Maybe<EuiThemeColorMode> {
+  return LocalStorage.get<EuiThemeColorMode>('theme');
 }
 
-export function getDefaultThemeName(): string {
+export function getDefaultThemeName(): EuiThemeColorMode {
   return 'dark';
 }
 

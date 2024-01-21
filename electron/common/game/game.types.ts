@@ -18,7 +18,8 @@ export type GameEvent =
   | ExperienceGameEvent
   | RoomGameEvent
   | ServerTimeGameEvent
-  | RoundTimeGameEvent;
+  | RoundTimeGameEvent
+  | CastTimeGameEvent;
 
 export interface GameEventBase {
   /**
@@ -190,6 +191,14 @@ export interface RoundTimeGameEvent extends GameEventBase {
   time: number;
 }
 
+/**
+ * <castTime value='1703617016'/>
+ */
+export interface CastTimeGameEvent extends GameEventBase {
+  type: GameEventType.CAST_TIME;
+  time: number;
+}
+
 export enum GameEventType {
   /**
    * Text to display to the player.
@@ -273,6 +282,14 @@ export enum GameEventType {
    * the number of seconds to wait.
    */
   ROUND_TIME = 'ROUND_TIME',
+  /**
+   * Indicates the character is preparing a spell.
+   * They must wait until the game server time reaches the specified casttime
+   * to be fully prepared to cast the spell.
+   * Subtracting the casttime from the current game time tells you
+   * the number of seconds to wait.
+   */
+  CAST_TIME = 'CAST_TIME',
 }
 
 export enum IndicatorType {
@@ -300,40 +317,40 @@ export enum IndicatorType {
  * Map of mind states to their learning rate (0-34).
  * https://elanthipedia.play.net/Experience#Mindstates
  */
-export const ExperienceMindStateMap: Record<string, number> = {
-  clear: 0,
-  dabbling: 1,
-  perusing: 2,
-  learning: 3,
-  thoughtful: 4,
-  thinking: 5,
-  considering: 6,
-  pondering: 7,
-  ruminating: 8,
-  concentrating: 9,
-  attentive: 10,
-  deliberative: 11,
-  interested: 12,
-  examining: 13,
-  understanding: 14,
-  absorbing: 15,
-  intrigued: 16,
-  scrutinizing: 17,
-  analyzing: 18,
-  studious: 19,
-  focused: 20,
-  'very focused': 21,
-  engaged: 22,
-  'very engaged': 23,
-  cogitating: 24,
-  fascinated: 25,
-  captivated: 26,
-  engrossed: 27,
-  riveted: 28,
-  'very riveted': 29,
-  rapt: 30,
-  'very rapt': 31,
-  enthralled: 32,
-  'nearly locked': 33,
-  'mind lock': 34,
-};
+export enum ExperienceMindState {
+  CLEAR = 0,
+  DABBLING = 1,
+  PERUSING = 2,
+  LEARNING = 3,
+  THOUGHTFUL = 4,
+  THINKING = 5,
+  CONSIDERING = 6,
+  PONDERING = 7,
+  RUMINATING = 8,
+  CONCENTRATING = 9,
+  ATTENTIVE = 10,
+  DELIBERATIVE = 11,
+  INTERESTED = 12,
+  EXAMINING = 13,
+  UNDERSTANDING = 14,
+  ABSORBING = 15,
+  INTRIGUED = 16,
+  SCRUTINIZING = 17,
+  ANALYZING = 18,
+  STUDIOUS = 19,
+  FOCUSED = 20,
+  VERY_FOCUSED = 21,
+  ENGAGED = 22,
+  VERY_ENGAGED = 23,
+  COGITATING = 24,
+  FASCINATED = 25,
+  CAPTIVATED = 26,
+  ENGROSSED = 27,
+  RIVETED = 28,
+  VERY_RIVETED = 29,
+  RAPT = 30,
+  VERY_RAPT = 31,
+  ENTHRALLED = 32,
+  NEARLY_LOCKED = 33,
+  MIND_LOCK = 34,
+}

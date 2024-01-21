@@ -27,8 +27,8 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"]
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
   },
   "exclude": ["node_modules"],
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
 }

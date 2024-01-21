@@ -169,12 +169,12 @@ export class GameParserImpl implements GameParser {
   ): rxjs.Observable<GameEvent> {
     logger.debug('subscribing to game socket stream');
     gameSocketStream.subscribe({
-      next: (socketData: string) => {
+      next: (socketData) => {
         logger.debug('parsing game socket data', { socketData });
         const lines = this.convertSocketDataToLines(socketData);
         this.parseLines(lines);
       },
-      error: (error: Error) => {
+      error: (error) => {
         logger.error('game socket stream error', { error });
         this.gameEventsSubject$.error(error);
       },
@@ -407,10 +407,26 @@ export class GameParserImpl implements GameParser {
 
     switch (tagName) {
       case 'pushBold': // <pushBold/>
-        this.emitPushBoldGameEvent();
+        // If this is nested inside text then it is an inline text style.
+        // For example, emphasizing a person's name.
+        // "You also see <pushBold />a town guard<popBold />."
+        // Otherwise emit a game event to turn on bold text.
+        if (this.gameText.length > 0) {
+          this.gameText += '<b>';
+        } else {
+          this.emitPushBoldGameEvent();
+        }
         break;
       case 'popBold': // <popBold/>
-        this.emitPopBoldGameEvent();
+        // If this is nested inside text then it is an inline text style.
+        // For example, emphasizing a person's name.
+        // "You also see <pushBold />a town guard<popBold />."
+        // Otherwise emit a game event to turn off bold text.
+        if (this.gameText.length > 0) {
+          this.gameText += '</b>';
+        } else {
+          this.emitPopBoldGameEvent();
+        }
         break;
       case 'output': // <output class="mono"/>
         this.emitTextOutputClassGameEvent(attributes.class);
@@ -459,6 +475,9 @@ export class GameParserImpl implements GameParser {
         break;
       case 'roundTime': // <roundTime value='1703617016'/>
         this.emitRoundTimeGameEvent(parseInt(attributes.value));
+        break;
+      case 'castTime': // <castTime value='1703617016'/>
+        this.emitCastTimeGameEvent(parseInt(attributes.value));
         break;
     }
   }
@@ -770,6 +789,14 @@ export class GameParserImpl implements GameParser {
   protected emitRoundTimeGameEvent(time: number): void {
     this.emitGameEvent({
       type: GameEventType.ROUND_TIME,
+      eventId: uuid(),
+      time,
+    });
+  }
+
+  protected emitCastTimeGameEvent(time: number): void {
+    this.emitGameEvent({
+      type: GameEventType.CAST_TIME,
       eventId: uuid(),
       time,
     });

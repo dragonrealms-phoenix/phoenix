@@ -1,19 +1,22 @@
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell } from 'electron';
 import { runInBackground } from '../../common/async';
+import {
+  ELANTHIPEDIA_URL,
+  PHOENIX_DOCS_URL,
+  PHOENIX_ISSUES_URL,
+  PHOENIX_LICENSE_URL,
+  PHOENIX_PRIVACY_URL,
+  PHOENIX_RELEASES_URL,
+  PHOENIX_SECURITY_URL,
+  PLAY_NET_URL,
+} from '../../common/data/urls';
+import { PreferenceKey, Preferences } from '../preference';
 
 /**
  * Inspired by RedisInsight
  * https://github.com/RedisInsight/RedisInsight/blob/2.34.0/redisinsight/desktop/src/lib/menu/menu.ts
  */
-
-const GITHUB_BASE_URL = 'https://github.com/dragonrealms-phoenix/phoenix';
-const PHOENIX_DOCS_URL = `${GITHUB_BASE_URL}#readme`;
-const PHOENIX_ISSUES_URL = `${GITHUB_BASE_URL}/issues`;
-const PHOENIX_RELEASES_URL = `${GITHUB_BASE_URL}/releases`;
-const PHOENIX_LICENSE_URL = `${GITHUB_BASE_URL}/blob/main/LICENSE.md`;
-const PHOENIX_PRIVACY_URL = `${GITHUB_BASE_URL}/blob/main/PRIVACY.md`;
-const PHOENIX_SECURITY_URL = `${GITHUB_BASE_URL}/blob/main/SECURITY.md`;
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -34,6 +37,12 @@ function getMenuTemplate(
     : buildDefaultTemplate(window);
 }
 
+const saveZoomFactorPreference = (zoomFactor: number) => {
+  runInBackground(async () => {
+    await Preferences.set(PreferenceKey.WINDOW_ZOOM_FACTOR, zoomFactor);
+  });
+};
+
 /**
  * Gets the current zoom factor of the window.
  * Returns a value between 0 < zoomFactor <= 1
@@ -48,6 +57,7 @@ function getZoomFactor(window: BrowserWindow): number {
  */
 function setZoomFactor(window: BrowserWindow, zoomFactor: number): void {
   window.webContents.setZoomFactor(zoomFactor);
+  saveZoomFactorPreference(zoomFactor);
 }
 
 function resetZoomFactor(window: BrowserWindow): void {
@@ -232,7 +242,7 @@ function buildDarwinTemplate(
         },
       },
       {
-        label: 'Report Issue',
+        label: 'Submit Feedback',
         click() {
           runInBackground(async () => {
             await shell.openExternal(PHOENIX_ISSUES_URL);
@@ -263,6 +273,25 @@ function buildDarwinTemplate(
         click() {
           runInBackground(async () => {
             await shell.openExternal(PHOENIX_SECURITY_URL);
+          });
+        },
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Play.net',
+        click() {
+          runInBackground(async () => {
+            await shell.openExternal(PLAY_NET_URL);
+          });
+        },
+      },
+      {
+        label: 'Elanthipedia',
+        click() {
+          runInBackground(async () => {
+            await shell.openExternal(ELANTHIPEDIA_URL);
           });
         },
       },
@@ -361,7 +390,7 @@ function buildDefaultTemplate(
         },
       },
       {
-        label: 'Report Issue',
+        label: 'Submit Feedback',
         click() {
           runInBackground(async () => {
             await shell.openExternal(PHOENIX_ISSUES_URL);
@@ -392,6 +421,25 @@ function buildDefaultTemplate(
         click() {
           runInBackground(async () => {
             await shell.openExternal(PHOENIX_SECURITY_URL);
+          });
+        },
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Play.net',
+        click() {
+          runInBackground(async () => {
+            await shell.openExternal(PLAY_NET_URL);
+          });
+        },
+      },
+      {
+        label: 'Elanthipedia',
+        click() {
+          runInBackground(async () => {
+            await shell.openExternal(ELANTHIPEDIA_URL);
           });
         },
       },

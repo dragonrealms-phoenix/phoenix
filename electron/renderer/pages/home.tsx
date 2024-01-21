@@ -2,7 +2,7 @@ import { EuiListGroup, EuiListGroupItem, EuiPanel } from '@elastic/eui';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
-import { runInBackground, sleep } from '../../common/async';
+import { runInBackground } from '../../common/async';
 import { equalsIgnoreCase } from '../../common/string';
 import { useLogger } from '../hooks/logger';
 
@@ -158,28 +158,7 @@ const HomePage: React.FC = (): ReactNode => {
         characterName,
         gameCode,
       });
-      //--
       await router.push('/grid');
-      //--
-      await sleep(2000);
-      await window.api.sendCommand('health');
-      await sleep(1000);
-      await window.api.sendCommand('info');
-      await sleep(1000);
-      await window.api.sendCommand('experience');
-      await sleep(1000);
-      await window.api.sendCommand('out');
-      await sleep(1000);
-      await window.api.sendCommand('out');
-      await sleep(1000);
-      await window.api.sendCommand('perceive');
-      await sleep(10_000);
-      await window.api.sendCommand('spell');
-      await sleep(1000);
-      await window.api.sendCommand('go bank');
-      await sleep(1000);
-      await window.api.sendCommand('go window');
-      //--
     },
     [logger, router]
   );
@@ -197,56 +176,6 @@ const HomePage: React.FC = (): ReactNode => {
     [playCharacter]
   );
 
-  // useEffect(() => {
-  //   window.api.onMessage(
-  //     'game:connect',
-  //     (_event, { accountName, characterName, gameCode }) => {
-  //       logger.info('game:connect', { accountName, characterName, gameCode });
-  //     }
-  //   );
-
-  //   return () => {
-  //     window.api.removeAllListeners('game:connect');
-  //   };
-  // }, [logger]);
-
-  // useEffect(() => {
-  //   window.api.onMessage(
-  //     'game:disconnect',
-  //     (_event, { accountName, characterName, gameCode }) => {
-  //       logger.info('game:disconnect', {
-  //         accountName,
-  //         characterName,
-  //         gameCode,
-  //       });
-  //     }
-  //   );
-
-  //   return () => {
-  //     window.api.removeAllListeners('game:disconnect');
-  //   };
-  // }, [logger]);
-
-  // useEffect(() => {
-  //   window.api.onMessage('game:error', (_event, error: Error) => {
-  //     logger.error('game:error', { error });
-  //   });
-
-  //   return () => {
-  //     window.api.removeAllListeners('game:error');
-  //   };
-  // }, [logger]);
-
-  // useEffect(() => {
-  //   window.api.onMessage('game:event', (_event, gameEvent) => {
-  //     logger.info('game:event', { gameEvent });
-  //     gameEventsSubject$.next(gameEvent);
-  //   });
-
-  //   return () => {
-  //     window.api.removeAllListeners('game:event');
-  //   };
-  // }, [logger, gameEventsSubject$]);
   const accountName = 'xxx';
   const accountPassword = 'xxx';
   const characterName = 'xxx';
@@ -322,4 +251,5 @@ const HomePage: React.FC = (): ReactNode => {
   );
 };
 
+// nextjs pages must be default exports
 export default HomePage;
