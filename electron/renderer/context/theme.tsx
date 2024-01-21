@@ -17,6 +17,8 @@ export interface ThemeContextValue {
 
 export const ThemeContext = createContext<ThemeContextValue>({});
 
+ThemeContext.displayName = 'ThemeContext';
+
 export interface ThemeProviderProps {
   /**
    * Nested components.

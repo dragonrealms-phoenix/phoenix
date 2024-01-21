@@ -20,6 +20,8 @@ export const LoggerContext = createContext<LoggerContextValue>({
   logger: defaultLogger,
 });
 
+LoggerContext.displayName = 'LoggerContext';
+
 export interface LoggerProviderProps {
   /**
    * Logger to provide. If not provided, the default logger will be used.
