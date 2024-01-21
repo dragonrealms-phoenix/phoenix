@@ -1,10 +1,9 @@
 import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import * as rxjs from 'rxjs';
-import { v4 as uuid } from 'uuid';
+import type * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async';
-import { type GameEvent, GameEventType } from '../../common/game';
+import { type GameEvent } from '../../common/game';
 import { LogLevel, isLogLevelEnabled } from '../../common/logger';
 import { createLogger } from '../logger';
 import type { SGEGameCredentials } from '../sge';
@@ -37,13 +36,6 @@ export class GameServiceImpl implements GameService {
    */
   private parser: GameParser;
 
-  /**
-   * As commands are sent to the game server they are emitted here.
-   * This allows us to re-emit them as text game events so that
-   * they can be echoed to the player in the game stream.
-   */
-  private sentCommandsSubject$?: rxjs.Subject<GameEvent>;
-
   constructor(options: { credentials: SGEGameCredentials }) {
     const { credentials } = options;
     this.parser = new GameParserImpl();
@@ -67,16 +59,8 @@ export class GameServiceImpl implements GameService {
 
     logger.info('connecting');
 
-    // As commands are sent to the game server they are emitted here.
-    // We merge them with the game events from the parser so that
-    // the commands can be echoed to the player in the game stream.
-    this.sentCommandsSubject$ = new rxjs.Subject<GameEvent>();
-
     const socketData$ = await this.socket.connect();
-    const gameEvents$ = rxjs.merge(
-      this.parser.parse(socketData$),
-      this.sentCommandsSubject$
-    );
+    const gameEvents$ = this.parser.parse(socketData$);
 
     if (isLogLevelEnabled(LogLevel.TRACE)) {
       this.logGameStreams({
@@ -91,7 +75,6 @@ export class GameServiceImpl implements GameService {
   public async disconnect(): Promise<void> {
     if (!this.isDestroyed) {
       logger.info('disconnecting');
-      this.sentCommandsSubject$?.complete();
       await this.socket.disconnect();
       await this.waitUntilDestroyed();
     }
@@ -100,18 +83,8 @@ export class GameServiceImpl implements GameService {
   public send(command: string): void {
     if (this.isConnected) {
       logger.debug('sending command', { command });
-      this.emitCommandAsTextGameEvent(command);
       this.socket.send(command);
     }
-  }
-
-  protected emitCommandAsTextGameEvent(command: string): void {
-    logger.debug('emitting command as text game event', { command });
-    this.sentCommandsSubject$?.next({
-      type: GameEventType.TEXT,
-      eventId: uuid(),
-      text: `> ${command}\n`,
-    });
   }
 
   protected async waitUntilDestroyed(): Promise<void> {

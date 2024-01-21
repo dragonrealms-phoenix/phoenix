@@ -221,6 +221,7 @@ export class IpcController {
     const gameInstance = Game.getInstance();
 
     if (gameInstance) {
+      this.dispatch('game:command', command);
       gameInstance.send(command);
     } else {
       throw new Error('[IPC:SEND_COMMAND:ERROR:GAME_INSTANCE_NOT_FOUND]');
