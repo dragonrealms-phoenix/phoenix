@@ -2,6 +2,7 @@ import { EuiFlexGroup, EuiFlexItem, EuiFlyout, EuiPanel } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { SidebarItem } from './sidebar-item';
+import { SidebarItemHelp } from './sidebar-item-help';
 
 export const Sidebar: React.FC = (): ReactNode => {
   const [showCharacters, setShowCharacters] = useState(false);
@@ -50,7 +51,7 @@ export const Sidebar: React.FC = (): ReactNode => {
                 iconType="questionInCircle"
                 iconColor="text"
                 iconSize="xl" // https://github.com/elastic/eui/issues/6322
-                popoverContent={<div>Help Center</div>}
+                popoverContent={<SidebarItemHelp />}
               ></SidebarItem>
             </EuiFlexItem>
             <EuiFlexItem grow={false}>

@@ -46,27 +46,19 @@ export const SidebarItem: React.FC<SidebarItemProps> = (
   const onClickButton = props.onClick ?? togglePopoverAndTooltip;
 
   const buttonElmt = (
-    <EuiPopover
-      isOpen={showPopover}
-      closePopover={onClosePopover}
-      button={
-        <EuiButtonIcon
-          aria-label={label}
-          iconType={iconType}
-          color={iconColor}
-          iconSize={iconSize}
-          css={{
-            'min-width': 50,
-            'min-height': 50,
-            'height': 50,
-            'width': 50,
-          }}
-          onClick={onClickButton}
-        />
-      }
-    >
-      {popoverContent}
-    </EuiPopover>
+    <EuiButtonIcon
+      onClick={onClickButton}
+      aria-label={label}
+      iconType={iconType}
+      color={iconColor}
+      iconSize={iconSize}
+      css={{
+        minWidth: 50,
+        minHeight: 50,
+        height: 50,
+        width: 50,
+      }}
+    />
   );
 
   if (showTooltip) {
@@ -74,6 +66,18 @@ export const SidebarItem: React.FC<SidebarItemProps> = (
       <EuiToolTip aria-label={label} content={label} position="right">
         {buttonElmt}
       </EuiToolTip>
+    );
+  }
+
+  if (showPopover) {
+    return (
+      <EuiPopover
+        isOpen={showPopover}
+        closePopover={onClosePopover}
+        button={buttonElmt}
+      >
+        {popoverContent}
+      </EuiPopover>
     );
   }
 
