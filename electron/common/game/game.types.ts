@@ -354,3 +354,27 @@ export enum ExperienceMindState {
   NEARLY_LOCKED = 33,
   MIND_LOCK = 34,
 }
+
+export interface GameConnectMessage {
+  accountName: string;
+  characterName: string;
+  gameCode: string;
+}
+
+export interface GameDisconnectMessage {
+  accountName: string;
+  characterName: string;
+  gameCode: string;
+}
+
+export interface GameErrorMessage {
+  error: Error;
+}
+
+export interface GameEventMessage {
+  gameEvent: GameEvent;
+}
+
+export interface GameCommandMessage {
+  command: string;
+}

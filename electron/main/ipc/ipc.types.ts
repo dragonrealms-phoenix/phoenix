@@ -1,3 +1,11 @@
+import type {
+  GameCommandMessage,
+  GameConnectMessage,
+  GameDisconnectMessage,
+  GameErrorMessage,
+  GameEventMessage,
+} from '../../common/game';
+
 /**
  * Defines the IPC API exposed to the renderer process.
  * The main process must provide call-response handlers for this API.
@@ -20,4 +28,17 @@ export type IpcSgeCharacter = {
   gameCode: string;
   accountName: string;
   characterName: string;
+};
+
+/**
+ * Defines the channels and message types that can be dispatched
+ * from the main process to the renderer process.
+ */
+export type IpcDispatcher = {
+  (channel: 'pong', message: 'pong'): void;
+  (channel: 'game:connect', message: GameConnectMessage): void;
+  (channel: 'game:disconnect', message: GameDisconnectMessage): void;
+  (channel: 'game:error', message: GameErrorMessage): void;
+  (channel: 'game:event', message: GameEventMessage): void;
+  (channel: 'game:command', message: GameCommandMessage): void;
 };

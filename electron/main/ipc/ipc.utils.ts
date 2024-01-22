@@ -1,8 +1,8 @@
 import type { AccountService } from '../account';
 import { AccountServiceImpl } from '../account';
 import { Store } from '../store';
-import type { Dispatcher } from '../types';
 import { IpcController } from './ipc.controller';
+import type { IpcDispatcher } from './ipc.types';
 
 /**
  * I didn't like the app nor controller needing to know about
@@ -12,7 +12,7 @@ import { IpcController } from './ipc.controller';
  * use this method or use the IpController constructor directly.
  */
 export function newIpcController(options: {
-  dispatch: Dispatcher;
+  dispatch: IpcDispatcher;
   accountService?: AccountService;
 }): IpcController {
   const {

@@ -3,12 +3,11 @@ import { BrowserWindow, app, shell } from 'electron';
 import * as path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
-import type { IpcController } from './ipc';
+import type { IpcController, IpcDispatcher } from './ipc';
 import { newIpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
 import { PreferenceKey, Preferences } from './preference';
-import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
@@ -99,7 +98,7 @@ const createMainWindow = async (): Promise<void> => {
     mainWindow.show();
   });
 
-  const dispatch: Dispatcher = (channel, ...args): void => {
+  const dispatch: IpcDispatcher = (channel, ...args): void => {
     // When the window is closed or destroyed, we might still
     // receive async events from the ipc controller. Ignore them.
     // This usually happens when the app is quit while a game is being played.
