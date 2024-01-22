@@ -1,3 +1,4 @@
+import type { IpcRendererEvent } from 'electron';
 import { EuiFieldText, EuiPageTemplate, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
@@ -11,7 +12,11 @@ import { runInBackground } from '../../common/async';
 import { GameEventType, getExperienceMindState } from '../../common/game';
 import type {
   ExperienceGameEvent,
+  GameConnectMessage,
+  GameDisconnectMessage,
+  GameErrorMessage,
   GameEvent,
+  GameEventMessage,
   RoomGameEvent,
 } from '../../common/game';
 import { GameStream } from '../components/game';
@@ -262,22 +267,27 @@ const GridPage: React.FC = (): ReactNode => {
   });
 
   useEffect(() => {
-    window.api.onMessage(
+    const unsubscribe = window.api.onMessage(
       'game:connect',
-      (_event, { accountName, characterName, gameCode }) => {
-        logger.info('game:connect', { accountName, characterName, gameCode });
+      (_event: IpcRendererEvent, message: GameConnectMessage) => {
+        const { accountName, characterName, gameCode } = message;
+        logger.info('game:connect', {
+          accountName,
+          characterName,
+          gameCode,
+        });
       }
     );
-
     return () => {
-      window.api.removeAllListeners('game:connect');
+      unsubscribe();
     };
   }, [logger]);
 
   useEffect(() => {
-    window.api.onMessage(
+    const unsubscribe = window.api.onMessage(
       'game:disconnect',
-      (_event, { accountName, characterName, gameCode }) => {
+      (_event: IpcRendererEvent, message: GameDisconnectMessage) => {
+        const { accountName, characterName, gameCode } = message;
         logger.info('game:disconnect', {
           accountName,
           characterName,
@@ -285,30 +295,35 @@ const GridPage: React.FC = (): ReactNode => {
         });
       }
     );
-
     return () => {
-      window.api.removeAllListeners('game:disconnect');
+      unsubscribe();
     };
   }, [logger]);
 
   useEffect(() => {
-    window.api.onMessage('game:error', (_event, error: Error) => {
-      logger.error('game:error', { error });
-    });
-
+    const unsubscribe = window.api.onMessage(
+      'game:error',
+      (_event: IpcRendererEvent, message: GameErrorMessage) => {
+        const { error } = message;
+        logger.error('game:error', { error });
+      }
+    );
     return () => {
-      window.api.removeAllListeners('game:error');
+      unsubscribe();
     };
   }, [logger]);
 
   useEffect(() => {
-    window.api.onMessage('game:event', (_event, gameEvent) => {
-      logger.debug('game:event', { gameEvent });
-      gameEventsSubject$.next(gameEvent);
-    });
-
+    const unsubscribe = window.api.onMessage(
+      'game:event',
+      (_event: IpcRendererEvent, message: GameEventMessage) => {
+        const { gameEvent } = message;
+        logger.debug('game:event', { gameEvent });
+        gameEventsSubject$.next(gameEvent);
+      }
+    );
     return () => {
-      window.api.removeAllListeners('game:event');
+      unsubscribe();
     };
   }, [logger, gameEventsSubject$]);
 
@@ -338,223 +353,222 @@ const GridPage: React.FC = (): ReactNode => {
   const windowSize = useWindowSize();
   const [bottomBarRef, bottomBarSize] = useMeasure<HTMLInputElement>();
   const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
-  const gridHeight = windowSize.height - bottomBarSize.height - 20;
+  const gridHeight = windowSize.height - bottomBarSize.height - 40;
 
   return (
-    <>
-      <EuiPageTemplate
-        direction="column"
-        paddingSize="s"
-        panelled={false}
-        grow={true}
-        responsive={[]}
-        css={{ height: '100%' }}
-      >
-        <EuiPageTemplate.Section grow={true}>
-          <div ref={gridWidthRef}>
-            <GridNoSSR
-              dimensions={{
-                height: gridHeight,
-                width: gridWidth,
-              }}
-              items={[
-                {
-                  itemId: 'room',
-                  title: 'Room',
-                  content: (
-                    <GameStream
-                      gameStreamIds={['room']}
-                      stream$={gameLogLineSubject$}
-                    />
-                  ),
-                },
-                {
-                  itemId: 'experience',
-                  title: 'Experience',
-                  content: (
-                    <GameStream
-                      gameStreamIds={['experience']}
-                      stream$={gameLogLineSubject$}
-                    />
-                  ),
-                },
-                // {
-                //   itemId: 'percWindow',
-                //   title: 'Spells',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['percWindow']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'inv',
-                //   title: 'Inventory',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['inv']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'familiar',
-                //   title: 'Familiar',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['familiar']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'thoughts',
-                //   title: 'Thoughts',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['thoughts']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'combat',
-                //   title: 'Combat',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['combat']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'assess',
-                //   title: 'Assess',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['assess']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'logons',
-                //   title: 'Arrivals',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['logons']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'death',
-                //   title: 'Deaths',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['death']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'atmospherics',
-                //   title: 'Atmospherics',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['atmospherics']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'chatter',
-                //   title: 'Chatter',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['chatter']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'conversation',
-                //   title: 'Conversation',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['conversation']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'whispers',
-                //   title: 'Whispers',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['whispers']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'talk',
-                //   title: 'Talk',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['talk']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'ooc',
-                //   title: 'OOC',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['ooc']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                // {
-                //   itemId: 'group',
-                //   title: 'Group',
-                //   content: (
-                //     <GameStream
-                //       gameStreamIds={['group']}
-                //       stream$={gameLogLineSubject$}
-                //     />
-                //   ),
-                // },
-                {
-                  itemId: 'main',
-                  title: 'Main',
-                  content: (
-                    <GameStream
-                      gameStreamIds={['']}
-                      stream$={gameLogLineSubject$}
-                    />
-                  ),
-                },
-              ]}
-            />
-          </div>
-        </EuiPageTemplate.Section>
-        <EuiPageTemplate.BottomBar>
-          <div ref={bottomBarRef}>
-            <EuiFieldText
-              compressed={true}
-              fullWidth={true}
-              prepend={'RT'}
-              tabIndex={0}
-              onKeyDown={onKeyDownCommandInput}
-            />
-          </div>
-        </EuiPageTemplate.BottomBar>
-      </EuiPageTemplate>
-    </>
+    <EuiPageTemplate
+      direction="column"
+      paddingSize="s"
+      panelled={false}
+      grow={true}
+      restrictWidth={false}
+      responsive={[]}
+      css={{ height: '100%', maxWidth: 'unset' }}
+    >
+      <EuiPageTemplate.Section grow={true}>
+        <div ref={gridWidthRef}>
+          <GridNoSSR
+            dimensions={{
+              height: gridHeight,
+              width: gridWidth,
+            }}
+            items={[
+              {
+                itemId: 'room',
+                title: 'Room',
+                content: (
+                  <GameStream
+                    gameStreamIds={['room']}
+                    stream$={gameLogLineSubject$}
+                  />
+                ),
+              },
+              {
+                itemId: 'experience',
+                title: 'Experience',
+                content: (
+                  <GameStream
+                    gameStreamIds={['experience']}
+                    stream$={gameLogLineSubject$}
+                  />
+                ),
+              },
+              // {
+              //   itemId: 'percWindow',
+              //   title: 'Spells',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['percWindow']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'inv',
+              //   title: 'Inventory',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['inv']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'familiar',
+              //   title: 'Familiar',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['familiar']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'thoughts',
+              //   title: 'Thoughts',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['thoughts']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'combat',
+              //   title: 'Combat',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['combat']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'assess',
+              //   title: 'Assess',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['assess']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'logons',
+              //   title: 'Arrivals',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['logons']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'death',
+              //   title: 'Deaths',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['death']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'atmospherics',
+              //   title: 'Atmospherics',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['atmospherics']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'chatter',
+              //   title: 'Chatter',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['chatter']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'conversation',
+              //   title: 'Conversation',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['conversation']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'whispers',
+              //   title: 'Whispers',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['whispers']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'talk',
+              //   title: 'Talk',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['talk']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'ooc',
+              //   title: 'OOC',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['ooc']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              // {
+              //   itemId: 'group',
+              //   title: 'Group',
+              //   content: (
+              //     <GameStream
+              //       gameStreamIds={['group']}
+              //       stream$={gameLogLineSubject$}
+              //     />
+              //   ),
+              // },
+              {
+                itemId: 'main',
+                title: 'Main',
+                content: (
+                  <GameStream
+                    gameStreamIds={['']}
+                    stream$={gameLogLineSubject$}
+                  />
+                ),
+              },
+            ]}
+          />
+        </div>
+      </EuiPageTemplate.Section>
+      <EuiPageTemplate.BottomBar>
+        <div ref={bottomBarRef}>
+          <EuiFieldText
+            compressed={true}
+            fullWidth={true}
+            prepend={'RT'}
+            tabIndex={0}
+            onKeyDown={onKeyDownCommandInput}
+          />
+        </div>
+      </EuiPageTemplate.BottomBar>
+    </EuiPageTemplate>
   );
 };
 
