@@ -61,16 +61,17 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   /**
    * When grid items are resized the increment is based on the the layout size.
    * Horizontal resize increments are based on the number of columns.
-   * Vertical resize increments are based on row height.
+   * Vertical resize increments are based on row height pixels.
    * Why two different units? I don't know.
    */
 
   /* Horizontal Resizing */
 
-  // The grid layout is divided into columns.
+  // The grid layout is vertically divided into columns.
   // The resize increment is the layout's width divided by the number of columns.
   // Use larger values to give users fine-grained control.
   // Use smaller values for coarse-grained control.
+  // Note, this value is number of columns, not pixels.
   const gridMaxColumns = 50;
 
   /* Vertical Resizing */
@@ -79,28 +80,30 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   // is a number of pixels margin between each row, too. Therefore, the
   // total height of a grid item is the height plus the margin.
   // Playing around with different row heights, I deduced that the margin
-  // size in pixels when the layout's margin is [1, 1] is ~1.03 pixels.
-  const gridRowHeight = 10;
-  const gridRowMargin = 1.03;
-  const gridRowHeightWithMargin = gridRowHeight + gridRowMargin;
+  // size in pixels is ~1.03 pixels when the layout's margin is [1, 1].
+  // Note, these values are in pixels.
+  const gridRowHeightPx = 10;
+  const gridRowMarginPx = 1.03;
+  const gridRowHeightWithMarginPx = gridRowHeightPx + gridRowMarginPx;
 
   /* Window Resizing */
 
   // As the window dimensions change, we need to update the layout, too,
   // so that the layout always fits the window exactly.
   // This allows the user to drag grid items anywhere within the window.
-  const [gridMaxRows, setGridMaxRows] = useState<number>();
-  const [gridMaxWidth, setGridMaxWidth] = useState<number>(1200); // app.ts
+  const [gridMaxRows, setGridMaxRows] = useState<number>(1);
+  const [gridMaxWidthPx, setGridMaxWidth] = useState<number>(dimensions.width);
 
   useEffect(() => {
     const { height, width } = dimensions;
     if (height) {
-      setGridMaxRows(Math.floor(height / gridRowHeightWithMargin));
+      const newMaxRows = Math.floor(height / gridRowHeightWithMarginPx);
+      setGridMaxRows(newMaxRows);
     }
     if (width) {
       setGridMaxWidth(width);
     }
-  }, [dimensions, gridRowHeightWithMargin]);
+  }, [dimensions, gridRowHeightWithMarginPx]);
 
   /**
    * Load the layout from storage or build a default layout.
@@ -119,33 +122,49 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     // We'll tile the items three per row.
     const maxItemsPerRow = 3;
 
-    // The min width and height are used to prevent the grid item from being
-    //resized so small that it's unusable and hides its title bar.
-    const minWidth = 5;
-    const minHeight = 2;
+    // The min dimensions are used to prevent the grid item from being
+    // resized so small that it's unusable and hides its title bar.
+    // Note, these values are in row/col-spans, not pixels.
+    const minCols = 5;
+    const minRows = 3;
 
-    // The number of columns and rows the item will span.
-    const defaultWidth = Math.floor(gridMaxColumns / maxItemsPerRow);
-    const defaultHeight = gridRowHeight;
+    // The default dimensions each item will span by default.
+    // Note, these values are in row/col-spans, not pixels.
+    const defaultCols = Math.floor(gridMaxColumns / maxItemsPerRow);
+    const defaultRows = 10;
 
+    // The row offset is the number of pixels (y-index, height)
+    // to offset the item from the top of the grid. We increase this
+    // each time we begin a new row.
+    // I don't know why react-grid-layout uses pixels for the y-index
+    // and column spans for the x-index. It's weird.
     let rowOffset = 0;
+
+    // The column offset is a simple counter (i.e. 1..2..3..)
+    // that when multiplied by the default column width of an item gives us
+    // which column to the right the next item should be placed.
+    // Again, I don't know why react-grid-layout uses pixels for the y-index
+    // and column spans for the x-index. It's weird.
     let colOffset = 0;
 
     layout = items.map((item, index): Layout => {
       // If time to move to next row then adjust the offsets.
       if (index > 0 && index % maxItemsPerRow === 0) {
-        rowOffset += gridRowHeight;
+        // Only increase the offset by an item's row height (without margin)
+        // The grid will automatically apply the margin when rendering.
+        rowOffset += gridRowHeightPx;
+        // Reset the column offset to the first column.
         colOffset = 0;
       }
 
       const newItem = {
-        i: item.itemId,
-        x: defaultWidth * colOffset,
-        y: rowOffset,
-        w: defaultWidth,
-        h: defaultHeight,
-        minW: minWidth,
-        minH: minHeight,
+        i: item.itemId, // unique identifier for the grid item
+        x: defaultCols * colOffset, // which column to start at, not pixels
+        y: rowOffset, // pixels (row # x row height px without margin)
+        w: defaultCols, // column spans
+        h: defaultRows, // row spans
+        minW: minCols, // column spans
+        minH: minRows, // row spans
       };
 
       colOffset += 1;
@@ -236,15 +255,17 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       css={gridLayoutStyles}
       layout={layout}
       cols={gridMaxColumns}
-      width={gridMaxWidth}
-      rowHeight={gridRowHeight}
+      width={gridMaxWidthPx}
+      rowHeight={gridRowHeightPx}
       maxRows={gridMaxRows}
-      // Enable the grid to grow and shrink to stay within
-      // the max columns and rows. Note, the items within the
-      // grid might not shrink to fit the grid, but the canvas will.
-      // The grid then becomes scrollable and ensures elements outside the
-      // grid position on page correctly rather than floating over the grid.
-      autoSize={true}
+      // Disable the grid from managing its own height.
+      // This component does a great job scaling width, but not height.
+      // We manage height explicitly to scale items to fit the window.
+      // The default behavior (true) shrinks the grid's height potential
+      // based on the afforded height of its parent container but doesn't
+      // actually scale the height of the grid items themselves.
+      // This causes the grid items to overflow their containers, ugh.
+      autoSize={false}
       // Provide nominal spacing between grid items.
       // If this value changes then review the grid row height variables.
       margin={[1, 1]}
