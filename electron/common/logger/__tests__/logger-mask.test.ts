@@ -3,32 +3,32 @@ import { isNotMaskable, maskSensitiveValues } from '../logger.mask';
 describe('logger-mask', () => {
   describe('#maskSensitiveValues', () => {
     const data: Record<string, any> = {
-      key: 'key1',
+      accessToken: 'accessToken1',
       password: 'password1',
       apiKey: 'apiKey1',
       credential: 'credential1',
       nested: {
-        key: 'key2',
+        accessToken: 'accessToken2',
         password: 'password2',
         apiKey: 'apiKey2',
         credential: 'credential2',
       },
     };
 
-    it('should mask password and key properties by default', () => {
+    it('should mask password, accessToken, and apiKey properties by default', () => {
       const result = maskSensitiveValues({
         json: data,
       });
 
       expect(result).toEqual({
-        key: '***REDACTED***',
+        accessToken: '***REDACTED***',
         password: '***REDACTED***',
-        apiKey: 'apiKey1',
+        apiKey: '***REDACTED***',
         credential: 'credential1',
         nested: {
-          key: '***REDACTED***',
+          accessToken: '***REDACTED***',
           password: '***REDACTED***',
-          apiKey: 'apiKey2',
+          apiKey: '***REDACTED***',
           credential: 'credential2',
         },
       });
@@ -41,12 +41,12 @@ describe('logger-mask', () => {
       });
 
       expect(result).toEqual({
-        key: 'key1',
+        accessToken: 'accessToken1',
         password: 'password1',
         apiKey: '***REDACTED***',
         credential: '***REDACTED***',
         nested: {
-          key: 'key2',
+          accessToken: 'accessToken2',
           password: 'password2',
           apiKey: '***REDACTED***',
           credential: '***REDACTED***',
@@ -62,12 +62,12 @@ describe('logger-mask', () => {
       });
 
       expect(result).toEqual({
-        key: 'key1',
+        accessToken: 'accessToken1',
         password: 'password1',
         apiKey: '***MASKED***',
         credential: '***MASKED***',
         nested: {
-          key: 'key2',
+          accessToken: 'accessToken2',
           password: 'password2',
           apiKey: '***MASKED***',
           credential: '***MASKED***',
