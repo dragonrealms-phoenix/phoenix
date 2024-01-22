@@ -13,6 +13,8 @@ app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
 const logger = createLogger('app');
+logger.info('welcome, brave adventurer!');
+logger.info('one moment while we prepare for your journey...');
 
 const appEnv = process.env.APP_ENV ?? 'production';
 const appEnvIsProd = appEnv === 'production';
@@ -53,6 +55,8 @@ if (appEnvIsProd) {
 let ipcController: IpcController;
 
 const createMainWindow = async (): Promise<void> => {
+  logger.debug('creating main window');
+
   if (appEnvIsDev) {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
@@ -114,8 +118,10 @@ const createMainWindow = async (): Promise<void> => {
 
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
+  logger.info('electron is ready');
   runInBackground(async () => {
     if (appEnableDevTools) {
+      logger.debug('installing chrome extension dev tools');
       const { installChromeExtensions } = await import(
         './chrome/install-extension'
       );

@@ -271,7 +271,7 @@ const GridPage: React.FC = (): ReactNode => {
       'game:connect',
       (_event: IpcRendererEvent, message: GameConnectMessage) => {
         const { accountName, characterName, gameCode } = message;
-        logger.info('game:connect', {
+        logger.debug('game:connect', {
           accountName,
           characterName,
           gameCode,
@@ -288,7 +288,7 @@ const GridPage: React.FC = (): ReactNode => {
       'game:disconnect',
       (_event: IpcRendererEvent, message: GameDisconnectMessage) => {
         const { accountName, characterName, gameCode } = message;
-        logger.info('game:disconnect', {
+        logger.debug('game:disconnect', {
           accountName,
           characterName,
           gameCode,
