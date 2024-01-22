@@ -1,5 +1,5 @@
 import type { Event } from 'electron';
-import { BrowserWindow, app, shell } from 'electron';
+import { BrowserWindow, app, dialog, shell } from 'electron';
 import * as path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
@@ -89,9 +89,6 @@ const createMainWindow = async (): Promise<void> => {
     },
   });
 
-  const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
-  mainWindow.webContents.setZoomFactor(zoomFactor ?? 1);
-
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
     logger.debug('showing main window');
@@ -170,7 +167,7 @@ app.on('web-contents-created', (_, contents) => {
 });
 
 app.on('window-all-closed', (): void => {
-  logger.debug('windows all closed, quitting app');
+  logger.debug('windows all closed');
   app.quit();
 });
 
@@ -192,8 +189,29 @@ app.on('before-quit', (event: Event): void => {
       // don't quit yet, start our async before-quit operations instead
       event.preventDefault();
       beforeQuitActionStatus = BeforeQuitActionStatus.IN_PROGRESS;
+
       runInBackground(async () => {
         logger.debug('performing before-quit operations');
+
+        const confirmBeforeClose = await Preferences.get(
+          PreferenceKey.WINDOW_CONFIRM_ON_CLOSE
+        );
+        if (confirmBeforeClose) {
+          const result = await dialog.showMessageBox({
+            type: 'question',
+            title: 'Quit DragonRealms Phoenix?',
+            message: 'Are you sure you want to quit?',
+            buttons: ['Yes', 'No'],
+            defaultId: 1,
+            cancelId: 1,
+          });
+          if (result.response === 1) {
+            // user clicked No, don't quit yet
+            beforeQuitActionStatus = BeforeQuitActionStatus.NOT_STARTED;
+            return;
+          }
+        }
+
         await ipcController?.destroy();
         beforeQuitActionStatus = BeforeQuitActionStatus.COMPLETED;
         app.quit();
