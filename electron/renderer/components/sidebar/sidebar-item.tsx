@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 
 export interface SidebarItemProps {
-  label: EuiButtonIconProps['aria-label'];
+  label: string;
   iconType: EuiButtonIconProps['iconType'];
   iconColor?: EuiButtonIconProps['color'];
   iconSize?: EuiButtonIconProps['iconSize'];
@@ -48,7 +48,6 @@ export const SidebarItem: React.FC<SidebarItemProps> = (
   const buttonElmt = (
     <EuiButtonIcon
       onClick={onClickButton}
-      aria-label={label}
       iconType={iconType}
       color={iconColor}
       iconSize={iconSize}
@@ -63,7 +62,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = (
 
   if (showTooltip) {
     return (
-      <EuiToolTip aria-label={label} content={label} position="right">
+      <EuiToolTip content={label} position="right">
         {buttonElmt}
       </EuiToolTip>
     );
