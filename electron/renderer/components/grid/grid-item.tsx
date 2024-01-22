@@ -146,11 +146,6 @@ export const GridItem: React.FC<GridItemProps> = forwardRef<
       style={style}
       className={className}
       {...otherProps}
-      css={{
-        // Prevent shrinking smaller than the title bar
-        // so that the title and close button are always visible.
-        minWidth: 'min-content',
-      }}
     >
       <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">
         <EuiFlexGroup
