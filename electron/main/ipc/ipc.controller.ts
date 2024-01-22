@@ -189,7 +189,7 @@ export class IpcController {
     logger.debug('subscribing to game service stream');
     gameEvents$.subscribe({
       next: (gameEvent) => {
-        logger.debug('game service stream event', { gameEvent });
+        logger.trace('game service stream event', { gameEvent });
         this.dispatch('game:event', { gameEvent });
       },
       error: (error) => {

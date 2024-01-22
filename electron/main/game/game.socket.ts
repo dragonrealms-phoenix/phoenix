@@ -221,11 +221,11 @@ export class GameSocketImpl implements GameSocket {
 
     let buffer: string = '';
     socket.on('data', (data: Buffer): void => {
-      logger.debug('socket received fragment');
+      logger.trace('socket received fragment');
       buffer += data.toString('utf8');
       if (buffer.endsWith('\n')) {
         const message = buffer;
-        logger.debug('socket received message', { message });
+        logger.trace('socket received message', { message });
         if (!this.isConnected && message.startsWith('<mode id="GAME"/>')) {
           onGameConnect();
         }
