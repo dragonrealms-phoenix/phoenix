@@ -143,15 +143,19 @@ app.on('web-contents-created', (_, contents) => {
 
   contents.setWindowOpenHandler(({ url }) => {
     const domain = new URL(url).hostname;
+
     // If the domain is allowed, open it in the user's default browser.
-    if (isAllowedDomain(domain)) {
-      runInBackground(async () => {
-        logger.debug('opening url in default browser', { url });
-        await shell.openExternal(url);
-      });
-    } else {
-      logger.warn('blocked window navigation', { url });
+    // Otherwise route it through the play.net bounce page for safety.
+    if (!isAllowedDomain(domain)) {
+      logger.warn('navigation request to unexpected url', { url });
+      url = `https://www.play.net/bounce/redirect.asp?URL=${url}`;
     }
+
+    runInBackground(async () => {
+      logger.debug('opening url in default browser', { url });
+      await shell.openExternal(url);
+    });
+
     // Prevent window navigation within the app.
     return { action: 'deny' };
   });
