@@ -9,7 +9,7 @@ describe('game-socket', () => {
   const credentials: SGEGameCredentials = {
     host: 'localhost',
     port: 1234,
-    key: 'test-key',
+    accessToken: 'test-token',
   };
 
   const mockNetConnect = (options?: {
@@ -191,7 +191,10 @@ describe('game-socket', () => {
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
 
       expect(mockSockets[0].writeSpy).toHaveBeenCalledTimes(3);
-      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(1, 'test-key\n');
+      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(
+        1,
+        'test-token\n'
+      );
       expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(
         2,
         `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML\n`

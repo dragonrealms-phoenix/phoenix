@@ -515,7 +515,7 @@ async function getGameCredentials(options: {
   return {
     host: gameHost,
     port: gamePort,
-    key: gameKey, // secret key used to authenticate to the game server
+    accessToken: gameKey, // secret key used to authenticate to the game server
   };
 }
 

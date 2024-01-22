@@ -50,9 +50,9 @@ export interface SGEGameCredentials {
    */
   port: number;
   /**
-   * Authorization key to access the game as a specific character.
+   * Token to access the game as a specific character.
    */
-  key: string;
+  accessToken: string;
 }
 
 export interface SGELoginResponse {
