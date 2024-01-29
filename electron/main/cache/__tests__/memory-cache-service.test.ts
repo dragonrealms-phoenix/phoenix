@@ -1,4 +1,5 @@
-import { MemoryCacheServiceImpl } from '../memory-cache.service';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { MemoryCacheServiceImpl } from '../memory-cache.service.js';
 
 describe('memory-cache-service', () => {
   let cacheService: MemoryCacheServiceImpl;
@@ -7,7 +8,7 @@ describe('memory-cache-service', () => {
     cacheService = new MemoryCacheServiceImpl();
   });
 
-  test('set/get/remove - primitive', async () => {
+  it('set/get/remove - primitive', async () => {
     await cacheService.set('key', 42);
     expect(await cacheService.get('key')).toEqual(42);
 
@@ -15,7 +16,7 @@ describe('memory-cache-service', () => {
     expect(await cacheService.get('key')).toEqual(undefined);
   });
 
-  test('set/get/remove - object', async () => {
+  it('set/get/remove - object', async () => {
     await cacheService.set('key', { value: 42 });
     expect(await cacheService.get('key')).toEqual({ value: 42 });
 
@@ -23,7 +24,7 @@ describe('memory-cache-service', () => {
     expect(await cacheService.get('key')).toEqual(undefined);
   });
 
-  test('get/remove - key not exists', async () => {
+  it('get/remove - key not exists', async () => {
     // Nothing here...
     expect(await cacheService.get('non-existant-key')).toEqual(undefined);
 
@@ -32,7 +33,7 @@ describe('memory-cache-service', () => {
     expect(await cacheService.get('non-existant-key')).toEqual(undefined);
   });
 
-  test('read/clear cache', async () => {
+  it('read/clear cache', async () => {
     expect(await cacheService.readCache()).toEqual({});
 
     await cacheService.set('key', 42);
@@ -45,7 +46,7 @@ describe('memory-cache-service', () => {
     expect(await cacheService.readCache()).toEqual({});
   });
 
-  test('write cache', async () => {
+  it('write cache', async () => {
     expect(await cacheService.readCache()).toEqual({});
 
     await cacheService.writeCache({ key: 42, foo: 'bar' });

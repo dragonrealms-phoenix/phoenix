@@ -1,6 +1,6 @@
-import type { Maybe } from '../../common/types';
-import { AbstractCacheService } from './abstract-cache.service';
-import type { Cache } from './cache.types';
+import type { Maybe } from '../../common/types.js';
+import { AbstractCacheService } from './abstract-cache.service.js';
+import type { Cache } from './types.js';
 
 /**
  * Caches all data as properties of a single JSON object stored in memory.

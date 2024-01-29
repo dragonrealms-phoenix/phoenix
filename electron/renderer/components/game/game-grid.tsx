@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import GridPage from '../../pages/grid';
+import GridPage from '../../pages/grid.js';
 
 export interface GameGridProps {
   // TODO

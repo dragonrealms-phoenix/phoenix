@@ -2,9 +2,9 @@ import { EuiListGroup, EuiListGroupItem, EuiPanel } from '@elastic/eui';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
-import { runInBackground } from '../../common/async';
-import { equalsIgnoreCase } from '../../common/string';
-import { useLogger } from '../hooks/logger';
+import { runInBackground } from '../../common/async.js';
+import { equalsIgnoreCase } from '../../common/string/index.js';
+import { useLogger } from '../hooks/logger/index.js';
 
 interface IpcSgeCharacter {
   gameCode: string;
@@ -176,10 +176,10 @@ const HomePage: React.FC = (): ReactNode => {
     [playCharacter]
   );
 
-  const accountName = 'xxx';
-  const accountPassword = 'xxx';
-  const characterName = 'xxx';
-  const gameCode = 'xxx';
+  const accountName = 'zoan333f2p';
+  const accountPassword = 'KLOM0teex*dair!doos';
+  const characterName = 'Muleoak';
+  const gameCode = 'DR';
 
   return (
     <div>

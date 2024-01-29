@@ -1,8 +1,8 @@
 import { EuiFlexGroup, EuiFlexItem, EuiFlyout, EuiPanel } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { SidebarItem } from './sidebar-item';
-import { SidebarItemHelp } from './sidebar-item-help';
+import { SidebarItemHelp } from './sidebar-item-help.js';
+import { SidebarItem } from './sidebar-item.js';
 
 export const Sidebar: React.FC = (): ReactNode => {
   const [showCharacters, setShowCharacters] = useState(false);

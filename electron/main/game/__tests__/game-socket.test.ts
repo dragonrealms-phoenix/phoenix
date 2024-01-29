@@ -1,9 +1,27 @@
 import * as net from 'node:net';
-import { sleep } from '../../../common/async';
-import type { SGEGameCredentials } from '../../sge';
-import { NetSocketMock } from '../__mocks__/net-socket.mock';
-import { GameSocketImpl } from '../game.socket';
-import type { GameSocket } from '../game.types';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { sleep } from '../../../common/async/sleep.js';
+import type { SGEGameCredentials } from '../../sge/types.js';
+import { NetSocketMock } from '../__mocks__/net-socket.mock.js';
+import { GameSocketImpl } from '../game.socket.js';
+import type { GameSocket } from '../types.js';
+
+type NetModule = typeof import('node:net');
+
+// Each test method will provide a new mocked net socket.
+// Although at this point we are just returning the original module,
+// we have to mock it with vitest otherwise the module is staticly loaded and
+// we will get errors trying to mock implementations for any methods on it.
+vi.mock('net', async (importOriginal) => {
+  const originalModule = await importOriginal<NetModule>();
+
+  const netMock: Partial<NetModule> = {
+    ...originalModule,
+  };
+
+  return netMock;
+});
 
 describe('game-socket', () => {
   const credentials: SGEGameCredentials = {
@@ -40,39 +58,39 @@ describe('game-socket', () => {
 
   let socket: GameSocket;
 
-  let subscriber1NextSpy: jest.Mock;
-  let subscriber2NextSpy: jest.Mock;
+  let subscriber1NextSpy: Mock;
+  let subscriber2NextSpy: Mock;
 
-  let subscriber1ErrorSpy: jest.Mock;
-  let subscriber2ErrorSpy: jest.Mock;
+  let subscriber1ErrorSpy: Mock;
+  let subscriber2ErrorSpy: Mock;
 
-  let subscriber1CompleteSpy: jest.Mock;
-  let subscriber2CompleteSpy: jest.Mock;
+  let subscriber1CompleteSpy: Mock;
+  let subscriber2CompleteSpy: Mock;
 
   beforeEach(() => {
     mockSockets = new Array<NetSocketMock>();
 
-    subscriber1NextSpy = jest.fn();
-    subscriber2NextSpy = jest.fn();
+    subscriber1NextSpy = vi.fn();
+    subscriber2NextSpy = vi.fn();
 
-    subscriber1ErrorSpy = jest.fn();
-    subscriber2ErrorSpy = jest.fn();
+    subscriber1ErrorSpy = vi.fn();
+    subscriber2ErrorSpy = vi.fn();
 
-    subscriber1CompleteSpy = jest.fn();
-    subscriber2CompleteSpy = jest.fn();
+    subscriber1CompleteSpy = vi.fn();
+    subscriber2CompleteSpy = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
   });
 
   describe('#connect', () => {
     it('should connect to the game server, receive messages, and then disconnect', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -131,10 +149,10 @@ describe('game-socket', () => {
     });
 
     it('should disconnect previous connection when a new connection is made', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -154,7 +172,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(0);
       expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(0);
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
       await socket.connect(); // disconnects previous connection
 
@@ -171,10 +189,10 @@ describe('game-socket', () => {
     });
 
     it('should send credentials and headers to the game server on connect', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -205,10 +223,10 @@ describe('game-socket', () => {
 
   describe('#disconnect', () => {
     it('should disconnect from the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -232,14 +250,14 @@ describe('game-socket', () => {
     });
 
     it('should disconnect from the game server when an error occurs', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
+      vi.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
           emitError: true,
         })
       );
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -269,14 +287,14 @@ describe('game-socket', () => {
     });
 
     it('should disconnect from the game server when a timeout occurs', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
+      vi.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
           emitTimeout: true,
         })
       );
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -302,10 +320,10 @@ describe('game-socket', () => {
     });
 
     it('should ignore disconnect request if not connected', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
       socket = new GameSocketImpl({
         credentials,
@@ -327,7 +345,7 @@ describe('game-socket', () => {
 
   describe('#send', () => {
     it('should send commands when connected to the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       socket = new GameSocketImpl({
         credentials,
@@ -345,7 +363,7 @@ describe('game-socket', () => {
     });
 
     it('should throw error when never connected to the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       socket = new GameSocketImpl({
         credentials,
@@ -359,7 +377,7 @@ describe('game-socket', () => {
 
       try {
         socket.send('test-command');
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(
           new Error(
@@ -370,7 +388,7 @@ describe('game-socket', () => {
     });
 
     it('should throw error when socket is not writable', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
+      vi.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
           emitError: true,
         })
@@ -391,7 +409,7 @@ describe('game-socket', () => {
 
       try {
         socket.send('test-command');
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(
           new Error(
@@ -402,7 +420,7 @@ describe('game-socket', () => {
     });
 
     it('should throw error when socket has been disconnected', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+      vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       socket = new GameSocketImpl({
         credentials,
@@ -420,7 +438,7 @@ describe('game-socket', () => {
 
       try {
         socket.send('test-command');
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(
           new Error(

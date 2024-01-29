@@ -1,13 +1,11 @@
 import * as fs from 'fs-extra';
 import type { DebouncedFunc } from 'lodash';
-import { debounce } from 'lodash';
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
-import { AbstractCacheService } from './abstract-cache.service';
-import type { Cache, CacheService, DiskCacheOptions } from './cache.types';
-import { MemoryCacheServiceImpl } from './memory-cache.service';
-
-const logger = createLogger('cache:disk');
+import debounce from 'lodash/debounce.js';
+import type { Maybe } from '../../common/types.js';
+import { AbstractCacheService } from './abstract-cache.service.js';
+import type { Cache, CacheService, DiskCacheOptions } from './types.js';
+import { logger } from './logger.js';
+import { MemoryCacheServiceImpl } from './memory-cache.service.js';
 
 /**
  * Caches all data as properties of a single JSON object written to disk.

@@ -15,10 +15,10 @@ import {
 // To help with terminology, aliasing the type here, redefining it below.
 import type { Layout as GridLayoutItem } from 'react-grid-layout';
 import GridLayout from 'react-grid-layout';
-import { useLogger } from '../../hooks/logger';
-import { LocalStorage } from '../../lib/local-storage';
-import type { GridItemProps } from './grid-item';
-import { GridItem } from './grid-item';
+import { useLogger } from '../../hooks/logger/index.js';
+import { LocalStorage } from '../../lib/local-storage.js';
+import type { GridItemProps } from './grid-item.js';
+import { GridItem } from './grid-item.js';
 
 // See comment above about terminology.
 type Layout = Array<GridLayoutItem>;
@@ -72,6 +72,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       ${css({
         height,
         width,
+        overflow: 'clip', // TODO fix so grid is y-scrollable without bleeding over/under outside elements
       })}
       .react-grid-item.react-grid-placeholder {
         ${css({
@@ -141,7 +142,38 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
 
     const newMaxRows = Math.floor(height / gridRowHeightWithMarginPx);
     setGridMaxRows(newMaxRows);
-      setGridMaxWidth(width);
+    setGridMaxWidth(width);
+
+    // When we reduce the grid max rows, iterate all the items
+    // in the layout and scale their row/height values to fit.
+    setGridMaxRows((oldMaxRows) => {
+      logger.debug('*** gridMaxRows', {
+        height,
+        width,
+        gridRowHeightWithMarginPx,
+        oldMaxRows,
+        newMaxRows,
+      });
+      //   if (oldMaxRows > newMaxRows) {
+      //     setLayout((oldLayout) => {
+      //       const newLayout = oldLayout.map((layoutItem) => {
+      //         const newLayoutItem = {
+      //           ...layoutItem,
+      //           h: Math.max(
+      //             3,
+      //             Math.floor((newMaxRows / oldMaxRows) * layoutItem.h)
+      //           ),
+      //           y: Math.floor((newMaxRows / oldMaxRows) * layoutItem.y),
+      //         };
+      //         return newLayoutItem;
+      //       });
+      //       LocalStorage.set('layout', newLayout);
+      //       return newLayout;
+      //     });
+      //     return newMaxRows;
+      //   }
+      return newMaxRows;
+    });
   }, [logger, height, width, gridRowHeightWithMarginPx]);
 
   /**

@@ -1,9 +1,8 @@
-import type { PreferenceService } from '../preference.types';
+import { vi } from 'vitest';
+import type { PreferenceService } from '../types.js';
 
-class PreferenceServiceMock implements PreferenceService {
-  get = jest.fn();
-  set = jest.fn();
-  remove = jest.fn();
+export class PreferenceServiceMock implements PreferenceService {
+  get = vi.fn();
+  set = vi.fn();
+  remove = vi.fn();
 }
-
-export { PreferenceServiceMock };

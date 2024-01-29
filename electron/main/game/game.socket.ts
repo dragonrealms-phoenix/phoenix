@@ -1,13 +1,11 @@
 import * as net from 'node:net';
-import { merge } from 'lodash';
+import merge from 'lodash-es/merge.js';
 import * as rxjs from 'rxjs';
-import { waitUntil } from '../../common/async';
-import { ReplayFirstSubscriberOnlySubject } from '../../common/observable';
-import { createLogger } from '../logger';
-import type { SGEGameCredentials } from '../sge';
-import type { GameSocket } from './game.types';
-
-const logger = createLogger('game:socket');
+import { waitUntil } from '../../common/async/wait-until.js';
+import { ReplayFirstSubscriberOnlySubject } from '../../common/observable/replay-first-subscriber-only.subject.js';
+import type { SGEGameCredentials } from '../sge/types.js';
+import { gameSocketLogger as logger } from './logger.js';
+import type { GameSocket } from './types.js';
 
 export class GameSocketImpl implements GameSocket {
   /**

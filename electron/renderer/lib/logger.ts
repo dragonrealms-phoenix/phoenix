@@ -1,21 +1,19 @@
-import electronLog from 'electron-log/renderer';
-import {
-  createLogger,
-  initializeLogging,
-} from '../../common/logger/logger.utils';
+import electronLog from 'electron-log/renderer.js';
+import { createLogger } from '../../common/logger/create-logger.js';
+import { initializeLogging } from '../../common/logger/initialize-logging.js';
 
 initializeLogging(electronLog);
+
+export const logger = await createLogger('renderer');
 
 /**
  * Catch and log unhandled exceptions, such as promise rejections.
  * Requires the `window` object, so can only run client-side.
  */
-export function startMonitoringUnhandledExceptions(): void {
+export const startMonitoringUnhandledExceptions = (): void => {
   electronLog.errorHandler.startCatching();
-}
+};
 
-export function stopMonitoringUnhandledExceptions(): void {
+export const stopMonitoringUnhandledExceptions = (): void => {
   electronLog.errorHandler.stopCatching();
-}
-
-export { createLogger };
+};

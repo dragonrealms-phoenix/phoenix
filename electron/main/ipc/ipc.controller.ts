@@ -1,19 +1,47 @@
 import { ipcMain } from 'electron';
-import { toUpperSnakeCase } from '../../common/string';
-import type { AccountService } from '../account';
-import { Game } from '../game';
-import { createLogger } from '../logger';
-import type { SGEGameCode } from '../sge';
-import { SGEServiceImpl } from '../sge';
+import { toUpperSnakeCase } from '../../common/string/to-upper-snake-case.js';
+import { AccountServiceImpl } from '../account/account.service.js';
+import type { AccountService } from '../account/types.js';
+import { Game } from '../game/game.instance.js';
+import { Store } from '../store/store.instance.js';
+import { listCharactersHandler } from './handlers/list-characters.js';
+import { pingHandler } from './handlers/ping.js';
+import { playCharacterHandler } from './handlers/play-character.js';
+import { removeAccountHandler } from './handlers/remove-account.js';
+import { removeCharacterHandler } from './handlers/remove-character.js';
+import { saveAccountHandler } from './handlers/save-account.js';
+import { saveCharacterHandler } from './handlers/save-character.js';
+import { sendCommandHandler } from './handlers/send-command.js';
+import { logger } from './logger.js';
 import type {
   IpcDispatcher,
   IpcHandlerRegistry,
   IpcInvokableEvent,
-  IpcInvokeHandler,
-  IpcSgeCharacter,
-} from './ipc.types';
+} from './types.js';
 
-const logger = createLogger('ipc:controller');
+/**
+ * I didn't like the app nor controller needing to know about
+ * the account service implementation so I created this util
+ * to abstract that concern. For testing, or if we ever need to
+ * specify the account service implementation, we can still
+ * use this method or use the IpController constructor directly.
+ */
+export const newIpcController = (options: {
+  dispatch: IpcDispatcher;
+  accountService?: AccountService;
+}): IpcController => {
+  const {
+    dispatch,
+    accountService = new AccountServiceImpl({
+      storeService: Store,
+    }),
+  } = options;
+
+  return new IpcController({
+    dispatch,
+    accountService,
+  });
+};
 
 export class IpcController {
   private dispatch: IpcDispatcher;
@@ -42,14 +70,38 @@ export class IpcController {
 
   private createIpcHandlerRegistry(): IpcHandlerRegistry {
     return {
-      ping: this.pingHandler,
-      saveAccount: this.saveAccountHandler,
-      removeAccount: this.removeAccountHandler,
-      saveCharacter: this.saveCharacterHandler,
-      removeCharacter: this.removeCharacterHandler,
-      listCharacters: this.listCharactersHandler,
-      playCharacter: this.playCharacterHandler,
-      sendCommand: this.sendCommandHandler,
+      ping: pingHandler({
+        dispatch: this.dispatch,
+      }),
+
+      saveAccount: saveAccountHandler({
+        accountService: this.accountService,
+      }),
+
+      removeAccount: removeAccountHandler({
+        accountService: this.accountService,
+      }),
+
+      saveCharacter: saveCharacterHandler({
+        accountService: this.accountService,
+      }),
+
+      removeCharacter: removeCharacterHandler({
+        accountService: this.accountService,
+      }),
+
+      listCharacters: listCharactersHandler({
+        accountService: this.accountService,
+      }),
+
+      playCharacter: playCharacterHandler({
+        dispatch: this.dispatch,
+        accountService: this.accountService,
+      }),
+
+      sendCommand: sendCommandHandler({
+        dispatch: this.dispatch,
+      }),
     };
   }
 
@@ -77,150 +129,4 @@ export class IpcController {
       });
     });
   }
-
-  private pingHandler: IpcInvokeHandler<'ping'> = async (): Promise<string> => {
-    this.dispatch('pong', 'pong');
-    return 'pong';
-  };
-
-  private saveAccountHandler: IpcInvokeHandler<'saveAccount'> = async (
-    args
-  ): Promise<void> => {
-    const { accountName, accountPassword } = args[0];
-
-    logger.debug('saveAccountHandler', { accountName });
-
-    await this.accountService.saveAccount({
-      accountName,
-      accountPassword,
-    });
-  };
-
-  private removeAccountHandler: IpcInvokeHandler<'removeAccount'> = async (
-    args
-  ): Promise<void> => {
-    const { accountName } = args[0];
-
-    logger.debug('removeAccountHandler', { accountName });
-
-    await this.accountService.removeAccount({ accountName });
-  };
-
-  private saveCharacterHandler: IpcInvokeHandler<'saveCharacter'> = async (
-    args
-  ): Promise<void> => {
-    const { gameCode, accountName, characterName } = args[0];
-
-    logger.debug('saveCharacterHandler', {
-      accountName,
-      characterName,
-      gameCode,
-    });
-
-    await this.accountService.saveCharacter({
-      accountName,
-      characterName,
-      gameCode,
-    });
-  };
-
-  private removeCharacterHandler: IpcInvokeHandler<'removeCharacter'> = async (
-    args
-  ): Promise<void> => {
-    const { gameCode, accountName, characterName } = args[0];
-
-    logger.debug('removeCharacterHandler', {
-      accountName,
-      characterName,
-      gameCode,
-    });
-
-    await this.accountService.removeCharacter({
-      accountName,
-      characterName,
-      gameCode,
-    });
-  };
-
-  private listCharactersHandler: IpcInvokeHandler<'listCharacters'> =
-    async (): Promise<Array<IpcSgeCharacter>> => {
-      logger.debug('listCharactersHandler');
-
-      return this.accountService.listCharacters();
-    };
-
-  private playCharacterHandler: IpcInvokeHandler<'playCharacter'> = async (
-    args
-  ): Promise<void> => {
-    const { accountName, characterName, gameCode } = args[0];
-
-    logger.debug('playCharacterHandler', {
-      accountName,
-      characterName,
-      gameCode,
-    });
-
-    const account = await this.accountService.getAccount({
-      accountName,
-    });
-
-    if (!account) {
-      throw new Error(
-        `[IPC:PLAY_CHARACTER:ERROR:ACCOUNT_NOT_FOUND] ${accountName}`
-      );
-    }
-
-    const sgeService = new SGEServiceImpl({
-      gameCode: gameCode as SGEGameCode,
-      username: account.accountName,
-      password: account.accountPassword,
-    });
-
-    const credentials = await sgeService.loginCharacter(characterName);
-    const gameInstance = await Game.newInstance({ credentials });
-    const gameEvents$ = await gameInstance.connect();
-
-    this.dispatch('game:connect', {
-      accountName,
-      characterName,
-      gameCode,
-    });
-
-    logger.debug('subscribing to game service stream');
-    gameEvents$.subscribe({
-      next: (gameEvent) => {
-        logger.trace('game service stream event', { gameEvent });
-        this.dispatch('game:event', { gameEvent });
-      },
-      error: (error) => {
-        logger.error('game service stream error', { error });
-        this.dispatch('game:error', { error });
-      },
-      complete: () => {
-        logger.debug('game service stream completed');
-        this.dispatch('game:disconnect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      },
-    });
-  };
-
-  private sendCommandHandler: IpcInvokeHandler<'sendCommand'> = async (
-    args
-  ): Promise<void> => {
-    const command = args[0];
-
-    logger.debug('sendCommandHandler', { command });
-
-    const gameInstance = Game.getInstance();
-
-    if (gameInstance) {
-      this.dispatch('game:command', { command });
-      gameInstance.send(command);
-    } else {
-      throw new Error('[IPC:SEND_COMMAND:ERROR:GAME_INSTANCE_NOT_FOUND]');
-    }
-  };
 }

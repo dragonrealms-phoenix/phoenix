@@ -1,10 +1,12 @@
 import * as net from 'node:net';
+import type { Mock } from 'vitest';
+import { vi } from 'vitest';
 
 export class NetSocketMock extends net.Socket {
-  public connectSpy: jest.Mock;
-  public writeSpy: jest.Mock;
-  public pauseSpy: jest.Mock;
-  public destroySoonSpy: jest.Mock;
+  public connectSpy: Mock;
+  public writeSpy: Mock;
+  public pauseSpy: Mock;
+  public destroySoonSpy: Mock;
 
   public writable: boolean;
   public timeout: number;
@@ -29,10 +31,10 @@ export class NetSocketMock extends net.Socket {
     this.timeout = options.timeout;
     this.emitTimeout = options.emitTimeout ?? false;
     this.emitError = options.emitError ?? false;
-    this.connectSpy = jest.fn();
-    this.writeSpy = jest.fn();
-    this.pauseSpy = jest.fn();
-    this.destroySoonSpy = jest.fn();
+    this.connectSpy = vi.fn();
+    this.writeSpy = vi.fn();
+    this.pauseSpy = vi.fn();
+    this.destroySoonSpy = vi.fn();
   }
 
   public connect(args: any): this {
@@ -66,19 +68,13 @@ export class NetSocketMock extends net.Socket {
       case 'connect':
         this.connectListener = listener;
         setTimeout(() => {
-          if (!jest.isEnvironmentTornDown()) {
-            this.connectListener?.();
-          }
+          this.connectListener?.();
         }, 250).unref();
         setTimeout(() => {
-          if (!jest.isEnvironmentTornDown()) {
-            this.dataListener?.('<mode id="GAME"/>\n');
-          }
+          this.dataListener?.('<mode id="GAME"/>\n');
         }, 500).unref();
         setTimeout(() => {
-          if (!jest.isEnvironmentTornDown()) {
-            this.dataListener?.('<data/>\n');
-          }
+          this.dataListener?.('<data/>\n');
         }, 2000).unref();
         break;
       case 'end':
@@ -91,9 +87,7 @@ export class NetSocketMock extends net.Socket {
         this.timeoutListener = listener;
         if (this.emitTimeout) {
           setTimeout(() => {
-            if (!jest.isEnvironmentTornDown()) {
-              this.timeoutListener?.();
-            }
+            this.timeoutListener?.();
           }, 1000).unref();
         }
         break;
@@ -101,9 +95,7 @@ export class NetSocketMock extends net.Socket {
         this.errorListener = listener;
         if (this.emitError) {
           setTimeout(() => {
-            if (!jest.isEnvironmentTornDown()) {
-              this.errorListener?.(new Error('test'));
-            }
+            this.errorListener?.(new Error('test'));
           }, 1000).unref();
         }
         break;

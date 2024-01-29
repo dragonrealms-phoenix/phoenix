@@ -2,16 +2,15 @@ import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import type * as rxjs from 'rxjs';
-import { waitUntil } from '../../common/async';
-import { type GameEvent } from '../../common/game';
-import { LogLevel, isLogLevelEnabled } from '../../common/logger';
-import { createLogger } from '../logger';
-import type { SGEGameCredentials } from '../sge';
-import { GameParserImpl } from './game.parser';
-import { GameSocketImpl } from './game.socket';
-import type { GameParser, GameService, GameSocket } from './game.types';
-
-const logger = createLogger('game:service');
+import { waitUntil } from '../../common/async/wait-until.js';
+import type { GameEvent } from '../../common/game/types.js';
+import { isLogLevelEnabled } from '../../common/logger/is-log-level-enabled.js';
+import { LogLevel } from '../../common/logger/types.js';
+import type { SGEGameCredentials } from '../sge/types.js';
+import { GameParserImpl } from './game.parser.js';
+import { GameSocketImpl } from './game.socket.js';
+import { gameServiceLogger as logger } from './logger.js';
+import type { GameParser, GameService, GameSocket } from './types.js';
 
 /**
  * This class isn't exported. To ensure a single instance exists then

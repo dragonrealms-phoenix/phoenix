@@ -1,4 +1,4 @@
-import type { Maybe } from '../../common/types';
+import type { Maybe } from '../../common/types.js';
 
 export function hasLocalStorage(): boolean {
   return typeof localStorage !== 'undefined';

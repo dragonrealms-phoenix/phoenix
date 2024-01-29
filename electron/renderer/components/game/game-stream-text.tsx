@@ -1,6 +1,6 @@
 import { EuiText } from '@elastic/eui';
 import { memo } from 'react';
-import type { GameLogLine } from '../../types/game.types';
+import type { GameLogLine } from '../../types/game.types.js';
 
 export interface GameStreamTextProps {
   logLine: GameLogLine;

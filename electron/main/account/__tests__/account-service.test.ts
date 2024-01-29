@@ -1,22 +1,37 @@
-import { merge } from 'lodash';
-import { StoreServiceMock } from '../../store/__mocks__/store-service.mock';
-import { AccountServiceImpl } from '../account.service';
-import type { AccountService } from '../account.types';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Logger } from '../../../common/logger/types.js';
+import { StoreServiceMock } from '../../store/__mocks__/store-service.mock.js';
+import { AccountServiceImpl } from '../account.service.js';
+import type { AccountService } from '../types.js';
 
-jest.mock('../../logger', () => {
+type CreateLoggerModule = typeof import('../../logger/create-logger.js');
+
+vi.mock('../../logger/create-logger.js', async (importOriginal) => {
+  const originalModule = await importOriginal<CreateLoggerModule>();
+  const logger: Logger = {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    trace: vi.fn(),
+  };
   return {
-    createLogger: jest.fn().mockReturnValue(console),
+    ...originalModule,
+    createLogger: vi.fn().mockReturnValue(logger),
   };
 });
 
-jest.mock('electron', () => {
-  const actualModule = jest.requireActual('electron');
-  return merge({}, actualModule, {
+type ElectronModule = typeof import('electron');
+
+vi.mock('electron', async (importOriginal) => {
+  const actualModule = await importOriginal<ElectronModule>();
+  return {
+    ...actualModule,
     safeStorage: {
-      encryptString: jest.fn().mockReturnValue(Buffer.from('test-encrypted')),
-      decryptString: jest.fn().mockReturnValue('test-password'),
+      encryptString: vi.fn().mockReturnValue(Buffer.from('test-encrypted')),
+      decryptString: vi.fn().mockReturnValue('test-password'),
     },
-  });
+  };
 });
 
 describe('account-service', () => {
@@ -31,8 +46,8 @@ describe('account-service', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
   });
 
   describe('#listAccounts', () => {
@@ -339,7 +354,7 @@ describe('account-service', () => {
           accountName: 'test-account',
           characterName: 'test-character',
         });
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error.message).toEqual(
           `[ACCOUNT:SERVICE:ERROR:ACCOUNT_NOT_FOUND] test-account`

@@ -3,8 +3,8 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
-import type { GameLogLine } from '../../types/game.types';
-import { GameStreamText } from './game-stream-text';
+import type { GameLogLine } from '../../types/game.types.js';
+import { GameStreamText } from './game-stream-text.js';
 import {
   excludeDuplicateEmptyLines,
   filterLinesForGameStreams,

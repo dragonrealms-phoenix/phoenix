@@ -8,8 +8,7 @@ import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { runInBackground } from '../../common/async';
-import { GameEventType, getExperienceMindState } from '../../common/game';
+import { runInBackground } from '../../common/async.js';
 import type {
   ExperienceGameEvent,
   GameConnectMessage,
@@ -19,13 +18,14 @@ import type {
   GameEventMessage,
   RoomGameEvent,
 } from '../../common/game';
-import { GameStream } from '../components/game';
-import { Grid } from '../components/grid';
-import { NoSSR } from '../components/no-ssr';
-import { useLogger } from '../hooks/logger';
-import { useMeasure } from '../hooks/measure';
-import { useWindowSize } from '../hooks/window-size';
-import type { GameLogLine } from '../types/game.types';
+import { GameEventType, getExperienceMindState } from '../../common/game.js';
+import { GameStream } from '../components/game.js';
+import { Grid } from '../components/grid.js';
+import { NoSSR } from '../components/no-ssr.js';
+import { useLogger } from '../hooks/logger/index.js';
+import { useMeasure } from '../hooks/measure.js';
+import { useWindowSize } from '../hooks/window-size.js';
+import type { GameLogLine } from '../types/game.types.js';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.

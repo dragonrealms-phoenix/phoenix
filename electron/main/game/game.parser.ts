@@ -4,12 +4,13 @@ import type {
   ExperienceGameEvent,
   GameEvent,
   RoomGameEvent,
-} from '../../common/game';
-import { GameEventType, IndicatorType } from '../../common/game';
-import { sliceStart, unescapeEntities } from '../../common/string';
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
-import type { GameParser } from './game.types';
+} from '../../common/game/types.js';
+import { GameEventType, IndicatorType } from '../../common/game/types.js';
+import { sliceStart } from '../../common/string/slice-start.js';
+import { unescapeEntities } from '../../common/string/unescape-entities.js';
+import type { Maybe } from '../../common/types.js';
+import { gameParserLogger as logger } from './logger.js';
+import type { GameParser } from './types.js';
 
 /**
  * Match all text up to the next tag.
@@ -119,8 +120,6 @@ interface Tag {
    */
   attributes: Record<string, string>;
 }
-
-const logger = createLogger('game:parser');
 
 /**
  * Inspired by Lich's XMLParser.

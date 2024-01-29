@@ -2,17 +2,19 @@ import type { Event } from 'electron';
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import * as path from 'node:path';
 import serve from 'electron-serve';
-import { runInBackground } from '../common/async';
-import type { IpcController, IpcDispatcher } from './ipc';
-import { newIpcController } from './ipc';
-import { createLogger } from './logger';
-import { initializeMenu } from './menu';
-import { PreferenceKey, Preferences } from './preference';
+import { runInBackground } from '../common/async/run-in-background.js';
+import type { IpcController } from './ipc/ipc.controller.js';
+import { newIpcController } from './ipc/ipc.controller.js';
+import type { IpcDispatcher } from './ipc/types.js';
+import { createLogger } from './logger/create-logger.js';
+import { initializeMenu } from './menu/menu.js';
+import { Preferences } from './preference/preference.instance.js';
+import { PreferenceKey } from './preference/types.js';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
-const logger = createLogger('app');
+const logger = await createLogger('app');
 logger.info('welcome, brave adventurer!');
 logger.info('one moment while we prepare for your journey...');
 
@@ -123,7 +125,7 @@ app.on('ready', () => {
     if (appEnableDevTools) {
       logger.debug('installing chrome extension dev tools');
       const { installChromeExtensions } = await import(
-        './chrome/install-extension'
+        './chrome/install-extension.js'
       );
       await installChromeExtensions();
     }

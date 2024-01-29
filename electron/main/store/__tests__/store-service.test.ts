@@ -1,37 +1,29 @@
-import { merge } from 'lodash';
-import { StoreServiceImpl } from '../store.service';
-import type { StoreService } from '../store.types';
-
-jest.mock('../../cache', () => {
-  const actualModule = jest.requireActual('../../cache');
-  return merge({}, actualModule, {
-    DiskCacheServiceImpl: actualModule.MemoryCacheServiceImpl,
-  });
-});
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryCacheServiceImpl } from '../../cache/memory-cache.service.js';
+import { StoreServiceImpl } from '../store.service.js';
+import type { StoreService } from '../types.js';
 
 describe('store-service', () => {
   let storeService: StoreService;
 
   beforeEach(async () => {
-    storeService = new StoreServiceImpl({ filepath: 'test' });
-    // We mocked the cache module and swapped out the disk-cache for
-    // memory-cache, so we need to remove all the keys from the cache
-    // because the constructor arg populated the cache with 'filepath' key.
-    await storeService.removeAll();
+    storeService = new StoreServiceImpl({
+      cacheService: new MemoryCacheServiceImpl(),
+    });
   });
 
   afterEach(async () => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
   });
 
   describe('#keys', () => {
-    it('should return empty array if no keys', async () => {
+    it('returns empty array if no keys', async () => {
       const keys = await storeService.keys();
       expect(keys).toEqual([]);
     });
 
-    it('should return keys', async () => {
+    it('returns keys', async () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key2', 'value2');
       const keys = await storeService.keys();
@@ -40,12 +32,12 @@ describe('store-service', () => {
   });
 
   describe('#get', () => {
-    it('should return undefined if key not found', async () => {
+    it('returns undefined if key not found', async () => {
       const value = await storeService.get('key1');
       expect(value).toBeUndefined();
     });
 
-    it('should return value if key found', async () => {
+    it('returns value if key found', async () => {
       await storeService.set('key1', 'value1');
       const value = await storeService.get('key1');
       expect(value).toEqual('value1');
@@ -53,27 +45,27 @@ describe('store-service', () => {
   });
 
   describe('#set', () => {
-    it('should set the value for the given key', async () => {
+    it('sets the value for the given key', async () => {
       await storeService.set('key1', 'value1');
       const value = await storeService.get('key1');
       expect(value).toEqual('value1');
     });
 
-    it('should overwrite the existing value for the given key', async () => {
+    it('overwrites the existing value for the given key', async () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key1', 'value2');
       const value = await storeService.get('key1');
       expect(value).toEqual('value2');
     });
 
-    it('should remove the value for the given key if value is null', async () => {
+    it('removes the value for the given key if value is null', async () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key1', null);
       const value = await storeService.get('key1');
       expect(value).toBeUndefined();
     });
 
-    it('should remove the value for the given key if value is undefined', async () => {
+    it('removes the value for the given key if value is undefined', async () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key1', undefined);
       const value = await storeService.get('key1');
@@ -82,7 +74,7 @@ describe('store-service', () => {
   });
 
   describe('#remove', () => {
-    it('should remove the value for the given key', async () => {
+    it('removes the value for the given key', async () => {
       await storeService.set('key1', 'value1');
       await storeService.remove('key1');
       const value = await storeService.get('key1');
@@ -91,7 +83,7 @@ describe('store-service', () => {
   });
 
   describe('#removeAll', () => {
-    it('should remove all keys and values', async () => {
+    it('removes all keys and values', async () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key2', 'value2');
       await storeService.removeAll();

@@ -1,13 +1,11 @@
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
-import type { StoreService } from '../store';
+import type { Maybe } from '../../common/types.js';
+import type { StoreService } from '../store/types.js';
+import { logger } from './logger.js';
 import type {
   PreferenceKey,
   PreferenceKeyToTypeMap,
   PreferenceService,
-} from './preference.types';
-
-const logger = createLogger('preference:service');
+} from './types.js';
 
 export class PreferenceServiceImpl implements PreferenceService {
   private storeService: StoreService;

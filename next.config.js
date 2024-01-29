@@ -4,21 +4,30 @@
  * Config based on https://github.com/elastic/next-eui-starter
  */
 
-const crypto = require('node:crypto');
-const fs = require('node:fs');
-const path = require('node:path');
-const { withSentryConfig } = require('@sentry/nextjs');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const dotenv = require('dotenv');
-const glob = require('glob');
-const { capitalize } = require('lodash');
-const { IgnorePlugin, EnvironmentPlugin } = require('webpack');
+import * as crypto from 'crypto';
+import * as fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import * as path from 'path';
+import { withSentryConfig } from '@sentry/nextjs';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import dotenv from 'dotenv';
+import { glob } from 'glob';
+import capitalize from 'lodash/capitalize.js';
+import webpack from 'webpack';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+console.log('***', {
+  __dirname,
+});
 
 dotenv.config();
 
 const pathPrefix = '';
 
 const themeConfig = buildThemeConfig();
+
+const { EnvironmentPlugin, IgnorePlugin } = webpack;
 
 /**
  * @type {import('next').NextConfig}
@@ -209,7 +218,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(
+export default withSentryConfig(
   nextConfig,
   {
     // For all available options, see:
