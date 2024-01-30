@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ExperienceMindState } from '../types.js';
 import { getExperienceMindState } from '../get-experience-mindstate.js';
+import { ExperienceMindState } from '../types.js';
 
 describe('get-experience-mindstate', () => {
   it('returns the correct value for the given mind state (enum test)', () => {
