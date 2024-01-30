@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { createLogger } from '../../__mocks__/create-logger.mock.js';
 import type { Logger } from '../../logger/types.js';
 import { runInBackground } from '../run-in-background.js';
@@ -6,8 +14,11 @@ import { runInBackground } from '../run-in-background.js';
 describe('run-in-background', () => {
   let logger: Logger;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     logger = await createLogger('test');
+  });
+
+  beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 

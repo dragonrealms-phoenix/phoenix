@@ -1,9 +1,25 @@
 import * as fs from 'fs-extra';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+import { createLogger } from '../../../common/__mocks__/create-logger.mock.js';
+import type { Logger } from '../../../common/logger/types.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
+
+  let logger: Logger;
+
+  beforeAll(async () => {
+    logger = await createLogger('test');
+  });
 
   beforeEach(() => {
     fs.writeJsonSync(filepath, {});
