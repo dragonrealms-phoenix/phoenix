@@ -12,6 +12,33 @@ import { createLogger } from '../../../common/__mocks__/create-logger.mock.js';
 import type { Logger } from '../../../common/logger/types.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 
+type FsExtraModule = typeof import('fs-extra');
+
+vi.mock('fs-extra', async (importOriginal) => {
+  const originalModule = await importOriginal<FsExtraModule>();
+  return {
+    ...originalModule,
+
+    // For the life of me, I have no idea why
+    // these methods have to be repeated below
+    // after having been spread above.
+    // But vitest errors that the methods don't exist otherwise.
+    // Maybe it's unique to how `fs-extra` is written?
+
+    pathExists: originalModule.pathExists,
+    pathExistsSync: originalModule.pathExistsSync,
+
+    remove: originalModule.remove,
+    removeSync: originalModule.removeSync,
+
+    writeJson: originalModule.writeJson,
+    writeJsonSync: originalModule.writeJsonSync,
+
+    readJson: originalModule.readJson,
+    readJsonSync: originalModule.readJsonSync,
+  };
+});
+
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
@@ -37,6 +64,8 @@ describe('disk-cache-service', () => {
     it('creates cache file if not exists', async () => {
       fs.removeSync(filepath);
 
+      expect(fs.pathExistsSync(filepath)).toBeFalsy();
+
       const cacheService = new DiskCacheServiceImpl({
         filepath,
       });
@@ -44,6 +73,46 @@ describe('disk-cache-service', () => {
       expect(await cacheService.readCache()).toEqual({});
 
       expect(fs.pathExistsSync(filepath)).toBeTruthy();
+    });
+
+    it('loads cache file if exists', async () => {
+      await fs.writeJson(filepath, { key: 42 });
+
+      expect(fs.pathExistsSync(filepath)).toBeTruthy();
+
+      const cacheService = new DiskCacheServiceImpl({
+        filepath,
+      });
+
+      expect(await cacheService.readCache()).toEqual({ key: 42 });
+
+      expect(fs.pathExistsSync(filepath)).toBeTruthy();
+    });
+
+    it('logs eror when error loading existing cache file', async () => {
+      const readJsonSpy = vi
+        .spyOn(fs, 'readJsonSync')
+        .mockImplementation(() => {
+          throw new Error('test');
+        });
+
+      const logErrorSpy = vi.spyOn(logger, 'error');
+
+      const cacheService = new DiskCacheServiceImpl({
+        filepath,
+      });
+
+      expect(readJsonSpy).toHaveBeenCalledWith(filepath);
+      expect(logErrorSpy).toHaveBeenCalledWith(
+        'error initializing disk cache',
+        {
+          filepath,
+          error: new Error('test'),
+        }
+      );
+      expect(await cacheService.readCache()).toEqual({});
+
+      readJsonSpy.mockRestore();
     });
   });
 
