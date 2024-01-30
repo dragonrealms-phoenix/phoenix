@@ -3,9 +3,9 @@ import type { DebouncedFunc } from 'lodash';
 import debounce from 'lodash/debounce.js';
 import type { Maybe } from '../../common/types.js';
 import { AbstractCacheService } from './abstract-cache.service.js';
-import type { Cache, CacheService, DiskCacheOptions } from './types.js';
 import { logger } from './logger.js';
 import { MemoryCacheServiceImpl } from './memory-cache.service.js';
+import type { Cache, CacheService, DiskCacheOptions } from './types.js';
 
 /**
  * Caches all data as properties of a single JSON object written to disk.

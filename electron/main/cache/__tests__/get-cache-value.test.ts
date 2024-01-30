@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CacheService } from '../types.js';
 import { getCacheValue } from '../get-cache-value.js';
 import { MemoryCacheServiceImpl } from '../memory-cache.service.js';
+import type { CacheService } from '../types.js';
 
 describe('get-cache-value', () => {
   let cacheService: CacheService;
