@@ -3,7 +3,7 @@ import { waitUntil } from '../wait-until.js';
 
 describe('wait-until', () => {
   beforeEach(async () => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {

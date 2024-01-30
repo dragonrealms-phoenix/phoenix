@@ -24,9 +24,8 @@ describe('run-in-background', () => {
   let logger: Logger;
 
   beforeEach(async () => {
-    vi.useFakeTimers();
-
     logger = await createLogger('test');
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
@@ -35,7 +34,7 @@ describe('run-in-background', () => {
     vi.useRealTimers();
   });
 
-  it('does not log error when callback resolves', async () => {
+  it('does not log error when async callback resolves', async () => {
     runInBackground(async () => {});
 
     await vi.runAllTimersAsync();
@@ -43,8 +42,23 @@ describe('run-in-background', () => {
     expect(logger.error).not.toHaveBeenCalled();
   });
 
-  it('logs error when callback rejects', async () => {
+  it('logs error when async callback rejects', async () => {
     runInBackground(async () => {
+      throw new Error('test');
+    });
+
+    await vi.runAllTimersAsync();
+
+    expect(logger.error).toHaveBeenCalledWith(
+      'unhandled promise exception: test',
+      {
+        error: new Error('test'),
+      }
+    );
+  });
+
+  it('logs error when sync callback throws', async () => {
+    runInBackground(() => {
       throw new Error('test');
     });
 

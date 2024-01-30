@@ -1,7 +1,6 @@
 import * as net from 'node:net';
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { sleep } from '../../../common/async/sleep.js';
 import type { SGEGameCredentials } from '../../sge/types.js';
 import { NetSocketMock } from '../__mocks__/net-socket.mock.js';
 import { GameSocketImpl } from '../game.socket.js';
@@ -30,6 +29,11 @@ describe('game-socket', () => {
     accessToken: 'test-token',
   };
 
+  /**
+   * For mocking the `net.connect()` static method.
+   * Retuns a function that when called creates a new `NetSocketMock` instance.
+   * Keeps track of all created mock sockets so we can assert their usage.
+   */
   const mockNetConnect = (options?: {
     emitError?: boolean;
     emitTimeout?: boolean;
@@ -54,6 +58,7 @@ describe('game-socket', () => {
     };
   };
 
+  // List of all sockets created by the tests.
   let mockSockets = new Array<NetSocketMock>();
 
   let socket: GameSocket;
@@ -78,11 +83,14 @@ describe('game-socket', () => {
 
     subscriber1CompleteSpy = vi.fn();
     subscriber2CompleteSpy = vi.fn();
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('#connect', () => {
@@ -109,8 +117,6 @@ describe('game-socket', () => {
         complete: subscriber1CompleteSpy,
       });
 
-      await sleep(1000);
-
       // second subscriber
       socketData$.subscribe({
         next: subscriber2NextSpy,
@@ -118,7 +124,7 @@ describe('game-socket', () => {
         complete: subscriber2CompleteSpy,
       });
 
-      await sleep(1000);
+      await vi.runAllTimersAsync();
 
       await socket.disconnect();
 
@@ -164,8 +170,6 @@ describe('game-socket', () => {
 
       await socket.connect();
 
-      await sleep(1000);
-
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
 
@@ -176,7 +180,7 @@ describe('game-socket', () => {
 
       await socket.connect(); // disconnects previous connection
 
-      await sleep(1000);
+      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(2);
@@ -204,7 +208,7 @@ describe('game-socket', () => {
 
       await socket.connect();
 
-      await sleep(1000);
+      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
 
@@ -239,6 +243,8 @@ describe('game-socket', () => {
       await socket.connect();
       await socket.disconnect();
 
+      await vi.runAllTimersAsync();
+
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(2);
 
@@ -269,7 +275,7 @@ describe('game-socket', () => {
 
       await socket.connect();
 
-      await sleep(2000);
+      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
@@ -306,7 +312,7 @@ describe('game-socket', () => {
 
       await socket.connect();
 
-      await sleep(2000);
+      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
@@ -335,6 +341,8 @@ describe('game-socket', () => {
 
       await socket.disconnect();
 
+      await vi.runAllTimersAsync();
+
       expect(onConnectSpy).toHaveBeenCalledTimes(0);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
 
@@ -355,7 +363,7 @@ describe('game-socket', () => {
 
       await socket.connect();
 
-      await sleep(1000);
+      await vi.runAllTimersAsync();
 
       socket.send('test-command');
 
@@ -405,7 +413,7 @@ describe('game-socket', () => {
       // This could happen if the game server disconnects us.
       await socket.connect();
 
-      await sleep(1000);
+      await vi.runAllTimersAsync();
 
       try {
         socket.send('test-command');
@@ -430,11 +438,9 @@ describe('game-socket', () => {
 
       await socket.connect();
 
-      await sleep(1000);
-
       await socket.disconnect();
 
-      await sleep(1000);
+      await vi.runAllTimersAsync();
 
       try {
         socket.send('test-command');
