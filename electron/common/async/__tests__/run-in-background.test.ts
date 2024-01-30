@@ -1,24 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createLogger } from '../../logger/create-logger.js';
+import { createLogger } from '../../__mocks__/create-logger.mock.js';
 import type { Logger } from '../../logger/types.js';
 import { runInBackground } from '../run-in-background.js';
-
-type CreateLoggerModule = typeof import('../../logger/create-logger.js');
-
-vi.mock('../../logger/create-logger.js', async (importOriginal) => {
-  const originalModule = await importOriginal<CreateLoggerModule>();
-  const logger: Logger = {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
-  };
-  return {
-    ...originalModule,
-    createLogger: vi.fn().mockReturnValue(logger),
-  };
-});
 
 describe('run-in-background', () => {
   let logger: Logger;
