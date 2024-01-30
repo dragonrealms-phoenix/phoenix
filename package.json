@@ -61,7 +61,6 @@
     "build:linux": "yarn build && electron-builder --linux --config",
     "test": "yarn clean && vitest",
     "test:coverage": "yarn test --coverage.enabled --coverage.exclude='**/types.ts'",
-    "test:coverage:missing": "yarn test:coverage --coverage.skipFull",
     "prepare": "npx husky && electron-builder install-app-deps",
     "postinstall": "npx patch-package",
     "semantic-release": "npx semantic-release",
