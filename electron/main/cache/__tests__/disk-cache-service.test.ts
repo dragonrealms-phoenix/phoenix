@@ -2,20 +2,19 @@ import * as fs from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 
-// To quickly skip past the debounced write to disk time.
-vi.useFakeTimers();
-
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
   beforeEach(() => {
     fs.writeJsonSync(filepath, {});
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
     fs.removeSync(filepath);
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('#constructor', () => {
