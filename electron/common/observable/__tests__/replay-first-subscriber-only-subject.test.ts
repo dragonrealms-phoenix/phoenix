@@ -33,7 +33,7 @@ describe('replay-first-subscriber-only-subject', () => {
     vi.clearAllTimers();
   });
 
-  it('should replay buffered events to the first subscriber only', () => {
+  it('replays buffered events to the first subscriber only', () => {
     // buffer events for the first subscriber
     subject.next('A');
     subject.next('B');
@@ -77,7 +77,7 @@ describe('replay-first-subscriber-only-subject', () => {
     expect(subscriber2CompleteSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should emit error to the first subscriber only', () => {
+  it('emits error to the first subscriber only', () => {
     // buffer events for the first subscriber
     subject.next('A');
     subject.error(new Error('test'));
@@ -118,7 +118,7 @@ describe('replay-first-subscriber-only-subject', () => {
     expect(subscriber2CompleteSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should emit error to all subscribers', () => {
+  it('emits error to all subscribers', () => {
     // buffer events for the first subscriber
     subject.next('A');
     subject.next('B');

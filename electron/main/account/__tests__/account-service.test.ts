@@ -51,7 +51,7 @@ describe('account-service', () => {
   });
 
   describe('#listAccounts', () => {
-    it('should list accounts', async () => {
+    it('lists accounts', async () => {
       storeService.keys.mockResolvedValueOnce([
         'sge.account.test-account-1',
         'sge.account.test-account-2',
@@ -87,7 +87,7 @@ describe('account-service', () => {
       ]);
     });
 
-    it('should return an empty array if no accounts are found', async () => {
+    it('returns an empty array if no accounts are found', async () => {
       storeService.keys.mockResolvedValueOnce([]);
 
       const accounts = await accountService.listAccounts();
@@ -97,7 +97,7 @@ describe('account-service', () => {
   });
 
   describe('#getAccount', () => {
-    it('should get an account', async () => {
+    it('gets an account', async () => {
       storeService.get.mockImplementation((key) => {
         if (key === 'sge.account.test-account') {
           return {
@@ -119,7 +119,7 @@ describe('account-service', () => {
       });
     });
 
-    it('should return undefined if no account is found', async () => {
+    it('returns undefined if no account is found', async () => {
       storeService.get.mockResolvedValueOnce(undefined);
 
       const account = await accountService.getAccount({
@@ -131,7 +131,7 @@ describe('account-service', () => {
   });
 
   describe('#saveAccount', () => {
-    it('should save an account', async () => {
+    it('saves an account', async () => {
       await accountService.saveAccount({
         accountName: 'test-account',
         accountPassword: 'test-password',
@@ -148,7 +148,7 @@ describe('account-service', () => {
   });
 
   describe('#removeAccount', () => {
-    it('should remove an account', async () => {
+    it('removes an account', async () => {
       storeService.keys.mockReturnValue([]); // No characters.
 
       await accountService.removeAccount({
@@ -160,7 +160,7 @@ describe('account-service', () => {
       );
     });
 
-    it('should remove all characters for an account', async () => {
+    it('removes all characters for an account', async () => {
       storeService.keys.mockReturnValueOnce([
         'sge.account.test-account',
         'sge.character.test-character.dr',
@@ -200,7 +200,7 @@ describe('account-service', () => {
   });
 
   describe('#listCharacters', () => {
-    it('should list all characters', async () => {
+    it('lists all characters', async () => {
       storeService.keys.mockResolvedValueOnce([
         'sge.account.test-account-1',
         'sge.character.test-character-1.dr',
@@ -250,7 +250,7 @@ describe('account-service', () => {
       ]);
     });
 
-    it('should list characters for an account', async () => {
+    it('lists characters for an account', async () => {
       storeService.keys.mockResolvedValueOnce([
         'sge.account.test-account-1',
         'sge.character.test-character-1.dr',
@@ -297,7 +297,7 @@ describe('account-service', () => {
       ]);
     });
 
-    it('should return an empty array if no characters are found', async () => {
+    it('returns an empty array if no characters are found', async () => {
       storeService.keys.mockResolvedValueOnce([]);
 
       const characters = await accountService.listCharacters({
@@ -309,7 +309,7 @@ describe('account-service', () => {
   });
 
   describe('#getCharacter', () => {
-    it('should get a character', async () => {
+    it('gets a character', async () => {
       storeService.get.mockImplementation((key) => {
         if (key === 'sge.character.test-character.dr') {
           return {
@@ -334,7 +334,7 @@ describe('account-service', () => {
       });
     });
 
-    it('should return undefined if no character is found', async () => {
+    it('returns undefined if no character is found', async () => {
       storeService.get.mockResolvedValueOnce(undefined);
 
       const character = await accountService.getCharacter({
@@ -347,7 +347,7 @@ describe('account-service', () => {
   });
 
   describe('#saveCharacter', () => {
-    it('should not save a character if no account is found', async () => {
+    it('does not save a character if no account is found', async () => {
       try {
         await accountService.saveCharacter({
           gameCode: 'DR',
@@ -362,7 +362,7 @@ describe('account-service', () => {
       }
     });
 
-    it('should save a character', async () => {
+    it('saves a character', async () => {
       storeService.get.mockImplementation((key) => {
         if (key === 'sge.account.test-account') {
           return {
@@ -392,7 +392,7 @@ describe('account-service', () => {
   });
 
   describe('#removeCharacter', () => {
-    it('should remove a character', async () => {
+    it('removes a character', async () => {
       await accountService.removeCharacter({
         gameCode: 'DR',
         accountName: 'test-account',

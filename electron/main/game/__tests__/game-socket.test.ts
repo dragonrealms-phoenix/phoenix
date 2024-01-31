@@ -94,7 +94,7 @@ describe('game-socket', () => {
   });
 
   describe('#connect', () => {
-    it('should connect to the game server, receive messages, and then disconnect', async () => {
+    it('connects to the game server, receive messages, and then disconnect', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = vi.fn();
@@ -154,7 +154,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect previous connection when a new connection is made', async () => {
+    it('disconnects previous connection when a new connection is made', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = vi.fn();
@@ -192,7 +192,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should send credentials and headers to the game server on connect', async () => {
+    it('sends credentials and headers to the game server on connect', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = vi.fn();
@@ -226,7 +226,7 @@ describe('game-socket', () => {
   });
 
   describe('#disconnect', () => {
-    it('should disconnect from the game server', async () => {
+    it('disconnects from the game server', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = vi.fn();
@@ -255,7 +255,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect from the game server when an error occurs', async () => {
+    it('disconnects from the game server when an error occurs', async () => {
       vi.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
           emitError: true,
@@ -292,7 +292,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect from the game server when a timeout occurs', async () => {
+    it('disconnects from the game server when a timeout occurs', async () => {
       vi.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
           emitTimeout: true,
@@ -325,7 +325,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should ignore disconnect request if not connected', async () => {
+    it('ignores disconnect request if not connected', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = vi.fn();
@@ -352,7 +352,7 @@ describe('game-socket', () => {
   });
 
   describe('#send', () => {
-    it('should send commands when connected to the game server', async () => {
+    it('sends commands when connected to the game server', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       socket = new GameSocketImpl({
@@ -370,7 +370,7 @@ describe('game-socket', () => {
       expect(mockSockets[0].writeSpy).toHaveBeenCalledWith('test-command\n');
     });
 
-    it('should throw error when never connected to the game server', async () => {
+    it('throws error when never connected to the game server', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       socket = new GameSocketImpl({
@@ -395,7 +395,7 @@ describe('game-socket', () => {
       }
     });
 
-    it('should throw error when socket is not writable', async () => {
+    it('throws error when socket is not writable', async () => {
       vi.spyOn(net, 'connect').mockImplementation(
         mockNetConnect({
           emitError: true,
@@ -427,7 +427,7 @@ describe('game-socket', () => {
       }
     });
 
-    it('should throw error when socket has been disconnected', async () => {
+    it('throws error when socket has been disconnected', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       socket = new GameSocketImpl({
