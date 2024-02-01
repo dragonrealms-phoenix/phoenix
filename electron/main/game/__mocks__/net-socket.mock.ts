@@ -37,6 +37,14 @@ export class NetSocketMock extends net.Socket {
     this.destroySoonSpy = vi.fn();
   }
 
+  // -- Mock Test Functions -- //
+
+  public emitData(data: unknown): void {
+    this.dataListener?.(data);
+  }
+
+  // -- Node.js Socket Functions -- //
+
   public connect(args: any): this {
     this.connectSpy(args);
     this.writable = true;
@@ -67,15 +75,7 @@ export class NetSocketMock extends net.Socket {
         break;
       case 'connect':
         this.connectListener = listener;
-        setTimeout(() => {
-          this.connectListener?.();
-        }, 250).unref();
-        setTimeout(() => {
-          this.dataListener?.('<mode id="GAME"/>\n');
-        }, 500).unref();
-        setTimeout(() => {
-          this.dataListener?.('<data/>\n');
-        }, 2000).unref();
+        this.connectListener?.();
         break;
       case 'end':
         this.endListener = listener; // called when socket is destroyed
