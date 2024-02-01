@@ -60,7 +60,6 @@
     "build:mac": "yarn build && electron-builder --mac --config",
     "build:linux": "yarn build && electron-builder --linux --config",
     "test": "yarn clean && vitest",
-    "test:coverage": "yarn test --coverage.enabled --coverage.exclude='**/types.ts'",
     "prepare": "npx husky && electron-builder install-app-deps",
     "postinstall": "npx patch-package",
     "semantic-release": "npx semantic-release",
