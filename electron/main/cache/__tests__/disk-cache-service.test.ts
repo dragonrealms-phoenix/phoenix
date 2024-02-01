@@ -8,9 +8,11 @@ import {
   it,
   vi,
 } from 'vitest';
+import type { Mocked } from 'vitest';
 import { createLogger } from '../../../common/__mocks__/create-logger.mock.js';
 import type { Logger } from '../../../common/logger/types.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
+import type { CacheService } from '../types.js';
 
 type FsExtraModule = typeof import('fs-extra');
 
@@ -42,10 +44,10 @@ vi.mock('fs-extra', async (importOriginal) => {
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
-  let logger: Logger;
+  let logger: Mocked<Logger>;
 
   beforeAll(async () => {
-    logger = await createLogger('test');
+    logger = vi.mocked(await createLogger('test'));
   });
 
   beforeEach(() => {
@@ -89,7 +91,7 @@ describe('disk-cache-service', () => {
       expect(fs.pathExistsSync(filepath)).toBeTruthy();
     });
 
-    it('logs eror when error loading existing cache file', async () => {
+    it('logs error when error loading existing cache file', async () => {
       const readJsonSpy = vi
         .spyOn(fs, 'readJsonSync')
         .mockImplementation(() => {
@@ -297,6 +299,38 @@ describe('disk-cache-service', () => {
       await cacheService.writeCache({ key: 42, foo: 'bar' });
 
       expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
+    });
+  });
+
+  describe('#writeToDisk', async () => {
+    it('logs error when error writing cache to disk', async () => {
+      // The disk cache service reads data from its delegate
+      // to get the data to write to disk.
+      // To test a failure, we'll throw an error from the delegate.
+      const mockCacheService: CacheService = {
+        set: vi.fn(),
+        get: vi.fn(),
+        remove: vi.fn(),
+        clear: vi.fn(),
+        readCache: vi.fn().mockRejectedValue(new Error('test')),
+        writeCache: vi.fn(),
+      };
+
+      const logErrorSpy = vi.spyOn(logger, 'error');
+
+      const cacheService = new DiskCacheServiceImpl({
+        filepath,
+        createInMemoryCache: () => mockCacheService,
+      });
+
+      await cacheService.set('key', 42);
+
+      await vi.runAllTimersAsync();
+
+      expect(logErrorSpy).toHaveBeenCalledWith('error writing cache to disk', {
+        filepath,
+        error: new Error('test'),
+      });
     });
   });
 });

@@ -34,4 +34,26 @@ export interface DiskCacheOptions {
    * Path to the file where to store the cache.
    */
   filepath: string;
+  /**
+   * Interval in milliseconds to write the cache to disk.
+   * Reads and writes occur on the delegate cache immediately.
+   * This controls how often the in-memory cache is flushed to disk.
+   * Default is 1000ms.
+   */
+  writeInterval?: number;
+  /**
+   * Delegate cache service to use.
+   *
+   * Use this to provide an in-memory cache to offload
+   * work from reading and writing to disk.
+   * Reads and writes occur on the delegate cache immediately,
+   * while writes to disk are debounced for performance.
+   *
+   * The function is called with the initial cache read from disk, if any.
+   *
+   * This is also helpful in testing by being able to inject a dependency.
+   *
+   * Default is MemoryCacheServiceImpl.
+   */
+  createInMemoryCache?: (cache: Cache) => CacheService;
 }

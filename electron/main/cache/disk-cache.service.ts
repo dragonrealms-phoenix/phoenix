@@ -47,21 +47,27 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
       });
     }
 
+    if (this.options.createInMemoryCache) {
+      return this.options.createInMemoryCache(cache);
+    }
+
     return new MemoryCacheServiceImpl(cache);
   }
 
   private createDebouncedWriteToDisk(): DebouncedFunc<() => Promise<void>> {
+    const { writeInterval = 1000 } = this.options;
     return debounce(async () => {
       await this.writeToDiskNow();
-    }, 1000);
+    }, writeInterval);
   }
 
   private async writeToDiskNow(): Promise<void> {
     const { filepath } = this.options;
     try {
+      logger.trace('writing cache to disk', { filepath });
       const cache = await this.delegate.readCache();
       await fs.writeJson(filepath, cache);
-      logger.debug('wrote cache to disk');
+      logger.trace('wrote cache to disk', { filepath });
     } catch (error) {
       logger.error('error writing cache to disk', {
         filepath,
