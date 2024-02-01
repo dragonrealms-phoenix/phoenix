@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { initializeSentry } from '../initialize-sentry.js';
 
 type SentryElectronMainModule = typeof import('@sentry/electron/main');
@@ -18,8 +18,12 @@ vi.mock('@sentry/electron/main', () => {
 });
 
 describe('initialize-sentry', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('initializes the sentry electron module', () => {
-    process.env.SENTRY_DSN = 'test:sentry:dsn';
+    vi.stubEnv('SENTRY_DSN', 'test:sentry:dsn');
 
     initializeSentry();
 

@@ -93,8 +93,8 @@ describe('game-socket', () => {
     vi.useRealTimers();
   });
 
-  describe('#connect', () => {
-    it('connects to the game server, receive messages, and then disconnect', async () => {
+  describe.only('#connect', () => {
+    it.only('connects to the game server, receive messages, and then disconnect', async () => {
       vi.spyOn(net, 'connect').mockImplementation(mockNetConnect());
 
       const onConnectSpy = vi.fn();

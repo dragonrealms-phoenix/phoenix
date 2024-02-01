@@ -1,16 +1,23 @@
+import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { StoreServiceMock } from '../../store/__mocks__/store-service.mock.js';
+import type { StoreService } from '../../store/types.js';
 import { PreferenceServiceImpl } from '../preference.service.js';
 import type { PreferenceKey, PreferenceService } from '../types.js';
 
 describe('preference-service', () => {
-  let storeService: StoreServiceMock;
+  let storeService: Mocked<StoreService>;
   let preferenceService: PreferenceService;
 
   beforeEach(() => {
-    storeService = new StoreServiceMock();
+    storeService = {
+      keys: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockResolvedValue(undefined),
+      set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+      removeAll: vi.fn().mockResolvedValue(undefined),
+    };
 
-    storeService.get.mockImplementation((key: string) => {
+    storeService.get.mockImplementation(async (key: string) => {
       if (key === 'key') {
         return 'value';
       }

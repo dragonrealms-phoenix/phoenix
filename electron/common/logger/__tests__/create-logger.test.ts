@@ -4,7 +4,7 @@ import {
   clearElectronLoggerMockProps,
   electronLogMain,
   electronLogRenderer,
-} from '../__mocks__/electron-log.mock.js';
+} from '../../__mocks__/electron-log.mock.js';
 import { createLogger } from '../create-logger.js';
 import type { Logger } from '../types.js';
 

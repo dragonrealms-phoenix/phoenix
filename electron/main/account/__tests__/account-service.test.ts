@@ -1,25 +1,8 @@
+import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Logger } from '../../../common/logger/types.js';
-import { StoreServiceMock } from '../../store/__mocks__/store-service.mock.js';
+import type { StoreService } from '../../store/types.js';
 import { AccountServiceImpl } from '../account.service.js';
 import type { AccountService } from '../types.js';
-
-type CreateLoggerModule = typeof import('../../logger/create-logger.js');
-
-vi.mock('../../logger/create-logger.js', async (importOriginal) => {
-  const originalModule = await importOriginal<CreateLoggerModule>();
-  const logger: Logger = {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
-  };
-  return {
-    ...originalModule,
-    createLogger: vi.fn().mockReturnValue(logger),
-  };
-});
 
 type ElectronModule = typeof import('electron');
 
@@ -35,11 +18,18 @@ vi.mock('electron', async (importOriginal) => {
 });
 
 describe('account-service', () => {
-  let storeService: StoreServiceMock;
+  let storeService: Mocked<StoreService>;
   let accountService: AccountService;
 
   beforeEach(() => {
-    storeService = new StoreServiceMock();
+    storeService = {
+      keys: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockResolvedValue(undefined),
+      set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+      removeAll: vi.fn().mockResolvedValue(undefined),
+    };
+
     accountService = new AccountServiceImpl({
       storeService,
     });
@@ -57,7 +47,7 @@ describe('account-service', () => {
         'sge.account.test-account-2',
       ]);
 
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.account.test-account-1') {
           return {
             accountName: 'test-account-1',
@@ -98,7 +88,7 @@ describe('account-service', () => {
 
   describe('#getAccount', () => {
     it('gets an account', async () => {
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.account.test-account') {
           return {
             accountName: 'test-account',
@@ -149,7 +139,7 @@ describe('account-service', () => {
 
   describe('#removeAccount', () => {
     it('removes an account', async () => {
-      storeService.keys.mockReturnValue([]); // No characters.
+      storeService.keys.mockResolvedValue([]); // No characters.
 
       await accountService.removeAccount({
         accountName: 'test-account',
@@ -161,12 +151,12 @@ describe('account-service', () => {
     });
 
     it('removes all characters for an account', async () => {
-      storeService.keys.mockReturnValueOnce([
+      storeService.keys.mockResolvedValueOnce([
         'sge.account.test-account',
         'sge.character.test-character.dr',
       ]);
 
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.account.test-account') {
           return {
             accountName: 'test-account',
@@ -207,7 +197,7 @@ describe('account-service', () => {
         'sge.character.test-character-2.dr',
       ]);
 
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.account.test-account-1') {
           return {
             accountName: 'test-account-1',
@@ -257,7 +247,7 @@ describe('account-service', () => {
         'sge.character.test-character-2.dr',
       ]);
 
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.account.test-account-1') {
           return {
             accountName: 'test-account-1',
@@ -310,7 +300,7 @@ describe('account-service', () => {
 
   describe('#getCharacter', () => {
     it('gets a character', async () => {
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.character.test-character.dr') {
           return {
             gameCode: 'DR',
@@ -363,7 +353,7 @@ describe('account-service', () => {
     });
 
     it('saves a character', async () => {
-      storeService.get.mockImplementation((key) => {
+      storeService.get.mockImplementation(async (key: string) => {
         if (key === 'sge.account.test-account') {
           return {
             accountName: 'test-account',

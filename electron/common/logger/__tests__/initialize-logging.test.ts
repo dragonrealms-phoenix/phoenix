@@ -1,9 +1,9 @@
 import type { Logger as ElectronLogger, Hook, LogMessage } from 'electron-log';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearElectronLoggerMockProps,
   electronLogMain,
-} from '../__mocks__/electron-log.mock.js';
+} from '../../__mocks__/electron-log.mock.js';
 import { initializeLogging } from '../initialize-logging.js';
 
 describe('initialize-logging', () => {
@@ -11,6 +11,10 @@ describe('initialize-logging', () => {
   // They both satisfy the same interface for the method we're testing.
   beforeEach(async () => {
     clearElectronLoggerMockProps(electronLogMain);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('adds a hook to format log data', () => {
@@ -49,8 +53,7 @@ describe('initialize-logging', () => {
   });
 
   it('adds a log level to each transport when env var set', () => {
-    // eslint-disable-next-line no-restricted-globals -- process.env is allowed
-    process.env.LOG_LEVEL = 'debug';
+    vi.stubEnv('LOG_LEVEL', 'debug');
 
     expect(electronLogMain.transports).toEqual({ console: {}, file: {} });
 

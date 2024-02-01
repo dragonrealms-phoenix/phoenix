@@ -1,6 +1,6 @@
 import type { Logger as ElectronLogger } from 'electron-log';
 import { vi } from 'vitest';
-import type { DeepPartial } from '../../types.js';
+import type { DeepPartial } from '../types.js';
 
 const { electronLogMain, electronLogRenderer } = vi.hoisted(() => {
   const createMockLogger = (): Partial<ElectronLogger> => {
