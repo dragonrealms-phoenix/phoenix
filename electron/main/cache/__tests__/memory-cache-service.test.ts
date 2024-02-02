@@ -8,49 +8,99 @@ describe('memory-cache-service', () => {
     cacheService = new MemoryCacheServiceImpl();
   });
 
-  it('set/get/remove - primitive', async () => {
-    await cacheService.set('key', 42);
-    expect(await cacheService.get('key')).toEqual(42);
+  describe('async', () => {
+    it('set/get/remove - primitive', async () => {
+      await cacheService.set('key', 42);
+      expect(await cacheService.get('key')).toEqual(42);
 
-    await cacheService.remove('key');
-    expect(await cacheService.get('key')).toEqual(undefined);
+      await cacheService.remove('key');
+      expect(await cacheService.get('key')).toEqual(undefined);
+    });
+
+    it('set/get/remove - object', async () => {
+      await cacheService.set('key', { value: 42 });
+      expect(await cacheService.get('key')).toEqual({ value: 42 });
+
+      await cacheService.remove('key');
+      expect(await cacheService.get('key')).toEqual(undefined);
+    });
+
+    it('get/remove - key not exists', async () => {
+      // Nothing here...
+      expect(await cacheService.get('non-existant-key')).toEqual(undefined);
+
+      // Still nothing here...
+      await cacheService.remove('non-existant-key');
+      expect(await cacheService.get('non-existant-key')).toEqual(undefined);
+    });
+
+    it('read/clear cache', async () => {
+      expect(await cacheService.readCache()).toEqual({});
+
+      await cacheService.set('key', 42);
+      expect(await cacheService.readCache()).toEqual({ key: 42 });
+
+      await cacheService.set('foo', 'bar');
+      expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
+
+      await cacheService.clear();
+      expect(await cacheService.readCache()).toEqual({});
+    });
+
+    it('write cache', async () => {
+      expect(await cacheService.readCache()).toEqual({});
+
+      await cacheService.writeCache({ key: 42, foo: 'bar' });
+
+      expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
+    });
   });
 
-  it('set/get/remove - object', async () => {
-    await cacheService.set('key', { value: 42 });
-    expect(await cacheService.get('key')).toEqual({ value: 42 });
+  describe('sync', () => {
+    it('set/get/remove - primitive', () => {
+      cacheService.setSync('key', 42);
+      expect(cacheService.getSync('key')).toEqual(42);
 
-    await cacheService.remove('key');
-    expect(await cacheService.get('key')).toEqual(undefined);
-  });
+      cacheService.removeSync('key');
+      expect(cacheService.getSync('key')).toEqual(undefined);
+    });
 
-  it('get/remove - key not exists', async () => {
-    // Nothing here...
-    expect(await cacheService.get('non-existant-key')).toEqual(undefined);
+    it('set/get/remove - object', () => {
+      cacheService.setSync('key', { value: 42 });
+      expect(cacheService.getSync('key')).toEqual({ value: 42 });
 
-    // Still nothing here...
-    await cacheService.remove('non-existant-key');
-    expect(await cacheService.get('non-existant-key')).toEqual(undefined);
-  });
+      cacheService.removeSync('key');
+      expect(cacheService.getSync('key')).toEqual(undefined);
+    });
 
-  it('read/clear cache', async () => {
-    expect(await cacheService.readCache()).toEqual({});
+    it('get/remove - key not exists', () => {
+      // Nothing here...
+      expect(cacheService.getSync('non-existant-key')).toEqual(undefined);
 
-    await cacheService.set('key', 42);
-    expect(await cacheService.readCache()).toEqual({ key: 42 });
+      // Still nothing here...
+      cacheService.removeSync('non-existant-key');
+      expect(cacheService.getSync('non-existant-key')).toEqual(undefined);
+    });
 
-    await cacheService.set('foo', 'bar');
-    expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
+    it('read/clear cache', () => {
+      expect(cacheService.readCacheSync()).toEqual({});
 
-    await cacheService.clear();
-    expect(await cacheService.readCache()).toEqual({});
-  });
+      cacheService.setSync('key', 42);
+      expect(cacheService.readCacheSync()).toEqual({ key: 42 });
 
-  it('write cache', async () => {
-    expect(await cacheService.readCache()).toEqual({});
+      cacheService.setSync('foo', 'bar');
+      expect(cacheService.readCacheSync()).toEqual({ key: 42, foo: 'bar' });
 
-    await cacheService.writeCache({ key: 42, foo: 'bar' });
+      cacheService.clearSync();
+      expect(cacheService.readCacheSync()).toEqual({});
+    });
 
-    expect(await cacheService.readCache()).toEqual({ key: 42, foo: 'bar' });
+    it('write cache', () => {
+      expect(cacheService.readCacheSync()).toEqual({});
+
+      cacheService.writeCacheSync({ key: 42, foo: 'bar' });
+
+      expect(cacheService.readCacheSync()).toEqual({ key: 42, foo: 'bar' });
+    });
   });
 });
