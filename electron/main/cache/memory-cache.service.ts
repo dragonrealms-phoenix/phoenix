@@ -11,22 +11,56 @@ export class MemoryCacheServiceImpl extends AbstractCacheService {
   }
 
   public async set<T>(key: string, item: T): Promise<void> {
-    this.cache[key] = item;
+    this.setSync(key, item);
   }
 
   public async get<T>(key: string): Promise<Maybe<T>> {
-    return this.cache[key];
+    return this.getSync(key);
   }
 
   public async remove(key: string): Promise<void> {
-    delete this.cache[key];
+    this.removeSync(key);
   }
 
   public async clear(): Promise<void> {
-    this.cache = {};
+    this.clearSync();
   }
 
   public async readCache(): Promise<Cache> {
+    return this.readCacheSync();
+  }
+
+  // Since this service operates on in-memory data,
+  // there is no need for the operations to be async.
+  // However, to conform to the interface, we must.
+  // For other use cases this class *can* be used
+  // synchronously, and that's what these functions are for.
+
+  public setSync<T>(key: string, item: T): void {
+    this.cache[key] = item;
+  }
+
+  public getSync<T>(key: string): Maybe<T> {
+    return this.cache[key];
+  }
+
+  public removeSync(key: string): void {
+    delete this.cache[key];
+  }
+
+  public clearSync(): void {
+    this.cache = {};
+  }
+
+  public readCacheSync(): Cache {
     return this.cache;
+  }
+
+  public writeCacheSync(newCache: Cache): void {
+    this.clearSync();
+
+    for (const [key, value] of Object.entries(newCache)) {
+      this.setSync(key, value);
+    }
   }
 }
