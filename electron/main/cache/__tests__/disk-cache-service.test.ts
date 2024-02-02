@@ -1,4 +1,5 @@
 import * as fs from 'fs-extra';
+import cloneDeep from 'lodash-es/cloneDeep.js';
 import {
   afterEach,
   beforeAll,
@@ -16,29 +17,66 @@ import type { CacheService } from '../types.js';
 
 type FsExtraModule = typeof import('fs-extra');
 
-vi.mock('fs-extra', async (importOriginal) => {
-  const originalModule = await importOriginal<FsExtraModule>();
+// To mock the file system, we'll use the memory cache service.
+// Filepaths are the keys and what data is written are the values.
+// When was using a real filesystem, encountered concurrency issues
+// that led to flaky tests.
+const { fsCacheService } = await vi.hoisted(async () => {
+  const memoryCacheModule = await import('../memory-cache.service.js');
+  const { MemoryCacheServiceImpl } = memoryCacheModule;
+
   return {
-    ...originalModule,
-
-    // For the life of me, I have no idea why
-    // these methods have to be repeated below
-    // after having been spread above.
-    // But vitest errors that the methods don't exist otherwise.
-    // Maybe it's unique to how `fs-extra` is written?
-
-    pathExists: originalModule.pathExists,
-    pathExistsSync: originalModule.pathExistsSync,
-
-    remove: originalModule.remove,
-    removeSync: originalModule.removeSync,
-
-    writeJson: originalModule.writeJson,
-    writeJsonSync: originalModule.writeJsonSync,
-
-    readJson: originalModule.readJson,
-    readJsonSync: originalModule.readJsonSync,
+    fsCacheService: new MemoryCacheServiceImpl(),
   };
+});
+
+vi.mock('fs-extra', async () => {
+  // Implementing just enough methods to test the disk cache service.
+  const fsExtra: Pick<
+    FsExtraModule,
+    | 'pathExists'
+    | 'pathExistsSync'
+    | 'remove'
+    | 'removeSync'
+    | 'writeJson'
+    | 'writeJsonSync'
+    | 'readJson'
+    | 'readJsonSync'
+  > = {
+    pathExists: async (path: string) => {
+      return fsCacheService.getSync(path) !== undefined;
+    },
+
+    pathExistsSync: (path: string) => {
+      return fsCacheService.getSync(path) !== undefined;
+    },
+
+    remove: async (path: string) => {
+      fsCacheService.removeSync(path);
+    },
+
+    removeSync: (path: string) => {
+      fsCacheService.removeSync(path);
+    },
+
+    writeJson: async (path: string, data: Cache) => {
+      fsCacheService.setSync(path, cloneDeep(data));
+    },
+
+    writeJsonSync: (path: string, data: Cache) => {
+      fsCacheService.setSync(path, cloneDeep(data));
+    },
+
+    readJson: async (path: string) => {
+      return cloneDeep(fsCacheService.getSync(path));
+    },
+
+    readJsonSync: (path: string) => {
+      return cloneDeep(fsCacheService.getSync(path));
+    },
+  };
+
+  return fsExtra;
 });
 
 describe('disk-cache-service', () => {
