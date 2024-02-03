@@ -11,9 +11,6 @@ export class NetSocketMock extends net.Socket {
   public writable: boolean;
   public timeout: number;
 
-  private emitTimeout: boolean;
-  private emitError: boolean;
-
   private dataListener?: (data?: unknown) => void;
   private connectListener?: () => void;
   private endListener?: () => void;
@@ -21,16 +18,10 @@ export class NetSocketMock extends net.Socket {
   private timeoutListener?: () => void;
   private errorListener?: (error: Error) => void;
 
-  constructor(options: {
-    timeout: number;
-    emitTimeout?: boolean;
-    emitError?: boolean;
-  }) {
+  constructor(options: { timeout: number }) {
     super();
     this.writable = false;
     this.timeout = options.timeout;
-    this.emitTimeout = options.emitTimeout ?? false;
-    this.emitError = options.emitError ?? false;
     this.connectSpy = vi.fn();
     this.writeSpy = vi.fn();
     this.pauseSpy = vi.fn();
@@ -41,6 +32,14 @@ export class NetSocketMock extends net.Socket {
 
   public emitData(data: unknown): void {
     this.dataListener?.(data);
+  }
+
+  public emitTimeoutEvent(): void {
+    this.timeoutListener?.();
+  }
+
+  public emitErrorEvent(error?: Error): void {
+    this.errorListener?.(error ?? new Error('test'));
   }
 
   // -- Node.js Socket Functions -- //
@@ -85,19 +84,9 @@ export class NetSocketMock extends net.Socket {
         break;
       case 'timeout':
         this.timeoutListener = listener;
-        if (this.emitTimeout) {
-          setTimeout(() => {
-            this.timeoutListener?.();
-          }, 1000).unref();
-        }
         break;
       case 'error':
         this.errorListener = listener;
-        if (this.emitError) {
-          setTimeout(() => {
-            this.errorListener?.(new Error('test'));
-          }, 1000).unref();
-        }
         break;
     }
     return this;

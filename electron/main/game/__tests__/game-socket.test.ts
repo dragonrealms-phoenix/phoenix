@@ -34,10 +34,7 @@ describe('game-socket', () => {
    * Retuns a function that when called creates a new `NetSocketMock` instance.
    * Keeps track of all created mock sockets so we can assert their usage.
    */
-  const mockNetConnect = (options?: {
-    emitError?: boolean;
-    emitTimeout?: boolean;
-  }) => {
+  const mockNetConnect = () => {
     return (
       connectOptions: string | net.NetConnectOpts,
       connectionListener?: () => void
@@ -48,8 +45,6 @@ describe('game-socket', () => {
       }
       const mockSocket = new NetSocketMock({
         timeout,
-        emitError: options?.emitError ?? false,
-        emitTimeout: options?.emitTimeout ?? false,
       });
 
       mockSocket.connect(connectOptions);
@@ -338,7 +333,7 @@ describe('game-socket', () => {
     });
 
     it('disconnects from the game server when an error occurs', async () => {
-      const mockSocket = mockNetConnect({ emitError: true })('mock', vi.fn());
+      const mockSocket = mockNetConnect()('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -369,6 +364,8 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
+
+      mockSocket.emitErrorEvent();
 
       await vi.runAllTimersAsync();
 
@@ -388,7 +385,7 @@ describe('game-socket', () => {
     });
 
     it('disconnects from the game server when a timeout occurs', async () => {
-      const mockSocket = mockNetConnect({ emitTimeout: true })('mock', vi.fn());
+      const mockSocket = mockNetConnect()('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -419,6 +416,8 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
+
+      mockSocket.emitTimeoutEvent();
 
       await vi.runAllTimersAsync();
 
@@ -519,7 +518,7 @@ describe('game-socket', () => {
     });
 
     it('throws error when socket is not writable', async () => {
-      const mockSocket = mockNetConnect({ emitError: true })('mock', vi.fn());
+      const mockSocket = mockNetConnect()('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const socket = new GameSocketImpl({
@@ -550,6 +549,8 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
+
+      mockSocket.emitErrorEvent();
 
       await vi.runAllTimersAsync();
 
