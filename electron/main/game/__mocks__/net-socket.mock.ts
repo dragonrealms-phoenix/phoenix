@@ -1,15 +1,31 @@
-import * as net from 'node:net';
+import type * as net from 'net';
 import type { Mock } from 'vitest';
 import { vi } from 'vitest';
 
-export class NetSocketMock extends net.Socket {
+/**
+ * For mocking the `net.connect()` static method.
+ * Retuns a function that when called creates a new `NetSocketMock` instance.
+ */
+export const mockNetConnect = (
+  connectOptions: string | net.NetConnectOpts,
+  connectionListener?: () => void
+): NetSocketMock & net.Socket => {
+  const mockSocket = new NetSocketMock();
+
+  mockSocket.connect(connectOptions);
+
+  connectionListener?.();
+
+  return mockSocket as NetSocketMock & net.Socket;
+};
+
+export class NetSocketMock {
   public connectSpy: Mock;
   public writeSpy: Mock;
   public pauseSpy: Mock;
   public destroySoonSpy: Mock;
 
   public writable: boolean;
-  public timeout: number;
 
   private dataListener?: (data?: unknown) => void;
   private connectListener?: () => void;
@@ -18,10 +34,8 @@ export class NetSocketMock extends net.Socket {
   private timeoutListener?: () => void;
   private errorListener?: (error: Error) => void;
 
-  constructor(options: { timeout: number }) {
-    super();
+  constructor() {
     this.writable = false;
-    this.timeout = options.timeout;
     this.connectSpy = vi.fn();
     this.writeSpy = vi.fn();
     this.pauseSpy = vi.fn();
@@ -67,7 +81,7 @@ export class NetSocketMock extends net.Socket {
     this.closeListener?.();
   }
 
-  on(event: string, listener: (...args: Array<any>) => void): this {
+  public on(event: string, listener: (...args: Array<any>) => void): this {
     switch (event) {
       case 'data':
         this.dataListener = listener;
@@ -92,7 +106,7 @@ export class NetSocketMock extends net.Socket {
     return this;
   }
 
-  once(event: string, listener: (...args: Array<any>) => void): this {
+  public once(event: string, listener: (...args: Array<any>) => void): this {
     this.on(event, (...args) => {
       listener(...args);
       this.removeListener(event);

@@ -1,22 +1,17 @@
 import * as net from 'node:net';
-import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runInBackground } from '../../../common/async/run-in-background.js';
 import type { SGEGameCredentials } from '../../sge/types.js';
-import { NetSocketMock } from '../__mocks__/net-socket.mock.js';
+import { mockNetConnect } from '../__mocks__/net-socket.mock.js';
 import { GameSocketImpl } from '../game.socket.js';
 
 type NetModule = typeof import('node:net');
 
-// Each test method will provide a new mocked net socket.
-// Although at this point we are just returning the original module,
-// we have to mock it with vitest otherwise the module is staticly loaded and
-// we will get errors trying to mock implementations for any methods on it.
-vi.mock('net', async (importOriginal) => {
-  const originalModule = await importOriginal<NetModule>();
-
+vi.mock('net', () => {
   const netMock: Partial<NetModule> = {
-    ...originalModule,
+    // Each test spies on `net.connect` to specify their own socket to test.
+    // Mocking the method here so that it can be spied upon as a mocked module.
+    connect: vi.fn<[], net.Socket>(),
   };
 
   return netMock;
@@ -29,59 +24,8 @@ describe('game-socket', () => {
     accessToken: 'test-token',
   };
 
-  /**
-   * For mocking the `net.connect()` static method.
-   * Retuns a function that when called creates a new `NetSocketMock` instance.
-   * Keeps track of all created mock sockets so we can assert their usage.
-   */
-  const mockNetConnect = () => {
-    return (
-      connectOptions: string | net.NetConnectOpts,
-      connectionListener?: () => void
-    ): NetSocketMock => {
-      let timeout = 30_000;
-      if (typeof connectOptions === 'object' && connectOptions.timeout) {
-        timeout = connectOptions.timeout;
-      }
-      const mockSocket = new NetSocketMock({
-        timeout,
-      });
-
-      mockSocket.connect(connectOptions);
-
-      connectionListener?.();
-
-      mockSockets.push(mockSocket);
-
-      return mockSocket;
-    };
-  };
-
-  // List of all sockets created by the tests.
-  let mockSockets = new Array<NetSocketMock>();
-
-  let subscriber1NextSpy: Mock;
-  let subscriber2NextSpy: Mock;
-
-  let subscriber1ErrorSpy: Mock;
-  let subscriber2ErrorSpy: Mock;
-
-  let subscriber1CompleteSpy: Mock;
-  let subscriber2CompleteSpy: Mock;
-
   beforeEach(() => {
-    mockSockets = new Array<NetSocketMock>();
-
-    subscriber1NextSpy = vi.fn();
-    subscriber2NextSpy = vi.fn();
-
-    subscriber1ErrorSpy = vi.fn();
-    subscriber2ErrorSpy = vi.fn();
-
-    subscriber1CompleteSpy = vi.fn();
-    subscriber2CompleteSpy = vi.fn();
-
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
@@ -92,8 +36,17 @@ describe('game-socket', () => {
 
   describe('#connect', () => {
     it('connects to the game server, receive messages, and then disconnect', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
+
+      const subscriber1NextSpy = vi.fn();
+      const subscriber2NextSpy = vi.fn();
+
+      const subscriber1ErrorSpy = vi.fn();
+      const subscriber2ErrorSpy = vi.fn();
+
+      const subscriber1CompleteSpy = vi.fn();
+      const subscriber2CompleteSpy = vi.fn();
 
       const onConnectSpy = vi.fn();
       const onDisconnectSpy = vi.fn();
@@ -112,6 +65,9 @@ describe('game-socket', () => {
       // At this point the socket is listening for data from the game server.
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
 
       // Now we can await the promise to get hold of the socket observable.
       //
@@ -140,8 +96,6 @@ describe('game-socket', () => {
       });
 
       mockSocket.emitData('<data/>\n');
-
-      await vi.runAllTimersAsync();
 
       await socket.disconnect();
 
@@ -172,7 +126,7 @@ describe('game-socket', () => {
     });
 
     it('disconnects previous connection when a new connection is made', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -193,6 +147,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -204,8 +161,6 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
-
-      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
@@ -235,7 +190,7 @@ describe('game-socket', () => {
     });
 
     it('sends credentials and headers to the game server on connect', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -256,6 +211,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -267,9 +225,6 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
-
-      // Run timer so that the delayed newlines sent on connect are seen.
-      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
 
@@ -285,7 +240,7 @@ describe('game-socket', () => {
 
   describe('#disconnect', () => {
     it('disconnects from the game server', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -306,6 +261,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -317,8 +275,6 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
-
-      await vi.runAllTimersAsync();
 
       await socket.disconnect();
 
@@ -333,7 +289,7 @@ describe('game-socket', () => {
     });
 
     it('disconnects from the game server when an error occurs', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -353,6 +309,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -366,8 +325,6 @@ describe('game-socket', () => {
       const _socketData$ = await socketDataPromise;
 
       mockSocket.emitErrorEvent();
-
-      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
@@ -385,7 +342,7 @@ describe('game-socket', () => {
     });
 
     it('disconnects from the game server when a timeout occurs', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const onConnectSpy = vi.fn();
@@ -405,6 +362,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -418,8 +378,6 @@ describe('game-socket', () => {
       const _socketData$ = await socketDataPromise;
 
       mockSocket.emitTimeoutEvent();
-
-      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
@@ -444,19 +402,17 @@ describe('game-socket', () => {
 
       // ---
 
+      // Since we never connected then nothing should happen here.
       await socket.disconnect();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(0);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
-
-      // Since we never connected then no mock socket was created.
-      expect(mockSockets).toHaveLength(0);
     });
   });
 
   describe('#send', () => {
     it('sends commands when connected to the game server', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const socket = new GameSocketImpl({
@@ -472,6 +428,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -484,15 +443,13 @@ describe('game-socket', () => {
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
 
-      await vi.runAllTimersAsync();
-
       socket.send('test-command');
 
       expect(mockSocket.writeSpy).toHaveBeenCalledWith('test-command\n');
     });
 
     it('throws error when never connected to the game server', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const socket = new GameSocketImpl({
@@ -518,7 +475,7 @@ describe('game-socket', () => {
     });
 
     it('throws error when socket is not writable', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const socket = new GameSocketImpl({
@@ -538,6 +495,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -552,8 +512,6 @@ describe('game-socket', () => {
 
       mockSocket.emitErrorEvent();
 
-      await vi.runAllTimersAsync();
-
       try {
         socket.send('test-command');
         expect.unreachable('it should throw an error');
@@ -567,7 +525,7 @@ describe('game-socket', () => {
     });
 
     it('throws error when socket has been disconnected', async () => {
-      const mockSocket = mockNetConnect()('mock', vi.fn());
+      const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
       const socket = new GameSocketImpl({
@@ -583,6 +541,9 @@ describe('game-socket', () => {
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
 
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
       // Now we can await the promise to get hold of the socket observable.
       //
       // If we emit the data before the socket is listening then it never
@@ -594,8 +555,6 @@ describe('game-socket', () => {
       // The workaround is to asynchronously start the connect then
       // emit the data then await, kind of like a "fork join" concept.
       const _socketData$ = await socketDataPromise;
-
-      await vi.runAllTimersAsync();
 
       await socket.disconnect();
 
