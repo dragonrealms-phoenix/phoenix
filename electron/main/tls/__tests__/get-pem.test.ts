@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest';
 
 describe('get-pem', () => {
-  it('todo', () => {
+  it.todo('todo', () => {
     // TODO
   });
 });

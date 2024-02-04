@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest';
 
 describe('create-self-signed-connect-options', () => {
-  it('todo', () => {
+  it.todo('todo', () => {
     // TODO
   });
 });
