@@ -346,8 +346,8 @@ describe('account-service', () => {
         });
         expect.unreachable('it should throw an error');
       } catch (error) {
-        expect(error.message).toEqual(
-          `[ACCOUNT:SERVICE:ERROR:ACCOUNT_NOT_FOUND] test-account`
+        expect(error).toEqual(
+          new Error(`[ACCOUNT:SERVICE:ERROR:ACCOUNT_NOT_FOUND] test-account`)
         );
       }
     });

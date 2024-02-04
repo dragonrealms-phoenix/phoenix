@@ -3,32 +3,49 @@ import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type GameEvent, GameEventType } from '../../../common/game/types.js';
 import { GameServiceImpl } from '../game.service.js';
-import type { GameParser, GameService, GameSocket } from '../types.js';
+import type { GameParser, GameSocket } from '../types.js';
 
-const { mockParser, mockSocket } = vi.hoisted(() => {
-  const mockParser: Mocked<GameParser> = {
-    parse: vi.fn(),
-  };
+const { mockParser, mockSocket, mockWriteStream, mockWaitUntil } = vi.hoisted(
+  () => {
+    // For mocking the game parser module.
+    const mockParser: Mocked<GameParser> = {
+      parse: vi.fn(),
+    };
 
-  const mockSocket: Mocked<GameSocket> = {
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    send: vi.fn(),
-  };
+    // For mocking the game socket module.
+    const mockSocket: Mocked<GameSocket> = {
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      send: vi.fn(),
+    };
 
-  return {
-    mockParser,
-    mockSocket,
-  };
-});
+    // When game service connects and log level is trace then it creates
+    // log streams. This lets us mock the write stream and assert behaviors.
+    const mockWriteStream = {
+      write: vi.fn(),
+      end: vi.fn(),
+    };
+
+    // When game service disconnects, it waits until the socket is destroyed.
+    // This lets us mock if the function resolves or not (i.e. times out).
+    const mockWaitUntil = vi.fn();
+
+    return {
+      mockParser,
+      mockSocket,
+      mockWriteStream,
+      mockWaitUntil,
+    };
+  }
+);
 
 vi.mock('../game.parser.js', () => {
   class GameParserMockImpl implements GameParser {
-    parse = vi
-      .fn()
-      .mockImplementation(async (gameSocketStream: rxjs.Observable<string>) => {
-        return mockParser.parse(gameSocketStream);
-      });
+    parse = (
+      gameSocketStream: rxjs.Observable<string>
+    ): rxjs.Observable<GameEvent> => {
+      return mockParser.parse(gameSocketStream);
+    };
   }
 
   return {
@@ -52,20 +69,20 @@ vi.mock('../game.socket.js', () => {
       this.onDisconnect = options.onDisconnect;
     }
 
-    connect = vi.fn().mockImplementation(async () => {
+    connect = async (): Promise<rxjs.Observable<string>> => {
       this.onConnect?.();
       return mockSocket.connect();
-    });
+    };
 
-    disconnect = vi.fn().mockImplementation(async () => {
+    disconnect = async (): Promise<void> => {
       this.onDisconnect?.('end');
       this.onDisconnect?.('close');
       return mockSocket.disconnect();
-    });
+    };
 
-    send = vi.fn().mockImplementation((command: string) => {
-      return mockSocket.send(command);
-    });
+    send = (command: string): void => {
+      mockSocket.send(command);
+    };
   }
 
   return {
@@ -73,29 +90,32 @@ vi.mock('../game.socket.js', () => {
   };
 });
 
+vi.mock('electron', async () => {
+  return {
+    app: {
+      getPath: vi.fn().mockReturnValue('logs'),
+    },
+  };
+});
+
+vi.mock('fs-extra', () => {
+  return {
+    createWriteStream: () => mockWriteStream,
+  };
+});
+
+vi.mock('../../../common/async/wait-until.js', () => {
+  return {
+    waitUntil: mockWaitUntil,
+  };
+});
+
 describe('game-service', () => {
   let gameService: GameServiceImpl;
 
-  /**
-   * Helper function to ensure any pending timers are executed.
-   */
-  const connectGameService: GameService['connect'] = async () => {
-    const promise = gameService.connect();
-    await vi.runOnlyPendingTimersAsync();
-    return promise;
-  };
-
-  /**
-   * Helper function to ensure any pending timers are executed.
-   * For example, when the disconnect event performs a "wait for" condition.
-   */
-  const disconnectGameService: GameService['disconnect'] = async () => {
-    const promise = gameService.disconnect();
-    await vi.runOnlyPendingTimersAsync();
-    return promise;
-  };
-
   beforeEach(() => {
+    mockWaitUntil.mockResolvedValue(true);
+
     gameService = new GameServiceImpl({
       credentials: {
         accessToken: 'test-access-token',
@@ -108,6 +128,7 @@ describe('game-service', () => {
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -126,11 +147,11 @@ describe('game-service', () => {
         type: GameEventType.TEXT,
         text: 'test message',
       };
-      mockParser.parse.mockResolvedValue(rxjs.of(mockEvent));
+      mockParser.parse.mockReturnValue(rxjs.of(mockEvent));
     });
 
     it('connects to the game server', async () => {
-      const gameEvents$ = await connectGameService();
+      const gameEvents$ = await gameService.connect();
 
       // This is first connection, so does not disconnect previous socket.
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(0);
@@ -145,35 +166,96 @@ describe('game-service', () => {
     });
 
     it('disconnects previous connection', async () => {
-      await connectGameService();
+      await gameService.connect();
 
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(0);
       expect(mockSocket.connect).toHaveBeenCalledTimes(1);
 
       // Connect again, should disconnect previous connection.
-      await connectGameService();
+      await gameService.connect();
 
       // Previous connection is disconnected.
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
       expect(mockSocket.connect).toHaveBeenCalledTimes(2);
     });
+
+    it('creates log streams when log level is trace', async () => {
+      vi.stubEnv('LOG_LEVEL', 'trace');
+
+      await gameService.connect();
+
+      expect(mockWriteStream.write).toHaveBeenCalledTimes(2);
+
+      expect(mockWriteStream.write).toHaveBeenNthCalledWith(
+        1,
+        `---\ntest message`
+      );
+
+      expect(mockWriteStream.write).toHaveBeenNthCalledWith(
+        2,
+        `---\n${JSON.stringify(mockEvent, null, 2)}`
+      );
+
+      expect(mockWriteStream.end).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not create log streams when log level is not trace', async () => {
+      vi.stubEnv('LOG_LEVEL', 'debug');
+
+      await gameService.connect();
+
+      expect(mockWriteStream.write).toHaveBeenCalledTimes(0);
+      expect(mockWriteStream.end).toHaveBeenCalledTimes(0);
+    });
   });
 
   describe('#disconnect', () => {
     it('disconnects from the game server', async () => {
-      await connectGameService();
-      await disconnectGameService();
+      await gameService.connect();
+      await gameService.disconnect();
 
       expect(mockSocket.connect).toHaveBeenCalledTimes(1);
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
     });
 
     it('does not disconnect if already destroyed', async () => {
-      await disconnectGameService();
-      await disconnectGameService();
+      await gameService.disconnect();
+      await gameService.disconnect();
 
       expect(mockSocket.connect).toHaveBeenCalledTimes(0);
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('throws timeout error if does not destroy socket', async () => {
+      mockWaitUntil.mockResolvedValue(false);
+
+      await gameService.connect();
+
+      try {
+        await gameService.disconnect();
+        expect.unreachable('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(
+          new Error('[GAME:SERVICE:DISCONNECT:TIMEOUT] 5000')
+        );
+      }
+    });
+  });
+
+  describe('#send', () => {
+    it('sends command to the game server', async () => {
+      await gameService.connect();
+
+      gameService.send('test-command');
+
+      expect(mockSocket.send).toHaveBeenCalledTimes(1);
+      expect(mockSocket.send).toHaveBeenCalledWith('test-command');
+    });
+
+    it('does not send command if not connected', async () => {
+      gameService.send('test-command');
+
+      expect(mockSocket.send).toHaveBeenCalledTimes(0);
     });
   });
 });

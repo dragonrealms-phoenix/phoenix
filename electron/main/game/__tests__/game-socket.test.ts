@@ -35,7 +35,7 @@ describe('game-socket', () => {
   });
 
   describe('#connect', () => {
-    it('connects to the game server, receive messages, and then disconnect', async () => {
+    it('connects to the game server, receives messages, and then disconnects', async () => {
       const mockSocket = mockNetConnect('mock', vi.fn());
       vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
 
@@ -235,6 +235,33 @@ describe('game-socket', () => {
         `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML\n`
       );
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
+    });
+
+    it('throws error if socket is destroyed during connect', async () => {
+      const mockSocket = mockNetConnect('mock', vi.fn());
+      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
+
+      const socket = new GameSocketImpl({ credentials });
+
+      // ---
+
+      try {
+        // Connect to socket and begin listening for data.
+        const socketDataPromise = socket.connect();
+
+        // Run timer so that the "wait until" logic times out.
+        // Note, we don't run them async because otherwise vitest
+        // treats the error as an unhandled promise rejection
+        // when instead we want to actually catch it in this test.
+        vi.runAllTimers();
+
+        // Now await the connect promise, which will reject due to timeout.
+        await socketDataPromise;
+
+        expect.unreachable('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(new Error('[GAME:SOCKET:CONNECT:TIMEOUT] 5000'));
+      }
     });
   });
 
