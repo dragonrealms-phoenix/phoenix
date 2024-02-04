@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { waitUntil } from '../wait-until.js';
 
 describe('wait-until', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
