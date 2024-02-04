@@ -2,6 +2,7 @@ import * as net from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runInBackground } from '../../../common/async/run-in-background.js';
 import type { SGEGameCredentials } from '../../sge/types.js';
+import type { NetSocketMock } from '../__mocks__/net-socket.mock.js';
 import { mockNetConnect } from '../__mocks__/net-socket.mock.js';
 import { GameSocketImpl } from '../game.socket.js';
 
@@ -18,13 +19,28 @@ vi.mock('net', () => {
 });
 
 describe('game-socket', () => {
-  const credentials: SGEGameCredentials = {
-    host: 'localhost',
-    port: 1234,
-    accessToken: 'test-token',
-  };
+  let credentials: SGEGameCredentials;
+  let mockSocket: NetSocketMock & net.Socket;
 
   beforeEach(() => {
+    credentials = {
+      host: 'localhost',
+      port: 1234,
+      accessToken: 'test-token',
+    };
+
+    mockSocket = mockNetConnect('mock', vi.fn());
+
+    vi.spyOn(net, 'connect').mockImplementation(
+      (
+        _pathOrPortOrOptions: string | number | net.NetConnectOpts,
+        connectionListener?: () => void
+      ) => {
+        connectionListener?.();
+        return mockSocket;
+      }
+    );
+
     vi.useFakeTimers();
   });
 
@@ -36,9 +52,6 @@ describe('game-socket', () => {
 
   describe('#connect', () => {
     it('connects to the game server, receives messages, and then disconnects', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const subscriber1NextSpy = vi.fn();
       const subscriber2NextSpy = vi.fn();
 
@@ -126,9 +139,6 @@ describe('game-socket', () => {
     });
 
     it('disconnects previous connection when a new connection is made', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const onConnectSpy = vi.fn();
       const onDisconnectSpy = vi.fn();
 
@@ -190,9 +200,6 @@ describe('game-socket', () => {
     });
 
     it('sends credentials and headers to the game server on connect', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const onConnectSpy = vi.fn();
       const onDisconnectSpy = vi.fn();
 
@@ -238,9 +245,6 @@ describe('game-socket', () => {
     });
 
     it('throws error if socket is destroyed during connect', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const socket = new GameSocketImpl({ credentials });
 
       // ---
@@ -267,9 +271,6 @@ describe('game-socket', () => {
 
   describe('#disconnect', () => {
     it('disconnects from the game server', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const onConnectSpy = vi.fn();
       const onDisconnectSpy = vi.fn();
 
@@ -316,9 +317,6 @@ describe('game-socket', () => {
     });
 
     it('disconnects from the game server when an error occurs', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const onConnectSpy = vi.fn();
       const onDisconnectSpy = vi.fn();
 
@@ -369,9 +367,6 @@ describe('game-socket', () => {
     });
 
     it('disconnects from the game server when a timeout occurs', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const onConnectSpy = vi.fn();
       const onDisconnectSpy = vi.fn();
 
@@ -439,9 +434,6 @@ describe('game-socket', () => {
 
   describe('#send', () => {
     it('sends commands when connected to the game server', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const socket = new GameSocketImpl({
         credentials,
       });
@@ -476,9 +468,6 @@ describe('game-socket', () => {
     });
 
     it('throws error when never connected to the game server', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const socket = new GameSocketImpl({
         credentials,
       });
@@ -502,9 +491,6 @@ describe('game-socket', () => {
     });
 
     it('throws error when socket is not writable', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const socket = new GameSocketImpl({
         credentials,
       });
@@ -552,9 +538,6 @@ describe('game-socket', () => {
     });
 
     it('throws error when socket has been disconnected', async () => {
-      const mockSocket = mockNetConnect('mock', vi.fn());
-      vi.spyOn(net, 'connect').mockImplementation(() => mockSocket);
-
       const socket = new GameSocketImpl({
         credentials,
       });
