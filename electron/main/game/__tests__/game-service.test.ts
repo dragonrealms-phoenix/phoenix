@@ -41,11 +41,15 @@ const { mockParser, mockSocket, mockWriteStream, mockWaitUntil } = vi.hoisted(
 
 vi.mock('../game.parser.js', () => {
   class GameParserMockImpl implements GameParser {
-    parse = (
-      gameSocketStream: rxjs.Observable<string>
-    ): rxjs.Observable<GameEvent> => {
-      return mockParser.parse(gameSocketStream);
-    };
+    parse = vi
+      .fn()
+      .mockImplementation(
+        (
+          gameSocketStream: rxjs.Observable<string>
+        ): rxjs.Observable<GameEvent> => {
+          return mockParser.parse(gameSocketStream);
+        }
+      );
   }
 
   return {
@@ -69,20 +73,22 @@ vi.mock('../game.socket.js', () => {
       this.onDisconnect = options.onDisconnect;
     }
 
-    connect = async (): Promise<rxjs.Observable<string>> => {
-      this.onConnect?.();
-      return mockSocket.connect();
-    };
+    connect = vi
+      .fn()
+      .mockImplementation(async (): Promise<rxjs.Observable<string>> => {
+        this.onConnect?.();
+        return mockSocket.connect();
+      });
 
-    disconnect = async (): Promise<void> => {
+    disconnect = vi.fn().mockImplementation(async (): Promise<void> => {
       this.onDisconnect?.('end');
       this.onDisconnect?.('close');
       return mockSocket.disconnect();
-    };
+    });
 
-    send = (command: string): void => {
+    send = vi.fn().mockImplementation((command: string): void => {
       mockSocket.send(command);
-    };
+    });
   }
 
   return {
@@ -100,7 +106,7 @@ vi.mock('electron', async () => {
 
 vi.mock('fs-extra', () => {
   return {
-    createWriteStream: () => mockWriteStream,
+    createWriteStream: vi.fn().mockImplementation(() => mockWriteStream),
   };
 });
 
