@@ -244,7 +244,7 @@ describe('game-socket', () => {
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
     });
 
-    it('throws error if socket is destroyed during connect', async () => {
+    it('throws error if socket times out during connect', async () => {
       const socket = new GameSocketImpl({ credentials });
 
       // ---
@@ -265,6 +265,38 @@ describe('game-socket', () => {
         expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(new Error('[GAME:SOCKET:CONNECT:TIMEOUT] 5000'));
+      }
+    });
+
+    it('throws error if socket is destroyed during connect', async () => {
+      const socket = new GameSocketImpl({ credentials });
+
+      // ---
+
+      try {
+        // Connect to socket and begin listening for data.
+        const socketDataPromise = socket.connect();
+
+        // Before the connect logic has a chance to know if the
+        // socket has connected, issue a disconnect to flag it as destroyed.
+        await socket.disconnect();
+
+        // Run timer so that the "wait until" logic runs.
+        // Note, we don't run them async because otherwise vitest
+        // treats the error as an unhandled promise rejection
+        // when instead we want to actually catch it in this test.
+        vi.runAllTimers();
+
+        // Now await the connect promise, which will reject due to destroyed.
+        await socketDataPromise;
+
+        expect.unreachable('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(
+          new Error(
+            '[GAME:SOCKET:STATUS:DESTROYED] failed to connect to game server'
+          )
+        );
       }
     });
   });
