@@ -41,7 +41,7 @@ describe('game-socket', () => {
       }
     );
 
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {

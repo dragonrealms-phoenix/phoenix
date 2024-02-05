@@ -41,7 +41,6 @@ describe('game-parser', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
-    vi.useRealTimers();
   });
 
   const expectGameEvent = (expected: Partial<GameEvent>) => {
