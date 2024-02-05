@@ -66,8 +66,35 @@ describe('game-parser', () => {
       expect(onErrorSpy).toHaveBeenCalledWith(new Error('test'));
     });
 
-    it('emits TextGameEvent', () => {
-      gameSocketSubject$.next('test');
+    it('errors when the socket stream emits an invalid event', () => {
+      gameSocketSubject$.next('<invalid_start_tag');
+
+      expect(onErrorSpy).toHaveBeenCalledWith(
+        new Error('[GAME:PARSER:UNPARSED:LINE] <invalid_start_tag')
+      );
+    });
+
+    it('parses multiple lines into separate events', () => {
+      gameSocketSubject$.next('test1\ntest2\ntest3\n');
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `test1\n`,
+      });
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `test2\n`,
+      });
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `test3\n`,
+      });
+    });
+
+    it('emits TextGameEvent (plain)', () => {
+      gameSocketSubject$.next('test\n');
 
       expectGameEvent({
         type: GameEventType.TEXT,
@@ -75,8 +102,39 @@ describe('game-parser', () => {
       });
     });
 
+    it('emits TextGameEvent (with bold tags)', () => {
+      gameSocketSubject$.next(
+        'You also see <pushBold/>a town guard<popBold/>.\n'
+      );
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `You also see <b>a town guard</b>.\n`,
+      });
+    });
+
+    it('emits TextGameEvent (anchor link text)', () => {
+      gameSocketSubject$.next('Visit the <a href="#">play.net</a> website.\n');
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `Visit the play.net website.\n`,
+      });
+    });
+
+    it('emits TextGameEvent (preset tag | room desc)', () => {
+      gameSocketSubject$.next(
+        '<preset id="roomDesc">A neat row of barred windows...</preset>\n'
+      );
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: 'A neat row of barred windows...\n',
+      });
+    });
+
     it('emits PushBoldGameEvent', () => {
-      gameSocketSubject$.next('<pushBold/>');
+      gameSocketSubject$.next('<pushBold/>\n');
 
       expectGameEvent({
         type: GameEventType.PUSH_BOLD,
@@ -84,7 +142,7 @@ describe('game-parser', () => {
     });
 
     it('emits PopBoldGameEvent', () => {
-      gameSocketSubject$.next('<popBold/>');
+      gameSocketSubject$.next('<popBold/>\n');
 
       expectGameEvent({
         type: GameEventType.POP_BOLD,
@@ -92,7 +150,7 @@ describe('game-parser', () => {
     });
 
     it('emits TextOutputClassGameEvent (mono)', () => {
-      gameSocketSubject$.next('<output class="mono"/>');
+      gameSocketSubject$.next('<output class="mono"/>\n');
 
       expectGameEvent({
         type: GameEventType.TEXT_OUTPUT_CLASS,
@@ -101,7 +159,7 @@ describe('game-parser', () => {
     });
 
     it('emits TextOutputClassGameEvent (blank)', () => {
-      gameSocketSubject$.next('<output class=""/>');
+      gameSocketSubject$.next('<output class=""/>\n');
 
       expectGameEvent({
         type: GameEventType.TEXT_OUTPUT_CLASS,
@@ -109,8 +167,17 @@ describe('game-parser', () => {
       });
     });
 
-    it('emits TextStylePresetGameEvent', () => {
-      gameSocketSubject$.next('<preset id="roomName"/>');
+    it('emits TextStylePresetGameEvent (style tag | room name)', () => {
+      gameSocketSubject$.next('<style id="roomName">\n');
+
+      expectGameEvent({
+        type: GameEventType.TEXT_STYLE_PRESET,
+        textStylePreset: 'roomName',
+      });
+    });
+
+    it('emits TextStylePresetGameEvent (preset tag | room name)', () => {
+      gameSocketSubject$.next('<preset id="roomName"/>\n');
 
       expectGameEvent({
         type: GameEventType.TEXT_STYLE_PRESET,
@@ -119,7 +186,7 @@ describe('game-parser', () => {
     });
 
     it('emits IndicatorGameEvent (visible)', () => {
-      gameSocketSubject$.next('<indicator id="IconBLEEDING" visible="y"/>');
+      gameSocketSubject$.next('<indicator id="IconBLEEDING" visible="y"/>\n');
 
       expectGameEvent({
         type: GameEventType.INDICATOR,
@@ -129,7 +196,7 @@ describe('game-parser', () => {
     });
 
     it('emits IndicatorGameEvent (not visible)', () => {
-      gameSocketSubject$.next('<indicator id="IconBLEEDING" visible="n"/>');
+      gameSocketSubject$.next('<indicator id="IconBLEEDING" visible="n"/>\n');
 
       expectGameEvent({
         type: GameEventType.INDICATOR,
@@ -139,7 +206,7 @@ describe('game-parser', () => {
     });
 
     it('emits SpellGameEvent', () => {
-      gameSocketSubject$.next('<spell>Fire Shards</spell>');
+      gameSocketSubject$.next('<spell>Fire Shards</spell>\n');
 
       expectGameEvent({
         type: GameEventType.SPELL,
@@ -147,14 +214,17 @@ describe('game-parser', () => {
       });
     });
 
-    it('emits HandGameEvent', () => {
-      gameSocketSubject$.next('<left>Empty</left>');
-      gameSocketSubject$.next('<right>red backpack</right>');
+    it('emits HandGameEvent (left)', () => {
+      gameSocketSubject$.next('<left>Empty</left>\n');
 
       expectGameEvent({
         type: GameEventType.LEFT_HAND,
         item: 'Empty',
       });
+    });
+
+    it('emits HandGameEvent (right)', () => {
+      gameSocketSubject$.next('<right>red backpack</right>\n');
 
       expectGameEvent({
         type: GameEventType.RIGHT_HAND,
@@ -163,7 +233,7 @@ describe('game-parser', () => {
     });
 
     it('emits ClearStreamGameEvent', () => {
-      gameSocketSubject$.next('<clearStream id="inv"/>');
+      gameSocketSubject$.next('<clearStream id="inv"/>\n');
 
       expectGameEvent({
         type: GameEventType.CLEAR_STREAM,
@@ -172,7 +242,7 @@ describe('game-parser', () => {
     });
 
     it('emits PushStreamGameEvent', () => {
-      gameSocketSubject$.next('<pushStream id="experience"/>');
+      gameSocketSubject$.next('<pushStream id="experience"/>\n');
 
       expectGameEvent({
         type: GameEventType.PUSH_STREAM,
@@ -181,7 +251,7 @@ describe('game-parser', () => {
     });
 
     it('emits PopStreamGameEvent', () => {
-      gameSocketSubject$.next('<popStream/>');
+      gameSocketSubject$.next('<popStream/>\n');
 
       expectGameEvent({
         type: GameEventType.POP_STREAM,
@@ -190,7 +260,7 @@ describe('game-parser', () => {
 
     it('emits CompassGameEvent', () => {
       gameSocketSubject$.next(
-        '<compass><dir value="e"/><dir value="sw"/><dir value="out"/></compass>'
+        '<compass><dir value="e"/><dir value="sw"/><dir value="out"/></compass>\n'
       );
 
       expectGameEvent({
@@ -200,7 +270,7 @@ describe('game-parser', () => {
     });
 
     it('emits VitalsGameEvent', () => {
-      gameSocketSubject$.next('<progressBar id="health" value="100"/>');
+      gameSocketSubject$.next('<progressBar id="health" value="100"/>\n');
 
       expectGameEvent({
         type: GameEventType.VITALS,
@@ -209,9 +279,9 @@ describe('game-parser', () => {
       });
     });
 
-    it('emits ExperienceGameEvent', () => {
+    it('emits ExperienceGameEvent (component wrapping preset)', () => {
       gameSocketSubject$.next(
-        '<component id="exp Attunement">      Attunement:    1 46% attentive    </component>'
+        '<component id="exp Attunement"><preset id="whisper">Attunement: 1 46% attentive</preset></component>\n'
       );
 
       expectGameEvent({
@@ -223,8 +293,22 @@ describe('game-parser', () => {
       });
     });
 
-    it('emits ExperienceGameEvent (blank)', () => {
-      gameSocketSubject$.next('<component id="exp Attunement"></component>');
+    it('emits ExperienceGameEvent (component only)', () => {
+      gameSocketSubject$.next(
+        '<component id="exp Attunement">Attunement: 1 46% attentive</component>\n'
+      );
+
+      expectGameEvent({
+        type: GameEventType.EXPERIENCE,
+        skill: 'Attunement',
+        mindState: 'attentive',
+        rank: 1,
+        percent: 46,
+      });
+    });
+
+    it('emits ExperienceGameEvent (component only | empty)', () => {
+      gameSocketSubject$.next('<component id="exp Attunement"></component>\n');
 
       expectGameEvent({
         type: GameEventType.EXPERIENCE,
@@ -237,7 +321,7 @@ describe('game-parser', () => {
 
     it('emits RoomGameEvent (room title)', () => {
       gameSocketSubject$.next(
-        '<streamWindow id="room" subtitle=" - [Provincial Bank, Teller]" />'
+        '<streamWindow id="room" subtitle=" - [Provincial Bank, Teller]" />\n'
       );
 
       expectGameEvent({
@@ -248,7 +332,7 @@ describe('game-parser', () => {
 
     it('emits RoomGameEvent (room description)', () => {
       gameSocketSubject$.next(
-        '<component id="room desc">A neat row of barred windows...</component>'
+        '<component id="room desc">A neat row of barred windows...</component>\n'
       );
 
       expectGameEvent({
@@ -259,7 +343,7 @@ describe('game-parser', () => {
 
     it('emits RoomGameEvent (room objects)', () => {
       gameSocketSubject$.next(
-        '<component id="room objects">You also see a small calendar...</component>'
+        '<component id="room objects">You also see a small calendar...</component>\n'
       );
 
       expectGameEvent({
@@ -270,7 +354,7 @@ describe('game-parser', () => {
 
     it('emits RoomGameEvent (room objs)', () => {
       gameSocketSubject$.next(
-        '<component id="room objs">You also see a small calendar...</component>'
+        '<component id="room objs">You also see a small calendar...</component>\n'
       );
 
       expectGameEvent({
@@ -281,7 +365,7 @@ describe('game-parser', () => {
 
     it('emits RoomGameEvent (room players)', () => {
       gameSocketSubject$.next(
-        '<component id="room players">Also here: Katoak.</component>'
+        '<component id="room players">Also here: Katoak.</component>\n'
       );
 
       expectGameEvent({
@@ -292,7 +376,7 @@ describe('game-parser', () => {
 
     it('emits RoomGameEvent (room exits)', () => {
       gameSocketSubject$.next(
-        '<component id="room exits">Obvious exits: <d>out</d>.<compass></compass></component></component>'
+        '<component id="room exits">Obvious exits: <d>out</d>.<compass></compass></component></component>\n'
       );
 
       expectGameEvent({
@@ -302,7 +386,7 @@ describe('game-parser', () => {
     });
 
     it('emits ServerTimeGameEvent', () => {
-      gameSocketSubject$.next('<prompt time="1703804031">&gt;</prompt>');
+      gameSocketSubject$.next('<prompt time="1703804031">&gt;</prompt>\n');
 
       expectGameEvent({
         type: GameEventType.SERVER_TIME,
@@ -311,7 +395,7 @@ describe('game-parser', () => {
     });
 
     it('emits RoundTimeGameEvent', () => {
-      gameSocketSubject$.next('<roundTime value="1703804031"/>');
+      gameSocketSubject$.next('<roundTime value="1703804031"/>\n');
 
       expectGameEvent({
         type: GameEventType.ROUND_TIME,
@@ -320,7 +404,7 @@ describe('game-parser', () => {
     });
 
     it('emits CastTimeGameEvent', () => {
-      gameSocketSubject$.next('<castTime value="1703804031"/>');
+      gameSocketSubject$.next('<castTime value="1703804031"/>\n');
 
       expectGameEvent({
         type: GameEventType.CAST_TIME,

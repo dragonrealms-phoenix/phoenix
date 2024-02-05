@@ -167,21 +167,29 @@ export class GameParserImpl implements GameParser {
     gameSocketStream: rxjs.Observable<string>
   ): rxjs.Observable<GameEvent> {
     logger.debug('subscribing to game socket stream');
-    gameSocketStream.subscribe({
-      next: (socketData) => {
-        logger.trace('parsing game socket data', { socketData });
-        const lines = this.convertSocketDataToLines(socketData);
-        this.parseLines(lines);
-      },
-      error: (error) => {
-        logger.error('game socket stream error', { error });
-        this.gameEventsSubject$.error(error);
-      },
-      complete: () => {
-        logger.debug('game socket stream completed');
-        this.gameEventsSubject$.complete();
-      },
-    });
+    gameSocketStream
+      .pipe(
+        // The parsing logic used to be in the `next` method of the
+        // subscribe method's options. However, errors thrown from there
+        // are NOT handled by the `error` subscribe error callback. Doh!
+        // Instead, that catches errors from the pipeline.
+        // Therefore, moved the parsing logic to the pipeline.
+        rxjs.map((socketData) => {
+          logger.trace('parsing game socket data', { socketData });
+          const lines = this.convertSocketDataToLines(socketData);
+          this.parseLines(lines);
+        })
+      )
+      .subscribe({
+        error: (error) => {
+          logger.error('game socket stream error', { error });
+          this.gameEventsSubject$.error(error);
+        },
+        complete: () => {
+          logger.debug('game socket stream completed');
+          this.gameEventsSubject$.complete();
+        },
+      });
     return this.gameEventsSubject$.asObservable();
   }
 
@@ -297,7 +305,7 @@ export class GameParserImpl implements GameParser {
       }
 
       // Should never get here...
-      throw new Error(`[GAME:PARSER:UNPARSED:LINE] ${line}`);
+      throw new Error(`[GAME:PARSER:UNPARSED:LINE] ${line?.trim()}`);
     }
 
     if (this.gameText.length > 0) {
@@ -609,10 +617,6 @@ export class GameParserImpl implements GameParser {
     return this.activeTags.find((tag) => {
       return tag.name === tagName;
     });
-  }
-
-  protected isAncestorTag(tagName: string): boolean {
-    return this.getAncestorTag(tagName) !== undefined;
   }
 
   /**
