@@ -463,7 +463,7 @@ export class GameParserImpl implements GameParser {
       case 'dir': // <dir value="e"/>
         this.compassDirections.push(attributes.value);
         break;
-      case 'vitals': // <progressBar id="mana" value="100"/>
+      case 'progressBar': // <progressBar id="mana" value="100"/>
         this.emitVitalsGameEvent({
           vitalId: attributes.id,
           value: parseInt(attributes.value),
