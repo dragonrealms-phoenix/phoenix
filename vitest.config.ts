@@ -6,7 +6,12 @@ export default defineConfig({
     silent: true,
     logHeapUsage: true,
     coverage: {
-      exclude: ['**/types.ts', '**/__mocks__/**', '**/__tests__/**'],
+      exclude: [
+        '**/*.d.ts',
+        '**/types.ts',
+        '**/__mocks__/**',
+        '**/__tests__/**',
+      ],
     },
   },
 });
