@@ -1,6 +1,5 @@
-import type tls from 'node:tls';
+import type * as tls from 'node:tls';
 
-export type SelfSignedConnectOptions = Pick<
-  tls.ConnectionOptions,
-  'ca' | 'checkServerIdentity' | 'requestCert'
+export type SelfSignedConnectOptions = Required<
+  Pick<tls.ConnectionOptions, 'ca' | 'checkServerIdentity' | 'requestCert'>
 >;
