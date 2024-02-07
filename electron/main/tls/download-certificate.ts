@@ -24,6 +24,10 @@ export const downloadCertificate = async (
 
     const socket = tls.connect(connectOptions, (): void => {
       logger.debug('socket connected', { host, port });
+    });
+
+    socket.once('secureConnect', (): void => {
+      logger.debug('socket secure connection', { host, port });
       resolveSocket(socket.getPeerCertificate());
     });
 
@@ -50,19 +54,19 @@ export const downloadCertificate = async (
       );
     });
 
-    const resolveSocket = (result: tls.PeerCertificate): void => {
+    const resolveSocket = (peerCert: tls.PeerCertificate): void => {
       logger.debug('downloaded certificate', {
         host,
         port,
-        issuer: result.issuer,
-        subject: result.subject,
-        validFrom: result.valid_from,
-        validTo: result.valid_to,
-        serialNumber: result.serialNumber,
-        fingerprint: result.fingerprint,
+        issuer: peerCert.issuer,
+        subject: peerCert.subject,
+        validFrom: peerCert.valid_from,
+        validTo: peerCert.valid_to,
+        serialNumber: peerCert.serialNumber,
+        fingerprint: peerCert.fingerprint,
       });
       socket.destroy();
-      resolve(result);
+      resolve(peerCert);
     };
 
     const rejectSocket = (error: Error): void => {
