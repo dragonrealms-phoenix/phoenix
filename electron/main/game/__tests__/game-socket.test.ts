@@ -1,5 +1,14 @@
 import * as net from 'node:net';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MockInstance } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import { runInBackground } from '../../../common/async/run-in-background.js';
 import type { NetSocketMock } from '../../__mocks__/net-socket.mock.js';
 import { mockNetConnect } from '../../__mocks__/net-socket.mock.js';
@@ -21,25 +30,27 @@ vi.mock('node:net', () => {
 describe('game-socket', () => {
   let credentials: SGEGameCredentials;
   let mockSocket: NetSocketMock & net.Socket;
+  let netConnectSpy: MockInstance;
+
+  beforeAll(() => {
+    netConnectSpy = vi.spyOn(net, 'connect');
+  });
 
   beforeEach(() => {
     credentials = {
-      host: 'localhost',
-      port: 1234,
+      host: 'dr.simutronics.net',
+      port: 11024,
       accessToken: 'test-token',
     };
 
-    mockSocket = mockNetConnect('mock', vi.fn());
-
-    vi.spyOn(net, 'connect').mockImplementation(
-      (
-        _pathOrPortOrOptions: string | number | net.NetConnectOpts,
-        connectionListener?: () => void
-      ) => {
-        connectionListener?.();
-        return mockSocket;
-      }
-    );
+    netConnectSpy.mockImplementationOnce((...args): net.Socket => {
+      // Technically, the `net.connect()` method accepts various arguments.
+      // For this test, we know it's invoked with these two arguments.
+      const connectionOptions = args[0] as net.TcpNetConnectOpts;
+      const connectionListener = args[1] as () => void;
+      mockSocket = mockNetConnect(connectionOptions, connectionListener);
+      return mockSocket;
+    });
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
