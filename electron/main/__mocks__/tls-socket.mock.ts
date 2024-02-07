@@ -15,22 +15,60 @@ export const mockTLSConnect = (
 
   mockSocket.connect(connectOptions);
 
-  connectionListener?.();
+  setImmediate(() => {
+    connectionListener?.();
+    mockSocket.emitSecureConnectEvent();
+  });
 
   return mockSocket as TLSSocketMock & tls.TLSSocket;
 };
 
 export class TLSSocketMock extends NetSocketMock {
+  public secureConnectSpy: Mock;
   public getPeerCertificateSpy: Mock;
+
+  private secureConnectListener?: () => void;
 
   constructor() {
     super();
+    this.secureConnectSpy = vi.fn();
     this.getPeerCertificateSpy = vi.fn();
+  }
+
+  // -- Mock Test Functions -- //
+
+  public emitSecureConnectEvent(): void {
+    this.secureConnectSpy();
+    this.secureConnectListener?.();
   }
 
   // -- Node.js TLS Socket Functions -- //
 
   public getPeerCertificate(): tls.PeerCertificate {
     return this.getPeerCertificateSpy();
+  }
+
+  public on(event: string, listener: (...args: Array<any>) => void): this {
+    switch (event) {
+      case 'secureConnect':
+        this.secureConnectListener = listener;
+        break;
+      default:
+        super.on(event, listener);
+        break;
+    }
+    return this;
+  }
+
+  public removeListener(event: string): this {
+    switch (event) {
+      case 'secureConnect':
+        this.secureConnectListener = undefined;
+        break;
+      default:
+        super.removeListener(event);
+        break;
+    }
+    return this;
   }
 }

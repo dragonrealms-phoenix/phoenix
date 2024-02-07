@@ -7,14 +7,16 @@ import { vi } from 'vitest';
  * Retuns a function that when called creates a new `NetSocketMock` instance.
  */
 export const mockNetConnect = (
-  connectOptions: string | net.NetConnectOpts,
+  connectOptions: net.TcpNetConnectOpts,
   connectionListener?: () => void
 ): NetSocketMock & net.Socket => {
   const mockSocket = new NetSocketMock();
 
   mockSocket.connect(connectOptions);
 
-  connectionListener?.();
+  setImmediate(() => {
+    connectionListener?.();
+  });
 
   return mockSocket as NetSocketMock & net.Socket;
 };
@@ -24,8 +26,10 @@ export class NetSocketMock {
   public writeSpy: Mock;
   public pauseSpy: Mock;
   public destroySoonSpy: Mock;
+  public destroySpy: Mock;
 
   public writable: boolean;
+  public timeout?: number;
 
   private dataListener?: (data?: unknown) => void;
   private connectListener?: () => void;
@@ -36,10 +40,12 @@ export class NetSocketMock {
 
   constructor() {
     this.writable = false;
+    this.timeout = undefined;
     this.connectSpy = vi.fn();
     this.writeSpy = vi.fn();
     this.pauseSpy = vi.fn();
     this.destroySoonSpy = vi.fn();
+    this.destroySpy = vi.fn();
   }
 
   // -- Mock Test Functions -- //
@@ -48,7 +54,8 @@ export class NetSocketMock {
     this.dataListener?.(data);
   }
 
-  public emitTimeoutEvent(): void {
+  public emitTimeoutEvent(timeout?: number): void {
+    this.timeout = timeout;
     this.timeoutListener?.();
   }
 
@@ -76,6 +83,11 @@ export class NetSocketMock {
 
   public destroySoon(): void {
     this.destroySoonSpy();
+    this.destroy();
+  }
+
+  public destroy(): void {
+    this.destroySpy();
     this.writable = false;
     this.endListener?.();
     this.closeListener?.();
