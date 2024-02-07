@@ -1,14 +1,14 @@
 import * as net from 'node:net';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { runInBackground } from '../../../common/async/run-in-background.js';
+import type { NetSocketMock } from '../../__mocks__/net-socket.mock.js';
+import { mockNetConnect } from '../../__mocks__/net-socket.mock.js';
 import type { SGEGameCredentials } from '../../sge/types.js';
-import type { NetSocketMock } from '../__mocks__/net-socket.mock.js';
-import { mockNetConnect } from '../__mocks__/net-socket.mock.js';
 import { GameSocketImpl } from '../game.socket.js';
 
 type NetModule = typeof import('node:net');
 
-vi.mock('net', () => {
+vi.mock('node:net', () => {
   const netMock: Partial<NetModule> = {
     // Each test spies on `net.connect` to specify their own socket to test.
     // Mocking the method here so that it can be spied upon as a mocked module.
