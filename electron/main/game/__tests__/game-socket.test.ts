@@ -134,6 +134,10 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
 
+      expect(mockSocket.connectSpy).toHaveBeenCalledWith({
+        host: 'dr.simutronics.net',
+        port: 11024,
+      });
       expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
       expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
     });
