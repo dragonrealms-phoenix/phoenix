@@ -7,15 +7,17 @@ describe('get-pem', () => {
   const base64 = buffer.toString('base64');
   const pem = `-----BEGIN CERTIFICATE-----\n${base64}\n-----END CERTIFICATE-----`;
 
-  it('returns the input string if it is a string', () => {
-    expect(getPEM(pem)).toBe(pem);
-  });
+  describe('#getPEM', () => {
+    it('returns the input string if it is a string', () => {
+      expect(getPEM(pem)).toBe(pem);
+    });
 
-  it('converts the raw certificate to PEM format', () => {
-    const certificate = {
-      raw: buffer,
-    } as tls.PeerCertificate;
+    it('converts the raw certificate to PEM format', () => {
+      const certificate = {
+        raw: buffer,
+      } as tls.PeerCertificate;
 
-    expect(getPEM(certificate)).toBe(pem);
+      expect(getPEM(certificate)).toBe(pem);
+    });
   });
 });

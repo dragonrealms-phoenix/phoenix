@@ -48,37 +48,39 @@ describe('create-self-signed-connect-options', () => {
     vi.useRealTimers();
   });
 
-  it('creates self-signed connect options', () => {
-    expect(connectOptions).toEqual({
-      ca: [getPEM(trustedCert)],
-      requestCert: true,
-      checkServerIdentity: expect.any(Function),
+  describe('#createSelfSignedConnectOptions', () => {
+    it('creates self-signed connect options', () => {
+      expect(connectOptions).toEqual({
+        ca: [getPEM(trustedCert)],
+        requestCert: true,
+        checkServerIdentity: expect.any(Function),
+      });
     });
-  });
 
-  it('accepts trusted certificates', () => {
-    const { checkServerIdentity } = connectOptions;
+    it('accepts trusted certificates', () => {
+      const { checkServerIdentity } = connectOptions;
 
-    expect(
-      checkServerIdentity('https://trust.me', trustedCert)
-    ).toBeUndefined();
-  });
+      expect(
+        checkServerIdentity('https://trust.me', trustedCert)
+      ).toBeUndefined();
+    });
 
-  it('rejects untrusted certificates', () => {
-    const { checkServerIdentity } = connectOptions;
+    it('rejects untrusted certificates', () => {
+      const { checkServerIdentity } = connectOptions;
 
-    expect(checkServerIdentity('http://h4k0rz.io', untrustedCert)).toEqual(
-      new Error(`[TLS:SOCKET:CERT:UNTRUSTED] http://h4k0rz.io`)
-    );
-  });
+      expect(checkServerIdentity('http://h4k0rz.io', untrustedCert)).toEqual(
+        new Error(`[TLS:SOCKET:CERT:UNTRUSTED] http://h4k0rz.io`)
+      );
+    });
 
-  it('rejects expired certificates', () => {
-    const { checkServerIdentity } = connectOptions;
+    it('rejects expired certificates', () => {
+      const { checkServerIdentity } = connectOptions;
 
-    expect(checkServerIdentity('https://trust.me', expiredCert)).toEqual(
-      new Error(
-        `[TLS:SOCKET:CERT:EXPIRED] ${expiredCert.valid_from} - ${expiredCert.valid_to}`
-      )
-    );
+      expect(checkServerIdentity('https://trust.me', expiredCert)).toEqual(
+        new Error(
+          `[TLS:SOCKET:CERT:EXPIRED] ${expiredCert.valid_from} - ${expiredCert.valid_to}`
+        )
+      );
+    });
   });
 });
