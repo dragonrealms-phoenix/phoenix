@@ -16,6 +16,7 @@ export const connect = async (
   const defaultOptions: tls.ConnectionOptions = {
     host: 'eaccess.play.net',
     port: 7910,
+    timeout: 5000,
   };
 
   let mergedOptions = merge(defaultOptions, connectOptions);
