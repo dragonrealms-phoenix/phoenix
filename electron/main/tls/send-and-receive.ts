@@ -18,7 +18,9 @@ export const sendAndReceive = async (options: {
    */
   requestTimeout?: number;
 }): Promise<Buffer> => {
-  const { socket, payload, requestTimeout = socket.timeout } = options;
+  const { socket, payload } = options;
+  const socketTimeout = socket.timeout;
+  const requestTimeout = options.requestTimeout ?? socketTimeout;
 
   return new Promise<Buffer>((resolve, reject): void => {
     let requestTimeoutId: Maybe<NodeJS.Timeout>;
@@ -32,8 +34,7 @@ export const sendAndReceive = async (options: {
     };
 
     const timeoutListener = (): void => {
-      const timeout = socket.timeout;
-      rejectSocket(new Error(`[TLS:SOCKET:STATUS:TIMEOUT] ${timeout}`));
+      rejectSocket(new Error(`[TLS:SOCKET:STATUS:TIMEOUT] ${socketTimeout}`));
     };
 
     const errorListener = (error: Error): void => {

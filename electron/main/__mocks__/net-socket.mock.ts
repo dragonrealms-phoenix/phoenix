@@ -27,6 +27,8 @@ export class NetSocketMock {
   public pauseSpy: Mock;
   public destroySoonSpy: Mock;
   public destroySpy: Mock;
+  public subscribeToEventSpy: Mock;
+  public unsubscribeFromEventSpy: Mock;
 
   public writable: boolean;
   public timeout?: number;
@@ -46,6 +48,8 @@ export class NetSocketMock {
     this.pauseSpy = vi.fn();
     this.destroySoonSpy = vi.fn();
     this.destroySpy = vi.fn();
+    this.subscribeToEventSpy = vi.fn();
+    this.unsubscribeFromEventSpy = vi.fn();
   }
 
   // -- Mock Test Functions -- //
@@ -94,6 +98,7 @@ export class NetSocketMock {
   }
 
   public on(event: string, listener: (...args: Array<any>) => void): this {
+    this.subscribeToEventSpy(event, listener);
     switch (event) {
       case 'data':
         this.dataListener = listener;
@@ -121,16 +126,20 @@ export class NetSocketMock {
   public once(event: string, listener: (...args: Array<any>) => void): this {
     this.on(event, (...args) => {
       listener(...args);
-      this.removeListener(event);
+      this.removeListener(event, listener);
     });
     return this;
   }
 
-  public off(event: string): this {
-    return this.removeListener(event);
+  public off(event: string, listener: (...args: Array<any>) => void): this {
+    return this.removeListener(event, listener);
   }
 
-  public removeListener(event: string): this {
+  public removeListener(
+    event: string,
+    listener: (...args: Array<any>) => void
+  ): this {
+    this.unsubscribeFromEventSpy(event, listener);
     switch (event) {
       case 'data':
         this.dataListener = undefined;
