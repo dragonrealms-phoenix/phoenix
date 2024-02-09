@@ -126,6 +126,10 @@ export class NetSocketMock {
     return this;
   }
 
+  public off(event: string): this {
+    return this.removeListener(event);
+  }
+
   public removeListener(event: string): this {
     switch (event) {
       case 'data':
