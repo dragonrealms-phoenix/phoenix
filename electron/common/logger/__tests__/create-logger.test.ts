@@ -2,8 +2,8 @@ import { faker } from '@faker-js/faker';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearElectronLoggerMockProps,
-  electronLogMain,
-  electronLogRenderer,
+  mockElectronLogMain,
+  mockElectronLogRenderer,
 } from '../../__mocks__/electron-log.mock.js';
 import { createLogger } from '../create-logger.js';
 import type { Logger } from '../types.js';
@@ -20,19 +20,19 @@ describe('create-logger', () => {
     beforeEach(async () => {
       (globalThis as any).window = undefined;
       logger = await createLogger(faker.lorem.slug());
-      clearElectronLoggerMockProps(electronLogMain);
+      clearElectronLoggerMockProps(mockElectronLogMain);
     });
 
     it('uses main logger', async () => {
       logger.info('test');
 
-      expect(electronLogMain.info).toHaveBeenCalledWith('test');
+      expect(mockElectronLogMain.info).toHaveBeenCalledWith('test');
     });
 
     it('does not use renderer logger', async () => {
       logger.info('test');
 
-      expect(electronLogRenderer.info).not.toHaveBeenCalled();
+      expect(mockElectronLogRenderer.info).not.toHaveBeenCalled();
     });
 
     it('sets logger scope', async () => {
@@ -40,13 +40,13 @@ describe('create-logger', () => {
 
       await createLogger(scope);
 
-      expect(electronLogMain.scope).toHaveBeenCalledWith(scope);
+      expect(mockElectronLogMain.scope).toHaveBeenCalledWith(scope);
     });
 
     it('does not set logger scope', async () => {
       await createLogger();
 
-      expect(electronLogMain.scope).not.toHaveBeenCalled();
+      expect(mockElectronLogMain.scope).not.toHaveBeenCalled();
     });
   });
 
@@ -56,20 +56,20 @@ describe('create-logger', () => {
     beforeEach(async () => {
       (globalThis as any).window = {};
       logger = await createLogger(faker.lorem.slug());
-      clearElectronLoggerMockProps(electronLogMain);
-      clearElectronLoggerMockProps(electronLogRenderer);
+      clearElectronLoggerMockProps(mockElectronLogMain);
+      clearElectronLoggerMockProps(mockElectronLogRenderer);
     });
 
     it('uses renderer logger', async () => {
       logger.info('test');
 
-      expect(electronLogRenderer.info).toHaveBeenCalledWith('test');
+      expect(mockElectronLogRenderer.info).toHaveBeenCalledWith('test');
     });
 
     it('does not use main logger', async () => {
       logger.info('test');
 
-      expect(electronLogMain.info).not.toHaveBeenCalled();
+      expect(mockElectronLogMain.info).not.toHaveBeenCalled();
     });
 
     it('sets logger scope', async () => {
@@ -77,13 +77,13 @@ describe('create-logger', () => {
 
       await createLogger(scope);
 
-      expect(electronLogRenderer.scope).toHaveBeenCalledWith(scope);
+      expect(mockElectronLogRenderer.scope).toHaveBeenCalledWith(scope);
     });
 
     it('does not set logger scope', async () => {
       await createLogger();
 
-      expect(electronLogRenderer.scope).not.toHaveBeenCalled();
+      expect(mockElectronLogRenderer.scope).not.toHaveBeenCalled();
     });
   });
 });

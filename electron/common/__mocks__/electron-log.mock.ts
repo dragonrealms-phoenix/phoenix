@@ -2,7 +2,7 @@ import type { Logger as ElectronLogger } from 'electron-log';
 import { vi } from 'vitest';
 import type { DeepPartial } from '../types.js';
 
-const { electronLogMain, electronLogRenderer } = vi.hoisted(() => {
+const { mockElectronLogMain, mockElectronLogRenderer } = vi.hoisted(() => {
   const createMockLogger = (): Partial<ElectronLogger> => {
     const logger = {
       // The scope method returns a new logger. For testing purposes,
@@ -30,17 +30,17 @@ const { electronLogMain, electronLogRenderer } = vi.hoisted(() => {
   };
 
   return {
-    electronLogMain: createMockLogger(),
-    electronLogRenderer: createMockLogger(),
+    mockElectronLogMain: createMockLogger(),
+    mockElectronLogRenderer: createMockLogger(),
   };
 });
 
 vi.mock('electron-log/main.js', () => {
-  return electronLogMain;
+  return mockElectronLogMain;
 });
 
 vi.mock('electron-log/renderer.js', () => {
-  return electronLogRenderer;
+  return mockElectronLogRenderer;
 });
 
 const clearMockProps = (obj: Record<string, any>): void => {
@@ -66,4 +66,4 @@ export const clearElectronLoggerMockProps = (
   };
 };
 
-export { electronLogMain, electronLogRenderer };
+export { mockElectronLogMain, mockElectronLogRenderer };

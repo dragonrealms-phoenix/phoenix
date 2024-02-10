@@ -2,7 +2,7 @@ import type { Logger as ElectronLogger, Hook, LogMessage } from 'electron-log';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   clearElectronLoggerMockProps,
-  electronLogMain,
+  mockElectronLogMain,
 } from '../../__mocks__/electron-log.mock.js';
 import { initializeLogging } from '../initialize-logging.js';
 
@@ -10,7 +10,7 @@ describe('initialize-logging', () => {
   // For these tests it doesn't matter which electron logger we use.
   // They both satisfy the same interface for the method we're testing.
   beforeEach(async () => {
-    clearElectronLoggerMockProps(electronLogMain);
+    clearElectronLoggerMockProps(mockElectronLogMain);
   });
 
   afterEach(() => {
@@ -18,13 +18,13 @@ describe('initialize-logging', () => {
   });
 
   it('adds a hook to format log data', () => {
-    expect(electronLogMain.hooks).toHaveLength(0);
+    expect(mockElectronLogMain.hooks).toHaveLength(0);
 
-    initializeLogging(electronLogMain as ElectronLogger);
+    initializeLogging(mockElectronLogMain as ElectronLogger);
 
-    expect(electronLogMain.hooks).toHaveLength(1);
+    expect(mockElectronLogMain.hooks).toHaveLength(1);
 
-    const hook = electronLogMain.hooks![0] as Hook;
+    const hook = mockElectronLogMain.hooks![0] as Hook;
 
     const message: LogMessage = {
       date: new Date(),
@@ -42,11 +42,11 @@ describe('initialize-logging', () => {
   });
 
   it('adds an info log level to each transport when env var not set', () => {
-    expect(electronLogMain.transports).toEqual({ console: {}, file: {} });
+    expect(mockElectronLogMain.transports).toEqual({ console: {}, file: {} });
 
-    initializeLogging(electronLogMain as ElectronLogger);
+    initializeLogging(mockElectronLogMain as ElectronLogger);
 
-    expect(electronLogMain.transports).toEqual({
+    expect(mockElectronLogMain.transports).toEqual({
       console: { level: 'info' },
       file: { level: 'info' },
     });
@@ -55,11 +55,11 @@ describe('initialize-logging', () => {
   it('adds a log level to each transport when env var set', () => {
     vi.stubEnv('LOG_LEVEL', 'debug');
 
-    expect(electronLogMain.transports).toEqual({ console: {}, file: {} });
+    expect(mockElectronLogMain.transports).toEqual({ console: {}, file: {} });
 
-    initializeLogging(electronLogMain as ElectronLogger);
+    initializeLogging(mockElectronLogMain as ElectronLogger);
 
-    expect(electronLogMain.transports).toEqual({
+    expect(mockElectronLogMain.transports).toEqual({
       console: { level: 'debug' },
       file: { level: 'debug' },
     });

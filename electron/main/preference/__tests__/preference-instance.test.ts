@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { StoreService } from '../../store/types.js';
 import { PreferenceServiceImpl } from '../preference.service.js';
 
-const { Store } = vi.hoisted(() => {
-  const storeMock: Mocked<StoreService> = {
+const { mockStore } = vi.hoisted(() => {
+  const mockStore: Mocked<StoreService> = {
     keys: vi.fn().mockResolvedValue(undefined),
     get: vi.fn().mockResolvedValue(undefined),
     set: vi.fn(),
@@ -12,11 +12,11 @@ const { Store } = vi.hoisted(() => {
     removeAll: vi.fn(),
   };
 
-  return { Store: storeMock };
+  return { mockStore };
 });
 
 vi.mock('../../store/store.instance.ts', () => {
-  return { Store };
+  return { Store: mockStore };
 });
 
 describe('preference-instance', () => {

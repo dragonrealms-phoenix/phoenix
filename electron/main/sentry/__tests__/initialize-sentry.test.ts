@@ -3,18 +3,18 @@ import { initializeSentry } from '../initialize-sentry.js';
 
 type SentryElectronMainModule = typeof import('@sentry/electron/main');
 
-const { sentryElectronMainMock } = vi.hoisted(() => {
-  const sentryElectronMainMock: Partial<SentryElectronMainModule> = {
+const { mockSentryElectronMain } = vi.hoisted(() => {
+  const mockSentryElectronMain: Partial<SentryElectronMainModule> = {
     init: vi.fn(),
   };
 
   return {
-    sentryElectronMainMock,
+    mockSentryElectronMain,
   };
 });
 
 vi.mock('@sentry/electron/main', () => {
-  return sentryElectronMainMock;
+  return mockSentryElectronMain;
 });
 
 describe('initialize-sentry', () => {
@@ -27,7 +27,7 @@ describe('initialize-sentry', () => {
 
     initializeSentry();
 
-    expect(sentryElectronMainMock.init).toHaveBeenCalledWith({
+    expect(mockSentryElectronMain.init).toHaveBeenCalledWith({
       dsn: 'test:sentry:dsn',
       tracesSampleRate: 1,
       normalizeDepth: 5,

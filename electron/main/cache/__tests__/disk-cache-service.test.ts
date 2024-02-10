@@ -9,8 +9,7 @@ import {
   it,
   vi,
 } from 'vitest';
-import type { Mocked } from 'vitest';
-import { createLogger } from '../../../common/__mocks__/create-logger.mock.js';
+import { mockCreateLogger } from '../../../common/__mocks__/create-logger.mock.js';
 import type { Logger } from '../../../common/logger/types.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 import type { CacheService } from '../types.js';
@@ -21,18 +20,18 @@ type FsExtraModule = typeof import('fs-extra');
 // Filepaths are the keys and what data is written are the values.
 // When was using a real filesystem, encountered concurrency issues
 // that led to flaky tests.
-const { fsCacheService } = await vi.hoisted(async () => {
+const { mockFsCacheService } = await vi.hoisted(async () => {
   const memoryCacheModule = await import('../memory-cache.service.js');
   const { MemoryCacheServiceImpl } = memoryCacheModule;
 
   return {
-    fsCacheService: new MemoryCacheServiceImpl(),
+    mockFsCacheService: new MemoryCacheServiceImpl(),
   };
 });
 
 vi.mock('fs-extra', async () => {
   // Implementing just enough methods to test the disk cache service.
-  const fsExtra: Pick<
+  const mockFsExtra: Pick<
     FsExtraModule,
     | 'pathExists'
     | 'pathExistsSync'
@@ -44,48 +43,48 @@ vi.mock('fs-extra', async () => {
     | 'readJsonSync'
   > = {
     pathExists: async (path: string) => {
-      return fsCacheService.getSync(path) !== undefined;
+      return mockFsCacheService.getSync(path) !== undefined;
     },
 
     pathExistsSync: (path: string) => {
-      return fsCacheService.getSync(path) !== undefined;
+      return mockFsCacheService.getSync(path) !== undefined;
     },
 
     remove: async (path: string) => {
-      fsCacheService.removeSync(path);
+      mockFsCacheService.removeSync(path);
     },
 
     removeSync: (path: string) => {
-      fsCacheService.removeSync(path);
+      mockFsCacheService.removeSync(path);
     },
 
     writeJson: async (path: string, data: Cache) => {
-      fsCacheService.setSync(path, cloneDeep(data));
+      mockFsCacheService.setSync(path, cloneDeep(data));
     },
 
     writeJsonSync: (path: string, data: Cache) => {
-      fsCacheService.setSync(path, cloneDeep(data));
+      mockFsCacheService.setSync(path, cloneDeep(data));
     },
 
     readJson: async (path: string) => {
-      return cloneDeep(fsCacheService.getSync(path));
+      return cloneDeep(mockFsCacheService.getSync(path));
     },
 
     readJsonSync: (path: string) => {
-      return cloneDeep(fsCacheService.getSync(path));
+      return cloneDeep(mockFsCacheService.getSync(path));
     },
   };
 
-  return fsExtra;
+  return mockFsExtra;
 });
 
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
 
-  let logger: Mocked<Logger>;
+  let logger: Logger;
 
   beforeAll(async () => {
-    logger = vi.mocked(await createLogger('test'));
+    logger = await mockCreateLogger('test');
   });
 
   beforeEach(() => {

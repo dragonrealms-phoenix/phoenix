@@ -7,7 +7,7 @@ import {
   it,
   vi,
 } from 'vitest';
-import { createLogger } from '../../__mocks__/create-logger.mock.js';
+import { mockCreateLogger } from '../../__mocks__/create-logger.mock.js';
 import type { Logger } from '../../logger/types.js';
 import { runInBackground } from '../run-in-background.js';
 
@@ -15,7 +15,7 @@ describe('run-in-background', () => {
   let logger: Logger;
 
   beforeAll(async () => {
-    logger = await createLogger('test');
+    logger = await mockCreateLogger('test');
   });
 
   beforeEach(() => {
