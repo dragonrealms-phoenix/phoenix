@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
-import type { DebouncedFunc } from 'lodash';
-import debounce from 'lodash/debounce.js';
+import debounce from 'lodash-es/debounce.js';
+import type { DebouncedFunc } from 'lodash-es/debounce.js';
 import type { Maybe } from '../../common/types.js';
 import { AbstractCacheService } from './abstract-cache.service.js';
 import { logger } from './logger.js';

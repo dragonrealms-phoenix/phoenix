@@ -1,7 +1,7 @@
 // Inspired by stackoverflow solution.
 // https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
 
-import { debounce } from 'lodash';
+import debounce from 'lodash-es/debounce.js';
 import { useEffect, useState } from 'react';
 
 export interface UseWindowSizeProps {

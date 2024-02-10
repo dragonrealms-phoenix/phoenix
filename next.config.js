@@ -12,7 +12,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
 import { glob } from 'glob';
-import capitalize from 'lodash/capitalize.js';
+import capitalize from 'lodash-es/capitalize.js';
 import webpack from 'webpack';
 
 const __filename = fileURLToPath(import.meta.url);

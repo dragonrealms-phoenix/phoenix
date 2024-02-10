@@ -2,7 +2,7 @@
 // https://github.com/streamich/react-use/blob/master/src/useMeasure.ts
 // https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
 
-import { debounce } from 'lodash';
+import debounce from 'lodash-es/debounce.js';
 import { useEffect, useMemo, useState } from 'react';
 
 export interface UseMeasureProps {

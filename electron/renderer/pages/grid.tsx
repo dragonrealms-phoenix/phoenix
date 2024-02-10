@@ -2,7 +2,7 @@ import type { IpcRendererEvent } from 'electron';
 import { EuiFieldText, EuiPageTemplate, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';

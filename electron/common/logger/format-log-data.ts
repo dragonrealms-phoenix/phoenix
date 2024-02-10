@@ -1,5 +1,5 @@
-import camelCase from 'lodash/camelCase.js';
-import get from 'lodash/get.js';
+import camelCase from 'lodash-es/camelCase.js';
+import get from 'lodash-es/get.js';
 import { maskSensitiveValues } from './mask-log-data.js';
 import type { LogData } from './types.js';
 
