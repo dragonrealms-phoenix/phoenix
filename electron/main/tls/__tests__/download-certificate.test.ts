@@ -9,6 +9,7 @@ import {
   it,
   vi,
 } from 'vitest';
+import type { DeepPartial } from '../../../common/types.js';
 import {
   type TLSSocketMock,
   mockTLSConnect,
@@ -28,7 +29,12 @@ vi.mock('node:tls', () => {
 });
 
 describe('download-certificate', () => {
-  let mockPeerCert: Partial<tls.PeerCertificate>;
+  const mockPeerCert: DeepPartial<tls.PeerCertificate> = {
+    subject: {
+      C: 'test',
+    },
+  };
+
   let mockSocket: TLSSocketMock & tls.TLSSocket;
   let tlsConnectSpy: MockInstance;
 
@@ -45,7 +51,6 @@ describe('download-certificate', () => {
       mockSocket = mockTLSConnect(connectionOptions, connectionListener);
 
       // Mock the peer certificate that would be returned from the server.
-      mockPeerCert = {};
       mockSocket.getPeerCertificateSpy.mockReturnValue(mockPeerCert);
 
       return mockSocket;
