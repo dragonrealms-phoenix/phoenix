@@ -49,24 +49,23 @@ export class TLSSocketMock extends NetSocketMock {
   }
 
   public on(event: string, listener: (...args: Array<any>) => void): this {
+    super.on(event, listener);
     switch (event) {
       case 'secureConnect':
         this.secureConnectListener = listener;
-        break;
-      default:
-        super.on(event, listener);
         break;
     }
     return this;
   }
 
-  public removeListener(event: string): this {
+  public removeListener(
+    event: string,
+    listener: (...args: Array<any>) => void
+  ): this {
+    super.removeListener(event, listener);
     switch (event) {
       case 'secureConnect':
         this.secureConnectListener = undefined;
-        break;
-      default:
-        super.removeListener(event);
         break;
     }
     return this;
