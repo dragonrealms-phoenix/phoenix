@@ -39,13 +39,6 @@ export const authenticate = async (options: {
     })
   ).toString();
 
-  const parseAuthError = (text: string): string => {
-    if (text.startsWith('A')) {
-      return last(text.split('\t')) as string;
-    }
-    return text;
-  };
-
   if (!response.includes('\tKEY\t')) {
     const authError = parseAuthError(response);
     logger.error('authentication failed', { authError });
@@ -53,4 +46,11 @@ export const authenticate = async (options: {
   }
 
   logger.debug('authenticated', { username });
+};
+
+const parseAuthError = (text: string): string => {
+  if (text.startsWith('A')) {
+    return last(text.split('\t')) as string;
+  }
+  return text;
 };
