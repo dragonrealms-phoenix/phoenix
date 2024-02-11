@@ -14,7 +14,9 @@ export const listAvailableCharacters = async (options: {
   logger.debug('listing available characters');
 
   /**
-   * Get list of the account's available character names and ids
+   * Get list of the account's available character names and ids.
+   * The first four tab-delimited numbers are unknown and vary, but there are 4.
+   * After that begin the tab-delimited character id and name pairs.
    *  'C\t1\t1\t0\t0\t{character_id_1}\t{character_name_1}\t{character_id_2}\t{character_name_2}\t...'
    */
   const response = (
