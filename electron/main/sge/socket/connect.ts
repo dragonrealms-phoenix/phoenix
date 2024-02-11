@@ -19,13 +19,14 @@ export const connect = async (
     timeout: 5000,
   };
 
-  let mergedOptions = merge(defaultOptions, connectOptions);
+  let mergedOptions = merge({}, defaultOptions, connectOptions);
 
   const { host, port } = mergedOptions;
 
   const certToTrust = await getTrustedTlsCertificate(mergedOptions);
 
   mergedOptions = merge(
+    {},
     mergedOptions,
     createSelfSignedConnectOptions({
       certToTrust,
