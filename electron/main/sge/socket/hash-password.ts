@@ -21,7 +21,7 @@ export const hashPassword = async (options: {
  * Request salt for hashing the account password.
  * This ensures we don't send the plaintext password over the wire.
  */
-const getPasswordHashSalt = async (options: {
+export const getPasswordHashSalt = async (options: {
   socket: tls.TLSSocket;
 }): Promise<string> => {
   const { socket } = options;
@@ -54,7 +54,7 @@ const getPasswordHashSalt = async (options: {
  * so don't try encoding them to strings because it'll fail to authenticate.
  * The hashed bytes must be sent as-is to SGE during the authentication step.
  */
-const hashPasswordWithSalt = (options: {
+export const hashPasswordWithSalt = (options: {
   /**
    * Account password to hash before authenticating.
    */
