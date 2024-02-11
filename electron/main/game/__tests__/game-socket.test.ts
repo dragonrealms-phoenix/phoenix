@@ -38,9 +38,9 @@ describe('game-socket', () => {
 
   beforeEach(() => {
     credentials = {
-      host: 'dr.simutronics.net',
-      port: 11024,
-      accessToken: 'test-token',
+      host: 'test-host',
+      port: 1234,
+      accessToken: 'test-access-token',
     };
 
     netConnectSpy.mockImplementationOnce((...args): net.Socket => {
@@ -146,8 +146,8 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
 
       expect(mockSocket.connectSpy).toHaveBeenCalledWith({
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: 'test-host',
+        port: 1234,
       });
       expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
       expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
@@ -251,7 +251,10 @@ describe('game-socket', () => {
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
 
       expect(mockSocket.writeSpy).toHaveBeenCalledTimes(3);
-      expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(1, 'test-token\n');
+      expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(
+        1,
+        'test-access-token\n'
+      );
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(
         2,
         `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML\n`

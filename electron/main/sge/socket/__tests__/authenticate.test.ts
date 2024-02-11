@@ -31,18 +31,17 @@ describe('authenticate', () => {
 
   const username = 'test-username';
   const password = 'test-password';
-  const authHashedPassword = 'test-hashed-password';
+  const hashedPassword = 'test-hashed-password';
 
-  let authRequest: Buffer;
+  const socketRequest = Buffer.concat([
+    Buffer.from(`A\t${username.toUpperCase()}\t`),
+    Buffer.from(hashedPassword),
+  ]);
 
   beforeEach(() => {
     mockSocket = mockTLSConnect('test');
 
-    authRequest = Buffer.concat([
-      Buffer.from(`A\t${username.toUpperCase()}\t`),
-      Buffer.from(authHashedPassword),
-    ]);
-    mockHashPassword.mockResolvedValue(Buffer.from(authHashedPassword));
+    mockHashPassword.mockResolvedValue(Buffer.from(hashedPassword));
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -55,9 +54,9 @@ describe('authenticate', () => {
 
   describe('#authenticate', () => {
     it('authenticates and receives api key', async () => {
-      const authApiKey = 'test-api-key';
-      const authResponse = Buffer.from(`A\t${username}\tKEY\t${authApiKey}\t`);
-      mockSendAndReceive.mockResolvedValue(authResponse);
+      const apiKey = 'test-api-key';
+      const socketResponse = Buffer.from(`A\t${username}\tKEY\t${apiKey}\t`);
+      mockSendAndReceive.mockResolvedValue(socketResponse);
 
       await authenticate({
         socket: mockSocket,
@@ -72,13 +71,13 @@ describe('authenticate', () => {
 
       expect(mockSendAndReceive).toHaveBeenCalledWith({
         socket: mockSocket,
-        payload: authRequest,
+        payload: socketRequest,
       });
     });
 
     it('fails to authenticate with username and throws error', async () => {
-      const authResponse = Buffer.from(`A\t\tNORECORD`);
-      mockSendAndReceive.mockResolvedValue(authResponse);
+      const socketResponse = Buffer.from(`A\t\tNORECORD`);
+      mockSendAndReceive.mockResolvedValue(socketResponse);
 
       await expect(
         authenticate({
@@ -95,13 +94,13 @@ describe('authenticate', () => {
 
       expect(mockSendAndReceive).toHaveBeenCalledWith({
         socket: mockSocket,
-        payload: authRequest,
+        payload: socketRequest,
       });
     });
 
     it('fails to authenticate with password and throws error', async () => {
-      const authResponse = Buffer.from(`A\t\tPASSWORD`);
-      mockSendAndReceive.mockResolvedValue(authResponse);
+      const socketResponse = Buffer.from(`A\t\tPASSWORD`);
+      mockSendAndReceive.mockResolvedValue(socketResponse);
 
       await expect(
         authenticate({
@@ -118,13 +117,13 @@ describe('authenticate', () => {
 
       expect(mockSendAndReceive).toHaveBeenCalledWith({
         socket: mockSocket,
-        payload: authRequest,
+        payload: socketRequest,
       });
     });
 
     it('fails to authenticate for unknown reason and throws error', async () => {
-      const authResponse = Buffer.from(`?`);
-      mockSendAndReceive.mockResolvedValue(authResponse);
+      const socketResponse = Buffer.from(`?`);
+      mockSendAndReceive.mockResolvedValue(socketResponse);
 
       await expect(
         authenticate({
@@ -141,7 +140,7 @@ describe('authenticate', () => {
 
       expect(mockSendAndReceive).toHaveBeenCalledWith({
         socket: mockSocket,
-        payload: authRequest,
+        payload: socketRequest,
       });
     });
   });

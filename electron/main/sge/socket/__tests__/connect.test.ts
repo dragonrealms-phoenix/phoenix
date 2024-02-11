@@ -114,6 +114,7 @@ describe('connect', () => {
   describe('#connect', () => {
     it('connects to socket with their self-signed certificate and default options', async () => {
       const mergedConnectOptions = merge(
+        {},
         defaultConnectOptions,
         selfSignedConnectOptions
       );
@@ -122,9 +123,11 @@ describe('connect', () => {
 
       vi.runAllTimers(); // advance time to trigger the `connectionListener`
 
-      expect(mockGetTrustedTlsCertificate).toHaveBeenCalledWith(
-        mergedConnectOptions
-      );
+      expect(mockGetTrustedTlsCertificate).toHaveBeenCalledWith({
+        host: mergedConnectOptions.host,
+        port: mergedConnectOptions.port,
+        timeout: mergedConnectOptions.timeout,
+      });
 
       expect(mockCreateSelfSignedConnectOptions).toHaveBeenCalledWith({
         certToTrust: mockPeerCert,
@@ -138,13 +141,13 @@ describe('connect', () => {
       expect(mockSocket.connectSpy).toHaveBeenCalled();
 
       expect(logger.debug).toHaveBeenCalledWith('connecting to login server', {
-        host: 'eaccess.play.net',
-        port: 7910,
+        host: defaultConnectOptions.host,
+        port: defaultConnectOptions.port,
       });
 
       expect(logger.debug).toHaveBeenCalledWith('connected to login server', {
-        host: 'eaccess.play.net',
-        port: 7910,
+        host: defaultConnectOptions.host,
+        port: defaultConnectOptions.port,
       });
     });
 
@@ -155,6 +158,7 @@ describe('connect', () => {
       };
 
       const mergedConnectOptions = merge(
+        {},
         defaultConnectOptions,
         customConnectOptions,
         selfSignedConnectOptions
@@ -164,9 +168,11 @@ describe('connect', () => {
 
       vi.runAllTimers();
 
-      expect(mockGetTrustedTlsCertificate).toHaveBeenCalledWith(
-        mergedConnectOptions
-      );
+      expect(mockGetTrustedTlsCertificate).toHaveBeenCalledWith({
+        host: mergedConnectOptions.host,
+        port: mergedConnectOptions.port,
+        timeout: mergedConnectOptions.timeout,
+      });
 
       expect(mockCreateSelfSignedConnectOptions).toHaveBeenCalledWith({
         certToTrust: mockPeerCert,
@@ -180,13 +186,13 @@ describe('connect', () => {
       expect(mockSocket.connectSpy).toHaveBeenCalled();
 
       expect(logger.debug).toHaveBeenCalledWith('connecting to login server', {
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: customConnectOptions.host,
+        port: customConnectOptions.port,
       });
 
       expect(logger.debug).toHaveBeenCalledWith('connected to login server', {
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: customConnectOptions.host,
+        port: customConnectOptions.port,
       });
     });
 
@@ -198,8 +204,8 @@ describe('connect', () => {
       mockSocket.emitErrorEvent(new Error('test'));
 
       expect(logger.error).toHaveBeenCalledWith('login server error', {
-        host: 'eaccess.play.net',
-        port: 7910,
+        host: defaultConnectOptions.host,
+        port: defaultConnectOptions.port,
         error: new Error('test'),
       });
     });
@@ -216,8 +222,8 @@ describe('connect', () => {
       expect(logger.error).toHaveBeenCalledWith(
         'login server inactivity timeout',
         {
-          host: 'eaccess.play.net',
-          port: 7910,
+          host: defaultConnectOptions.host,
+          port: defaultConnectOptions.port,
           timeout,
         }
       );
@@ -233,16 +239,16 @@ describe('connect', () => {
       expect(logger.debug).toHaveBeenCalledWith(
         'connection to login server ended',
         {
-          host: 'eaccess.play.net',
-          port: 7910,
+          host: defaultConnectOptions.host,
+          port: defaultConnectOptions.port,
         }
       );
 
       expect(logger.debug).toHaveBeenCalledWith(
         'connection to login server closed',
         {
-          host: 'eaccess.play.net',
-          port: 7910,
+          host: defaultConnectOptions.host,
+          port: defaultConnectOptions.port,
         }
       );
     });

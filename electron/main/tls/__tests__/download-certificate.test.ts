@@ -68,15 +68,15 @@ describe('download-certificate', () => {
   describe('#downloadCertificate', () => {
     it('connects to server and resolves with the peer certificate', async () => {
       const promise = downloadCertificate({
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: 'test-host',
+        port: 1234,
       });
 
       await expect(promise).resolves.toEqual(mockPeerCert);
 
       expect(mockSocket.connectSpy).toHaveBeenCalledWith({
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: 'test-host',
+        port: 1234,
         rejectUnauthorized: false,
       });
 
@@ -87,8 +87,8 @@ describe('download-certificate', () => {
 
     it('rejects when the socket emits an error', async () => {
       const promise = downloadCertificate({
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: 'test-host',
+        port: 1234,
       });
 
       mockSocket.emitErrorEvent(new Error('test'));
@@ -104,8 +104,8 @@ describe('download-certificate', () => {
       const timeout = 5000;
 
       const promise = downloadCertificate({
-        host: 'dr.simutronics.net',
-        port: 11024,
+        host: 'test-host',
+        port: 1234,
         timeout,
       });
 

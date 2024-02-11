@@ -22,11 +22,15 @@ vi.mock('../list-available-characters.js', () => {
 describe('get-character-id', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 
+  const mockCharacter: SGECharacter = {
+    id: '1',
+    name: 'test',
+  };
+
   beforeEach(() => {
     mockSocket = mockTLSConnect('test');
 
-    const characters = new Array<SGECharacter>({ id: '1', name: 'test' });
-    mockListAvailableCharacters.mockResolvedValue(characters);
+    mockListAvailableCharacters.mockResolvedValue([mockCharacter]);
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -41,10 +45,10 @@ describe('get-character-id', () => {
     it('returns the character id', async () => {
       const characterId = await getCharacterId({
         socket: mockSocket,
-        characterName: 'test',
+        characterName: mockCharacter.name,
       });
 
-      expect(characterId).toBe('1');
+      expect(characterId).toBe(mockCharacter.id);
     });
 
     it('returns undefined if the character does not exist', async () => {

@@ -9,8 +9,8 @@ describe('send-and-receive', () => {
 
   beforeEach(() => {
     mockSocket = mockTLSConnect({
-      host: 'dr.simutronics.net',
-      port: 11024,
+      host: 'test-hot',
+      port: 1234,
     });
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
