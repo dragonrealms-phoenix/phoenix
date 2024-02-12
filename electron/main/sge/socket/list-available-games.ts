@@ -29,6 +29,7 @@ export const listAvailableGames = async (options: {
 
   const games = new Array<SGEGame>();
   const gamePairs = response.split('\t').slice(1);
+
   for (let i = 0; i < gamePairs.length - 1; i += 2) {
     const gameCode = gamePairs[i];
     const gameName = gamePairs[i + 1];
