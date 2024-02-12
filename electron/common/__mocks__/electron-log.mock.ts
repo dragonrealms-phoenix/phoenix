@@ -1,4 +1,8 @@
-import type { Logger as ElectronLogger } from 'electron-log';
+import type {
+  Logger as ElectronLogger,
+  MainLogger as ElectronMainLogger,
+  RendererLogger as ElectronRendererLogger,
+} from 'electron-log';
 import { vi } from 'vitest';
 import type { DeepPartial } from '../types.js';
 
@@ -25,22 +29,35 @@ const { mockElectronLogMain, mockElectronLogRenderer } = vi.hoisted(() => {
         console: {},
         file: {},
       },
+      // main logger only
+      initialize: vi.fn(),
+      // renderer logger only
+      errorHandler: {
+        startCatching: vi.fn(),
+        stopCatching: vi.fn(),
+      },
     } as unknown as Partial<ElectronLogger>;
     return logger;
   };
 
   return {
-    mockElectronLogMain: createMockLogger(),
-    mockElectronLogRenderer: createMockLogger(),
+    mockElectronLogMain: createMockLogger() as ElectronMainLogger,
+    mockElectronLogRenderer: createMockLogger() as ElectronRendererLogger,
   };
 });
 
 vi.mock('electron-log/main.js', () => {
-  return mockElectronLogMain;
+  return {
+    default: mockElectronLogMain,
+    ...mockElectronLogMain,
+  };
 });
 
 vi.mock('electron-log/renderer.js', () => {
-  return mockElectronLogRenderer;
+  return {
+    default: mockElectronLogRenderer,
+    ...mockElectronLogRenderer,
+  };
 });
 
 const clearMockProps = (obj: Record<string, any>): void => {
