@@ -1,4 +1,5 @@
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { GameBottomBar } from './game-bottom-bar.js';
 import { GameGrid } from './game-grid.js';
 import { GameSettings } from './game-settings.js';
