@@ -1,7 +1,8 @@
 import * as rxjs from 'rxjs';
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { type GameEvent, GameEventType } from '../../../common/game/types.js';
+import { GameEventType } from '../../../common/game/types.js';
+import type { GameEvent } from '../../../common/game/types.js';
 import { GameServiceImpl } from '../game.service.js';
 import type { GameParser, GameSocket } from '../types.js';
 
