@@ -13,7 +13,7 @@ describe('wait-until', () => {
   });
 
   it('resolves true when condition is true', async () => {
-    const condition = vi.fn().mockReturnValue(true);
+    const condition = vi.fn().mockReturnValueOnce(true);
     const interval = 100;
     const timeout = 1000;
 
@@ -26,7 +26,7 @@ describe('wait-until', () => {
   });
 
   it('resolves false when condition is false', async () => {
-    const condition = vi.fn().mockReturnValue(false);
+    const condition = vi.fn().mockReturnValueOnce(false);
     const interval = 100;
     const timeout = 1000;
     const iterations = Math.floor(timeout / interval);

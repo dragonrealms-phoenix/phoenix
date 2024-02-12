@@ -18,7 +18,7 @@ vi.mock('../../cache/disk-cache.service.js', () => {
 vi.mock('electron', async () => {
   return {
     app: {
-      getPath: vi.fn().mockReturnValue('userData'),
+      getPath: vi.fn().mockImplementation(() => 'userData'),
     },
   };
 });

@@ -45,7 +45,7 @@ describe('get-tls-certificate', () => {
         raw: Buffer.from('test-cert'),
       } as tls.PeerCertificate;
 
-      mockDownloadCertificate.mockResolvedValue(mockCert);
+      mockDownloadCertificate.mockResolvedValueOnce(mockCert);
 
       const trustedCert = await getTrustedTlsCertificate(connectOptions);
 

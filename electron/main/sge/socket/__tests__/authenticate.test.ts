@@ -41,7 +41,7 @@ describe('authenticate', () => {
   beforeEach(() => {
     mockSocket = mockTLSConnect('test');
 
-    mockHashPassword.mockResolvedValue(Buffer.from(hashedPassword));
+    mockHashPassword.mockResolvedValueOnce(Buffer.from(hashedPassword));
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -56,7 +56,7 @@ describe('authenticate', () => {
     it('authenticates and receives api key', async () => {
       const apiKey = 'test-api-key';
       const socketResponse = Buffer.from(`A\t${username}\tKEY\t${apiKey}\t`);
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await authenticate({
         socket: mockSocket,
@@ -77,7 +77,7 @@ describe('authenticate', () => {
 
     it('fails to authenticate with username and throws error', async () => {
       const socketResponse = Buffer.from(`A\t\tNORECORD`);
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         authenticate({
@@ -100,7 +100,7 @@ describe('authenticate', () => {
 
     it('fails to authenticate with password and throws error', async () => {
       const socketResponse = Buffer.from(`A\t\tPASSWORD`);
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         authenticate({
@@ -123,7 +123,7 @@ describe('authenticate', () => {
 
     it('fails to authenticate for unknown reason and throws error', async () => {
       const socketResponse = Buffer.from(`?`);
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         authenticate({

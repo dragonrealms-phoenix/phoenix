@@ -35,7 +35,7 @@ describe('hash-password', () => {
   beforeEach(() => {
     mockSocket = mockTLSConnect('test');
 
-    mockSendAndReceive.mockResolvedValue(Buffer.from(hashSalt));
+    mockSendAndReceive.mockResolvedValueOnce(Buffer.from(hashSalt));
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });

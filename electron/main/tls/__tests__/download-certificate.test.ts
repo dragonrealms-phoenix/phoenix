@@ -51,7 +51,7 @@ describe('download-certificate', () => {
       mockSocket = mockTLSConnect(connectionOptions, connectionListener);
 
       // Mock the peer certificate that would be returned from the server.
-      mockSocket.getPeerCertificateSpy.mockReturnValue(mockPeerCert);
+      mockSocket.getPeerCertificateSpy.mockReturnValueOnce(mockPeerCert);
 
       return mockSocket;
     });

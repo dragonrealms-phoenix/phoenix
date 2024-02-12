@@ -44,7 +44,7 @@ describe('get-game-subscription', () => {
       const gameStatus = 'test-game-status';
 
       const socketResponse = Buffer.from(`G\t${gameName}\t${gameStatus}\t`);
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       const gameSubscription = await getGameSubscription({
         socket: mockSocket,
@@ -67,7 +67,7 @@ describe('get-game-subscription', () => {
 
     it('throws an error if the socket returns a problem response', async () => {
       const socketResponse = Buffer.from('X\tPROBLEM');
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         getGameSubscription({

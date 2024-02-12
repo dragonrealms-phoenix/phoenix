@@ -30,7 +30,7 @@ describe('get-character-id', () => {
   beforeEach(() => {
     mockSocket = mockTLSConnect('test');
 
-    mockListAvailableCharacters.mockResolvedValue([mockCharacter]);
+    mockListAvailableCharacters.mockResolvedValueOnce([mockCharacter]);
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });

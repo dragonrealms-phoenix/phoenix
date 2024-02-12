@@ -91,14 +91,14 @@ describe('connect', () => {
       mockSocket = mockTLSConnect(connectionOptions, connectionListener);
 
       // Mock the peer certificate that would be returned from the server.
-      mockSocket.getPeerCertificateSpy.mockReturnValue(mockPeerCert);
+      mockSocket.getPeerCertificateSpy.mockReturnValueOnce(mockPeerCert);
 
       return mockSocket;
     });
 
-    mockGetTrustedTlsCertificate.mockResolvedValue(mockPeerCert);
+    mockGetTrustedTlsCertificate.mockResolvedValueOnce(mockPeerCert);
 
-    mockCreateSelfSignedConnectOptions.mockReturnValue(
+    mockCreateSelfSignedConnectOptions.mockReturnValueOnce(
       selfSignedConnectOptions
     );
 

@@ -1,18 +1,30 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Maybe } from '../../../common/types.js';
 import type { StoreService } from '../../store/types.js';
 import { AccountServiceImpl } from '../account.service.js';
 import type { AccountService } from '../types.js';
 
 type ElectronModule = typeof import('electron');
 
+const { mockSafeStorageEncryptString, mockSafeStorageDecryptString } =
+  vi.hoisted(() => {
+    const mockSafeStorageEncryptString = vi.fn();
+    const mockSafeStorageDecryptString = vi.fn();
+
+    return {
+      mockSafeStorageEncryptString,
+      mockSafeStorageDecryptString,
+    };
+  });
+
 vi.mock('electron', async (importOriginal) => {
   const actualModule = await importOriginal<ElectronModule>();
   return {
     ...actualModule,
     safeStorage: {
-      encryptString: vi.fn().mockReturnValue(Buffer.from('test-encrypted')),
-      decryptString: vi.fn().mockReturnValue('test-password'),
+      encryptString: mockSafeStorageEncryptString,
+      decryptString: mockSafeStorageDecryptString,
     },
   };
 });
@@ -22,12 +34,18 @@ describe('account-service', () => {
   let accountService: AccountService;
 
   beforeEach(() => {
+    mockSafeStorageEncryptString.mockReturnValueOnce(
+      Buffer.from('test-encrypted')
+    );
+
+    mockSafeStorageDecryptString.mockReturnValueOnce('test-password');
+
     storeService = {
-      keys: vi.fn().mockResolvedValue(undefined),
-      get: vi.fn().mockResolvedValue(undefined),
-      set: vi.fn().mockResolvedValue(undefined),
-      remove: vi.fn().mockResolvedValue(undefined),
-      removeAll: vi.fn().mockResolvedValue(undefined),
+      keys: vi.fn<[], Promise<Array<string>>>(),
+      get: vi.fn<[string], Promise<Maybe<any>>>(),
+      set: vi.fn<[string, any], Promise<void>>(),
+      remove: vi.fn<[string], Promise<void>>(),
+      removeAll: vi.fn<[], Promise<void>>(),
     };
 
     accountService = new AccountServiceImpl({
@@ -139,7 +157,7 @@ describe('account-service', () => {
 
   describe('#removeAccount', () => {
     it('removes an account', async () => {
-      storeService.keys.mockResolvedValue([]); // No characters.
+      storeService.keys.mockResolvedValueOnce([]); // No characters.
 
       await accountService.removeAccount({
         accountName: 'test-account',

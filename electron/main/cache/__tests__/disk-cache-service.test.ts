@@ -349,7 +349,7 @@ describe('disk-cache-service', () => {
         get: vi.fn(),
         remove: vi.fn(),
         clear: vi.fn(),
-        readCache: vi.fn().mockRejectedValue(new Error('test')),
+        readCache: vi.fn().mockRejectedValueOnce(new Error('test')),
         writeCache: vi.fn(),
       };
 

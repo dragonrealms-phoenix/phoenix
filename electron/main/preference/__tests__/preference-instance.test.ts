@@ -5,11 +5,11 @@ import { PreferenceServiceImpl } from '../preference.service.js';
 
 const { mockStore } = vi.hoisted(() => {
   const mockStore: Mocked<StoreService> = {
-    keys: vi.fn().mockResolvedValue(undefined),
-    get: vi.fn().mockResolvedValue(undefined),
-    set: vi.fn(),
-    remove: vi.fn(),
-    removeAll: vi.fn(),
+    keys: vi.fn<[], Promise<Array<string>>>(),
+    get: vi.fn<[string], Promise<any>>(),
+    set: vi.fn<[string, any], Promise<void>>(),
+    remove: vi.fn<[string], Promise<void>>(),
+    removeAll: vi.fn<[], Promise<void>>(),
   };
 
   return { mockStore };

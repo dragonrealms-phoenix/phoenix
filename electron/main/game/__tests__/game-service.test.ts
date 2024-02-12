@@ -99,7 +99,7 @@ vi.mock('../game.socket.js', () => {
 vi.mock('electron', async () => {
   return {
     app: {
-      getPath: vi.fn().mockReturnValue('logs'),
+      getPath: vi.fn().mockImplementation(() => 'logs'),
     },
   };
 });
@@ -120,8 +120,6 @@ describe('game-service', () => {
   let gameService: GameServiceImpl;
 
   beforeEach(() => {
-    mockWaitUntil.mockResolvedValue(true);
-
     gameService = new GameServiceImpl({
       credentials: {
         accessToken: 'test-access-token',
@@ -146,14 +144,14 @@ describe('game-service', () => {
 
     beforeEach(() => {
       mockSocketData$ = rxjs.of('test message');
-      mockSocket.connect.mockResolvedValue(mockSocketData$);
+      mockSocket.connect.mockResolvedValueOnce(mockSocketData$);
 
       mockEvent = {
         eventId: 'test-event-1',
         type: GameEventType.TEXT,
         text: 'test message',
       };
-      mockParser.parse.mockReturnValue(rxjs.of(mockEvent));
+      mockParser.parse.mockReturnValueOnce(rxjs.of(mockEvent));
     });
 
     it('connects to the game server', async () => {
@@ -172,6 +170,8 @@ describe('game-service', () => {
     });
 
     it('disconnects previous connection', async () => {
+      mockWaitUntil.mockResolvedValueOnce(true);
+
       await gameService.connect();
 
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(0);
@@ -217,6 +217,8 @@ describe('game-service', () => {
 
   describe('#disconnect', () => {
     it('disconnects from the game server', async () => {
+      mockWaitUntil.mockResolvedValueOnce(true);
+
       await gameService.connect();
       await gameService.disconnect();
 
@@ -225,6 +227,8 @@ describe('game-service', () => {
     });
 
     it('does not disconnect if already destroyed', async () => {
+      mockWaitUntil.mockResolvedValueOnce(true);
+
       await gameService.disconnect();
       await gameService.disconnect();
 
@@ -233,18 +237,13 @@ describe('game-service', () => {
     });
 
     it('throws timeout error if does not destroy socket', async () => {
-      mockWaitUntil.mockResolvedValue(false);
+      mockWaitUntil.mockResolvedValueOnce(false);
 
       await gameService.connect();
 
-      try {
-        await gameService.disconnect();
-        expect.unreachable('it should throw an error');
-      } catch (error) {
-        expect(error).toEqual(
-          new Error('[GAME:SERVICE:DISCONNECT:TIMEOUT] 5000')
-        );
-      }
+      await expect(gameService.disconnect()).rejects.toThrow(
+        new Error('[GAME:SERVICE:DISCONNECT:TIMEOUT] 5000')
+      );
     });
   });
 

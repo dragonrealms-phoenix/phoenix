@@ -55,12 +55,12 @@ describe('get-game-credentials', () => {
       const gamePort = 11024;
       const gameKey = 'test-game-key';
 
-      mockGetCharacterId.mockResolvedValue(characterId);
+      mockGetCharacterId.mockResolvedValueOnce(characterId);
 
       const socketResponse = Buffer.from(
         `L\tOK\tUPPORT=5535\tGAME=STORM\tGAMECODE=DR\tFULLGAMENAME=Wrayth\tGAMEFILE=WRAYTH.EXE\tGAMEHOST=${gameHost}\tGAMEPORT=${gamePort}\tKEY=${gameKey}`
       );
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       const gameCredentials = await getGameCredentials({
         socket: mockSocket,
@@ -85,7 +85,7 @@ describe('get-game-credentials', () => {
     });
 
     it('throws an error if the character does not exist', async () => {
-      mockGetCharacterId.mockResolvedValue(undefined);
+      mockGetCharacterId.mockResolvedValueOnce(undefined);
 
       await expect(
         getGameCredentials({
@@ -98,10 +98,10 @@ describe('get-game-credentials', () => {
     });
 
     it('throws an error if the socket does not return game credentials', async () => {
-      mockGetCharacterId.mockResolvedValue(characterId);
+      mockGetCharacterId.mockResolvedValueOnce(characterId);
 
       const socketResponse = Buffer.from('L\tPROBLEM\t1');
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         getGameCredentials({
@@ -116,13 +116,13 @@ describe('get-game-credentials', () => {
       const gamePort = 11024;
       const gameKey = 'test-game-key';
 
-      mockGetCharacterId.mockResolvedValue(characterId);
+      mockGetCharacterId.mockResolvedValueOnce(characterId);
 
       // To break the parsing, I changed `=` to `<>` in the response.
       const socketResponse = Buffer.from(
         `L\tOK\tUPPORT=5535\tGAME=STORM\tGAMECODE=DR\tFULLGAMENAME=Wrayth\tGAMEFILE=WRAYTH.EXE\tGAMEHOST<>${gameHost}\tGAMEPORT=${gamePort}\tKEY=${gameKey}`
       );
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         getGameCredentials({
@@ -139,13 +139,13 @@ describe('get-game-credentials', () => {
       const gamePort = 11024;
       const gameKey = 'test-game-key';
 
-      mockGetCharacterId.mockResolvedValue(characterId);
+      mockGetCharacterId.mockResolvedValueOnce(characterId);
 
       // To break the parsing, I changed `=` to `<>` in the response.
       const socketResponse = Buffer.from(
         `L\tOK\tUPPORT=5535\tGAME=STORM\tGAMECODE=DR\tFULLGAMENAME=Wrayth\tGAMEFILE=WRAYTH.EXE\tGAMEHOST=${gameHost}\tGAMEPORT<>${gamePort}\tKEY=${gameKey}`
       );
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         getGameCredentials({
@@ -162,13 +162,13 @@ describe('get-game-credentials', () => {
       const gamePort = 11024;
       const gameKey = 'test-game-key';
 
-      mockGetCharacterId.mockResolvedValue(characterId);
+      mockGetCharacterId.mockResolvedValueOnce(characterId);
 
       // To break the parsing, I changed `=` to `<>` in the response.
       const socketResponse = Buffer.from(
         `L\tOK\tUPPORT=5535\tGAME=STORM\tGAMECODE=DR\tFULLGAMENAME=Wrayth\tGAMEFILE=WRAYTH.EXE\tGAMEHOST=${gameHost}\tGAMEPORT=${gamePort}\tKEY<>${gameKey}`
       );
-      mockSendAndReceive.mockResolvedValue(socketResponse);
+      mockSendAndReceive.mockResolvedValueOnce(socketResponse);
 
       await expect(
         getGameCredentials({

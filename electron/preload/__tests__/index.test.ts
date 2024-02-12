@@ -88,7 +88,7 @@ describe('index', () => {
   describe('api', () => {
     describe('#ping', async () => {
       it('invokes ping', async () => {
-        mockIpcRenderer.invoke.mockResolvedValue('pong');
+        mockIpcRenderer.invoke.mockResolvedValueOnce('pong');
         const result = await api.ping();
         expect(result).toBe('pong');
       });
@@ -150,7 +150,7 @@ describe('index', () => {
 
     describe('#listCharacters', async () => {
       it('invokes listCharacters', async () => {
-        mockIpcRenderer.invoke.mockResolvedValue([
+        mockIpcRenderer.invoke.mockResolvedValueOnce([
           {
             accountName: 'test-account-name',
             characterName: 'test-character-name',
