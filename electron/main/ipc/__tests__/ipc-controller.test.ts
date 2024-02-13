@@ -358,14 +358,14 @@ describe('ipc-controller', () => {
       });
 
       it.todo('throws an error if a channel has no handler', async () => {
-        // Assert calls `ipcMain.removeHandler` for each handler registered.
-        // Assert calls `Game.getInstance()?.disconnect()`
+        // Assert throws an error if a channel has no handler.
       });
     });
 
     describe('#destroy', () => {
       it.todo('todo', async () => {
-        //
+        // Assert calls `ipcMain.removeHandler` for each handler registered.
+        // Assert calls `Game.getInstance()?.disconnect()`
       });
     });
 
