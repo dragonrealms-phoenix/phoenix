@@ -2,6 +2,12 @@ import { vi } from 'vitest';
 import type { AccountService } from '../types.js';
 
 export class AccountServiceMockImpl implements AccountService {
+  constructorSpy = vi.fn();
+
+  constructor(...args: Array<any>) {
+    this.constructorSpy(args);
+  }
+
   listAccounts = vi.fn<
     Parameters<AccountService['listAccounts']>,
     ReturnType<AccountService['listAccounts']>

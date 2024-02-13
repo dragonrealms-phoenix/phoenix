@@ -1,20 +1,11 @@
-import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
 import { sendCommandHandler } from '../send-command.js';
 
-type GameInstanceModule = typeof import('../../../game/game.instance.js');
-
-type MockedGameInstanceModule = {
-  Game: Mocked<GameInstanceModule['Game']>;
-};
-
 const { mockGameInstance } = await vi.hoisted(async () => {
-  const mockGameInstance: MockedGameInstanceModule = {
-    Game: {
-      getInstance: vi.fn(),
-      newInstance: vi.fn(),
-    },
+  const mockGameInstance = {
+    getInstance: vi.fn(),
+    newInstance: vi.fn(),
   };
 
   return {
@@ -23,7 +14,9 @@ const { mockGameInstance } = await vi.hoisted(async () => {
 });
 
 vi.mock('../../../game/game.instance.js', () => {
-  return mockGameInstance;
+  return {
+    Game: mockGameInstance,
+  };
 });
 
 describe('save-character', () => {
@@ -40,7 +33,7 @@ describe('save-character', () => {
   describe('#sendCommandHandler', async () => {
     it('saves a command with the game instance', async () => {
       const mockGameService = new GameServiceMockImpl();
-      mockGameInstance.Game.getInstance.mockReturnValueOnce(mockGameService);
+      mockGameInstance.getInstance.mockReturnValueOnce(mockGameService);
 
       const mockIpcDispatcher = vi.fn();
 
@@ -56,7 +49,7 @@ describe('save-character', () => {
     });
 
     it('throws error if game instance not found', async () => {
-      mockGameInstance.Game.getInstance.mockReturnValueOnce(undefined);
+      mockGameInstance.getInstance.mockReturnValueOnce(undefined);
 
       const mockIpcDispatcher = vi.fn();
 

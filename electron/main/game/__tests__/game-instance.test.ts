@@ -6,7 +6,7 @@ import type { SGEGameCredentials } from '../../sge/types.js';
 import { GameServiceImpl } from '../game.service.js';
 import type { GameService } from '../types.js';
 
-const { mockGameService } = await vi.hoisted(async () => {
+const { mockGameService } = vi.hoisted(() => {
   const mockGameService = {
     connect: vi.fn(),
     disconnect: vi.fn(),
