@@ -1,9 +1,12 @@
+import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
 import { sendCommandHandler } from '../send-command.js';
 
+type GameInstanceModule = typeof import('../../../game/game.instance.js');
+
 const { mockGameInstance } = await vi.hoisted(async () => {
-  const mockGameInstance = {
+  const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
     getInstance: vi.fn(),
     newInstance: vi.fn(),
   };

@@ -14,7 +14,7 @@ describe('remove-character', () => {
   });
 
   describe('#removeCharacterHandler', async () => {
-    it('removes a character with an account service', async () => {
+    it('removes a character', async () => {
       const mockAccountService = new AccountServiceMockImpl();
 
       const handler = removeCharacterHandler({

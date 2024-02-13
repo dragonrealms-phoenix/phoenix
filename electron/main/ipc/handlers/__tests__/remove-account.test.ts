@@ -14,7 +14,7 @@ describe('remove-account', () => {
   });
 
   describe('#removeAccountHandler', async () => {
-    it('removes an account with an account service', async () => {
+    it('removes an account', async () => {
       const mockAccountService = new AccountServiceMockImpl();
 
       const handler = removeAccountHandler({

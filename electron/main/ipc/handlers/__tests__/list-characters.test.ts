@@ -15,7 +15,7 @@ describe('list-characters', () => {
   });
 
   describe('#listCharactersHandler', async () => {
-    it('lists characters with an account service', async () => {
+    it('lists characters', async () => {
       const mockAccountService = new AccountServiceMockImpl();
 
       const mockCharacter: Character = {

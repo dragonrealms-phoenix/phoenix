@@ -14,7 +14,7 @@ describe('save-character', () => {
   });
 
   describe('#saveCharacterHandler', async () => {
-    it('saves a character with an account service', async () => {
+    it('saves a character', async () => {
       const mockAccountService = new AccountServiceMockImpl();
 
       const handler = saveCharacterHandler({

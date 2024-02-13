@@ -1,16 +1,25 @@
 import { afterEach } from 'node:test';
-import type { Observable } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GameEvent } from '../../../common/game/types.js';
 import type { SGEGameCredentials } from '../../sge/types.js';
 import { GameServiceImpl } from '../game.service.js';
 import type { GameService } from '../types.js';
 
 const { mockGameService } = vi.hoisted(() => {
   const mockGameService = {
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    send: vi.fn(),
+    connect: vi.fn<
+      Parameters<GameService['connect']>,
+      ReturnType<GameService['connect']>
+    >(),
+
+    disconnect: vi.fn<
+      Parameters<GameService['disconnect']>,
+      ReturnType<GameService['disconnect']>
+    >(),
+
+    send: vi.fn<
+      Parameters<GameService['send']>,
+      ReturnType<GameService['send']>
+    >(),
   };
 
   return {
@@ -21,18 +30,28 @@ const { mockGameService } = vi.hoisted(() => {
 vi.mock('../game.service.js', () => {
   class GameServiceMockImpl implements GameService {
     connect = vi
-      .fn()
-      .mockImplementation(async (): Promise<Observable<GameEvent>> => {
+      .fn<
+        Parameters<GameService['connect']>,
+        ReturnType<GameService['connect']>
+      >()
+      .mockImplementation(async () => {
         return mockGameService.connect();
       });
 
-    disconnect = vi.fn().mockImplementation(async (): Promise<void> => {
-      return mockGameService.disconnect();
-    });
+    disconnect = vi
+      .fn<
+        Parameters<GameService['disconnect']>,
+        ReturnType<GameService['disconnect']>
+      >()
+      .mockImplementation(async () => {
+        return mockGameService.disconnect();
+      });
 
-    send = vi.fn().mockImplementation((command: string): void => {
-      return mockGameService.send(command);
-    });
+    send = vi
+      .fn<Parameters<GameService['send']>, ReturnType<GameService['send']>>()
+      .mockImplementation((command) => {
+        return mockGameService.send(command);
+      });
   }
 
   return {

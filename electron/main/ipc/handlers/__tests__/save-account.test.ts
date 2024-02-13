@@ -14,7 +14,7 @@ describe('save-account', () => {
   });
 
   describe('#saveAccountHandler', async () => {
-    it('saves an account with an account service', async () => {
+    it('saves an account', async () => {
       const mockAccountService = new AccountServiceMockImpl();
 
       const handler = saveAccountHandler({
