@@ -268,7 +268,7 @@ describe('play-character', () => {
             gameCode: 'test-game-code',
           },
         ]);
-        expect.unreachable('should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(mockIpcDispatcher).toHaveBeenCalledTimes(0);
         expect(mockAccountService.getAccount).toHaveBeenCalledWith({

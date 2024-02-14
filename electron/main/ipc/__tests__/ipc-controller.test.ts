@@ -2,6 +2,7 @@ import type { Mock, Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AccountServiceMockImpl } from '../../account/__mocks__/account-service.mock.js';
 import type { AccountService } from '../../account/types.js';
+import type { GameService } from '../../game/types.js';
 import type { StoreService } from '../../store/types.js';
 import { IpcController, newIpcController } from '../ipc.controller.js';
 
@@ -9,6 +10,7 @@ type GameInstanceModule = typeof import('../../game/game.instance.js');
 type MockAccountService = Mocked<AccountService> & { constructorSpy: Mock };
 
 const {
+  mockGameService,
   mockGameInstance,
   mockAccountService,
   mockStoreService,
@@ -21,7 +23,13 @@ const {
   mockIpcPlayCharacterHandler,
   mockIpcSendCommandHandler,
   mockIpcMain,
-} = vi.hoisted(() => {
+} = await vi.hoisted(async () => {
+  const mockGameService: Mocked<GameService> = {
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    send: vi.fn(),
+  };
+
   const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
     getInstance: vi.fn(),
     newInstance: vi.fn(),
@@ -88,12 +96,11 @@ const {
   const mockIpcPlayCharacterHandler = vi.fn();
   const mockIpcSendCommandHandler = vi.fn();
 
-  const mockIpcMain = {
-    handle: vi.fn(),
-    removeHandler: vi.fn(),
-  };
+  const mockIpcMainModule = await import('../__mocks__/ipc-main.mock.js');
+  const mockIpcMain = new mockIpcMainModule.IpcMainMock();
 
   return {
+    mockGameService,
     mockGameInstance,
     mockAccountService,
     mockStoreService,
@@ -109,7 +116,7 @@ const {
   };
 });
 
-vi.mock('../../../game/game.instance.js', () => {
+vi.mock('../../game/game.instance.js', () => {
   return {
     Game: mockGameInstance,
   };
@@ -296,7 +303,7 @@ describe('ipc-controller', () => {
       ]);
     });
 
-    it('creates a new ipc controller with specified account service', async () => {
+    it('creates a new ipc controller with specific account service', async () => {
       const customAccountService = new AccountServiceMockImpl();
 
       const controller = newIpcController({
@@ -310,18 +317,16 @@ describe('ipc-controller', () => {
   });
 
   describe('#IpcController', () => {
-    let controller: IpcController;
-
-    beforeEach(() => {
-      controller = new IpcController({
-        dispatch: mockIpcDispatcher,
-        accountService: mockAccountService,
-      });
-    });
-
     describe('#constructor', () => {
-      it('registers ipc handlers', async () => {
+      it('registers channel handlers', async () => {
+        const controller = new IpcController({
+          dispatch: mockIpcDispatcher,
+          accountService: mockAccountService,
+        });
+
         expect(controller).toBeInstanceOf(IpcController);
+
+        // Creates handler registry
 
         expect(mockIpcPingHandler).toHaveBeenCalledWith({
           dispatch: mockIpcDispatcher,
@@ -355,24 +360,122 @@ describe('ipc-controller', () => {
         expect(mockIpcSendCommandHandler).toHaveBeenCalledWith({
           dispatch: mockIpcDispatcher,
         });
+
+        // Adds listeners to ipc channels
+
+        const handleChannelSpy = mockIpcMain.subscribeToChannelSpy;
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'ping',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'saveAccount',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'removeAccount',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'saveCharacter',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'removeCharacter',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'listCharacters',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'playCharacter',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'sendCommand',
+          expect.any(Function)
+        );
       });
 
-      it.todo('throws an error if a channel has no handler', async () => {
-        // Assert throws an error if a channel has no handler.
+      it('throws an error if a channel has no handler', async () => {
+        mockIpcPingHandler.mockReset(); // will return undefined
+
+        try {
+          new IpcController({
+            dispatch: mockIpcDispatcher,
+            accountService: mockAccountService,
+          });
+          expect.unreachable('it should throw an error');
+        } catch (error) {
+          expect(error).toEqual(
+            new Error(`[IPC:CHANNEL:ERROR:HANDLER_NOT_FOUND] ping`)
+          );
+        }
       });
     });
 
     describe('#destroy', () => {
-      it.todo('todo', async () => {
-        // Assert calls `ipcMain.removeHandler` for each handler registered.
-        // Assert calls `Game.getInstance()?.disconnect()`
+      it('removes handlers and disconnects game instance', async () => {
+        mockGameInstance.getInstance.mockReturnValue(mockGameService);
+
+        const controller = new IpcController({
+          dispatch: mockIpcDispatcher,
+          accountService: mockAccountService,
+        });
+
+        await controller.destroy();
+
+        const removeChannelSpy = mockIpcMain.unsubscribeFromChannelSpy;
+        expect(removeChannelSpy).toHaveBeenCalledWith('ping');
+        expect(removeChannelSpy).toHaveBeenCalledWith('saveAccount');
+        expect(removeChannelSpy).toHaveBeenCalledWith('removeAccount');
+        expect(removeChannelSpy).toHaveBeenCalledWith('saveCharacter');
+        expect(removeChannelSpy).toHaveBeenCalledWith('removeCharacter');
+        expect(removeChannelSpy).toHaveBeenCalledWith('listCharacters');
+        expect(removeChannelSpy).toHaveBeenCalledWith('playCharacter');
+        expect(removeChannelSpy).toHaveBeenCalledWith('sendCommand');
+
+        expect(mockGameService.disconnect).toHaveBeenCalledTimes(1);
       });
     });
 
     describe('ipcMain.handle', () => {
-      it.todo('todo', async () => {
-        // Assert calling `ipcMain.handle` returns a value if handler resolves.
-        // Assert calling `ipcMain.handle` throws an error if handler rejects.
+      it('returns the value returned by the handler', async () => {
+        mockIpcPingHandler.mockReturnValue(
+          vi.fn().mockResolvedValueOnce('pong')
+        );
+
+        new IpcController({
+          dispatch: mockIpcDispatcher,
+          accountService: mockAccountService,
+        });
+
+        await expect(mockIpcMain.invokeChannel('ping')).resolves.toEqual(
+          'pong'
+        );
+      });
+
+      it('throws an error if the handler errors', async () => {
+        mockIpcPingHandler.mockReturnValue(
+          vi.fn().mockRejectedValueOnce(new Error('test-error'))
+        );
+
+        new IpcController({
+          dispatch: mockIpcDispatcher,
+          accountService: mockAccountService,
+        });
+
+        await expect(mockIpcMain.invokeChannel('ping')).rejects.toEqual(
+          new Error(`[IPC:CHANNEL:ERROR:PING] test-error`)
+        );
       });
     });
   });

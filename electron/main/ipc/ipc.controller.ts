@@ -46,7 +46,7 @@ export const newIpcController = (options: {
 export class IpcController {
   private dispatch: IpcDispatcher;
   private accountService: AccountService;
-  private ipcHandlerRegistry: IpcHandlerRegistry;
+  private handlerRegistry: IpcHandlerRegistry;
 
   constructor(options: {
     dispatch: IpcDispatcher;
@@ -54,21 +54,22 @@ export class IpcController {
   }) {
     this.dispatch = options.dispatch;
     this.accountService = options.accountService;
-    this.ipcHandlerRegistry = this.createIpcHandlerRegistry();
-    this.registerHandlers(this.ipcHandlerRegistry);
+    this.handlerRegistry = this.createHandlerRegistry();
+    this.registerHandlers(this.handlerRegistry);
   }
 
   /**
-   * Unregisters all ipc handlers and disconnects from the game server.
+   * Unregisters all handlers and disconnects from the game server.
    */
   public async destroy(): Promise<void> {
-    Object.keys(this.ipcHandlerRegistry).forEach((channel) => {
-      ipcMain.removeHandler(channel);
-    });
-    await Game.getInstance()?.disconnect();
+    this.unregisterHandlers(this.handlerRegistry);
+    await this.disconnectFromGame();
   }
 
-  private createIpcHandlerRegistry(): IpcHandlerRegistry {
+  /**
+   * Creates map of channels to their handler functions.
+   */
+  private createHandlerRegistry(): IpcHandlerRegistry {
     return {
       ping: pingHandler({
         dispatch: this.dispatch,
@@ -105,6 +106,10 @@ export class IpcController {
     };
   }
 
+  /**
+   * For each channel in the handler registry, register the handler
+   * with electron's IPC module to actually receive and process messages.
+   */
   private registerHandlers(registry: IpcHandlerRegistry): void {
     Object.keys(registry).forEach((channel) => {
       const handler = registry[channel as IpcInvokableEvent];
@@ -128,5 +133,15 @@ export class IpcController {
         }
       });
     });
+  }
+
+  private unregisterHandlers(registry: IpcHandlerRegistry): void {
+    Object.keys(registry).forEach((channel) => {
+      ipcMain.removeHandler(channel);
+    });
+  }
+
+  private async disconnectFromGame(): Promise<void> {
+    await Game.getInstance()?.disconnect();
   }
 }

@@ -62,7 +62,7 @@ describe('save-character', () => {
 
       try {
         await handler(['test-command']);
-        expect.unreachable('should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(mockIpcDispatcher).toHaveBeenCalledTimes(0);
         expect(error).toEqual(
