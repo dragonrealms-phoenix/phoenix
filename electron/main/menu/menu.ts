@@ -247,23 +247,6 @@ const buildDarwinTemplate = (
 const buildDefaultTemplate = (
   window: BrowserWindow
 ): Array<MenuItemConstructorOptions> => {
-  const subMenuWindow: MenuItemConstructorOptions = {
-    label: '&Window',
-    submenu: [
-      {
-        label: '&Close',
-        role: 'close',
-        accelerator: 'Ctrl+W',
-      },
-      // type separator cannot be invisible
-      {
-        label: '',
-        type: process.platform === 'linux' ? 'normal' : 'separator',
-        visible: false,
-      },
-    ],
-  };
-
   const subMenuFile: MenuItemConstructorOptions = {
     label: 'File',
     submenu: [
@@ -322,6 +305,23 @@ const buildDefaultTemplate = (
           },
         ],
       };
+
+  const subMenuWindow: MenuItemConstructorOptions = {
+    label: '&Window',
+    submenu: [
+      {
+        label: '&Close',
+        role: 'close',
+        accelerator: 'Ctrl+W',
+      },
+      // type separator cannot be invisible
+      {
+        label: '',
+        type: process.platform === 'linux' ? 'normal' : 'separator',
+        visible: false,
+      },
+    ],
+  };
 
   const subMenuHelp: MenuItemConstructorOptions = {
     label: 'Help',
