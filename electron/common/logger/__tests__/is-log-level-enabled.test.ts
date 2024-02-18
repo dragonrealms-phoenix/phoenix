@@ -56,4 +56,14 @@ describe('is-log-level-enabled', () => {
     expect(isLogLevelEnabled(LogLevel.DEBUG)).toBe(true);
     expect(isLogLevelEnabled(LogLevel.TRACE)).toBe(true);
   });
+
+  it('detects available log levels when set to UNKNOWN', () => {
+    vi.stubEnv('LOG_LEVEL', 'unknown'); // or any unexpected value
+
+    expect(isLogLevelEnabled(LogLevel.ERROR)).toBe(false);
+    expect(isLogLevelEnabled(LogLevel.WARN)).toBe(false);
+    expect(isLogLevelEnabled(LogLevel.INFO)).toBe(false);
+    expect(isLogLevelEnabled(LogLevel.DEBUG)).toBe(false);
+    expect(isLogLevelEnabled(LogLevel.TRACE)).toBe(false);
+  });
 });

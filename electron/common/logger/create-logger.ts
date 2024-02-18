@@ -25,9 +25,11 @@ interface ElectronLogFunctionsExtended extends ElectronLogFunctions {
  */
 const getElectronLoggerInstance = async (): Promise<ElectronLogger> => {
   if (typeof window === 'undefined') {
-    return import('electron-log/main.js');
+    const electronLogModule = await import('electron-log/main.js');
+    return electronLogModule.default;
   }
-  return import('electron-log/renderer.js');
+  const electronLogModule = await import('electron-log/renderer.js');
+  return electronLogModule.default;
 };
 
 const addTraceLevel = (logger: ElectronLogger): void => {
