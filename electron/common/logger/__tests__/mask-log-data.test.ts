@@ -79,31 +79,31 @@ describe('mask-log-data', () => {
 
   describe('#isNotMaskable', () => {
     it('returns true for null', () => {
-      expect(isNotMaskable(null)).toBeTruthy();
+      expect(isNotMaskable(null)).toBe(true);
     });
 
     it('returns true for undefined', () => {
-      expect(isNotMaskable(undefined)).toBeTruthy();
+      expect(isNotMaskable(undefined)).toBe(true);
     });
 
     it('returns true for Date', () => {
-      expect(isNotMaskable(new Date())).toBeTruthy();
+      expect(isNotMaskable(new Date())).toBe(true);
     });
 
     it('returns true for string', () => {
-      expect(isNotMaskable('string')).toBeTruthy();
+      expect(isNotMaskable('string')).toBe(true);
     });
 
     it('returns true for number', () => {
-      expect(isNotMaskable(42)).toBeTruthy();
+      expect(isNotMaskable(42)).toBe(true);
     });
 
     it('returns true for boolean', () => {
-      expect(isNotMaskable(true)).toBeTruthy();
+      expect(isNotMaskable(true)).toBe(true);
     });
 
     it('returns false for object', () => {
-      expect(isNotMaskable({ foo: 42 })).toBeFalsy();
+      expect(isNotMaskable({ foo: 42 })).toBe(false);
     });
   });
 });

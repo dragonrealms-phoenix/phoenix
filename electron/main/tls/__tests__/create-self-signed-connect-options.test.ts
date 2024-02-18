@@ -60,15 +60,17 @@ describe('create-self-signed-connect-options', () => {
     it('accepts trusted certificates', () => {
       const { checkServerIdentity } = connectOptions;
 
-      expect(
-        checkServerIdentity('https://trust.me', trustedCert)
-      ).toBeUndefined();
+      const identity = checkServerIdentity('https://trust.me', trustedCert);
+
+      expect(identity).toBe(undefined);
     });
 
     it('rejects untrusted certificates', () => {
       const { checkServerIdentity } = connectOptions;
 
-      expect(checkServerIdentity('http://h4k0rz.io', untrustedCert)).toEqual(
+      const identity = checkServerIdentity('http://h4k0rz.io', untrustedCert);
+
+      expect(identity).toEqual(
         new Error(`[TLS:SOCKET:CERT:UNTRUSTED] http://h4k0rz.io`)
       );
     });
@@ -76,7 +78,9 @@ describe('create-self-signed-connect-options', () => {
     it('rejects expired certificates', () => {
       const { checkServerIdentity } = connectOptions;
 
-      expect(checkServerIdentity('https://trust.me', expiredCert)).toEqual(
+      const identity = checkServerIdentity('https://trust.me', expiredCert);
+
+      expect(identity).toEqual(
         new Error(
           `[TLS:SOCKET:CERT:EXPIRED] ${expiredCert.valid_from} - ${expiredCert.valid_to}`
         )

@@ -44,7 +44,7 @@ describe('preference-service', () => {
 
     it('returns undefined if key not found', async () => {
       const value = await preferenceService.get('test' as PreferenceKey);
-      expect(value).toBeUndefined();
+      expect(value).toBe(undefined);
       expect(storeService.get).toHaveBeenCalledWith('test');
     });
   });

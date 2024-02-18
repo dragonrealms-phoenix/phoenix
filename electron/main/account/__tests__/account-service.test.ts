@@ -134,7 +134,7 @@ describe('account-service', () => {
         accountName: 'test-account',
       });
 
-      expect(account).toBeUndefined();
+      expect(account).toBe(undefined);
     });
   });
 
@@ -350,7 +350,7 @@ describe('account-service', () => {
         characterName: 'test-character',
       });
 
-      expect(character).toBeUndefined();
+      expect(character).toBe(undefined);
     });
   });
 

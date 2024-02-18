@@ -11,20 +11,20 @@ describe('get-cache-value', () => {
   });
 
   it('returns undefined on cache miss when no callback', async () => {
-    expect(await cacheService.get('mykey')).toBeUndefined();
+    expect(await cacheService.get('mykey')).toBe(undefined);
 
     const value = await getCacheValue({
       cacheService,
       key: 'mykey',
     });
 
-    expect(value).toBeUndefined();
+    expect(value).toBe(undefined);
   });
 
   it('returns callback value on cache miss when given callback', async () => {
     const onCacheMiss = vi.fn(async () => 'cacheMiss');
 
-    expect(await cacheService.get('mykey')).toBeUndefined();
+    expect(await cacheService.get('mykey')).toBe(undefined);
 
     const value = await getCacheValue({
       cacheService,

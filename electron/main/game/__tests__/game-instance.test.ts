@@ -108,7 +108,7 @@ describe('game-instance', () => {
 
       const Game = (await import('../game.instance.js')).Game;
 
-      expect(Game.getInstance()).toBeUndefined();
+      expect(Game.getInstance()).toBe(undefined);
     });
   });
 });

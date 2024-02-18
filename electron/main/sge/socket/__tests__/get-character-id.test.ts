@@ -57,7 +57,7 @@ describe('get-character-id', () => {
         characterName: 'not-found',
       });
 
-      expect(characterId).toBeUndefined();
+      expect(characterId).toBe(undefined);
     });
   });
 });

@@ -34,7 +34,7 @@ describe('store-service', () => {
   describe('#get', () => {
     it('returns undefined if key not found', async () => {
       const value = await storeService.get('key1');
-      expect(value).toBeUndefined();
+      expect(value).toBe(undefined);
     });
 
     it('returns value if key found', async () => {
@@ -62,14 +62,14 @@ describe('store-service', () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key1', null);
       const value = await storeService.get('key1');
-      expect(value).toBeUndefined();
+      expect(value).toBe(undefined);
     });
 
     it('removes the value for the given key if value is undefined', async () => {
       await storeService.set('key1', 'value1');
       await storeService.set('key1', undefined);
       const value = await storeService.get('key1');
-      expect(value).toBeUndefined();
+      expect(value).toBe(undefined);
     });
   });
 
@@ -78,7 +78,7 @@ describe('store-service', () => {
       await storeService.set('key1', 'value1');
       await storeService.remove('key1');
       const value = await storeService.get('key1');
-      expect(value).toBeUndefined();
+      expect(value).toBe(undefined);
     });
   });
 

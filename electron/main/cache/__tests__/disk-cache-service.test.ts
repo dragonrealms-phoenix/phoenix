@@ -103,7 +103,7 @@ describe('disk-cache-service', () => {
     it('creates cache file if not exists', async () => {
       fs.removeSync(filepath);
 
-      expect(fs.pathExistsSync(filepath)).toBeFalsy();
+      expect(fs.pathExistsSync(filepath)).toBe(false);
 
       const cacheService = new DiskCacheServiceImpl({
         filepath,
@@ -111,13 +111,13 @@ describe('disk-cache-service', () => {
 
       expect(await cacheService.readCache()).toEqual({});
 
-      expect(fs.pathExistsSync(filepath)).toBeTruthy();
+      expect(fs.pathExistsSync(filepath)).toBe(true);
     });
 
     it('loads cache file if exists', async () => {
       await fs.writeJson(filepath, { key: 42 });
 
-      expect(fs.pathExistsSync(filepath)).toBeTruthy();
+      expect(fs.pathExistsSync(filepath)).toBe(true);
 
       const cacheService = new DiskCacheServiceImpl({
         filepath,
@@ -125,7 +125,7 @@ describe('disk-cache-service', () => {
 
       expect(await cacheService.readCache()).toEqual({ key: 42 });
 
-      expect(fs.pathExistsSync(filepath)).toBeTruthy();
+      expect(fs.pathExistsSync(filepath)).toBe(true);
     });
 
     it('logs error when error loading existing cache file', async () => {

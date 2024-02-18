@@ -52,6 +52,6 @@ describe('get-experience-mindstate', () => {
   });
 
   it('returns undefined if the given mind state is invalid', () => {
-    expect(getExperienceMindState('foo')).toBeUndefined();
+    expect(getExperienceMindState('foo')).toBe(undefined);
   });
 });
