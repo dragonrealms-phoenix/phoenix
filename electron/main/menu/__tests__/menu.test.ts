@@ -757,7 +757,7 @@ describe('menu', () => {
       let menus: Array<Electron.MenuItemConstructorOptions>;
       let fileMenu: Electron.MenuItemConstructorOptions;
       let viewMenu: Electron.MenuItemConstructorOptions;
-      let windowMenu: Electron.MenuItemConstructorOptions;
+      // let windowMenu: Electron.MenuItemConstructorOptions;
       let helpMenu: Electron.MenuItemConstructorOptions;
 
       beforeEach(() => {
@@ -766,8 +766,26 @@ describe('menu', () => {
         menus = mockElectronMenuBuildFromTemplate.mock.calls[0][0];
         fileMenu = menus[0] as Electron.MenuItemConstructorOptions;
         viewMenu = menus[1] as Electron.MenuItemConstructorOptions;
-        windowMenu = menus[2] as Electron.MenuItemConstructorOptions;
+        // windowMenu = menus[2] as Electron.MenuItemConstructorOptions;
         helpMenu = menus[3] as Electron.MenuItemConstructorOptions;
+      });
+
+      it('File Menu > Open Logs Folder', async () => {
+        expect(mockElectronShellOpenPath).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: fileMenu,
+            label: 'Open Logs Folder',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenPath).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenPath).toHaveBeenCalledWith('/path/to/logs');
       });
 
       it('View Menu > Toggle Full Screen', async () => {
@@ -789,6 +807,225 @@ describe('menu', () => {
         expect(mockBrowserWindow.isFullScreen).toHaveBeenCalledTimes(1);
         expect(mockBrowserWindow.setFullScreen).toHaveBeenCalledTimes(1);
         expect(mockBrowserWindow.setMenuBarVisibility).toHaveBeenCalledTimes(1);
+      });
+
+      it('View Menu > Reset Zoom', async () => {
+        expect(mockZoomFactorModule.resetZoomFactor).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Reset &Zoom',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockZoomFactorModule.resetZoomFactor).toHaveBeenCalledTimes(1);
+      });
+
+      it('View Menu > Zoom In', async () => {
+        expect(mockZoomFactorModule.increaseZoomFactor).toHaveBeenCalledTimes(
+          0
+        );
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Zoom &In',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockZoomFactorModule.increaseZoomFactor).toHaveBeenCalledTimes(
+          1
+        );
+      });
+
+      it('View Menu > Zoom Out', async () => {
+        expect(mockZoomFactorModule.decreaseZoomFactor).toHaveBeenCalledTimes(
+          0
+        );
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Zoom &Out',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockZoomFactorModule.decreaseZoomFactor).toHaveBeenCalledTimes(
+          1
+        );
+      });
+
+      it('Help Menu > Documentation', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Documentation',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_DOCS_URL
+        );
+      });
+
+      it('Help Menu > Release Notes', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Release Notes',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_RELEASES_URL
+        );
+      });
+
+      it('Help Menu > Submit Feedback', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Submit Feedback',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_ISSUES_URL
+        );
+      });
+
+      it('Help Menu > View License', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'View License',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_LICENSE_URL
+        );
+      });
+
+      it('Help Menu > Privacy Policy', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Privacy Policy',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_PRIVACY_URL
+        );
+      });
+
+      it('Help Menu > Security Policy', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Security Policy',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_SECURITY_URL
+        );
+      });
+
+      it('Help Menu > Play.net', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Play.net',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PLAY_NET_URL
+        );
+      });
+
+      it('Help Menu > Elanthipedia', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Elanthipedia',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          ELANTHIPEDIA_URL
+        );
       });
     });
   });
