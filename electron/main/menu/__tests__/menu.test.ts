@@ -1,5 +1,17 @@
 import type { BrowserWindow } from 'electron';
+import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  ELANTHIPEDIA_URL,
+  PHOENIX_DOCS_URL,
+  PHOENIX_ISSUES_URL,
+  PHOENIX_LICENSE_URL,
+  PHOENIX_PRIVACY_URL,
+  PHOENIX_RELEASES_URL,
+  PHOENIX_SECURITY_URL,
+  PLAY_NET_URL,
+} from '../../../common/data/urls.js';
+import type { Maybe } from '../../../common/types.js';
 import { initializeMenu } from '../menu.js';
 
 const {
@@ -11,7 +23,11 @@ const {
   mockElectronShellOpenPath,
   mockElectronShellOpenExternal,
 } = await vi.hoisted(async () => {
-  const mockBrowserWindow = {} as unknown as BrowserWindow;
+  const mockBrowserWindow = {
+    isFullScreen: vi.fn(),
+    setFullScreen: vi.fn(),
+    setMenuBarVisibility: vi.fn(),
+  } as unknown as BrowserWindow;
 
   const mockZoomFactorModule = {
     loadZoomFactorPreference: vi.fn(),
@@ -58,6 +74,7 @@ vi.mock('electron', () => {
     },
     app: {
       name: 'test-app-name',
+      getPath: vi.fn(() => '/path/to/logs'),
     },
     shell: {
       openPath: mockElectronShellOpenPath,
@@ -66,8 +83,35 @@ vi.mock('electron', () => {
   };
 });
 
+const getSubMenuItemByLabel = (options: {
+  menu: Electron.MenuItemConstructorOptions;
+  label: string;
+}): Maybe<Electron.MenuItemConstructorOptions> => {
+  const { menu, label } = options;
+  const submenu = menu.submenu;
+  if (Array.isArray(submenu)) {
+    return submenu.find((item) => item.label === label);
+  }
+};
+
+const getMenuItemClickFn = (
+  menuItem: Maybe<Electron.MenuItemConstructorOptions>
+): (() => void) => {
+  expect(menuItem).toBeDefined();
+  expect(menuItem?.click).toEqual(expect.any(Function));
+
+  // The click function expects three arguments
+  // but our callbacks never use them so casting to ignore them.
+  const clickFn = menuItem?.click as () => void;
+
+  return clickFn;
+};
+
 describe('menu', () => {
+  let processPlatformSpy: MockInstance;
+
   beforeEach(() => {
+    processPlatformSpy = vi.spyOn(process, 'platform', 'get');
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
@@ -77,12 +121,12 @@ describe('menu', () => {
     vi.useRealTimers();
   });
 
-  describe('#initializeMenu', () => {
-    describe('platform: darwin', () => {
-      beforeEach(() => {
-        vi.spyOn(process, 'platform', 'get').mockReturnValue('darwin');
-      });
+  describe('platform: darwin', () => {
+    beforeEach(() => {
+      processPlatformSpy.mockReturnValue('darwin');
+    });
 
+    describe('#initializeMenu', () => {
       it('initializes the application menu', async () => {
         initializeMenu(mockBrowserWindow);
 
@@ -304,11 +348,291 @@ describe('menu', () => {
       });
     });
 
-    describe('platform: linux', () => {
+    describe('#menuItemClick', () => {
+      let menus: Array<Electron.MenuItemConstructorOptions>;
+      let appMenu: Electron.MenuItemConstructorOptions;
+      let fileMenu: Electron.MenuItemConstructorOptions;
+      // let editMenu: Electron.MenuItemConstructorOptions;
+      let viewMenu: Electron.MenuItemConstructorOptions;
+      // let windowMenu: Electron.MenuItemConstructorOptions;
+      let helpMenu: Electron.MenuItemConstructorOptions;
+
       beforeEach(() => {
-        vi.spyOn(process, 'platform', 'get').mockReturnValue('linux');
+        initializeMenu(mockBrowserWindow);
+
+        menus = mockElectronMenuBuildFromTemplate.mock.calls[0][0];
+        appMenu = menus[0] as Electron.MenuItemConstructorOptions;
+        fileMenu = menus[1] as Electron.MenuItemConstructorOptions;
+        // editMenu = menus[2] as Electron.MenuItemConstructorOptions;
+        // windowMenu = menus[3] as Electron.MenuItemConstructorOptions;
+        viewMenu = menus[4] as Electron.MenuItemConstructorOptions;
+        helpMenu = menus[5] as Electron.MenuItemConstructorOptions;
       });
 
+      it('App Menu > Warn Before Quitting', async () => {
+        expect(
+          mockConfirmBeforeCloseModule.toggleConfirmBeforeClose
+        ).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: appMenu,
+            label: 'Warn Before Quitting (⌘Q)',
+          })
+        );
+
+        menuItemClickFn();
+
+        expect(
+          mockConfirmBeforeCloseModule.toggleConfirmBeforeClose
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      it('File Menu > Open Logs Folder', async () => {
+        expect(mockElectronShellOpenPath).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: fileMenu,
+            label: 'Open Logs Folder',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenPath).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenPath).toHaveBeenCalledWith('/path/to/logs');
+      });
+
+      it('View Menu > Reset Zoom', async () => {
+        expect(mockZoomFactorModule.resetZoomFactor).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Reset Zoom',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockZoomFactorModule.resetZoomFactor).toHaveBeenCalledTimes(1);
+      });
+
+      it('View Menu > Zoom In', async () => {
+        expect(mockZoomFactorModule.increaseZoomFactor).toHaveBeenCalledTimes(
+          0
+        );
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Zoom In',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockZoomFactorModule.increaseZoomFactor).toHaveBeenCalledTimes(
+          1
+        );
+      });
+
+      it('View Menu > Zoom Out', async () => {
+        expect(mockZoomFactorModule.decreaseZoomFactor).toHaveBeenCalledTimes(
+          0
+        );
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Zoom Out',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockZoomFactorModule.decreaseZoomFactor).toHaveBeenCalledTimes(
+          1
+        );
+      });
+
+      it('Help Menu > Documentation', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Documentation',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_DOCS_URL
+        );
+      });
+
+      it('Help Menu > Release Notes', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Release Notes',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_RELEASES_URL
+        );
+      });
+
+      it('Help Menu > Submit Feedback', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Submit Feedback',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_ISSUES_URL
+        );
+      });
+
+      it('Help Menu > View License', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'View License',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_LICENSE_URL
+        );
+      });
+
+      it('Help Menu > Privacy Policy', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Privacy Policy',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_PRIVACY_URL
+        );
+      });
+
+      it('Help Menu > Security Policy', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Security Policy',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PHOENIX_SECURITY_URL
+        );
+      });
+
+      it('Help Menu > Play.net', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Play.net',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          PLAY_NET_URL
+        );
+      });
+
+      it('Help Menu > Elanthipedia', async () => {
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: helpMenu,
+            label: 'Elanthipedia',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledTimes(1);
+        expect(mockElectronShellOpenExternal).toHaveBeenCalledWith(
+          ELANTHIPEDIA_URL
+        );
+      });
+    });
+  });
+
+  describe('platform: linux', () => {
+    beforeEach(() => {
+      processPlatformSpy.mockReturnValue('linux');
+    });
+
+    describe('#initializeMenu', () => {
       it('initializes the application menu', async () => {
         initializeMenu(mockBrowserWindow);
 
@@ -426,6 +750,45 @@ describe('menu', () => {
         expect(
           mockConfirmBeforeCloseModule.loadConfirmBeforeClosePreference
         ).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('#menuItemClick', () => {
+      let menus: Array<Electron.MenuItemConstructorOptions>;
+      let fileMenu: Electron.MenuItemConstructorOptions;
+      let viewMenu: Electron.MenuItemConstructorOptions;
+      let windowMenu: Electron.MenuItemConstructorOptions;
+      let helpMenu: Electron.MenuItemConstructorOptions;
+
+      beforeEach(() => {
+        initializeMenu(mockBrowserWindow);
+
+        menus = mockElectronMenuBuildFromTemplate.mock.calls[0][0];
+        fileMenu = menus[0] as Electron.MenuItemConstructorOptions;
+        viewMenu = menus[1] as Electron.MenuItemConstructorOptions;
+        windowMenu = menus[2] as Electron.MenuItemConstructorOptions;
+        helpMenu = menus[3] as Electron.MenuItemConstructorOptions;
+      });
+
+      it('View Menu > Toggle Full Screen', async () => {
+        expect(mockBrowserWindow.isFullScreen).toHaveBeenCalledTimes(0);
+        expect(mockBrowserWindow.setFullScreen).toHaveBeenCalledTimes(0);
+        expect(mockBrowserWindow.setMenuBarVisibility).toHaveBeenCalledTimes(0);
+
+        const menuItemClickFn = getMenuItemClickFn(
+          getSubMenuItemByLabel({
+            menu: viewMenu,
+            label: 'Toggle &Full Screen',
+          })
+        );
+
+        menuItemClickFn();
+
+        await vi.runAllTimersAsync();
+
+        expect(mockBrowserWindow.isFullScreen).toHaveBeenCalledTimes(1);
+        expect(mockBrowserWindow.setFullScreen).toHaveBeenCalledTimes(1);
+        expect(mockBrowserWindow.setMenuBarVisibility).toHaveBeenCalledTimes(1);
       });
     });
   });

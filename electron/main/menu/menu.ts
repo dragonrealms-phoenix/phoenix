@@ -161,6 +161,27 @@ const buildDarwinTemplate = (
     ],
   };
 
+  const subMenuWindow: DarwinMenuItemConstructorOptions = {
+    label: 'Window',
+    role: 'windowMenu',
+    submenu: [
+      {
+        label: 'Minimize',
+        role: 'minimize',
+        accelerator: 'Command+M',
+        selector: 'performMiniaturize:',
+      },
+      {
+        label: 'Close',
+        role: 'close',
+        accelerator: 'Command+W',
+      },
+      {
+        type: 'separator',
+      },
+    ],
+  };
+
   const subMenuView: DarwinMenuItemConstructorOptions = {
     label: 'View',
     role: 'viewMenu',
@@ -203,27 +224,6 @@ const buildDarwinTemplate = (
         click: () => {
           decreaseZoomFactor(window);
         },
-      },
-    ],
-  };
-
-  const subMenuWindow: DarwinMenuItemConstructorOptions = {
-    label: 'Window',
-    role: 'windowMenu',
-    submenu: [
-      {
-        label: 'Minimize',
-        role: 'minimize',
-        accelerator: 'Command+M',
-        selector: 'performMiniaturize:',
-      },
-      {
-        label: 'Close',
-        role: 'close',
-        accelerator: 'Command+W',
-      },
-      {
-        type: 'separator',
       },
     ],
   };
