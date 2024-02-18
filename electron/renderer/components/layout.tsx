@@ -1,6 +1,6 @@
 import { EuiPageTemplate } from '@elastic/eui';
 import type { ReactNode } from 'react';
-import { Sidebar } from './sidebar.js';
+import { Sidebar } from './sidebar/sidebar.jsx';
 
 export interface LayoutProps {
   /**

@@ -3,12 +3,12 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
-import type { GameLogLine } from '../../types/game.types.js';
-import { GameStreamText } from './game-stream-text.js';
+import type { GameLogLine } from '../../types/game.types.jsx';
+import { GameStreamText } from './game-stream-text.jsx';
 import {
   excludeDuplicateEmptyLines,
   filterLinesForGameStreams,
-} from './game.utils';
+} from './game.utils.js';
 
 export interface GameStreamProps {
   /**

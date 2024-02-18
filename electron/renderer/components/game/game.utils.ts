@@ -1,6 +1,6 @@
 import { css } from '@emotion/react';
 import * as rxjs from 'rxjs';
-import type { GameLogLine } from '../../types/game.types.js';
+import type { GameLogLine } from '../../types/game.types.jsx';
 
 /**
  * To help filter out duplicate empty log lines.

@@ -8,7 +8,8 @@ import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { runInBackground } from '../../common/async.js';
+import { runInBackground } from '../../common/async/run-in-background.js';
+import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
 import type {
   ExperienceGameEvent,
   GameConnectMessage,
@@ -17,12 +18,12 @@ import type {
   GameEvent,
   GameEventMessage,
   RoomGameEvent,
-} from '../../common/game';
-import { GameEventType, getExperienceMindState } from '../../common/game.js';
-import { GameStream } from '../components/game.js';
-import { Grid } from '../components/grid.js';
-import { NoSSR } from '../components/no-ssr.js';
-import { useLogger } from '../hooks/logger/index.js';
+} from '../../common/game/types.js';
+import { GameEventType } from '../../common/game/types.js';
+import { GameStream } from '../components/game/game-stream.jsx';
+import { Grid } from '../components/grid/grid.jsx';
+import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
+import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
 import { useWindowSize } from '../hooks/window-size.js';
 import type { GameLogLine } from '../types/game.types.js';
@@ -42,7 +43,7 @@ let textStylePreset = '';
 let textStyleBold = false;
 
 const GridPage: React.FC = (): ReactNode => {
-  const { logger } = useLogger('page:grid');
+  const logger = useLogger('page:grid');
 
   // Game events will be emitted from the IPC `game:event` channel.
   // Here we subscribe and route them to the correct grid item.

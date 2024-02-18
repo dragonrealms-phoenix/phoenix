@@ -5,7 +5,7 @@ import { EuiProvider } from '@elastic/eui';
 import createCache from '@emotion/cache';
 import type { ReactNode } from 'react';
 import type { Maybe } from '../../common/types.js';
-import { useTheme } from '../hooks/theme.js';
+import { useTheme } from '../hooks/theme.jsx';
 
 export interface ChromeProviderProps {
   /**

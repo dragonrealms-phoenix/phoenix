@@ -15,7 +15,7 @@ import {
   PHOENIX_RELEASES_URL,
   PHOENIX_SECURITY_URL,
   PLAY_NET_URL,
-} from '../../../common/data/urls';
+} from '../../../common/data/urls.js';
 
 interface HelpMenuProps {
   items: Array<HelpItemProps>;

@@ -15,10 +15,10 @@ import {
 // To help with terminology, aliasing the type here, redefining it below.
 import type { Layout as GridLayoutItem } from 'react-grid-layout';
 import GridLayout from 'react-grid-layout';
-import { useLogger } from '../../hooks/logger/index.js';
+import { useLogger } from '../../hooks/logger.jsx';
 import { LocalStorage } from '../../lib/local-storage.js';
-import type { GridItemProps } from './grid-item.js';
-import { GridItem } from './grid-item.js';
+import type { GridItemProps } from './grid-item.jsx';
+import { GridItem } from './grid-item.jsx';
 
 // See comment above about terminology.
 type Layout = Array<GridLayoutItem>;
@@ -59,7 +59,7 @@ export interface GridProps {
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { dimensions, items } = props;
 
-  const { logger } = useLogger('grid');
+  const logger = useLogger('grid');
 
   const { height, width } = dimensions;
 

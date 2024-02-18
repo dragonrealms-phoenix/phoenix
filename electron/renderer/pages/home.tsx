@@ -2,9 +2,9 @@ import { EuiListGroup, EuiListGroupItem, EuiPanel } from '@elastic/eui';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
-import { runInBackground } from '../../common/async.js';
-import { equalsIgnoreCase } from '../../common/string/index.js';
-import { useLogger } from '../hooks/logger/index.js';
+import { runInBackground } from '../../common/async/run-in-background.js';
+import { equalsIgnoreCase } from '../../common/string/equals-ignore-case.js';
+import { useLogger } from '../hooks/logger.jsx';
 
 interface IpcSgeCharacter {
   gameCode: string;
@@ -13,7 +13,7 @@ interface IpcSgeCharacter {
 }
 
 const HomePage: React.FC = (): ReactNode => {
-  const { logger } = useLogger('page:home');
+  const logger = useLogger('page:home');
 
   const router = useRouter();
 
