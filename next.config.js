@@ -17,9 +17,6 @@ import webpack from 'webpack';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-console.log('***', {
-  __dirname,
-});
 
 dotenv.config();
 
@@ -53,6 +50,11 @@ const nextConfig = {
      * https://github.com/vercel/next.js/issues/57876
      */
     webpackBuildWorker: true,
+    /**
+     * Support ESM-style imports that are fully specified with file extensions.
+     * https://github.com/vercel/next.js/issues/41961
+     */
+    fullySpecified: true,
   },
 
   compiler: {
@@ -213,6 +215,16 @@ const nextConfig = {
       config.resolve = {};
     }
     config.resolve.mainFields = ['module', 'main'];
+
+    // Add extension aliases to support ESM-style imports.
+    // https://github.com/vercel/next.js/issues/41961
+    // https://github.com/webpack/webpack/issues/13252#issuecomment-1824282100
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js', '.jsx'],
+      '.jsx': ['.tsx', '.jsx'],
+      '.mjs': ['.mts', '.mjs'],
+      '.cjs': ['.cts', '.cjs'],
+    };
 
     return config;
   },
