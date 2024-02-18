@@ -6,4 +6,4 @@ initializeDotenv();
 initializeLogging();
 initializeSentry();
 
-import './app';
+import './app.js';
