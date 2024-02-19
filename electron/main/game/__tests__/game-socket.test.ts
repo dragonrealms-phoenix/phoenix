@@ -1,4 +1,4 @@
-import * as net from 'node:net';
+import net from 'node:net';
 import type { MockInstance } from 'vitest';
 import {
   afterEach,
@@ -24,7 +24,9 @@ vi.mock('node:net', () => {
     connect: vi.fn<[], net.Socket>(),
   };
 
-  return netMock;
+  return {
+    default: netMock,
+  };
 });
 
 describe('game-socket', () => {

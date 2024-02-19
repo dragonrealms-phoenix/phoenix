@@ -107,7 +107,9 @@ vi.mock('electron', async () => {
 
 vi.mock('fs-extra', () => {
   return {
-    createWriteStream: vi.fn().mockImplementation(() => mockWriteStream),
+    default: {
+      createWriteStream: vi.fn().mockImplementation(() => mockWriteStream),
+    },
   };
 });
 

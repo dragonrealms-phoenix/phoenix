@@ -1,6 +1,6 @@
 import { app } from 'electron';
-import * as path from 'node:path';
-import * as fs from 'fs-extra';
+import path from 'node:path';
+import fs from 'fs-extra';
 import type * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/wait-until.js';
 import type { GameEvent } from '../../common/game/types.js';

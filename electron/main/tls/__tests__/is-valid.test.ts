@@ -1,5 +1,5 @@
-import * as crypto from 'node:crypto';
-import type * as tls from 'node:tls';
+import crypto from 'node:crypto';
+import type tls from 'node:tls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Writeable } from '../../../common/types.js';
 import {

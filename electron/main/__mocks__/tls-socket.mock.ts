@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import type { Mock } from 'vitest';
 import { vi } from 'vitest';
 import { NetSocketMock } from './net-socket.mock.js';

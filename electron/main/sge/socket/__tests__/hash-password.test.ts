@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TLSSocketMock } from '../../../__mocks__/tls-socket.mock.js';
 import { mockTLSConnect } from '../../../__mocks__/tls-socket.mock.js';

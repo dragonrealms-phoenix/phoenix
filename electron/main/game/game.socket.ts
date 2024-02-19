@@ -1,4 +1,4 @@
-import * as net from 'node:net';
+import net from 'node:net';
 import * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/wait-until.js';
 import { ReplayFirstSubscriberOnlySubject } from '../../common/observable/replay-first-subscriber-only.subject.js';

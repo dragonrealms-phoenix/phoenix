@@ -1,6 +1,6 @@
 import type { Event } from 'electron';
 import { BrowserWindow, app, dialog, shell } from 'electron';
-import * as path from 'node:path';
+import path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async/run-in-background.js';
 import type { IpcController } from './ipc/ipc.controller.js';
@@ -37,7 +37,7 @@ const prodAppUrl = `${prodAppScheme}://-`;
 
 // When running in development, serve the app from these paths.
 const devRendererPath = path.join(appElectronPath, 'renderer');
-const devPort = 3000;
+const devPort = 3000; // arbitrary
 const devAppUrl = `http://localhost:${devPort}`;
 
 const appUrl = appEnvIsProd ? prodAppUrl : devAppUrl;
@@ -63,8 +63,11 @@ const createMainWindow = async (): Promise<void> => {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
     // This enables hot reloading of the renderer.
-    const { default: serveDev } = await import('electron-next');
-    await serveDev(devRendererPath, devPort);
+    const { serve } = await import('./electron-next/dev-server.js');
+    await serve({
+      rendererPath: devRendererPath,
+      port: devPort,
+    });
   }
 
   const mainWindow = new BrowserWindow({

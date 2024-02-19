@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { logger } from '../logger.js';
 import type { SGEGame, SGEGameCode } from '../types.js';
 import { listAvailableGames } from './list-available-games.js';

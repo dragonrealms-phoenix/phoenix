@@ -1,4 +1,4 @@
-import type * as net from 'node:net';
+import type net from 'node:net';
 import type { Mock } from 'vitest';
 import { vi } from 'vitest';
 

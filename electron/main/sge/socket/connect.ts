@@ -1,4 +1,4 @@
-import * as tls from 'node:tls';
+import tls from 'node:tls';
 import merge from 'lodash-es/merge.js';
 import { createSelfSignedConnectOptions } from '../../tls/create-self-signed-connect-options.js';
 import { logger } from '../logger.js';

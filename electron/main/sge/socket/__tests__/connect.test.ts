@@ -1,4 +1,4 @@
-import * as tls from 'node:tls';
+import tls from 'node:tls';
 import merge from 'lodash-es/merge.js';
 import type { MockInstance } from 'vitest';
 import {
@@ -52,7 +52,9 @@ vi.mock('node:tls', () => {
     connect: vi.fn<[], tls.TLSSocket>(),
   };
 
-  return tlsMock;
+  return {
+    default: tlsMock,
+  };
 });
 
 describe('connect', () => {

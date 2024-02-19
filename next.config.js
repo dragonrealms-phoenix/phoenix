@@ -4,9 +4,9 @@
  * Config based on https://github.com/elastic/next-eui-starter
  */
 
-import * as crypto from 'node:crypto';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { withSentryConfig } from '@sentry/nextjs';
 import CopyWebpackPlugin from 'copy-webpack-plugin';

@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { sendAndReceive } from '../../tls/send-and-receive.js';
 import { logger } from '../logger.js';
 import type { SGECharacter } from '../types.js';

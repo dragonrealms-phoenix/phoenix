@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createSelfSignedConnectOptions } from '../create-self-signed-connect-options.js';
 import { getPEM } from '../get-pem.js';

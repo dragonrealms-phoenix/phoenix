@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import cloneDeep from 'lodash-es/cloneDeep.js';
 import {
   afterEach,
@@ -75,7 +75,9 @@ vi.mock('fs-extra', async () => {
     },
   };
 
-  return mockFsExtra;
+  return {
+    default: mockFsExtra,
+  };
 });
 
 describe('disk-cache-service', () => {

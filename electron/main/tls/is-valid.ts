@@ -1,5 +1,5 @@
-import * as crypto from 'node:crypto';
-import type * as tls from 'node:tls';
+import crypto from 'node:crypto';
+import type tls from 'node:tls';
 
 export const isValidForDate = (
   cert: crypto.X509Certificate | tls.PeerCertificate,

@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import last from 'lodash-es/last.js';
 import { sendAndReceive } from '../../tls/send-and-receive.js';
 import { logger } from '../logger.js';

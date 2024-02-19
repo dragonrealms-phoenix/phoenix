@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import first from 'lodash-es/first.js';
 import type { Maybe } from '../../../common/types.js';
 import { sendAndReceive } from '../../tls/send-and-receive.js';

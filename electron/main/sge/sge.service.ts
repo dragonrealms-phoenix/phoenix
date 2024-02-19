@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { logger } from './logger.js';
 import { authenticate } from './socket/authenticate.js';
 import { connect } from './socket/connect.js';

@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import * as path from 'node:path';
+import path from 'node:path';
 import { DiskCacheServiceImpl } from '../cache/disk-cache.service.js';
 import { StoreServiceImpl } from './store.service.js';
 

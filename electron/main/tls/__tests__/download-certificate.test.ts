@@ -1,4 +1,4 @@
-import * as tls from 'node:tls';
+import tls from 'node:tls';
 import type { MockInstance } from 'vitest';
 import {
   afterEach,
@@ -25,7 +25,9 @@ vi.mock('node:tls', () => {
     connect: vi.fn<[], tls.TLSSocket>(),
   };
 
-  return tlsMock;
+  return {
+    default: tlsMock,
+  };
 });
 
 describe('download-certificate', () => {

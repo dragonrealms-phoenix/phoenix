@@ -1,4 +1,4 @@
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import debounce from 'lodash-es/debounce.js';
 import type { DebouncedFunc } from 'lodash-es/debounce.js';
 import type { Maybe } from '../../common/types.js';

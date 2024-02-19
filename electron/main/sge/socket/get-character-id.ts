@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import type { Maybe } from '../../../common/types.js';
 import { logger } from '../logger.js';
 import type { SGECharacter } from '../types.js';

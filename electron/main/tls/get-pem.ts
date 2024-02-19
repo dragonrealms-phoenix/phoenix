@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { convertDERtoPEM } from './convert-der-to-pem.js';
 
 export const getPEM = (pemOrCert: string | tls.PeerCertificate): string => {

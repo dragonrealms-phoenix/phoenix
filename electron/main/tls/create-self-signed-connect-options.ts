@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import type { Maybe } from '../../common/types.js';
 import { convertDERtoPEM } from './convert-der-to-pem.js';
 import { getPEM } from './get-pem.js';

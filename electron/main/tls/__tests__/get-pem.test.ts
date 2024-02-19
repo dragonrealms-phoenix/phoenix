@@ -1,4 +1,4 @@
-import type * as tls from 'node:tls';
+import type tls from 'node:tls';
 import { describe, expect, it } from 'vitest';
 import { getPEM } from '../get-pem.js';
 
