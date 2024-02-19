@@ -127,6 +127,9 @@ const nextConfig = {
 
     config.externals ||= [];
     config.plugins ||= [];
+    config.resolve ||= {};
+    config.module ||= {};
+    config.module.rules ||= [];
 
     // EUI uses some libraries and features that don't work outside of a
     // browser by default. We need to configure the build so that these
@@ -211,9 +214,6 @@ const nextConfig = {
       })
     );
 
-    if (!config.resolve) {
-      config.resolve = {};
-    }
     config.resolve.mainFields = ['module', 'main', 'exports'];
 
     // Add extension aliases to support ESM-style imports.
@@ -225,6 +225,53 @@ const nextConfig = {
       '.mjs': ['.mts', '.mjs'],
       '.cjs': ['.cts', '.cjs'],
     };
+
+    /**
+     * Configure typescript transpilation with babel.
+     * Since migrating our project to ESM, the tsconfig files
+     * are outputting ESM code, which doesn't work in Electron / Chromium.
+     * Using babel to further transpile the output to CJS.
+     * https://webpack.js.org/loaders/babel-loader/
+     */
+    if (isServer) {
+      config.module.rules.push({
+        test: /\.(?:ts|tsx|js|jsx|mjs|cjs)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: ['maintained node versions'],
+                },
+              ],
+            ],
+          },
+        },
+      });
+    } else {
+      config.module.rules.push({
+        test: /\.(?:ts|tsx|js|jsx|mjs|cjs)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: ['last 1 electron version'],
+                },
+              ],
+            ],
+          },
+        },
+      });
+    }
 
     return config;
   },
