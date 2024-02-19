@@ -3,12 +3,21 @@ name: Test
 on:
   push:
 
+env:
+  # Don't install husky hooks
+  # https://typicode.github.io/husky/how-to.html#ci-server-and-docker
+  HUSKY: 0
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      - name: Enable corepack
+        shell: bash
+        run: corepack enable
 
       - name: Setup Node
         uses: actions/setup-node@v4

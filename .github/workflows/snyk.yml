@@ -21,6 +21,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # Don't install husky hooks
+  # https://typicode.github.io/husky/how-to.html#ci-server-and-docker
+  HUSKY: 0
+
 jobs:
   snyk:
     permissions:
@@ -32,17 +37,21 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Enable corepack
+        shell: bash
+        run: corepack enable
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: yarn
           cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --immutable
 
       - name: Setup Snyk
         uses: snyk/actions/setup@master

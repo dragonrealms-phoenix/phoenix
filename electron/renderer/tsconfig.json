@@ -22,9 +22,9 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "plugins": [
       {
-        "name": "next",
-      },
-    ],
+        "name": "next"
+      }
+    ]
   },
   "exclude": ["node_modules"],
   "include": [
@@ -32,6 +32,6 @@
     "../preload/**/*.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx",
-  ],
+    "**/*.tsx"
+  ]
 }
