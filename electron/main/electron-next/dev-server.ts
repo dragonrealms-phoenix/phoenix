@@ -11,19 +11,24 @@ import { app } from 'electron';
 import * as http from 'node:http';
 import type { NextServer, NextServerOptions } from 'next/dist/server/next.js';
 import { runInBackground } from '../../common/async/run-in-background.js';
-import { sleep } from '../../common/async/sleep.js';
+import { logger } from './logger.js';
 
-export const serve = async (options: {
+export const devServe = async (options: {
   /**
-   * Path to the renderer directory, the root of your nextjs web app.
+   * The directory to serve, relative to the app root directory.
    */
-  rendererPath: string;
+  directory: string;
   /**
    * The port to serve the renderer on.
    */
   port: number;
 }): Promise<void> => {
-  const { rendererPath, port = 3000 } = options;
+  const { directory, port = 3000 } = options;
+
+  logger.info('starting nextjs dev server', {
+    directory,
+    port,
+  });
 
   // Dynamically import nextjs to avoid bundling it with the app
   // when webpack compiles and tree-shakes the project.
@@ -33,15 +38,12 @@ export const serve = async (options: {
     options: NextServerOptions
   ) => NextServer;
 
-  const nextServer = createNextServer({ dev: true, dir: rendererPath });
+  const nextServer = createNextServer({ dev: true, dir: directory });
 
   const requestHandler = nextServer.getRequestHandler();
 
   // Build the renderer code and watch the files.
   await nextServer.prepare();
-
-  console.log('nextjs server is ready');
-  await sleep(30_000);
 
   // Create a new native HTTP server to support hot code reloading.
   const httpServer = http.createServer(
@@ -55,6 +57,9 @@ export const serve = async (options: {
   httpServer.listen(port, () => {
     // Make sure to stop the server when the app closes.
     // Otherwise it keeps running on its own.
-    app.on('before-quit', () => httpServer.close());
+    app.once('before-quit', () => {
+      logger.info('stopping nextjs dev server');
+      httpServer.close();
+    });
   });
 };

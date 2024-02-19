@@ -214,7 +214,7 @@ const nextConfig = {
     if (!config.resolve) {
       config.resolve = {};
     }
-    config.resolve.mainFields = ['module', 'main'];
+    config.resolve.mainFields = ['module', 'main', 'exports'];
 
     // Add extension aliases to support ESM-style imports.
     // https://github.com/vercel/next.js/issues/41961
