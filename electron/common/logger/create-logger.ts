@@ -10,6 +10,7 @@ import { includesIgnoreCase } from '../string/includes-ignore-case.js';
 import type { LogFunction, Logger } from './types.js';
 import { LogLevel } from './types.js';
 
+// TODO: is caching these necessary?
 // Cache loggers for the same scope.
 const scopedLoggers: Record<string, ElectronLogFunctions> = {};
 
@@ -29,7 +30,8 @@ const addTraceLevel = (logger: ElectronLogger): void => {
 export const createLogger = (options?: {
   /**
    * Label printed with each log message to identify the source.
-   * Example: 'game:service'
+   * If provided, the scope must be unique throughout the application
+   * because scoped loggers are cached and re-used.
    */
   scope?: string;
   /**
