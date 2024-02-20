@@ -15,7 +15,7 @@ import { PreferenceKey } from './preference/types.js';
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
-const logger = await createLogger('app');
+const logger = createLogger('app');
 logger.info('welcome, brave adventurer!');
 logger.info('one moment while we prepare for your journey...');
 

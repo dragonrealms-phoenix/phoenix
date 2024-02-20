@@ -1,5 +1,5 @@
 import { createLogger } from '../logger/create-logger.js';
 
-const logger = await createLogger('main:cache');
+const logger = createLogger('main:cache');
 
 export { logger };

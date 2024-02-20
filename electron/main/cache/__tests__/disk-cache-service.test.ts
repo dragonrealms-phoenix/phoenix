@@ -85,8 +85,8 @@ describe('disk-cache-service', () => {
 
   let logger: Logger;
 
-  beforeAll(async () => {
-    logger = await mockCreateLogger('test');
+  beforeAll(() => {
+    logger = mockCreateLogger({ scope: 'test' });
   });
 
   beforeEach(() => {

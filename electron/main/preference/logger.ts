@@ -1,5 +1,5 @@
 import { createLogger } from '../logger/create-logger.js';
 
-const logger = await createLogger('main:preference');
+const logger = createLogger('main:preference');
 
 export { logger };

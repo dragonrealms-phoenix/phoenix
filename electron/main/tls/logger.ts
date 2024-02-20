@@ -1,5 +1,5 @@
 import { createLogger } from '../logger/create-logger.js';
 
-const logger = await createLogger('main:tls');
+const logger = createLogger('main:tls');
 
 export { logger };

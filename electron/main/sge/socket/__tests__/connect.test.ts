@@ -79,8 +79,8 @@ describe('connect', () => {
 
   let logger: Logger;
 
-  beforeAll(async () => {
-    logger = await mockCreateLogger('test');
+  beforeAll(() => {
+    logger = mockCreateLogger({ scope: 'test' });
     tlsConnectSpy = vi.spyOn(tls, 'connect');
   });
 

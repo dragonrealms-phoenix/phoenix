@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
-import { runInBackground } from '../../common/async/run-in-background.js';
-import { createLogger } from '../../common/logger/create-logger.js';
 import type { Logger } from '../../common/logger/types.js';
 import { LoggerContext } from '../context/logger.jsx';
+import { createLogger } from '../lib/logger.js';
 
 /**
  * To use this hook, the component must be inside a `LoggerProvider` hierarchy.
@@ -19,11 +18,11 @@ export const useLogger = (scope?: string): Logger => {
 
   useEffect(() => {
     if (scope) {
-      runInBackground(async () => {
-        setLogger(await createLogger(scope));
-      });
+      setLogger(createLogger(scope));
+    } else {
+      setLogger(context.logger);
     }
-  }, [scope]);
+  }, [scope, context.logger]);
 
   return logger;
 };
