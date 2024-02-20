@@ -14,8 +14,8 @@ import { runInBackground } from '../run-in-background.js';
 describe('run-in-background', () => {
   let logger: Logger;
 
-  beforeAll(async () => {
-    logger = await mockCreateLogger('test');
+  beforeAll(() => {
+    logger = mockCreateLogger({ scope: 'test' });
   });
 
   beforeEach(() => {

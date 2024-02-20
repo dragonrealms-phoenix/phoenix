@@ -5,6 +5,7 @@ import type {
   LogFunctions as ElectronLogFunctions,
   Logger as ElectronLogger,
 } from 'electron-log';
+import electronMainLogger from 'electron-log';
 import { includesIgnoreCase } from '../string/includes-ignore-case.js';
 import type { LogFunction, Logger } from './types.js';
 import { LogLevel } from './types.js';
@@ -19,31 +20,32 @@ interface ElectronLogFunctionsExtended extends ElectronLogFunctions {
   trace: LogFunction;
 }
 
-/**
- * Get the electron-log instance to use, appropriate for
- * the current process (e.g. main vs. renderer).
- */
-const getElectronLoggerInstance = async (): Promise<ElectronLogger> => {
-  if (typeof window === 'undefined') {
-    const electronLogModule = await import('electron-log/main.js');
-    return electronLogModule.default;
-  }
-  const electronLogModule = await import('electron-log/renderer.js');
-  return electronLogModule.default;
-};
-
 const addTraceLevel = (logger: ElectronLogger): void => {
   if (!includesIgnoreCase(logger.levels, LogLevel.TRACE)) {
     logger.addLevel(LogLevel.TRACE);
   }
 };
 
-export const createLogger = async (scope?: string): Promise<Logger> => {
-  const electronLogger = await getElectronLoggerInstance();
+export const createLogger = (options?: {
+  /**
+   * Label printed with each log message to identify the source.
+   * Example: 'game:service'
+   */
+  scope?: string;
+  /**
+   * Underlying electron logger instance to use.
+   * Defaults to the electron logger for the main process.
+   *
+   * The main package code SHOULD provide the main logger instance.
+   * The renderer package code MUST provide the renderer logger instance.
+   */
+  logger?: ElectronLogger;
+}): Logger => {
+  const scope = options?.scope ?? '';
+  const electronLogger = options?.logger ?? electronMainLogger;
 
   addTraceLevel(electronLogger);
 
-  scope = scope ?? '';
   if (!scopedLoggers[scope]) {
     if (scope.length > 0) {
       scopedLoggers[scope] = electronLogger.scope(scope);

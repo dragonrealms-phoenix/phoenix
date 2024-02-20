@@ -46,6 +46,13 @@ const { mockElectronLogMain, mockElectronLogRenderer } = vi.hoisted(() => {
   };
 });
 
+vi.mock('electron-log', () => {
+  return {
+    default: mockElectronLogMain,
+    ...mockElectronLogMain,
+  };
+});
+
 vi.mock('electron-log/main.js', () => {
   return {
     default: mockElectronLogMain,

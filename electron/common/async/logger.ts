@@ -1,5 +1,5 @@
 import { createLogger } from '../logger/create-logger.js';
 
-const logger = await createLogger('common:async');
+const logger = createLogger({ scope: 'common:async' });
 
 export { logger };
