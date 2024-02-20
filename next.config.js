@@ -248,6 +248,14 @@ const nextConfig = {
                   targets: ['maintained node versions'],
                 },
               ],
+              [
+                '@babel/preset-typescript',
+                {
+                  isTSX: true,
+                  allExtensions: true,
+                  onlyRemoveTypeImports: true,
+                },
+              ],
             ],
           },
         },
@@ -265,6 +273,14 @@ const nextConfig = {
                 '@babel/preset-env',
                 {
                   targets: ['last 1 electron version'],
+                },
+              ],
+              [
+                '@babel/preset-typescript',
+                {
+                  isTSX: true,
+                  allExtensions: true,
+                  onlyRemoveTypeImports: true,
                 },
               ],
             ],
