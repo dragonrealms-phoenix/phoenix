@@ -1,3 +1,25 @@
+# [1.8.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.7.0...v1.8.0) (2024-02-25)
+
+
+### Bug Fixes
+
+* calculating path to file url; rename modules ([8a4c0e8](https://github.com/dragonrealms-phoenix/phoenix/commit/8a4c0e83ffd2ed221655f5d4a1dfc4bdeaf2ec9c))
+* don't overwrite existing props ([8e27845](https://github.com/dragonrealms-phoenix/phoenix/commit/8e278455cd0d3bd57edfa0d4bcd4e5e9dd1de106))
+* esm import ([596b674](https://github.com/dragonrealms-phoenix/phoenix/commit/596b6749d143de77391d9ef7e07b5033a9710ea6))
+* resolve socket in listener to mitigate referencing before var init ([0fa3c8b](https://github.com/dragonrealms-phoenix/phoenix/commit/0fa3c8b96be6549c4a9921b320d15888624d5d48))
+* tag name to capture vitals ([e569be5](https://github.com/dragonrealms-phoenix/phoenix/commit/e569be58d6bdb7ad6791e859e040e342724a99bb))
+
+
+### Features
+
+* electron next dev serve ([41d151d](https://github.com/dragonrealms-phoenix/phoenix/commit/41d151d447659fc0952bf99e3752f6fc22f71cd8))
+* import from lodash-es ([4075c47](https://github.com/dragonrealms-phoenix/phoenix/commit/4075c4777db311842ba94cbe949a618cdb58942a))
+* logger module ([a1033d3](https://github.com/dragonrealms-phoenix/phoenix/commit/a1033d3872b1ba8c377eebf65caf9fea04132c78))
+* replace electron-serve ([0a8ccbf](https://github.com/dragonrealms-phoenix/phoenix/commit/0a8ccbfe62c9994f9bb5926b68e0c993e178fbf1))
+* set connect timeout ([41b21f6](https://github.com/dragonrealms-phoenix/phoenix/commit/41b21f6681bbf08d3427ea4ed0c85dd6921e0915))
+* support synchronous operations on memory cache ([8a341b9](https://github.com/dragonrealms-phoenix/phoenix/commit/8a341b9cbc88471261fb26203fd36f003301b4f5))
+* use host and port from sge credentials ([0d8995d](https://github.com/dragonrealms-phoenix/phoenix/commit/0d8995dc10abe1294ad12ee708176aa41d0d0fa4))
+
 # [1.7.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.6.0...v1.7.0) (2024-02-25)
 
 
