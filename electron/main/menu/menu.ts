@@ -1,6 +1,6 @@
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell } from 'electron';
-import { runInBackground } from '../../common/async/run-in-background.js';
+import { runInBackground } from '..//async/run-in-background.js';
 import {
   ELANTHIPEDIA_URL,
   PHOENIX_DOCS_URL,

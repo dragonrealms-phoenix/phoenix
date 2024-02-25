@@ -10,7 +10,7 @@
 import { app } from 'electron';
 import * as http from 'node:http';
 import type { NextServer, NextServerOptions } from 'next/dist/server/next.js';
-import { runInBackground } from '../../common/async/run-in-background.js';
+import { runInBackground } from '../async/run-in-background.js';
 import { logger } from './logger.js';
 
 export const devServe = async (options: {

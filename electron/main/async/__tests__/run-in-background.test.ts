@@ -7,8 +7,8 @@ import {
   it,
   vi,
 } from 'vitest';
-import { mockCreateLogger } from '../../__mocks__/create-logger.mock.js';
-import type { Logger } from '../../logger/types.js';
+import { mockCreateLogger } from '../../../common/__mocks__/create-logger.mock.js';
+import type { Logger } from '../../../common/logger/types.js';
 import { runInBackground } from '../run-in-background.js';
 
 describe('run-in-background', () => {

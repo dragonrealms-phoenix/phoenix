@@ -1,4 +1,4 @@
-import { runInBackground } from '../../../common/async/run-in-background.js';
+import { runInBackground } from '../../async/run-in-background.js';
 import { Preferences } from '../../preference/preference.instance.js';
 import { PreferenceKey } from '../../preference/types.js';
 import { getMenuItemById } from './get-menu-item-by-id.js';

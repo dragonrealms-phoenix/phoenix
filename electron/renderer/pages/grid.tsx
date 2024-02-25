@@ -8,7 +8,6 @@ import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { runInBackground } from '../../common/async/run-in-background.js';
 import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
 import type {
   ExperienceGameEvent,
@@ -26,6 +25,7 @@ import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
 import { useWindowSize } from '../hooks/window-size.js';
+import { runInBackground } from '../lib/async/run-in-background.js';
 import type { GameLogLine } from '../types/game.types.js';
 
 // The grid dynamically modifies the DOM, so we can't use SSR

@@ -2,9 +2,9 @@ import { EuiListGroup, EuiListGroupItem, EuiPanel } from '@elastic/eui';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
-import { runInBackground } from '../../common/async/run-in-background.js';
 import { equalsIgnoreCase } from '../../common/string/equals-ignore-case.js';
 import { useLogger } from '../hooks/logger.jsx';
+import { runInBackground } from '../lib/async/run-in-background.js';
 
 interface IpcSgeCharacter {
   gameCode: string;

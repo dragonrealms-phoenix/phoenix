@@ -9,9 +9,9 @@ import {
   it,
   vi,
 } from 'vitest';
-import { runInBackground } from '../../../common/async/run-in-background.js';
 import type { NetSocketMock } from '../../__mocks__/net-socket.mock.js';
 import { mockNetConnect } from '../../__mocks__/net-socket.mock.js';
+import { runInBackground } from '../../async/run-in-background.js';
 import type { SGEGameCredentials } from '../../sge/types.js';
 import { GameSocketImpl } from '../game.socket.js';
 

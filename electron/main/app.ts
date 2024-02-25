@@ -3,7 +3,7 @@ import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import prodServe from 'electron-serve';
 import trimEnd from 'lodash-es/trimEnd.js';
-import { runInBackground } from '../common/async/run-in-background.js';
+import { runInBackground } from './async/run-in-background.js';
 import type { IpcController } from './ipc/ipc.controller.js';
 import { newIpcController } from './ipc/ipc.controller.js';
 import type { IpcDispatcher } from './ipc/types.js';

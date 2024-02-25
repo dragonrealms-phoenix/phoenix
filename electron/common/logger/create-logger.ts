@@ -5,7 +5,6 @@ import type {
   LogFunctions as ElectronLogFunctions,
   Logger as ElectronLogger,
 } from 'electron-log';
-import electronMainLogger from 'electron-log';
 import { includesIgnoreCase } from '../string/includes-ignore-case.js';
 import type { LogFunction, Logger } from './types.js';
 import { LogLevel } from './types.js';
@@ -27,7 +26,7 @@ const addTraceLevel = (logger: ElectronLogger): void => {
   }
 };
 
-export const createLogger = (options?: {
+export const createLogger = (options: {
   /**
    * Label printed with each log message to identify the source.
    * If provided, the scope must be unique throughout the application
@@ -41,10 +40,10 @@ export const createLogger = (options?: {
    * The main package code SHOULD provide the main logger instance.
    * The renderer package code MUST provide the renderer logger instance.
    */
-  logger?: ElectronLogger;
+  logger: ElectronLogger;
 }): Logger => {
   const scope = options?.scope ?? '';
-  const electronLogger = options?.logger ?? electronMainLogger;
+  const electronLogger = options.logger;
 
   addTraceLevel(electronLogger);
 
