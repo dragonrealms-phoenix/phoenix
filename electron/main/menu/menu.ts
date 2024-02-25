@@ -1,3 +1,6 @@
+// Inspired by RedisInsight
+// https://github.com/RedisInsight/RedisInsight/blob/2.34.0/redisinsight/desktop/src/lib/menu/menu.ts
+
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell } from 'electron';
 import { runInBackground } from '..//async/run-in-background.js';
@@ -22,11 +25,6 @@ import {
   loadZoomFactorPreference,
   resetZoomFactor,
 } from './utils/zoom-factor.js';
-
-/**
- * Inspired by RedisInsight
- * https://github.com/RedisInsight/RedisInsight/blob/2.34.0/redisinsight/desktop/src/lib/menu/menu.ts
- */
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;

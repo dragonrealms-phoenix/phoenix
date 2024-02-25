@@ -1,3 +1,6 @@
+// Inspired by Lich's XMLParser.
+// https://github.com/elanthia-online/lich-5/blob/master/lib/xmlparser.rb
+
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import type {
@@ -121,10 +124,6 @@ interface Tag {
   attributes: Record<string, string>;
 }
 
-/**
- * Inspired by Lich's XMLParser.
- * https://github.com/elanthia-online/lich-5/blob/master/lib/xmlparser.rb
- */
 export class GameParserImpl implements GameParser {
   /**
    * For emitting game events as we parse them from the game socket data.
