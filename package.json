@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/dragonrealms-phoenix/phoenix#readme",
   "license": "BSD-3-Clause",
-  "exports": "./electron/build/main/index.js",
+  "main": "./electron/build/main/index.js",
   "packageManager": "yarn@4.1.0",
   "scripts": {
     "clean:tsbuildinfo": "find electron -name '*.tsbuildinfo' -delete",
@@ -48,7 +48,7 @@
     "lint:fix": "yarn lint --fix",
     "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
-    "start": "yarn build && yarn sentry:sourcemaps && electron ./electron/build/main/index.js",
+    "start": "yarn build && yarn sentry:sourcemaps && APP_ENV=production electron ./electron/build/main/index.js",
     "start:dev": "yarn build:dev && APP_ENV=development electron ./electron/build/main/index.js",
     "build:common": "yarn clean && tsc -p electron/common",
     "build:main": "yarn clean && tsc -p electron/main",
