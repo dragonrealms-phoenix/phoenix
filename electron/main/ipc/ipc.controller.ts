@@ -5,8 +5,8 @@ import { Game } from '../game';
 import { createLogger } from '../logger';
 import type { SGEGameCode } from '../sge';
 import { SGEServiceImpl } from '../sge';
-import type { Dispatcher } from '../types';
 import type {
+  IpcDispatcher,
   IpcHandlerRegistry,
   IpcInvokableEvent,
   IpcInvokeHandler,
@@ -16,12 +16,12 @@ import type {
 const logger = createLogger('ipc:controller');
 
 export class IpcController {
-  private dispatch: Dispatcher;
+  private dispatch: IpcDispatcher;
   private accountService: AccountService;
   private ipcHandlerRegistry: IpcHandlerRegistry;
 
   constructor(options: {
-    dispatch: Dispatcher;
+    dispatch: IpcDispatcher;
     accountService: AccountService;
   }) {
     this.dispatch = options.dispatch;
@@ -79,6 +79,7 @@ export class IpcController {
   }
 
   private pingHandler: IpcInvokeHandler<'ping'> = async (): Promise<string> => {
+    this.dispatch('pong', 'pong');
     return 'pong';
   };
 
@@ -176,11 +177,7 @@ export class IpcController {
     });
 
     const credentials = await sgeService.loginCharacter(characterName);
-
-    const gameInstance = await Game.newInstance({
-      credentials,
-    });
-
+    const gameInstance = await Game.newInstance({ credentials });
     const gameEvents$ = await gameInstance.connect();
 
     this.dispatch('game:connect', {
@@ -192,12 +189,12 @@ export class IpcController {
     logger.debug('subscribing to game service stream');
     gameEvents$.subscribe({
       next: (gameEvent) => {
-        logger.debug('game service stream event', { gameEvent });
-        this.dispatch('game:event', gameEvent);
+        logger.trace('game service stream event', { gameEvent });
+        this.dispatch('game:event', { gameEvent });
       },
       error: (error) => {
         logger.error('game service stream error', { error });
-        this.dispatch('game:error', error);
+        this.dispatch('game:error', { error });
       },
       complete: () => {
         logger.debug('game service stream completed');
@@ -220,6 +217,7 @@ export class IpcController {
     const gameInstance = Game.getInstance();
 
     if (gameInstance) {
+      this.dispatch('game:command', { command });
       gameInstance.send(command);
     } else {
       throw new Error('[IPC:SEND_COMMAND:ERROR:GAME_INSTANCE_NOT_FOUND]');

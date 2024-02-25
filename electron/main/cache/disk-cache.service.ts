@@ -54,17 +54,22 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
 
   private createDebouncedWriteToDisk(): DebouncedFunc<() => Promise<void>> {
     return debounce(async () => {
-      const { filepath } = this.options;
-      try {
-        const cache = await this.delegate.readCache();
-        await fs.writeJson(filepath, cache);
-      } catch (error) {
-        logger.error('error writing cache to disk', {
-          filepath,
-          error,
-        });
-      }
+      await this.writeToDiskNow();
     }, 1000);
+  }
+
+  private async writeToDiskNow(): Promise<void> {
+    const { filepath } = this.options;
+    try {
+      const cache = await this.delegate.readCache();
+      await fs.writeJson(filepath, cache);
+      logger.debug('wrote cache to disk');
+    } catch (error) {
+      logger.error('error writing cache to disk', {
+        filepath,
+        error,
+      });
+    }
   }
 
   public async set<T>(key: string, item: T): Promise<void> {

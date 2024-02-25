@@ -6,9 +6,7 @@ import {
   EuiSpacer,
   EuiSplitPanel,
   EuiText,
-  useEuiOverflowScroll,
 } from '@elastic/eui';
-import { css } from '@emotion/react';
 import type {
   CSSProperties,
   MouseEvent,
@@ -126,11 +124,6 @@ export const GridItem: React.FC<GridItemProps> = forwardRef<
     ...otherProps
   } = props;
 
-  const gridItemContentStyles = css`
-    white-space: pre-wrap;
-    ${useEuiOverflowScroll('y', false)}
-  `;
-
   // Handle when the user clicks the close button in the title bar.
   const onCloseClick = useCallback(
     (evt: MouseEvent<HTMLElement>) => {
@@ -174,7 +167,7 @@ export const GridItem: React.FC<GridItemProps> = forwardRef<
               justifyContent="flexEnd"
             >
               <EuiButtonIcon
-                aria-label="Close"
+                title="Close"
                 iconType="cross"
                 color="accent"
                 size="xs"
@@ -188,7 +181,8 @@ export const GridItem: React.FC<GridItemProps> = forwardRef<
       <EuiSplitPanel.Inner
         grow={true}
         paddingSize="none"
-        css={gridItemContentStyles}
+        className="eui-yScroll"
+        css={{ whiteSpace: 'pre-wrap' }}
       >
         {gridItemChildren}
       </EuiSplitPanel.Inner>

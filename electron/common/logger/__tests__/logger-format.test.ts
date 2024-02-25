@@ -96,14 +96,14 @@ describe('logger-format', () => {
     it('should mask sensitive values', () => {
       const data = {
         password: 'secret',
-        key: 'secret',
+        apiKey: 'secret',
       };
 
       const result = formatLogData(data);
 
       expect(result).toEqual({
         password: '***REDACTED***',
-        key: '***REDACTED***',
+        apiKey: '***REDACTED***',
       });
     });
   });

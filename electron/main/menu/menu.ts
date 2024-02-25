@@ -12,6 +12,7 @@ import {
   PLAY_NET_URL,
 } from '../../common/data/urls';
 import { PreferenceKey, Preferences } from '../preference';
+import { getMenuItemById } from './menu.utils';
 
 /**
  * Inspired by RedisInsight
@@ -23,21 +24,18 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   submenu?: Array<DarwinMenuItemConstructorOptions> | Menu;
 }
 
-export function initializeMenu(window: BrowserWindow): void {
-  const template = getMenuTemplate(window);
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-}
+// -- Zoom Factor -- //
 
-function getMenuTemplate(
-  window: BrowserWindow
-): Array<Electron.MenuItemConstructorOptions> {
-  return process.platform === 'darwin'
-    ? buildDarwinTemplate(window)
-    : buildDefaultTemplate(window);
-}
+const loadZoomFactorPreference = (window: BrowserWindow): void => {
+  runInBackground(async () => {
+    const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
+    if (zoomFactor !== undefined) {
+      setZoomFactor(window, zoomFactor);
+    }
+  });
+};
 
-const saveZoomFactorPreference = (zoomFactor: number) => {
+const saveZoomFactorPreference = (zoomFactor: number): void => {
   runInBackground(async () => {
     await Preferences.set(PreferenceKey.WINDOW_ZOOM_FACTOR, zoomFactor);
   });
@@ -47,66 +45,154 @@ const saveZoomFactorPreference = (zoomFactor: number) => {
  * Gets the current zoom factor of the window.
  * Returns a value between 0 < zoomFactor <= 1
  */
-function getZoomFactor(window: BrowserWindow): number {
+const getZoomFactor = (window: BrowserWindow): number => {
   return window.webContents.getZoomFactor();
-}
+};
 
 /**
  * Set the zoom factor of the window.
  * Provide a value between 0 < zoomFactor <= 1
  */
-function setZoomFactor(window: BrowserWindow, zoomFactor: number): void {
+const setZoomFactor = (window: BrowserWindow, zoomFactor: number): void => {
   window.webContents.setZoomFactor(zoomFactor);
   saveZoomFactorPreference(zoomFactor);
-}
+};
 
-function resetZoomFactor(window: BrowserWindow): void {
+const resetZoomFactor = (window: BrowserWindow): void => {
   const zoomFactor = 1;
   setZoomFactor(window, zoomFactor);
-}
+};
 
-function increaseZoomFactor(window: BrowserWindow): void {
+const increaseZoomFactor = (window: BrowserWindow): void => {
   const zoomFactor = getZoomFactor(window) + 0.2;
   setZoomFactor(window, zoomFactor);
-}
+};
 
-function decreaseZoomFactor(window: BrowserWindow): void {
+const decreaseZoomFactor = (window: BrowserWindow): void => {
   // Set lower bound to avoid error when zoom factor is too small.
   const zoomFactor = Math.max(0.2, getZoomFactor(window) - 0.2);
   setZoomFactor(window, zoomFactor);
-}
+};
 
-function buildDarwinTemplate(
+// -- Confirm Before Close -- //
+
+let confirmBeforeClose = true;
+
+const loadConfirmBeforeClosePreference = (): void => {
+  runInBackground(async () => {
+    const value = await Preferences.get(PreferenceKey.WINDOW_CONFIRM_ON_CLOSE);
+    if (value !== undefined) {
+      setConfirmBeforeClose(value);
+    }
+  });
+};
+
+const saveConfirmBeforeClosePreference = (value: boolean): void => {
+  runInBackground(async () => {
+    await Preferences.set(PreferenceKey.WINDOW_CONFIRM_ON_CLOSE, value);
+  });
+};
+
+const getConfirmBeforeClose = (): boolean => {
+  return confirmBeforeClose;
+};
+
+const setConfirmBeforeClose = (value: boolean): void => {
+  confirmBeforeClose = value;
+  saveConfirmBeforeClosePreference(confirmBeforeClose);
+
+  // Update the menu item checkbox so that visually it matches the preference.
+  const menuItem = getMenuItemById('confirm-before-close');
+  if (menuItem) {
+    menuItem.checked = confirmBeforeClose;
+  }
+};
+
+const toggleConfirmBeforeClose = (): void => {
+  setConfirmBeforeClose(!confirmBeforeClose);
+};
+
+// -- Menu -- //
+
+export const initializeMenu = (window: BrowserWindow): void => {
+  const template = getMenuTemplate(window);
+  const menu = Menu.buildFromTemplate(template);
+
+  Menu.setApplicationMenu(menu);
+
+  loadZoomFactorPreference(window);
+  loadConfirmBeforeClosePreference();
+};
+
+// -- Menu Builders -- //
+
+const getMenuTemplate = (
   window: BrowserWindow
-): Array<MenuItemConstructorOptions> {
+): Array<Electron.MenuItemConstructorOptions> => {
+  return process.platform === 'darwin'
+    ? buildDarwinTemplate(window)
+    : buildDefaultTemplate(window);
+};
+
+const buildDarwinTemplate = (
+  window: BrowserWindow
+): Array<MenuItemConstructorOptions> => {
   const subMenuApp: DarwinMenuItemConstructorOptions = {
     label: app.name,
+    role: 'appMenu',
     submenu: [
       {
         label: `About ${app.name}`,
+        role: 'about',
         selector: 'orderFrontStandardAboutPanel:',
       },
       { type: 'separator' },
       {
         label: `Hide ${app.name}`,
+        role: 'hide',
         accelerator: 'Command+H',
         selector: 'hide:',
       },
       {
         label: 'Hide Others',
+        role: 'hideOthers',
         accelerator: 'Command+Shift+H',
         selector: 'hideOtherApplications:',
       },
       {
         label: 'Show All',
+        role: 'unhide',
         selector: 'unhideAllApplications:',
       },
       { type: 'separator' },
       {
-        label: 'Quit',
-        accelerator: 'Command+Q',
+        id: 'confirm-before-close', // need id so can reference it later
+        label: 'Warn Before Quitting (⌘Q)', // same lingo as Chrome browser
+        type: 'checkbox',
+        checked: getConfirmBeforeClose(),
         click: () => {
-          app.quit();
+          toggleConfirmBeforeClose();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit Phoenix',
+        role: 'quit',
+        accelerator: 'Command+Q',
+      },
+    ],
+  };
+
+  const subMenuFile: DarwinMenuItemConstructorOptions = {
+    label: 'File',
+    role: 'fileMenu',
+    submenu: [
+      {
+        label: 'Open Logs Folder',
+        click() {
+          runInBackground(async () => {
+            await shell.openPath(app.getPath('logs'));
+          });
         },
       },
     ],
@@ -114,67 +200,68 @@ function buildDarwinTemplate(
 
   const subMenuEdit: DarwinMenuItemConstructorOptions = {
     label: 'Edit',
+    role: 'editMenu',
     submenu: [
       {
         label: 'Undo',
+        role: 'undo',
         accelerator: 'Command+Z',
         selector: 'undo:',
       },
       {
         label: 'Redo',
+        role: 'redo',
         accelerator: 'Shift+Command+Z',
         selector: 'redo:',
       },
       { type: 'separator' },
       {
         label: 'Cut',
+        role: 'cut',
         accelerator: 'Command+X',
         selector: 'cut:',
       },
       {
         label: 'Copy',
+        role: 'copy',
         accelerator: 'Command+C',
         selector: 'copy:',
       },
       {
         label: 'Paste',
+        role: 'paste',
         accelerator: 'Command+V',
         selector: 'paste:',
       },
       {
         label: 'Select All',
+        role: 'selectAll',
         accelerator: 'Command+A',
         selector: 'selectAll:',
       },
     ],
   };
 
-  const subMenuView: MenuItemConstructorOptions = {
+  const subMenuView: DarwinMenuItemConstructorOptions = {
     label: 'View',
+    role: 'viewMenu',
     submenu: [
       {
         label: 'Reload',
+        role: 'reload',
         accelerator: 'Command+R',
-        click: () => {
-          window.webContents.reload();
-        },
       },
       { type: 'separator' },
       {
         label: 'Toggle Full Screen',
+        role: 'togglefullscreen',
         accelerator: 'Ctrl+Command+F',
-        click: () => {
-          const isFullScreen = window.isFullScreen();
-          window.setFullScreen(!isFullScreen);
-        },
       },
       {
         label: 'Toggle Developer Tools',
+        role: 'toggleDevTools',
         accelerator: 'Alt+Command+I',
         visible: !app.isPackaged,
-        click: () => {
-          window.webContents.toggleDevTools();
-        },
       },
       { type: 'separator' },
       {
@@ -203,18 +290,18 @@ function buildDarwinTemplate(
 
   const subMenuWindow: DarwinMenuItemConstructorOptions = {
     label: 'Window',
+    role: 'windowMenu',
     submenu: [
       {
         label: 'Minimize',
+        role: 'minimize',
         accelerator: 'Command+M',
         selector: 'performMiniaturize:',
       },
       {
         label: 'Close',
+        role: 'close',
         accelerator: 'Command+W',
-        click: () => {
-          window.close();
-        },
       },
       {
         type: 'separator',
@@ -222,103 +309,52 @@ function buildDarwinTemplate(
     ],
   };
 
-  const subMenuHelp: MenuItemConstructorOptions = {
+  const subMenuHelp: DarwinMenuItemConstructorOptions = {
     label: 'Help',
-    submenu: [
-      {
-        label: 'Documentation',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_DOCS_URL);
-          });
-        },
-      },
-      {
-        label: 'Release Notes',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_RELEASES_URL);
-          });
-        },
-      },
-      {
-        label: 'Submit Feedback',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_ISSUES_URL);
-          });
-        },
-      },
-      {
-        type: 'separator',
-      },
-      {
-        label: 'View License',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_LICENSE_URL);
-          });
-        },
-      },
-      {
-        label: 'Privacy Policy',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_PRIVACY_URL);
-          });
-        },
-      },
-      {
-        label: 'Security Policy',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_SECURITY_URL);
-          });
-        },
-      },
-      {
-        type: 'separator',
-      },
-      {
-        label: 'Play.net',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PLAY_NET_URL);
-          });
-        },
-      },
-      {
-        label: 'Elanthipedia',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(ELANTHIPEDIA_URL);
-          });
-        },
-      },
-    ],
+    role: 'help',
+    submenu: buildCommonHelpMenuItems(),
   };
 
-  return [subMenuApp, subMenuEdit, subMenuWindow, subMenuView, subMenuHelp];
-}
+  return [
+    subMenuApp,
+    subMenuFile,
+    subMenuEdit,
+    subMenuWindow,
+    subMenuView,
+    subMenuHelp,
+  ];
+};
 
-function buildDefaultTemplate(
+const buildDefaultTemplate = (
   window: BrowserWindow
-): Array<MenuItemConstructorOptions> {
+): Array<MenuItemConstructorOptions> => {
   const subMenuWindow: MenuItemConstructorOptions = {
     label: '&Window',
     submenu: [
       {
         label: '&Close',
+        role: 'close',
         accelerator: 'Ctrl+W',
-        click: () => {
-          window.close();
-        },
       },
       // type separator cannot be invisible
       {
         label: '',
         type: process.platform === 'linux' ? 'normal' : 'separator',
         visible: false,
+      },
+    ],
+  };
+
+  const subMenuFile: MenuItemConstructorOptions = {
+    label: 'File',
+    submenu: [
+      {
+        label: 'Open Logs Folder',
+        click() {
+          runInBackground(async () => {
+            await shell.openPath(app.getPath('logs'));
+          });
+        },
       },
     ],
   };
@@ -330,10 +366,8 @@ function buildDefaultTemplate(
         submenu: [
           {
             label: '&Reload',
+            role: 'reload',
             accelerator: 'Ctrl+R',
-            click: () => {
-              window.webContents.reload();
-            },
           },
           { type: 'separator' },
           {
@@ -373,85 +407,89 @@ function buildDefaultTemplate(
   const subMenuHelp: MenuItemConstructorOptions = {
     label: 'Help',
     submenu: [
-      {
-        label: 'Documentation',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_DOCS_URL);
-          });
-        },
-      },
-      {
-        label: 'Release Notes',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_RELEASES_URL);
-          });
-        },
-      },
-      {
-        label: 'Submit Feedback',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_ISSUES_URL);
-          });
-        },
-      },
-      {
-        type: 'separator',
-      },
-      {
-        label: 'View License',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_LICENSE_URL);
-          });
-        },
-      },
-      {
-        label: 'Privacy Policy',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_PRIVACY_URL);
-          });
-        },
-      },
-      {
-        label: 'Security Policy',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PHOENIX_SECURITY_URL);
-          });
-        },
-      },
-      {
-        type: 'separator',
-      },
-      {
-        label: 'Play.net',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(PLAY_NET_URL);
-          });
-        },
-      },
-      {
-        label: 'Elanthipedia',
-        click() {
-          runInBackground(async () => {
-            await shell.openExternal(ELANTHIPEDIA_URL);
-          });
-        },
-      },
+      ...buildCommonHelpMenuItems(),
       { type: 'separator' },
       {
         label: `About ${app.name}`,
-        click: () => {
-          app.showAboutPanel();
-        },
+        role: 'about',
       },
     ],
   };
 
-  return [subMenuWindow, subMenuView, subMenuHelp];
-}
+  return [subMenuFile, subMenuView, subMenuWindow, subMenuHelp];
+};
+
+const buildCommonHelpMenuItems = (): Array<MenuItemConstructorOptions> => {
+  return [
+    {
+      label: 'Documentation',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PHOENIX_DOCS_URL);
+        });
+      },
+    },
+    {
+      label: 'Release Notes',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PHOENIX_RELEASES_URL);
+        });
+      },
+    },
+    {
+      label: 'Submit Feedback',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PHOENIX_ISSUES_URL);
+        });
+      },
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: 'View License',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PHOENIX_LICENSE_URL);
+        });
+      },
+    },
+    {
+      label: 'Privacy Policy',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PHOENIX_PRIVACY_URL);
+        });
+      },
+    },
+    {
+      label: 'Security Policy',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PHOENIX_SECURITY_URL);
+        });
+      },
+    },
+    {
+      type: 'separator',
+    },
+    {
+      label: 'Play.net',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(PLAY_NET_URL);
+        });
+      },
+    },
+    {
+      label: 'Elanthipedia',
+      click() {
+        runInBackground(async () => {
+          await shell.openExternal(ELANTHIPEDIA_URL);
+        });
+      },
+    },
+  ];
+};

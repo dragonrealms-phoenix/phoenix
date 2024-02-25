@@ -1,4 +1,9 @@
-import { EuiIcon, EuiKeyPadMenu, EuiKeyPadMenuItem } from '@elastic/eui';
+import {
+  EuiIcon,
+  EuiKeyPadMenu,
+  EuiKeyPadMenuItem,
+  useEuiBackgroundColor,
+} from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import {
@@ -43,7 +48,15 @@ const HelpItem: React.FC<HelpItemProps> = (props: HelpItemProps): ReactNode => {
   const { label, iconType, onClick } = props;
 
   return (
-    <EuiKeyPadMenuItem label={label} onClick={onClick}>
+    <EuiKeyPadMenuItem
+      label={label}
+      onClick={onClick}
+      css={{
+        ':hover': {
+          backgroundColor: useEuiBackgroundColor('primary'),
+        },
+      }}
+    >
       <EuiIcon type={iconType} size="l" color="primary" />
     </EuiKeyPadMenuItem>
   );

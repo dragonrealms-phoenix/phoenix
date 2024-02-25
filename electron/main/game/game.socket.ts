@@ -221,11 +221,11 @@ export class GameSocketImpl implements GameSocket {
 
     let buffer: string = '';
     socket.on('data', (data: Buffer): void => {
-      logger.debug('socket received fragment');
+      logger.trace('socket received fragment');
       buffer += data.toString('utf8');
       if (buffer.endsWith('\n')) {
         const message = buffer;
-        logger.debug('socket received message', { message });
+        logger.trace('socket received message', { message });
         if (!this.isConnected && message.startsWith('<mode id="GAME"/>')) {
           onGameConnect();
         }
@@ -243,7 +243,7 @@ export class GameSocketImpl implements GameSocket {
       // of the code I reviewed. I assume the last flag is to request XML formatted feed.
       const frontendHeader = `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML`;
 
-      socket.write(`${this.credentials.key}\n`);
+      socket.write(`${this.credentials.accessToken}\n`);
       socket.write(`${frontendHeader}\n`);
 
       // Once authenticated, send newlines to get to the game prompt.

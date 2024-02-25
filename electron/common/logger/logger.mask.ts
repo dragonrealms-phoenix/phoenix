@@ -21,7 +21,11 @@ export function maskSensitiveValues(options: {
    */
   mask?: string;
 }): any {
-  const { json, keys = ['password', 'key'], mask = '***REDACTED***' } = options;
+  const {
+    json,
+    keys = ['password', 'accessToken', 'apiKey'],
+    mask = '***REDACTED***',
+  } = options;
 
   if (isNotMaskable(json)) {
     return json;

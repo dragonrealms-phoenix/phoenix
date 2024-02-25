@@ -10,25 +10,58 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { Layout } from 'react-grid-layout';
+// To me, the "layout" is the collection of grid items and their positions.
+// To the react-grid-layout component, a "layout" is a single item's positions.
+// To help with terminology, aliasing the type here, redefining it below.
+import type { Layout as GridLayoutItem } from 'react-grid-layout';
 import GridLayout from 'react-grid-layout';
+import { useLogger } from '../../hooks/logger';
 import { LocalStorage } from '../../lib/local-storage';
+import type { GridItemProps } from './grid-item';
 import { GridItem } from './grid-item';
 
+// See comment above about terminology.
+type Layout = Array<GridLayoutItem>;
+
 export interface GridProps {
+  /**
+   * The dimension for the grid.
+   */
   dimensions: {
+    /**
+     * The max height of the grid in pixels.
+     */
     height: number;
+    /**
+     * The max width of the grid in pixels.
+     */
     width: number;
   };
+  /**
+   * The items to display in the grid.
+   */
   items: Array<{
-    itemId: string;
-    title: string;
-    content: ReactNode;
+    /**
+     * The unique identifier for the grid item.
+     */
+    itemId: GridItemProps['itemId'];
+    /**
+     * Text to display in the title bar of the grid item.
+     */
+    title: GridItemProps['titleBarText'];
+    /**
+     * Content to show inside the grid item.
+     */
+    content: GridItemProps['children'];
   }>;
 }
 
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { dimensions, items } = props;
+
+  const { logger } = useLogger('grid');
+
+  const { height, width } = dimensions;
 
   const { euiTheme } = useEuiTheme();
 
@@ -37,8 +70,8 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   useEffect(() => {
     setGridLayoutStyles(css`
       ${css({
-        height: dimensions.height,
-        width: dimensions.width,
+        height,
+        width,
       })}
       .react-grid-item.react-grid-placeholder {
         ${css({
@@ -56,21 +89,22 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         })}
       }
     `);
-  }, [dimensions, euiTheme]);
+  }, [height, width, euiTheme]);
 
   /**
    * When grid items are resized the increment is based on the the layout size.
    * Horizontal resize increments are based on the number of columns.
-   * Vertical resize increments are based on row height.
+   * Vertical resize increments are based on row height pixels.
    * Why two different units? I don't know.
    */
 
   /* Horizontal Resizing */
 
-  // The grid layout is divided into columns.
+  // The grid layout is vertically divided into columns.
   // The resize increment is the layout's width divided by the number of columns.
   // Use larger values to give users fine-grained control.
   // Use smaller values for coarse-grained control.
+  // Note, this value is number of columns, not pixels.
   const gridMaxColumns = 50;
 
   /* Vertical Resizing */
@@ -79,34 +113,42 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   // is a number of pixels margin between each row, too. Therefore, the
   // total height of a grid item is the height plus the margin.
   // Playing around with different row heights, I deduced that the margin
-  // size in pixels when the layout's margin is [1, 1] is ~1.03 pixels.
-  const gridRowHeight = 10;
-  const gridRowMargin = 1.03;
-  const gridRowHeightWithMargin = gridRowHeight + gridRowMargin;
+  // size in pixels is ~1.03 pixels when the layout's margin is [1, 1].
+  // Note, these values are in pixels.
+  const gridRowHeightPx = 10;
+  const gridRowMarginPx = 1.03;
+  const gridRowHeightWithMarginPx = gridRowHeightPx + gridRowMarginPx;
 
   /* Window Resizing */
 
   // As the window dimensions change, we need to update the layout, too,
   // so that the layout always fits the window exactly.
   // This allows the user to drag grid items anywhere within the window.
-  const [gridMaxRows, setGridMaxRows] = useState<number>();
-  const [gridMaxWidth, setGridMaxWidth] = useState<number>(1200); // app.ts
+  const [gridMaxRows, setGridMaxRows] = useState<number>(1);
+  const [gridMaxWidthPx, setGridMaxWidth] = useState<number>(width);
 
   useEffect(() => {
-    const { height, width } = dimensions;
-    if (height) {
-      setGridMaxRows(Math.floor(height / gridRowHeightWithMargin));
+    // Note, when first rendering the UI, the received dimensions may be <= 0.
+    // Once things start to flesh out in the UI then true dimensions come in.
+    // So only adjust the grid rows/cols if we received true dimensions.
+    if (height <= 0 || width <= 0) {
+      logger.debug('received invalid dimensions, not resizing grid', {
+        height,
+        width,
+      });
+      return;
     }
-    if (width) {
+
+    const newMaxRows = Math.floor(height / gridRowHeightWithMarginPx);
+    setGridMaxRows(newMaxRows);
       setGridMaxWidth(width);
-    }
-  }, [dimensions, gridRowHeightWithMargin]);
+  }, [logger, height, width, gridRowHeightWithMarginPx]);
 
   /**
    * Load the layout from storage or build a default layout.
    */
-  const buildDefaultLayout = useCallback((): Array<Layout> => {
-    let layout = LocalStorage.get<Array<Layout>>('layout');
+  const buildDefaultLayout = useCallback((): Layout => {
+    let layout = LocalStorage.get<Layout>('layout');
 
     if (layout) {
       // Discard any old layout items that are not in the grid's items list.
@@ -119,33 +161,49 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     // We'll tile the items three per row.
     const maxItemsPerRow = 3;
 
-    // The min width and height are used to prevent the grid item from being
-    //resized so small that it's unusable and hides its title bar.
-    const minWidth = 5;
-    const minHeight = 2;
+    // The min dimensions are used to prevent the grid item from being
+    // resized so small that it's unusable and hides its title bar.
+    // Note, these values are in row/col-spans, not pixels.
+    const minCols = 5;
+    const minRows = 3;
 
-    // The number of columns and rows the item will span.
-    const defaultWidth = Math.floor(gridMaxColumns / maxItemsPerRow);
-    const defaultHeight = gridRowHeight;
+    // The default dimensions each item will span by default.
+    // Note, these values are in row/col-spans, not pixels.
+    const defaultCols = Math.floor(gridMaxColumns / maxItemsPerRow);
+    const defaultRows = 10;
 
+    // The row offset is the number of pixels (y-index, height)
+    // to offset the item from the top of the grid. We increase this
+    // each time we begin a new row.
+    // I don't know why react-grid-layout uses pixels for the y-index
+    // and column spans for the x-index. It's weird.
     let rowOffset = 0;
+
+    // The column offset is a simple counter (i.e. 1..2..3..)
+    // that when multiplied by the default column width of an item gives us
+    // which column to the right the next item should be placed.
+    // Again, I don't know why react-grid-layout uses pixels for the y-index
+    // and column spans for the x-index. It's weird.
     let colOffset = 0;
 
-    layout = items.map((item, index): Layout => {
+    layout = items.map((item, index): GridLayoutItem => {
       // If time to move to next row then adjust the offsets.
       if (index > 0 && index % maxItemsPerRow === 0) {
-        rowOffset += gridRowHeight;
+        // Only increase the offset by an item's row height (without margin)
+        // The grid will automatically apply the margin when rendering.
+        rowOffset += gridRowHeightPx;
+        // Reset the column offset to the first column.
         colOffset = 0;
       }
 
-      const newItem = {
-        i: item.itemId,
-        x: defaultWidth * colOffset,
-        y: rowOffset,
-        w: defaultWidth,
-        h: defaultHeight,
-        minW: minWidth,
-        minH: minHeight,
+      const newItem: GridLayoutItem = {
+        i: item.itemId, // unique identifier for the grid item
+        x: defaultCols * colOffset, // which column to start at, not pixels
+        y: rowOffset, // pixels (row # x row height px without margin)
+        w: defaultCols, // column spans
+        h: defaultRows, // row spans
+        minW: minCols, // column spans
+        minH: minRows, // row spans
       };
 
       colOffset += 1;
@@ -156,10 +214,10 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     return layout;
   }, [items]);
 
-  const [layout, setLayout] = useState<Array<Layout>>(buildDefaultLayout);
+  const [layout, setLayout] = useState<Layout>(buildDefaultLayout);
 
   // Save the layout when it changes in the grid.
-  const onLayoutChange = useCallback((newLayout: Array<Layout>) => {
+  const onLayoutChange = useCallback((newLayout: Layout) => {
     setLayout(newLayout);
     LocalStorage.set('layout', newLayout);
   }, []);
@@ -236,15 +294,17 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       css={gridLayoutStyles}
       layout={layout}
       cols={gridMaxColumns}
-      width={gridMaxWidth}
-      rowHeight={gridRowHeight}
+      width={gridMaxWidthPx}
+      rowHeight={gridRowHeightPx}
       maxRows={gridMaxRows}
-      // Enable the grid to grow and shrink to stay within
-      // the max columns and rows. Note, the items within the
-      // grid might not shrink to fit the grid, but the canvas will.
-      // The grid then becomes scrollable and ensures elements outside the
-      // grid position on page correctly rather than floating over the grid.
-      autoSize={true}
+      // Disable the grid from managing its own height.
+      // This component does a great job scaling width, but not height.
+      // We manage height explicitly to scale items to fit the window.
+      // The default behavior (true) shrinks the grid's height potential
+      // based on the afforded height of its parent container but doesn't
+      // actually scale the height of the grid items themselves.
+      // This causes the grid items to overflow their containers, ugh.
+      autoSize={false}
       // Provide nominal spacing between grid items.
       // If this value changes then review the grid row height variables.
       margin={[1, 1]}
@@ -254,6 +314,8 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       compactType={null}
       // Prevent items from overlapping or being pushed.
       preventCollision={true}
+      // Prevent items from being dragged over each other.
+      allowOverlap={false}
       // Prevent items from being dragged outside the grid.
       isBounded={true}
       // Allow items to be dragged around the grid.

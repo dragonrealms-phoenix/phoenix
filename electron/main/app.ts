@@ -1,23 +1,27 @@
 import type { Event } from 'electron';
-import { BrowserWindow, app, shell } from 'electron';
+import { BrowserWindow, app, dialog, shell } from 'electron';
 import * as path from 'node:path';
 import serve from 'electron-serve';
 import { runInBackground } from '../common/async';
-import type { IpcController } from './ipc';
+import type { IpcController, IpcDispatcher } from './ipc';
 import { newIpcController } from './ipc';
 import { createLogger } from './logger';
 import { initializeMenu } from './menu';
 import { PreferenceKey, Preferences } from './preference';
-import type { Dispatcher } from './types';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
 const logger = createLogger('app');
+logger.info('welcome, brave adventurer!');
+logger.info('one moment while we prepare for your journey...');
 
 const appEnv = process.env.APP_ENV ?? 'production';
 const appEnvIsProd = appEnv === 'production';
 const appEnvIsDev = appEnv === 'development';
+
+// Only load dev tools when running in development.
+const appEnableDevTools = appEnvIsDev && !app.isPackaged;
 
 const appPath = app.getAppPath();
 const appElectronPath = path.join(appPath, 'electron');
@@ -51,6 +55,8 @@ if (appEnvIsProd) {
 let ipcController: IpcController;
 
 const createMainWindow = async (): Promise<void> => {
+  logger.debug('creating main window');
+
   if (appEnvIsDev) {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
@@ -62,10 +68,12 @@ const createMainWindow = async (): Promise<void> => {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    minWidth: 600,
+    minHeight: 500,
     show: false, // hidden until window loads contents to avoid a blank screen
     webPreferences: {
       preload: path.join(appPreloadPath, 'index.js'),
-      devTools: !app.isPackaged,
+      devTools: appEnableDevTools,
       /**
        * Security Best Practices
        * https://www.electronjs.org/docs/latest/tutorial/security
@@ -85,16 +93,13 @@ const createMainWindow = async (): Promise<void> => {
     },
   });
 
-  const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
-  mainWindow.webContents.setZoomFactor(zoomFactor ?? 1);
-
   // Once the window has finished loading, show it.
   mainWindow.webContents.once('did-finish-load', () => {
     logger.debug('showing main window');
     mainWindow.show();
   });
 
-  const dispatch: Dispatcher = (channel, ...args): void => {
+  const dispatch: IpcDispatcher = (channel, ...args): void => {
     // When the window is closed or destroyed, we might still
     // receive async events from the ipc controller. Ignore them.
     // This usually happens when the app is quit while a game is being played.
@@ -113,7 +118,15 @@ const createMainWindow = async (): Promise<void> => {
 
 // Prepare the renderer once the app is ready
 app.on('ready', () => {
+  logger.info('electron is ready');
   runInBackground(async () => {
+    if (appEnableDevTools) {
+      logger.debug('installing chrome extension dev tools');
+      const { installChromeExtensions } = await import(
+        './chrome/install-extension'
+      );
+      await installChromeExtensions();
+    }
     await createMainWindow();
   });
 });
@@ -133,15 +146,19 @@ app.on('web-contents-created', (_, contents) => {
 
   contents.setWindowOpenHandler(({ url }) => {
     const domain = new URL(url).hostname;
+
     // If the domain is allowed, open it in the user's default browser.
-    if (isAllowedDomain(domain)) {
-      runInBackground(async () => {
-        logger.debug('opening url in default browser', { url });
-        await shell.openExternal(url);
-      });
-    } else {
-      logger.warn('blocked window navigation', { url });
+    // Otherwise route it through the play.net bounce page for safety.
+    if (!isAllowedDomain(domain)) {
+      logger.warn('navigation request to unexpected url', { url });
+      url = `https://www.play.net/bounce/redirect.asp?URL=${url}`;
     }
+
+    runInBackground(async () => {
+      logger.debug('opening url in default browser', { url });
+      await shell.openExternal(url);
+    });
+
     // Prevent window navigation within the app.
     return { action: 'deny' };
   });
@@ -156,7 +173,7 @@ app.on('web-contents-created', (_, contents) => {
 });
 
 app.on('window-all-closed', (): void => {
-  logger.debug('windows all closed, quitting app');
+  logger.debug('windows all closed');
   app.quit();
 });
 
@@ -178,8 +195,29 @@ app.on('before-quit', (event: Event): void => {
       // don't quit yet, start our async before-quit operations instead
       event.preventDefault();
       beforeQuitActionStatus = BeforeQuitActionStatus.IN_PROGRESS;
+
       runInBackground(async () => {
         logger.debug('performing before-quit operations');
+
+        const confirmBeforeClose = await Preferences.get(
+          PreferenceKey.WINDOW_CONFIRM_ON_CLOSE
+        );
+        if (confirmBeforeClose) {
+          const result = await dialog.showMessageBox({
+            type: 'question',
+            title: 'Quit DragonRealms Phoenix?',
+            message: 'Are you sure you want to quit?',
+            buttons: ['Yes', 'No'],
+            defaultId: 1,
+            cancelId: 1,
+          });
+          if (result.response === 1) {
+            // user clicked No, don't quit yet
+            beforeQuitActionStatus = BeforeQuitActionStatus.NOT_STARTED;
+            return;
+          }
+        }
+
         await ipcController?.destroy();
         beforeQuitActionStatus = BeforeQuitActionStatus.COMPLETED;
         app.quit();

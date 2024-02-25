@@ -170,7 +170,7 @@ export class GameParserImpl implements GameParser {
     logger.debug('subscribing to game socket stream');
     gameSocketStream.subscribe({
       next: (socketData) => {
-        logger.debug('parsing game socket data', { socketData });
+        logger.trace('parsing game socket data', { socketData });
         const lines = this.convertSocketDataToLines(socketData);
         this.parseLines(lines);
       },
@@ -213,10 +213,10 @@ export class GameParserImpl implements GameParser {
     // Ensure we start fresh with each line.
     this.gameText = '';
 
-    logger.debug('parsing line', { line });
+    logger.trace('parsing line', { line });
 
     while (line.length > 0) {
-      logger.debug('remaining line fragment', { line });
+      logger.trace('remaining line fragment', { line });
 
       /*
        * TEXT
@@ -228,7 +228,7 @@ export class GameParserImpl implements GameParser {
       });
 
       if (textSliceResult.match) {
-        logger.debug('parsed text', { text: textSliceResult.match });
+        logger.trace('parsed text', { text: textSliceResult.match });
         this.processText(textSliceResult.match);
         line = textSliceResult.remaining;
         continue;
@@ -251,7 +251,7 @@ export class GameParserImpl implements GameParser {
 
         if (endTagNameSliceResult.match) {
           const tagName = endTagNameSliceResult.match;
-          logger.debug('parsed end tag', { tagName });
+          logger.trace('parsed end tag', { tagName });
           this.processTagEnd();
         }
 
@@ -285,7 +285,7 @@ export class GameParserImpl implements GameParser {
             attributes[name] = value;
           });
 
-          logger.debug('parsed start tag', { tagName, attributes });
+          logger.trace('parsed start tag', { tagName, attributes });
           this.processTagStart(tagName, attributes);
 
           if (tag.endsWith('/>')) {
@@ -309,7 +309,7 @@ export class GameParserImpl implements GameParser {
   protected processText(text: string): void {
     const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
 
-    logger.debug('processing text', {
+    logger.trace('processing text', {
       text,
       tagId,
       tagName,
@@ -397,7 +397,7 @@ export class GameParserImpl implements GameParser {
     tagName: string,
     attributes: Record<string, string>
   ): void {
-    logger.debug('processing tag start', { tagName, attributes });
+    logger.trace('processing tag start', { tagName, attributes });
 
     this.activeTags.push({
       id: attributes.id,
@@ -485,7 +485,7 @@ export class GameParserImpl implements GameParser {
   protected processTagEnd(): void {
     const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
 
-    logger.debug('processing tag end', {
+    logger.trace('processing tag end', {
       tagId,
       tagName,
       gameText: this.gameText,
@@ -803,7 +803,7 @@ export class GameParserImpl implements GameParser {
   }
 
   protected emitGameEvent(gameEvent: GameEvent): void {
-    logger.debug('emitting game event', { gameEvent });
+    logger.trace('emitting game event', { gameEvent });
     this.gameEventsSubject$.next(gameEvent);
   }
 }

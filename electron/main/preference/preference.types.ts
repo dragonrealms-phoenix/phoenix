@@ -10,6 +10,10 @@ export enum PreferenceKey {
    */
   WINDOW_ZOOM_FACTOR = 'preference.window.zoomFactor',
   /**
+   * Whether to confirm before closing the window.
+   */
+  WINDOW_CONFIRM_ON_CLOSE = 'preference.window.confirmOnClose',
+  /**
    * How the mind state is shown in the game experience stream.
    * When 'numbers' then the mind state is shown as a fraction (e.g. 7/34).
    * When 'words' then the mind state is shown as a word (e.g. 'pondering').
@@ -44,6 +48,8 @@ export enum PreferenceKey {
 
 export type PreferenceKeyToTypeMap = {
   [PreferenceKey.WINDOW_ZOOM_FACTOR]: number;
+
+  [PreferenceKey.WINDOW_CONFIRM_ON_CLOSE]: boolean;
 
   [PreferenceKey.GAME_STREAM_EXPERIENCE_SHOW_MIND_STATE_AS]:
     | 'numbers'
