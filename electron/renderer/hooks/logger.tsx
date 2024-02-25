@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import type { Logger } from '../../common/logger/types.js';
 import { LoggerContext } from '../context/logger.jsx';
-import { createLogger } from '../lib/logger.js';
+import { createLogger } from '../lib/logger/create-logger.js';
 
 /**
  * To use this hook, the component must be inside a `LoggerProvider` hierarchy.

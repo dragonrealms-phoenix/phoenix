@@ -55,6 +55,12 @@ const nextConfig = {
      * https://github.com/vercel/next.js/issues/41961
      */
     fullySpecified: true,
+    /**
+     * Enable hook to run when app starts.
+     * See `instrumentation.ts` file.
+     * https://nextjs.org/docs/pages/building-your-application/optimizing/instrumentation
+     */
+    instrumentationHook: true,
   },
 
   compiler: {

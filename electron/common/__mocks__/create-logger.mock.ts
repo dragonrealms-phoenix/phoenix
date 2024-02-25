@@ -23,10 +23,8 @@ const { mockCreateLogger } = vi.hoisted(() => {
   return { mockCreateLogger };
 });
 
-vi.mock('../logger/create-logger.js', async (importOriginal) => {
-  const originalModule = await importOriginal<CreateLoggerModule>();
+vi.mock('../logger/create-logger.js', async () => {
   return {
-    ...originalModule,
     createLogger: mockCreateLogger,
   };
 });

@@ -12,7 +12,6 @@
     // from generated source code references.
     // This improves issue grouping in Sentry.
     "sourceRoot": "/",
-    "rootDir": "./",
     "allowJs": true,
     "strict": true,
     "alwaysStrict": true,
