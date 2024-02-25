@@ -6,6 +6,10 @@
     "moduleResolution": "NodeNext",
     "noEmit": true
   },
-  "exclude": ["node_modules"],
-  "include": ["**/__tests__/**/*.ts", "**/__mocks__/**/*.ts"]
+  "references": [
+    {
+      "path": "../common/tsconfig.test.json"
+    }
+  ],
+  "exclude": ["node_modules"]
 }

@@ -4,8 +4,8 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "noEmit": true
+    "noEmit": true,
+    "rootDir": "." // to find index.ts at root of package
   },
-  "exclude": ["node_modules"],
-  "include": ["./index.ts", "**/__tests__/**/*.ts", "**/__mocks__/**/*.ts"]
+  "exclude": ["node_modules"]
 }

@@ -6,6 +6,5 @@
     "moduleResolution": "NodeNext",
     "noEmit": true
   },
-  "exclude": ["node_modules"],
-  "include": ["**/__tests__/**/*.ts", "**/__mocks__/**/*.ts"]
+  "exclude": ["node_modules"]
 }
