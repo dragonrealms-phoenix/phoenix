@@ -13,13 +13,13 @@ describe('path-to-file-url', () => {
   });
 
   describe('#pathToFileURL', () => {
-    it('...', async () => {
+    it('returns absolute file url to directory path joined with file path', async () => {
       expect(
         pathToFileURL({
           dirPath: '/a/b/',
-          filePath: '/a/b/c.html',
+          filePath: 'c.html',
         })
-      ).toBe(true);
+      ).toEqual('file:///a/b/c.html');
     });
   });
 });
