@@ -1,3 +1,32 @@
+# [1.7.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.6.0...v1.7.0) (2024-02-25)
+
+
+### Bug Fixes
+
+* caused resize inconsistencies ([d7baa9e](https://github.com/dragonrealms-phoenix/phoenix/commit/d7baa9e2213c4781715d28df7ccb449f4c93aca6))
+* ensure grid item width large enough for title bar text and button ([50e0ea6](https://github.com/dragonrealms-phoenix/phoenix/commit/50e0ea6bd7ed9df9edcdef0ada4e3da599834e73))
+
+
+### Features
+
+* decouple game service from broadcasting about commands ([4dc731a](https://github.com/dragonrealms-phoenix/phoenix/commit/4dc731a1e713a73cfc972ef5cf4f81102807b301))
+* do single unsubscribe on unmount ([0718726](https://github.com/dragonrealms-phoenix/phoenix/commit/07187267b638414a2bd586ba783982383d300ecc))
+* enable content to scale horizontally ([b5a1b96](https://github.com/dragonrealms-phoenix/phoenix/commit/b5a1b96460ad624007fbf7b382befa37e50c9065))
+* for testing async response and broadcast ([6567dd7](https://github.com/dragonrealms-phoenix/phoenix/commit/6567dd76445a665ee5a061f5301e7f43c92e5ae0))
+* increase color contrast ([df18b1a](https://github.com/dragonrealms-phoenix/phoenix/commit/df18b1a0c0211ef8247c41d896ebf4dc254e1959))
+* install chrome devtools ([3a7d7bb](https://github.com/dragonrealms-phoenix/phoenix/commit/3a7d7bbae978cf479aab2010c659a88d6f366733))
+* log as trace continuous streaming events ([cc1d342](https://github.com/dragonrealms-phoenix/phoenix/commit/cc1d342aefbb66073d2f28fe63e36e3c160463a1))
+* log when flush to disk ([cc8d25c](https://github.com/dragonrealms-phoenix/phoenix/commit/cc8d25c5c6613d9aa336e2beb0c0c14779889998))
+* logging ([aaed0df](https://github.com/dragonrealms-phoenix/phoenix/commit/aaed0df1cc44700158db6d4053325011a64e2ed8))
+* memoize cmp to improve performance ([3efe737](https://github.com/dragonrealms-phoenix/phoenix/commit/3efe73774fcacbee2d4f871c52b6fb9c48731e72))
+* more precise in state dependencies, clarify type names ([102af4c](https://github.com/dragonrealms-phoenix/phoenix/commit/102af4c551d8b084e6a5b08f61d227346e73703d))
+* prefs for zoom and confirm before close ([74aaaba](https://github.com/dragonrealms-phoenix/phoenix/commit/74aaaba6ba29030b1ea47ecd75db2ac18fdbd5e6))
+* redact 'accessToken' and 'apiKey' ([42488ab](https://github.com/dragonrealms-phoenix/phoenix/commit/42488ab6c5362dcb5436327db45de38ae916741d))
+* return unsub fn ([a94a615](https://github.com/dragonrealms-phoenix/phoenix/commit/a94a61522d82e4527cb80fd3b570b1331885b773))
+* route potentially unsafe urls to play.net bounce page ([dadfa71](https://github.com/dragonrealms-phoenix/phoenix/commit/dadfa7185b2f9e5ff44d1cb5b57277e8aee1df3d))
+* set min width and height for app ([b9cd538](https://github.com/dragonrealms-phoenix/phoenix/commit/b9cd5384722041633a9c3bbc1b7ca496ffde0cdf))
+* update ipc dispatch type signatures ([a3ec50f](https://github.com/dragonrealms-phoenix/phoenix/commit/a3ec50fa6db633531ffe63f9a5caa59b74ad6ad3))
+
 # [1.6.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.5.0...v1.6.0) (2024-01-21)
 
 
