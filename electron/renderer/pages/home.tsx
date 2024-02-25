@@ -176,8 +176,8 @@ const HomePage: React.FC = (): ReactNode => {
     [playCharacter]
   );
 
-  const accountName = 'zoan333f2p';
-  const accountPassword = 'KLOM0teex*dair!doos';
+  const accountName = '';
+  const accountPassword = '';
   const characterName = 'Muleoak';
   const gameCode = 'DR';
 
