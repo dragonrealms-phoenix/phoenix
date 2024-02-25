@@ -3,7 +3,6 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "incremental": true,
     "outDir": "../build", // creates 'main' and 'common' subfolders
     "declaration": false,
     "sourceMap": true,
@@ -12,6 +11,7 @@
     // from generated source code references.
     // This improves issue grouping in Sentry.
     "sourceRoot": "/",
+    "rootDirs": ["./", "../common"],
     "allowJs": true,
     "strict": true,
     "alwaysStrict": true,
@@ -27,6 +27,14 @@
     "jsx": "preserve",
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
-  "exclude": ["node_modules"],
+  "exclude": [
+    "node_modules",
+    "../preload/**/__tests__/**",
+    "../preload/**/__mocks__/**",
+    "../common/**/__tests__/**",
+    "../common/**/__mocks__/**",
+    "**/__tests__/**",
+    "**/__mocks__/**"
+  ],
   "include": ["../preload/**/*.d.ts", "../common/**/*.ts", "**/*.ts"]
 }

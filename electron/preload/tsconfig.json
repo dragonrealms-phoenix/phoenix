@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
     "composite": true,
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "incremental": true,
+    // Eletron does not support ESM in preload scripts in sandboxed renderers.
+    // So this package is compiled down to ES6 as commonjs.
+    // https://www.electronjs.org/docs/latest/tutorial/esm
+    "target": "ES6",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "outDir": "../build/preload",
     "declaration": true,
     "declarationDir": "./",
@@ -14,6 +16,7 @@
     // from generated source code references.
     // This improves issue grouping in Sentry.
     "sourceRoot": "/",
+    "rootDir": "./",
     "allowJs": true,
     "strict": true,
     "alwaysStrict": true,
@@ -29,6 +32,6 @@
     "jsx": "preserve",
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "**/__tests__/**", "**/__mocks__/**"],
   "include": ["**/*.ts"]
 }

@@ -3,7 +3,6 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "incremental": true,
     "noEmit": true, // compiled with next.config.js at root of project
     "allowJs": true,
     "strict": true,
@@ -24,7 +23,8 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "incremental": true
   },
   "exclude": ["node_modules"],
   "include": [
