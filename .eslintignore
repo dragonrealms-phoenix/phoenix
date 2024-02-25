@@ -1,5 +1,8 @@
 # See https://eslint.org/docs/latest/use/configure/ignore for more about ignoring files.
 
+# yarn
+.yarn/*
+
 # dependencies
 /node_modules
 

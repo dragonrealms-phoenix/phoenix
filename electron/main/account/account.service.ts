@@ -1,17 +1,16 @@
 import { safeStorage } from 'electron';
-import { isEmpty, omit } from 'lodash';
-import { equalsIgnoreCase } from '../../common/string';
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
-import type { StoreService } from '../store';
+import isEmpty from 'lodash-es/isEmpty.js';
+import omit from 'lodash-es/omit.js';
+import { equalsIgnoreCase } from '../../common/string/equals-ignore-case.js';
+import type { Maybe } from '../../common/types.js';
+import type { StoreService } from '../store/types.js';
+import { logger } from './logger.js';
 import type {
   Account,
   AccountService,
   Character,
   ListAccountsType,
-} from './account.types';
-
-const logger = createLogger('account:service');
+} from './types.js';
 
 export class AccountServiceImpl implements AccountService {
   private storeService: StoreService;

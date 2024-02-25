@@ -1,13 +1,15 @@
 import type { Event } from 'electron';
 import { BrowserWindow, app, dialog, shell } from 'electron';
-import * as path from 'node:path';
-import serve from 'electron-serve';
-import { runInBackground } from '../common/async';
-import type { IpcController, IpcDispatcher } from './ipc';
-import { newIpcController } from './ipc';
-import { createLogger } from './logger';
-import { initializeMenu } from './menu';
-import { PreferenceKey, Preferences } from './preference';
+import path from 'node:path';
+import trimEnd from 'lodash-es/trimEnd.js';
+import { runInBackground } from './async/run-in-background.js';
+import type { IpcController } from './ipc/ipc.controller.js';
+import { newIpcController } from './ipc/ipc.controller.js';
+import type { IpcDispatcher } from './ipc/types.js';
+import { createLogger } from './logger/create-logger.js';
+import { initializeMenu } from './menu/menu.js';
+import { Preferences } from './preference/preference.instance.js';
+import { PreferenceKey } from './preference/types.js';
 
 app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
@@ -23,7 +25,14 @@ const appEnvIsDev = appEnv === 'development';
 // Only load dev tools when running in development.
 const appEnableDevTools = appEnvIsDev && !app.isPackaged;
 
-const appPath = app.getAppPath();
+// When we migrated to ESM, the app path changed.
+// Instead of being at the root of the project, it's the directory
+// where this code file was invoked at runtime.
+// As a workaround, we trim off the extra path segments.
+const appPath = trimEnd(
+  app.getAppPath(),
+  path.join('electron', 'build', 'main')
+);
 const appElectronPath = path.join(appPath, 'electron');
 const appBuildPath = path.join(appElectronPath, 'build');
 const appPreloadPath = path.join(appBuildPath, 'preload');
@@ -31,24 +40,34 @@ const appPreloadPath = path.join(appBuildPath, 'preload');
 // When running in production, serve the app from these paths.
 const prodRendererPath = path.join(appBuildPath, 'renderer');
 const prodAppScheme = 'app';
-const prodAppUrl = `${prodAppScheme}://-`;
+const prodAppHost = '-'; // arbitrary, mimicking electron-serve module
+const prodAppUrl = `${prodAppScheme}://${prodAppHost}`;
 
 // When running in development, serve the app from these paths.
 const devRendererPath = path.join(appElectronPath, 'renderer');
-const devPort = 3000;
+const devPort = 3000; // arbitrary
 const devAppUrl = `http://localhost:${devPort}`;
 
 const appUrl = appEnvIsProd ? prodAppUrl : devAppUrl;
+
+logger.debug('app paths', {
+  appPath,
+  appElectronPath,
+  appBuildPath,
+  appPreloadPath,
+  prodRendererPath,
+  devRendererPath,
+});
 
 // Register custom protocol 'app://' to serve our app.
 // Registering the protocol must be done before the app is ready.
 // This is necessary for both security and for single-page apps.
 // https://bishopfox.com/blog/reasonably-secure-electron
-// https://github.com/sindresorhus/electron-serve
 if (appEnvIsProd) {
+  const { serve } = await import('./electron-next/serve.prod.js');
   serve({
     scheme: prodAppScheme,
-    directory: prodRendererPath,
+    dirPath: prodRendererPath,
   });
 }
 
@@ -61,8 +80,11 @@ const createMainWindow = async (): Promise<void> => {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
     // This enables hot reloading of the renderer.
-    const { default: serveDev } = await import('electron-next');
-    await serveDev(devRendererPath, devPort);
+    const { serve } = await import('./electron-next/serve.dev.js');
+    await serve({
+      port: devPort,
+      dirPath: devRendererPath,
+    });
   }
 
   const mainWindow = new BrowserWindow({
@@ -123,7 +145,7 @@ app.on('ready', () => {
     if (appEnableDevTools) {
       logger.debug('installing chrome extension dev tools');
       const { installChromeExtensions } = await import(
-        './chrome/install-extension'
+        './chrome/install-extension.js'
       );
       await installChromeExtensions();
     }

@@ -3,8 +3,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "incremental": true,
-    "noEmit": true,
+    "noEmit": true, // compiled with next.config.js at root of project
     "allowJs": true,
     "strict": true,
     "alwaysStrict": true,
@@ -22,9 +21,10 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "plugins": [
       {
-        "name": "next",
-      },
+        "name": "next"
+      }
     ],
+    "incremental": true
   },
   "exclude": ["node_modules"],
   "include": [
@@ -32,6 +32,6 @@
     "../preload/**/*.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx",
-  ],
+    "**/*.tsx"
+  ]
 }

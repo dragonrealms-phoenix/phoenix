@@ -4,11 +4,11 @@
 import { EuiErrorBoundary } from '@elastic/eui';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import { Layout } from '../components/layout';
-import { NoSSR } from '../components/no-ssr';
-import { ChromeProvider } from '../context/chrome';
-import { LoggerProvider } from '../context/logger';
-import { ThemeProvider } from '../context/theme';
+import { Layout } from '../components/layout.jsx';
+import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
+import { ChromeProvider } from '../context/chrome.jsx';
+import { LoggerProvider } from '../context/logger.jsx';
+import { ThemeProvider } from '../context/theme.jsx';
 
 // The layout uses eui styling which requires the browser to be present.
 // To bypass SSR then we wrap the layout in a NoSSR component.

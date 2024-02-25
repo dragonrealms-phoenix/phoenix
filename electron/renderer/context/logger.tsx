@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { createContext, useEffect } from 'react';
-import type { Logger } from '../../common/logger';
-import { createLogger } from '../../common/logger';
+import type { Logger } from '../../common/logger/types.js';
+import { createLogger } from '../lib/logger/create-logger.js';
 import {
   startMonitoringUnhandledExceptions,
   stopMonitoringUnhandledExceptions,
-} from '../lib/logger';
+} from '../lib/logger/monitor-exceptions.js';
 
 const defaultLogger = createLogger('renderer');
 

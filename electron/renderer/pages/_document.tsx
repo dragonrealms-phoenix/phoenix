@@ -5,8 +5,8 @@ import { Head, Html, Main, NextScript } from 'next/document';
 import { useMemo } from 'react';
 import type { LinkHTMLAttributes, ReactElement } from 'react';
 import type React from 'react';
-import type { Theme } from '../lib/theme';
-import { getDefaultThemeName, themeConfig } from '../lib/theme';
+import type { Theme } from '../lib/theme.js';
+import { getDefaultThemeName, themeConfig } from '../lib/theme.js';
 
 function createThemeLink(theme: Theme): ReactElement {
   let disabledProps = {};

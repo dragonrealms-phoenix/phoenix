@@ -1,6 +1,6 @@
 import { useContext } from 'react';
-import type { ThemeContextValue } from '../context/theme';
-import { ThemeContext } from '../context/theme';
+import type { ThemeContextValue } from '../context/theme.jsx';
+import { ThemeContext } from '../context/theme.jsx';
 
 /**
  * To use this hook, the component must be inside a `ThemeProvider` hierarchy.

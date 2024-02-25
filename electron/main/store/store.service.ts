@@ -1,16 +1,16 @@
-import type { Maybe } from '../../common/types';
-import type { CacheService, DiskCacheOptions } from '../cache';
-import { DiskCacheServiceImpl } from '../cache';
-import type { StoreService } from './store.types';
+import type { Maybe } from '../../common/types.js';
+import type { CacheService } from '../cache/types.js';
+import type { StoreService } from './types.js';
 
 /**
- * Simple file-backed store for storing key-value pairs.
+ * Persistence layer for storing key/value pairs.
+ * Abstraction over *how* the data is stored.
  */
 export class StoreServiceImpl implements StoreService {
   private cacheService: CacheService;
 
-  constructor(options: DiskCacheOptions) {
-    this.cacheService = new DiskCacheServiceImpl(options);
+  constructor(options: { cacheService: CacheService }) {
+    this.cacheService = options.cacheService;
   }
 
   public async keys(): Promise<Array<string>> {

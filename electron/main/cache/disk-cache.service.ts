@@ -1,13 +1,11 @@
-import * as fs from 'fs-extra';
-import type { DebouncedFunc } from 'lodash';
-import { debounce } from 'lodash';
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
-import { AbstractCacheService } from './abstract-cache.service';
-import type { Cache, CacheService, DiskCacheOptions } from './cache.types';
-import { MemoryCacheServiceImpl } from './memory-cache.service';
-
-const logger = createLogger('cache:disk');
+import fs from 'fs-extra';
+import debounce from 'lodash-es/debounce.js';
+import type { DebouncedFunc } from 'lodash-es/debounce.js';
+import type { Maybe } from '../../common/types.js';
+import { AbstractCacheService } from './abstract-cache.service.js';
+import { logger } from './logger.js';
+import { MemoryCacheServiceImpl } from './memory-cache.service.js';
+import type { Cache, CacheService, DiskCacheOptions } from './types.js';
 
 /**
  * Caches all data as properties of a single JSON object written to disk.
@@ -49,21 +47,27 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
       });
     }
 
+    if (this.options.createInMemoryCache) {
+      return this.options.createInMemoryCache(cache);
+    }
+
     return new MemoryCacheServiceImpl(cache);
   }
 
   private createDebouncedWriteToDisk(): DebouncedFunc<() => Promise<void>> {
+    const { writeInterval = 1000 } = this.options;
     return debounce(async () => {
       await this.writeToDiskNow();
-    }, 1000);
+    }, writeInterval);
   }
 
   private async writeToDiskNow(): Promise<void> {
     const { filepath } = this.options;
     try {
+      logger.trace('writing cache to disk', { filepath });
       const cache = await this.delegate.readCache();
       await fs.writeJson(filepath, cache);
-      logger.debug('wrote cache to disk');
+      logger.trace('wrote cache to disk', { filepath });
     } catch (error) {
       logger.error('error writing cache to disk', {
         filepath,

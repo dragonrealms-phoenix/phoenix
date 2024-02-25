@@ -1,8 +1,9 @@
-import { type ReactNode, useState } from 'react';
-import { GameBottomBar } from './game-bottom-bar';
-import { GameGrid } from './game-grid';
-import { GameSettings } from './game-settings';
-import { GameTopBar } from './game-top-bar';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
+import { GameBottomBar } from './game-bottom-bar.jsx';
+import { GameGrid } from './game-grid.jsx';
+import { GameSettings } from './game-settings.jsx';
+import { GameTopBar } from './game-top-bar.jsx';
 
 export interface GameContainerProps {
   // TODO

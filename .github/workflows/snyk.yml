@@ -21,6 +21,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # Don't install husky hooks
+  # https://typicode.github.io/husky/how-to.html#ci-server-and-docker
+  HUSKY: 0
+
 jobs:
   snyk:
     permissions:
@@ -32,17 +37,28 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+        # Have to setup node twice as workaround until corepack is supported.
+        # https://github.com/actions/setup-node/issues/531
+      - name: Setup Node (corepack-prereq)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable corepack (yarn-prereq)
+        shell: bash
+        run: corepack enable
+
+      - name: Setup Node and Yarn
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: yarn
           cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --immutable
 
       - name: Setup Snyk
         uses: snyk/actions/setup@master
@@ -62,7 +78,8 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Upload results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
         with:
           sarif_file: snyk-code.sarif
           category: Snyk

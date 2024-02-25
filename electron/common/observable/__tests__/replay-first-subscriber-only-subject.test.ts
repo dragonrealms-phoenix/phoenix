@@ -1,37 +1,39 @@
 import type * as rxjs from 'rxjs';
-import { ReplayFirstSubscriberOnlySubject } from '../replay-first-subscriber-only.subject';
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ReplayFirstSubscriberOnlySubject } from '../replay-first-subscriber-only.subject.js';
 
 describe('replay-first-subscriber-only-subject', () => {
-  let subscriber1NextSpy: jest.Mock;
-  let subscriber2NextSpy: jest.Mock;
+  let subscriber1NextSpy: Mock;
+  let subscriber2NextSpy: Mock;
 
-  let subscriber1ErrorSpy: jest.Mock;
-  let subscriber2ErrorSpy: jest.Mock;
+  let subscriber1ErrorSpy: Mock;
+  let subscriber2ErrorSpy: Mock;
 
-  let subscriber1CompleteSpy: jest.Mock;
-  let subscriber2CompleteSpy: jest.Mock;
+  let subscriber1CompleteSpy: Mock;
+  let subscriber2CompleteSpy: Mock;
 
   let subject: rxjs.SubjectLike<string>;
 
   beforeEach(() => {
     subject = new ReplayFirstSubscriberOnlySubject<string>();
 
-    subscriber1NextSpy = jest.fn();
-    subscriber2NextSpy = jest.fn();
+    subscriber1NextSpy = vi.fn();
+    subscriber2NextSpy = vi.fn();
 
-    subscriber1ErrorSpy = jest.fn();
-    subscriber2ErrorSpy = jest.fn();
+    subscriber1ErrorSpy = vi.fn();
+    subscriber2ErrorSpy = vi.fn();
 
-    subscriber1CompleteSpy = jest.fn();
-    subscriber2CompleteSpy = jest.fn();
+    subscriber1CompleteSpy = vi.fn();
+    subscriber2CompleteSpy = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
   });
 
-  it('should replay buffered events to the first subscriber only', () => {
+  it('replays buffered events to the first subscriber only', () => {
     // buffer events for the first subscriber
     subject.next('A');
     subject.next('B');
@@ -75,7 +77,7 @@ describe('replay-first-subscriber-only-subject', () => {
     expect(subscriber2CompleteSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should emit error to the first subscriber only', () => {
+  it('emits error to the first subscriber only', () => {
     // buffer events for the first subscriber
     subject.next('A');
     subject.error(new Error('test'));
@@ -116,7 +118,7 @@ describe('replay-first-subscriber-only-subject', () => {
     expect(subscriber2CompleteSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should emit error to all subscribers', () => {
+  it('emits error to all subscribers', () => {
     // buffer events for the first subscriber
     subject.next('A');
     subject.next('B');

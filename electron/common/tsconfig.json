@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
-    "incremental": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "baseUrl": ".",
     "outDir": "../build/common",
     "declaration": false,
@@ -26,8 +25,8 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
-  "exclude": ["node_modules"],
-  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "**/__tests__/**", "**/__mocks__/**"],
+  "include": ["**/*.ts"]
 }

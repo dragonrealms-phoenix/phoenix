@@ -2,8 +2,8 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/lib/theme.ts
 
 import type { EuiThemeColorMode } from '@elastic/eui';
-import type { Maybe } from '../../common/types';
-import { LocalStorage } from './local-storage';
+import type { Maybe } from '../../common/types.js';
+import { LocalStorage } from './local-storage.js';
 
 /**
  * The functions here are for tracking and setting the current theme.
@@ -11,12 +11,12 @@ import { LocalStorage } from './local-storage';
  * that doesn't work on the server, where we just use a default.
  */
 
-function getAllThemes(): Array<HTMLLinkElement> {
+const getAllThemes = (): Array<HTMLLinkElement> => {
   // @ts-ignore
   return [...document.querySelectorAll('link[data-name="eui-theme"]')];
-}
+};
 
-export function enableTheme(newThemeName: EuiThemeColorMode): void {
+export const enableTheme = (newThemeName: EuiThemeColorMode): void => {
   const oldThemeName = getThemeName();
   LocalStorage.set<EuiThemeColorMode>('theme', newThemeName);
 
@@ -36,19 +36,19 @@ export function enableTheme(newThemeName: EuiThemeColorMode): void {
   } else {
     document.body.classList.add(`appTheme-${newThemeName}`);
   }
-}
+};
 
-export function getThemeName(): EuiThemeColorMode {
+export const getThemeName = (): EuiThemeColorMode => {
   return getStoredThemeName() || getDefaultThemeName();
-}
+};
 
-export function getStoredThemeName(): Maybe<EuiThemeColorMode> {
+export const getStoredThemeName = (): Maybe<EuiThemeColorMode> => {
   return LocalStorage.get<EuiThemeColorMode>('theme');
-}
+};
 
-export function getDefaultThemeName(): EuiThemeColorMode {
+export const getDefaultThemeName = (): EuiThemeColorMode => {
   return 'dark';
-}
+};
 
 export interface Theme {
   id: string;

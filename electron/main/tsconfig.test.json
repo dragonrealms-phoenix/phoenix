@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true
+  },
+  "references": [
+    {
+      "path": "../common/tsconfig.test.json"
+    }
+  ],
+  "exclude": ["node_modules"]
+}

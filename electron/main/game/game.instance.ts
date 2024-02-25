@@ -1,10 +1,8 @@
-import type { Maybe } from '../../common/types';
-import { createLogger } from '../logger';
-import type { SGEGameCredentials } from '../sge';
-import { GameServiceImpl } from './game.service';
-import type { GameService } from './game.types';
-
-const logger = createLogger('game:instance');
+import type { Maybe } from '../../common/types.js';
+import type { SGEGameCredentials } from '../sge/types.js';
+import { GameServiceImpl } from './game.service.js';
+import { gameInstanceLogger as logger } from './logger.js';
+import type { GameService } from './types.js';
 
 // There is exactly one game instance at a time,
 // and it can be playing at most one character.

@@ -4,7 +4,11 @@
 import type { EuiThemeColorMode } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
-import { enableTheme, getDefaultThemeName, getThemeName } from '../lib/theme';
+import {
+  enableTheme,
+  getDefaultThemeName,
+  getThemeName,
+} from '../lib/theme.js';
 
 /**
  * React context for storing theme-related data and callbacks.

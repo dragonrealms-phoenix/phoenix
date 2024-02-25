@@ -12,7 +12,9 @@ permissions:
   contents: read # for checkout
 
 env:
-  HUSKY: 0 # don't run husky hooks like commit-lint
+  # Don't install husky hooks
+  # https://typicode.github.io/husky/how-to.html#ci-server-and-docker
+  HUSKY: 0
 
 jobs:
   build:
@@ -31,23 +33,34 @@ jobs:
       id-token: write # to enable use of OIDC for npm provenance
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+        # Have to setup node twice as workaround until corepack is supported.
+        # https://github.com/actions/setup-node/issues/531
+      - name: Setup Node (corepack-prereq)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable corepack (yarn-prereq)
+        shell: bash
+        run: corepack enable
+
+      - name: Setup Node and Yarn
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: yarn
           cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --immutable
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: dist
 

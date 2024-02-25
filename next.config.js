@@ -4,21 +4,27 @@
  * Config based on https://github.com/elastic/next-eui-starter
  */
 
-const crypto = require('node:crypto');
-const fs = require('node:fs');
-const path = require('node:path');
-const { withSentryConfig } = require('@sentry/nextjs');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const dotenv = require('dotenv');
-const glob = require('glob');
-const { capitalize } = require('lodash');
-const { IgnorePlugin, EnvironmentPlugin } = require('webpack');
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { withSentryConfig } from '@sentry/nextjs';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import dotenv from 'dotenv';
+import { glob } from 'glob';
+import capitalize from 'lodash-es/capitalize.js';
+import webpack from 'webpack';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
 const pathPrefix = '';
 
 const themeConfig = buildThemeConfig();
+
+const { EnvironmentPlugin, IgnorePlugin } = webpack;
 
 /**
  * @type {import('next').NextConfig}
@@ -44,6 +50,17 @@ const nextConfig = {
      * https://github.com/vercel/next.js/issues/57876
      */
     webpackBuildWorker: true,
+    /**
+     * Support ESM-style imports that are fully specified with file extensions.
+     * https://github.com/vercel/next.js/issues/41961
+     */
+    fullySpecified: true,
+    /**
+     * Enable hook to run when app starts.
+     * See `instrumentation.ts` file.
+     * https://nextjs.org/docs/pages/building-your-application/optimizing/instrumentation
+     */
+    instrumentationHook: true,
   },
 
   compiler: {
@@ -116,6 +133,9 @@ const nextConfig = {
 
     config.externals ||= [];
     config.plugins ||= [];
+    config.resolve ||= {};
+    config.module ||= {};
+    config.module.rules ||= [];
 
     // EUI uses some libraries and features that don't work outside of a
     // browser by default. We need to configure the build so that these
@@ -200,16 +220,86 @@ const nextConfig = {
       })
     );
 
-    if (!config.resolve) {
-      config.resolve = {};
+    config.resolve.mainFields = ['module', 'main', 'exports'];
+
+    // Add extension aliases to support ESM-style imports.
+    // https://github.com/vercel/next.js/issues/41961
+    // https://github.com/webpack/webpack/issues/13252#issuecomment-1824282100
+    config.resolve.extensionAlias = {
+      '.js': ['.ts', '.tsx', '.js', '.jsx'],
+      '.jsx': ['.tsx', '.jsx'],
+      '.mjs': ['.mts', '.mjs'],
+      '.cjs': ['.cts', '.cjs'],
+    };
+
+    /**
+     * Configure typescript transpilation with babel.
+     * Since migrating our project to ESM, the tsconfig files
+     * are outputting ESM code, which doesn't work in Electron / Chromium.
+     * Using babel to further transpile the output to CJS.
+     * https://webpack.js.org/loaders/babel-loader/
+     */
+    if (isServer) {
+      config.module.rules.push({
+        test: /\.(?:ts|tsx|js|jsx|mjs|cjs)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: ['maintained node versions'],
+                },
+              ],
+              [
+                '@babel/preset-typescript',
+                {
+                  isTSX: true,
+                  allExtensions: true,
+                  onlyRemoveTypeImports: true,
+                },
+              ],
+            ],
+          },
+        },
+      });
+    } else {
+      config.module.rules.push({
+        test: /\.(?:ts|tsx|js|jsx|mjs|cjs)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: ['last 1 electron version'],
+                },
+              ],
+              [
+                '@babel/preset-typescript',
+                {
+                  isTSX: true,
+                  allExtensions: true,
+                  onlyRemoveTypeImports: true,
+                },
+              ],
+            ],
+          },
+        },
+      });
     }
-    config.resolve.mainFields = ['module', 'main'];
 
     return config;
   },
 };
 
-module.exports = withSentryConfig(
+export default withSentryConfig(
   nextConfig,
   {
     // For all available options, see:

@@ -1,5 +1,5 @@
-import type { Maybe } from '../../common/types';
-import type { Cache, CacheService } from './cache.types';
+import type { Maybe } from '../../common/types.js';
+import type { Cache, CacheService } from './types.js';
 
 export abstract class AbstractCacheService implements CacheService {
   public abstract set<T>(key: string, data: T): Promise<void>;

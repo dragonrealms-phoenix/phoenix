@@ -2,14 +2,13 @@ import type { IpcRendererEvent } from 'electron';
 import { EuiFieldText, EuiPageTemplate, useEuiTheme } from '@elastic/eui';
 import type { SerializedStyles } from '@emotion/react';
 import { css } from '@emotion/react';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { runInBackground } from '../../common/async';
-import { GameEventType, getExperienceMindState } from '../../common/game';
+import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
 import type {
   ExperienceGameEvent,
   GameConnectMessage,
@@ -18,14 +17,16 @@ import type {
   GameEvent,
   GameEventMessage,
   RoomGameEvent,
-} from '../../common/game';
-import { GameStream } from '../components/game';
-import { Grid } from '../components/grid';
-import { NoSSR } from '../components/no-ssr';
-import { useLogger } from '../hooks/logger';
-import { useMeasure } from '../hooks/measure';
-import { useWindowSize } from '../hooks/window-size';
-import type { GameLogLine } from '../types/game.types';
+} from '../../common/game/types.js';
+import { GameEventType } from '../../common/game/types.js';
+import { GameStream } from '../components/game/game-stream.jsx';
+import { Grid } from '../components/grid/grid.jsx';
+import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
+import { useLogger } from '../hooks/logger.jsx';
+import { useMeasure } from '../hooks/measure.js';
+import { useWindowSize } from '../hooks/window-size.js';
+import { runInBackground } from '../lib/async/run-in-background.js';
+import type { GameLogLine } from '../types/game.types.js';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
@@ -42,7 +43,7 @@ let textStylePreset = '';
 let textStyleBold = false;
 
 const GridPage: React.FC = (): ReactNode => {
-  const { logger } = useLogger('page:grid');
+  const logger = useLogger('page:grid');
 
   // Game events will be emitted from the IPC `game:event` channel.
   // Here we subscribe and route them to the correct grid item.

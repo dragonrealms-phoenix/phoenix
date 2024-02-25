@@ -1,6 +1,9 @@
+// Inspired by RedisInsight
+// https://github.com/RedisInsight/RedisInsight/blob/2.34.0/redisinsight/desktop/src/lib/menu/menu.ts
+
 import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
 import { Menu, app, shell } from 'electron';
-import { runInBackground } from '../../common/async';
+import { runInBackground } from '..//async/run-in-background.js';
 import {
   ELANTHIPEDIA_URL,
   PHOENIX_DOCS_URL,
@@ -10,109 +13,23 @@ import {
   PHOENIX_RELEASES_URL,
   PHOENIX_SECURITY_URL,
   PLAY_NET_URL,
-} from '../../common/data/urls';
-import { PreferenceKey, Preferences } from '../preference';
-import { getMenuItemById } from './menu.utils';
-
-/**
- * Inspired by RedisInsight
- * https://github.com/RedisInsight/RedisInsight/blob/2.34.0/redisinsight/desktop/src/lib/menu/menu.ts
- */
+} from '../../common/data/urls.js';
+import {
+  getConfirmBeforeClose,
+  loadConfirmBeforeClosePreference,
+  toggleConfirmBeforeClose,
+} from './utils/confirm-before-close.js';
+import {
+  decreaseZoomFactor,
+  increaseZoomFactor,
+  loadZoomFactorPreference,
+  resetZoomFactor,
+} from './utils/zoom-factor.js';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
   submenu?: Array<DarwinMenuItemConstructorOptions> | Menu;
 }
-
-// -- Zoom Factor -- //
-
-const loadZoomFactorPreference = (window: BrowserWindow): void => {
-  runInBackground(async () => {
-    const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
-    if (zoomFactor !== undefined) {
-      setZoomFactor(window, zoomFactor);
-    }
-  });
-};
-
-const saveZoomFactorPreference = (zoomFactor: number): void => {
-  runInBackground(async () => {
-    await Preferences.set(PreferenceKey.WINDOW_ZOOM_FACTOR, zoomFactor);
-  });
-};
-
-/**
- * Gets the current zoom factor of the window.
- * Returns a value between 0 < zoomFactor <= 1
- */
-const getZoomFactor = (window: BrowserWindow): number => {
-  return window.webContents.getZoomFactor();
-};
-
-/**
- * Set the zoom factor of the window.
- * Provide a value between 0 < zoomFactor <= 1
- */
-const setZoomFactor = (window: BrowserWindow, zoomFactor: number): void => {
-  window.webContents.setZoomFactor(zoomFactor);
-  saveZoomFactorPreference(zoomFactor);
-};
-
-const resetZoomFactor = (window: BrowserWindow): void => {
-  const zoomFactor = 1;
-  setZoomFactor(window, zoomFactor);
-};
-
-const increaseZoomFactor = (window: BrowserWindow): void => {
-  const zoomFactor = getZoomFactor(window) + 0.2;
-  setZoomFactor(window, zoomFactor);
-};
-
-const decreaseZoomFactor = (window: BrowserWindow): void => {
-  // Set lower bound to avoid error when zoom factor is too small.
-  const zoomFactor = Math.max(0.2, getZoomFactor(window) - 0.2);
-  setZoomFactor(window, zoomFactor);
-};
-
-// -- Confirm Before Close -- //
-
-let confirmBeforeClose = true;
-
-const loadConfirmBeforeClosePreference = (): void => {
-  runInBackground(async () => {
-    const value = await Preferences.get(PreferenceKey.WINDOW_CONFIRM_ON_CLOSE);
-    if (value !== undefined) {
-      setConfirmBeforeClose(value);
-    }
-  });
-};
-
-const saveConfirmBeforeClosePreference = (value: boolean): void => {
-  runInBackground(async () => {
-    await Preferences.set(PreferenceKey.WINDOW_CONFIRM_ON_CLOSE, value);
-  });
-};
-
-const getConfirmBeforeClose = (): boolean => {
-  return confirmBeforeClose;
-};
-
-const setConfirmBeforeClose = (value: boolean): void => {
-  confirmBeforeClose = value;
-  saveConfirmBeforeClosePreference(confirmBeforeClose);
-
-  // Update the menu item checkbox so that visually it matches the preference.
-  const menuItem = getMenuItemById('confirm-before-close');
-  if (menuItem) {
-    menuItem.checked = confirmBeforeClose;
-  }
-};
-
-const toggleConfirmBeforeClose = (): void => {
-  setConfirmBeforeClose(!confirmBeforeClose);
-};
-
-// -- Menu -- //
 
 export const initializeMenu = (window: BrowserWindow): void => {
   const template = getMenuTemplate(window);
@@ -242,6 +159,27 @@ const buildDarwinTemplate = (
     ],
   };
 
+  const subMenuWindow: DarwinMenuItemConstructorOptions = {
+    label: 'Window',
+    role: 'windowMenu',
+    submenu: [
+      {
+        label: 'Minimize',
+        role: 'minimize',
+        accelerator: 'Command+M',
+        selector: 'performMiniaturize:',
+      },
+      {
+        label: 'Close',
+        role: 'close',
+        accelerator: 'Command+W',
+      },
+      {
+        type: 'separator',
+      },
+    ],
+  };
+
   const subMenuView: DarwinMenuItemConstructorOptions = {
     label: 'View',
     role: 'viewMenu',
@@ -288,27 +226,6 @@ const buildDarwinTemplate = (
     ],
   };
 
-  const subMenuWindow: DarwinMenuItemConstructorOptions = {
-    label: 'Window',
-    role: 'windowMenu',
-    submenu: [
-      {
-        label: 'Minimize',
-        role: 'minimize',
-        accelerator: 'Command+M',
-        selector: 'performMiniaturize:',
-      },
-      {
-        label: 'Close',
-        role: 'close',
-        accelerator: 'Command+W',
-      },
-      {
-        type: 'separator',
-      },
-    ],
-  };
-
   const subMenuHelp: DarwinMenuItemConstructorOptions = {
     label: 'Help',
     role: 'help',
@@ -328,23 +245,6 @@ const buildDarwinTemplate = (
 const buildDefaultTemplate = (
   window: BrowserWindow
 ): Array<MenuItemConstructorOptions> => {
-  const subMenuWindow: MenuItemConstructorOptions = {
-    label: '&Window',
-    submenu: [
-      {
-        label: '&Close',
-        role: 'close',
-        accelerator: 'Ctrl+W',
-      },
-      // type separator cannot be invisible
-      {
-        label: '',
-        type: process.platform === 'linux' ? 'normal' : 'separator',
-        visible: false,
-      },
-    ],
-  };
-
   const subMenuFile: MenuItemConstructorOptions = {
     label: 'File',
     submenu: [
@@ -403,6 +303,23 @@ const buildDefaultTemplate = (
           },
         ],
       };
+
+  const subMenuWindow: MenuItemConstructorOptions = {
+    label: '&Window',
+    submenu: [
+      {
+        label: '&Close',
+        role: 'close',
+        accelerator: 'Ctrl+W',
+      },
+      // type separator cannot be invisible
+      {
+        label: '',
+        type: process.platform === 'linux' ? 'normal' : 'separator',
+        visible: false,
+      },
+    ],
+  };
 
   const subMenuHelp: MenuItemConstructorOptions = {
     label: 'Help',

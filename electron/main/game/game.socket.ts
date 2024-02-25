@@ -1,13 +1,10 @@
-import * as net from 'node:net';
-import { merge } from 'lodash';
+import net from 'node:net';
 import * as rxjs from 'rxjs';
-import { waitUntil } from '../../common/async';
-import { ReplayFirstSubscriberOnlySubject } from '../../common/observable';
-import { createLogger } from '../logger';
-import type { SGEGameCredentials } from '../sge';
-import type { GameSocket } from './game.types';
-
-const logger = createLogger('game:socket');
+import { waitUntil } from '../../common/async/wait-until.js';
+import { ReplayFirstSubscriberOnlySubject } from '../../common/observable/replay-first-subscriber-only.subject.js';
+import type { SGEGameCredentials } from '../sge/types.js';
+import { gameSocketLogger as logger } from './logger.js';
+import type { GameSocket } from './types.js';
 
 export class GameSocketImpl implements GameSocket {
   /**
@@ -92,7 +89,11 @@ export class GameSocketImpl implements GameSocket {
     // events in memory until the first subscriber. This ensures no events
     // are missed, and that we efficiently don't record all subsequent events.
     this.socketDataSubject$ = new ReplayFirstSubscriberOnlySubject<string>();
-    this.socket = this.createGameSocket();
+
+    this.socket = this.createGameSocket({
+      host: this.credentials.host,
+      port: this.credentials.port,
+    });
 
     // Delay returning until the socket is connected and ready for commands.
     // Sending commands before the game server is ready will fail.
@@ -173,17 +174,12 @@ export class GameSocketImpl implements GameSocket {
     }
   }
 
-  protected createGameSocket(connectOptions?: net.NetConnectOpts): net.Socket {
-    logger.debug('creating game socket');
+  protected createGameSocket(
+    connectOptions: net.TcpNetConnectOpts
+  ): net.Socket {
+    const { host, port } = connectOptions;
 
-    const defaultOptions: net.NetConnectOpts = {
-      host: 'dr.simutronics.net',
-      port: 11024,
-    };
-
-    const mergedOptions = merge(defaultOptions, connectOptions);
-
-    const { host, port } = mergedOptions;
+    logger.debug('creating game socket', { host, port });
 
     this.isConnected = false;
     this.isDestroyed = false;
@@ -215,7 +211,7 @@ export class GameSocketImpl implements GameSocket {
     };
 
     logger.debug('connecting to game server', { host, port });
-    const socket = net.connect(mergedOptions, (): void => {
+    const socket = net.connect(connectOptions, (): void => {
       logger.debug('connected to game server', { host, port });
     });
 

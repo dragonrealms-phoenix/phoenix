@@ -1,80 +1,83 @@
-import * as net from 'node:net';
-import { sleep } from '../../../common/async';
-import type { SGEGameCredentials } from '../../sge';
-import { NetSocketMock } from '../__mocks__/net-socket.mock';
-import { GameSocketImpl } from '../game.socket';
-import type { GameSocket } from '../game.types';
+import net from 'node:net';
+import type { MockInstance } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
+import type { NetSocketMock } from '../../__mocks__/net-socket.mock.js';
+import { mockNetConnect } from '../../__mocks__/net-socket.mock.js';
+import { runInBackground } from '../../async/run-in-background.js';
+import type { SGEGameCredentials } from '../../sge/types.js';
+import { GameSocketImpl } from '../game.socket.js';
+
+type NetModule = typeof import('node:net');
+
+vi.mock('node:net', () => {
+  const netMock: Partial<NetModule> = {
+    // Each test spies on `net.connect` to specify their own socket to test.
+    // Mocking the method here so that it can be spied upon as a mocked module.
+    connect: vi.fn<[], net.Socket>(),
+  };
+
+  return {
+    default: netMock,
+  };
+});
 
 describe('game-socket', () => {
-  const credentials: SGEGameCredentials = {
-    host: 'localhost',
-    port: 1234,
-    accessToken: 'test-token',
-  };
+  let credentials: SGEGameCredentials;
+  let mockSocket: NetSocketMock & net.Socket;
+  let netConnectSpy: MockInstance;
 
-  const mockNetConnect = (options?: {
-    emitError?: boolean;
-    emitTimeout?: boolean;
-  }) => {
-    return (
-      connectOptions: any & net.NetConnectOpts,
-      connectionListener: any & (() => void)
-    ) => {
-      const mockSocket = new NetSocketMock({
-        timeout: connectOptions.timeout ?? 30_000,
-        emitError: options?.emitError ?? false,
-        emitTimeout: options?.emitTimeout ?? false,
-      });
-
-      mockSocket.connect(connectOptions);
-
-      connectionListener();
-
-      mockSockets.push(mockSocket);
-
-      return mockSocket;
-    };
-  };
-
-  let mockSockets = new Array<NetSocketMock>();
-
-  let socket: GameSocket;
-
-  let subscriber1NextSpy: jest.Mock;
-  let subscriber2NextSpy: jest.Mock;
-
-  let subscriber1ErrorSpy: jest.Mock;
-  let subscriber2ErrorSpy: jest.Mock;
-
-  let subscriber1CompleteSpy: jest.Mock;
-  let subscriber2CompleteSpy: jest.Mock;
+  beforeAll(() => {
+    netConnectSpy = vi.spyOn(net, 'connect');
+  });
 
   beforeEach(() => {
-    mockSockets = new Array<NetSocketMock>();
+    credentials = {
+      host: 'test-host',
+      port: 1234,
+      accessToken: 'test-access-token',
+    };
 
-    subscriber1NextSpy = jest.fn();
-    subscriber2NextSpy = jest.fn();
+    netConnectSpy.mockImplementationOnce((...args): net.Socket => {
+      // Technically, the `net.connect()` method accepts various arguments.
+      // For this test, we know it's invoked with these two arguments.
+      const connectionOptions = args[0] as net.TcpNetConnectOpts;
+      const connectionListener = args[1] as () => void;
+      mockSocket = mockNetConnect(connectionOptions, connectionListener);
+      return mockSocket;
+    });
 
-    subscriber1ErrorSpy = jest.fn();
-    subscriber2ErrorSpy = jest.fn();
-
-    subscriber1CompleteSpy = jest.fn();
-    subscriber2CompleteSpy = jest.fn();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.clearAllTimers();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('#connect', () => {
-    it('should connect to the game server, receive messages, and then disconnect', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+    it('connects to the game server, receives messages, and then disconnects', async () => {
+      const subscriber1NextSpy = vi.fn();
+      const subscriber2NextSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
+      const subscriber1ErrorSpy = vi.fn();
+      const subscriber2ErrorSpy = vi.fn();
 
-      socket = new GameSocketImpl({
+      const subscriber1CompleteSpy = vi.fn();
+      const subscriber2CompleteSpy = vi.fn();
+
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
+
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -82,7 +85,27 @@ describe('game-socket', () => {
 
       // ---
 
-      const socketData$ = await socket.connect();
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
+
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const socketData$ = await socketDataPromise;
 
       // first subscriber
       socketData$.subscribe({
@@ -91,8 +114,6 @@ describe('game-socket', () => {
         complete: subscriber1CompleteSpy,
       });
 
-      await sleep(1000);
-
       // second subscriber
       socketData$.subscribe({
         next: subscriber2NextSpy,
@@ -100,7 +121,7 @@ describe('game-socket', () => {
         complete: subscriber2CompleteSpy,
       });
 
-      await sleep(1000);
+      mockSocket.emitData('<data/>\n');
 
       await socket.disconnect();
 
@@ -126,17 +147,19 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
 
-      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
-      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.connectSpy).toHaveBeenCalledWith({
+        host: 'test-host',
+        port: 1234,
+      });
+      expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect previous connection when a new connection is made', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+    it('disconnects previous connection when a new connection is made', async () => {
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
-
-      socket = new GameSocketImpl({
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -144,21 +167,44 @@ describe('game-socket', () => {
 
       // ---
 
-      await socket.connect();
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
 
-      await sleep(1000);
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
 
-      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(0);
-      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(0);
+      expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(0);
+      expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(0);
 
-      jest.clearAllMocks();
+      vi.clearAllMocks();
 
-      await socket.connect(); // disconnects previous connection
+      // Connect again which disconnects previous connection
+      runInBackground(async () => {
+        await socket.connect();
+      });
 
-      await sleep(1000);
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      await vi.runAllTimersAsync();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(2);
@@ -166,17 +212,15 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
 
-      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
-      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should send credentials and headers to the game server on connect', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+    it('sends credentials and headers to the game server on connect', async () => {
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
-
-      socket = new GameSocketImpl({
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -184,33 +228,105 @@ describe('game-socket', () => {
 
       // ---
 
-      await socket.connect();
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
 
-      await sleep(1000);
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
 
-      expect(mockSockets[0].writeSpy).toHaveBeenCalledTimes(3);
-      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(
+      expect(mockSocket.writeSpy).toHaveBeenCalledTimes(3);
+      expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(
         1,
-        'test-token\n'
+        'test-access-token\n'
       );
-      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(
+      expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(
         2,
         `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML\n`
       );
-      expect(mockSockets[0].writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
+      expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
+    });
+
+    it('throws error if socket times out during connect', async () => {
+      const socket = new GameSocketImpl({ credentials });
+
+      // ---
+
+      try {
+        // Connect to socket and begin listening for data.
+        const socketDataPromise = socket.connect();
+
+        // Run timer so that the "wait until" logic times out.
+        // Note, we don't run them async because otherwise vitest
+        // treats the error as an unhandled promise rejection
+        // when instead we want to actually catch it in this test.
+        vi.runAllTimers();
+
+        // Now await the connect promise, which will reject due to timeout.
+        await socketDataPromise;
+
+        expect.unreachable('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(new Error('[GAME:SOCKET:CONNECT:TIMEOUT] 5000'));
+      }
+    });
+
+    it('throws error if socket is destroyed during connect', async () => {
+      const socket = new GameSocketImpl({ credentials });
+
+      // ---
+
+      try {
+        // Connect to socket and begin listening for data.
+        const socketDataPromise = socket.connect();
+
+        // Before the connect logic has a chance to know if the
+        // socket has connected, issue a disconnect to flag it as destroyed.
+        await socket.disconnect();
+
+        // Run timer so that the "wait until" logic runs.
+        // Note, we don't run them async because otherwise vitest
+        // treats the error as an unhandled promise rejection
+        // when instead we want to actually catch it in this test.
+        vi.runAllTimers();
+
+        // Now await the connect promise, which will reject due to destroyed.
+        await socketDataPromise;
+
+        expect.unreachable('it should throw an error');
+      } catch (error) {
+        expect(error).toEqual(
+          new Error(
+            '[GAME:SOCKET:STATUS:DESTROYED] failed to connect to game server'
+          )
+        );
+      }
     });
   });
 
   describe('#disconnect', () => {
-    it('should disconnect from the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+    it('disconnects from the game server', async () => {
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
-
-      socket = new GameSocketImpl({
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -218,7 +334,28 @@ describe('game-socket', () => {
 
       // ---
 
-      await socket.connect();
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
+
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
+
       await socket.disconnect();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
@@ -227,21 +364,15 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(1, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'close', undefined);
 
-      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
-      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect from the game server when an error occurs', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
-        mockNetConnect({
-          emitError: true,
-        })
-      );
+    it('disconnects from the game server when an error occurs', async () => {
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
-
-      socket = new GameSocketImpl({
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -249,9 +380,28 @@ describe('game-socket', () => {
 
       // ---
 
-      await socket.connect();
+      const socketDataPromise = socket.connect();
 
-      await sleep(2000);
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
+
+      mockSocket.emitErrorEvent();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
@@ -264,21 +414,15 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(3, 'close', undefined);
 
-      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
-      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should disconnect from the game server when a timeout occurs', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
-        mockNetConnect({
-          emitTimeout: true,
-        })
-      );
+    it('disconnects from the game server when a timeout occurs', async () => {
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
-
-      socket = new GameSocketImpl({
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -286,9 +430,28 @@ describe('game-socket', () => {
 
       // ---
 
-      await socket.connect();
+      const socketDataPromise = socket.connect();
 
-      await sleep(2000);
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
+
+      mockSocket.emitTimeoutEvent();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(1);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(3);
@@ -297,17 +460,15 @@ describe('game-socket', () => {
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(2, 'end', undefined);
       expect(onDisconnectSpy).toHaveBeenNthCalledWith(3, 'close', undefined);
 
-      expect(mockSockets[0].pauseSpy).toHaveBeenCalledTimes(1);
-      expect(mockSockets[0].destroySoonSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.pauseSpy).toHaveBeenCalledTimes(1);
+      expect(mockSocket.destroySoonSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should ignore disconnect request if not connected', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
+    it('ignores disconnect request if not connected', async () => {
+      const onConnectSpy = vi.fn();
+      const onDisconnectSpy = vi.fn();
 
-      const onConnectSpy = jest.fn();
-      const onDisconnectSpy = jest.fn();
-
-      socket = new GameSocketImpl({
+      const socket = new GameSocketImpl({
         credentials,
         onConnect: onConnectSpy,
         onDisconnect: onDisconnectSpy,
@@ -315,39 +476,51 @@ describe('game-socket', () => {
 
       // ---
 
+      // Since we never connected then nothing should happen here.
       await socket.disconnect();
 
       expect(onConnectSpy).toHaveBeenCalledTimes(0);
       expect(onDisconnectSpy).toHaveBeenCalledTimes(0);
-
-      // Since we never connected then no mock socket was created.
-      expect(mockSockets).toHaveLength(0);
     });
   });
 
   describe('#send', () => {
-    it('should send commands when connected to the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
-
-      socket = new GameSocketImpl({
+    it('sends commands when connected to the game server', async () => {
+      const socket = new GameSocketImpl({
         credentials,
       });
 
       // ---
 
-      await socket.connect();
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
 
-      await sleep(1000);
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
 
       socket.send('test-command');
 
-      expect(mockSockets[0].writeSpy).toHaveBeenCalledWith('test-command\n');
+      expect(mockSocket.writeSpy).toHaveBeenCalledWith('test-command\n');
     });
 
-    it('should throw error when never connected to the game server', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
-
-      socket = new GameSocketImpl({
+    it('throws error when never connected to the game server', async () => {
+      const socket = new GameSocketImpl({
         credentials,
       });
 
@@ -359,7 +532,7 @@ describe('game-socket', () => {
 
       try {
         socket.send('test-command');
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(
           new Error(
@@ -369,14 +542,8 @@ describe('game-socket', () => {
       }
     });
 
-    it('should throw error when socket is not writable', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(
-        mockNetConnect({
-          emitError: true,
-        })
-      );
-
-      socket = new GameSocketImpl({
+    it('throws error when socket is not writable', async () => {
+      const socket = new GameSocketImpl({
         credentials,
       });
 
@@ -385,13 +552,34 @@ describe('game-socket', () => {
       // We connect, but by the time we send the commands
       // then we simulate that the underlying socket is not writable anymore.
       // This could happen if the game server disconnects us.
-      await socket.connect();
 
-      await sleep(1000);
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
+
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
+
+      mockSocket.emitErrorEvent();
 
       try {
         socket.send('test-command');
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(
           new Error(
@@ -401,26 +589,40 @@ describe('game-socket', () => {
       }
     });
 
-    it('should throw error when socket has been disconnected', async () => {
-      jest.spyOn(net, 'connect').mockImplementation(mockNetConnect());
-
-      socket = new GameSocketImpl({
+    it('throws error when socket has been disconnected', async () => {
+      const socket = new GameSocketImpl({
         credentials,
       });
 
       // ---
 
-      await socket.connect();
+      // Connect to socket and begin listening for data.
+      const socketDataPromise = socket.connect();
 
-      await sleep(1000);
+      // At this point the socket is listening for data from the game server.
+      // Emit data from the game server signaling that the connection is ready.
+      mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Run timer so that the delayed newlines sent on connect are seen.
+      await vi.runAllTimersAsync();
+
+      // Now we can await the promise to get hold of the socket observable.
+      //
+      // If we emit the data before the socket is listening then it never
+      // hears it and will never resolve (bad).
+      //
+      // If we await the connect then we're in a deadlock because the test
+      // never gets to emit the data to tell the socket to resolve. (bad)
+      //
+      // The workaround is to asynchronously start the connect then
+      // emit the data then await, kind of like a "fork join" concept.
+      const _socketData$ = await socketDataPromise;
 
       await socket.disconnect();
 
-      await sleep(1000);
-
       try {
         socket.send('test-command');
-        fail('it should throw an error');
+        expect.unreachable('it should throw an error');
       } catch (error) {
         expect(error).toEqual(
           new Error(
