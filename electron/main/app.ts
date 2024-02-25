@@ -1,7 +1,6 @@
 import type { Event } from 'electron';
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
-import prodServe from 'electron-serve';
 import trimEnd from 'lodash-es/trimEnd.js';
 import { runInBackground } from './async/run-in-background.js';
 import type { IpcController } from './ipc/ipc.controller.js';
@@ -41,7 +40,8 @@ const appPreloadPath = path.join(appBuildPath, 'preload');
 // When running in production, serve the app from these paths.
 const prodRendererPath = path.join(appBuildPath, 'renderer');
 const prodAppScheme = 'app';
-const prodAppUrl = `${prodAppScheme}://-`;
+const prodAppHost = '-'; // arbitrary, mimicking electron-serve module
+const prodAppUrl = `${prodAppScheme}://${prodAppHost}`;
 
 // When running in development, serve the app from these paths.
 const devRendererPath = path.join(appElectronPath, 'renderer');
@@ -63,11 +63,11 @@ logger.debug('app paths', {
 // Registering the protocol must be done before the app is ready.
 // This is necessary for both security and for single-page apps.
 // https://bishopfox.com/blog/reasonably-secure-electron
-// https://github.com/sindresorhus/electron-serve
 if (appEnvIsProd) {
+  const { prodServe } = await import('./electron-next/prod-server.js');
   prodServe({
     scheme: prodAppScheme,
-    directory: prodRendererPath,
+    dirPath: prodRendererPath,
   });
 }
 
@@ -83,7 +83,7 @@ const createMainWindow = async (): Promise<void> => {
     const { devServe } = await import('./electron-next/dev-server.js');
     await devServe({
       port: devPort,
-      directory: devRendererPath,
+      dirPath: devRendererPath,
     });
   }
 

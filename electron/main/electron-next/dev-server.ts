@@ -17,16 +17,16 @@ export const devServe = async (options: {
   /**
    * The directory to serve, relative to the app root directory.
    */
-  directory: string;
+  dirPath: string;
   /**
    * The port to serve the renderer on.
    */
   port: number;
 }): Promise<void> => {
-  const { directory, port = 3000 } = options;
+  const { dirPath, port = 3000 } = options;
 
   logger.info('starting nextjs dev server', {
-    directory,
+    dirPath,
     port,
   });
 
@@ -38,7 +38,7 @@ export const devServe = async (options: {
     options: NextServerOptions
   ) => NextServer;
 
-  const nextServer = createNextServer({ dev: true, dir: directory });
+  const nextServer = createNextServer({ dev: true, dir: dirPath });
 
   const requestHandler = nextServer.getRequestHandler();
 
