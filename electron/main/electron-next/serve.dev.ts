@@ -13,7 +13,7 @@ import type { NextServer, NextServerOptions } from 'next/dist/server/next.js';
 import { runInBackground } from '../async/run-in-background.js';
 import { logger } from './logger.js';
 
-export const devServe = async (options: {
+export const serve = async (options: {
   /**
    * The directory to serve, relative to the app root directory.
    */

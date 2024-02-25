@@ -64,8 +64,8 @@ logger.debug('app paths', {
 // This is necessary for both security and for single-page apps.
 // https://bishopfox.com/blog/reasonably-secure-electron
 if (appEnvIsProd) {
-  const { prodServe } = await import('./electron-next/prod-server.js');
-  prodServe({
+  const { serve } = await import('./electron-next/serve.prod.js');
+  serve({
     scheme: prodAppScheme,
     dirPath: prodRendererPath,
   });
@@ -80,8 +80,8 @@ const createMainWindow = async (): Promise<void> => {
     // If running in development, serve the renderer from localhost.
     // This must be done once the app is ready.
     // This enables hot reloading of the renderer.
-    const { devServe } = await import('./electron-next/dev-server.js');
-    await devServe({
+    const { serve } = await import('./electron-next/serve.dev.js');
+    await serve({
       port: devPort,
       dirPath: devRendererPath,
     });

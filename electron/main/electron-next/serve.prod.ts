@@ -19,7 +19,7 @@ import { isSafePath } from './is-safe-path.js';
 import { logger } from './logger.js';
 import { pathToFileURL } from './path-to-file-url.js';
 
-export const prodServe = (options: {
+export const serve = (options: {
   /**
    * The protocol to serve the directory on.
    * All URL requests that use this protocol will be served from the directory.
@@ -37,7 +37,8 @@ export const prodServe = (options: {
     dirPath,
   });
 
-  const error404Page = pathToFileURL({ dirPath, filePath: '404.html' });
+  const error404Path = path.join(dirPath, '404.html');
+  const error404Page = pathToFileURL(error404Path);
 
   const requestHandler = async (httpReq: Request): Promise<Response> => {
     const requestURL = new URL(httpReq.url);
@@ -54,7 +55,7 @@ export const prodServe = (options: {
     const isSafe = isSafePath({ dirPath, filePath: pathToServe });
 
     if (isSafe) {
-      pageToServe = pathToFileURL({ dirPath, filePath: pathToServe });
+      pageToServe = pathToFileURL(pathToServe);
     } else {
       pageToServe = error404Page;
     }
