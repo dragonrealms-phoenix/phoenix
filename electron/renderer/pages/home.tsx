@@ -1,8 +1,14 @@
-import { EuiListGroup, EuiListGroupItem, EuiPanel } from '@elastic/eui';
+import {
+  EuiListGroup,
+  EuiListGroupItem,
+  EuiPanel,
+  EuiSpacer,
+} from '@elastic/eui';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import { equalsIgnoreCase } from '../../common/string/equals-ignore-case.js';
+import { Grid3 } from '../components/grid/grid3.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
 
@@ -247,6 +253,16 @@ const HomePage: React.FC = (): ReactNode => {
           </EuiPanel>
         );
       })}
+      <EuiSpacer size="l" />
+      <div
+        style={{
+          border: '5px solid pink',
+          height: 400,
+          width: 400,
+        }}
+      >
+        <Grid3 dimensions={{ height: 390, width: 390 }} />
+      </div>
     </div>
   );
 };
