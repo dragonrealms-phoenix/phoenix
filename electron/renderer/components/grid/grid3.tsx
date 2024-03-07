@@ -33,19 +33,28 @@ export interface GridMouseEvent {
 }
 
 export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
-  const { dimensions } = props;
+  const gridDimensions = props.dimensions;
 
   const logger = useLogger('page:grid3');
 
   const gridItemRef = useRef<HTMLDivElement>(null);
+
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dimension, setDimension] = useState({ width: 100, height: 100 });
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const onMouseDown = useCallback(
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeOffset, setResizeOffset] = useState({ x: 0, y: 0 });
+  const [dimensionBeforeResize, setDimensionBeforeResize] = useState(dimension);
+
+  const onDragStart = useCallback(
     (event: GridMouseEvent) => {
-      logger.debug('onMouseDown');
+      logger.debug('onDragStart');
+
       setIsDragging(true);
+
       setDragOffset({
         x: event.clientX - position.x,
         y: event.clientY - position.y,
@@ -54,13 +63,35 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
     [logger, position]
   );
 
+  const onResizeStart = useCallback(
+    (event: GridMouseEvent) => {
+      logger.debug('onResizeStart');
+
+      setIsResizing(true);
+
+      setResizeOffset({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      setDimensionBeforeResize({
+        width: dimension.width,
+        height: dimension.height,
+      });
+    },
+    [logger, dimension]
+  );
+
   const onMouseMove = useCallback(
     (event: GridMouseEvent) => {
-      if (!gridItemRef.current) {
-        return;
-      }
+      const handleDrag = () => {
+        if (!gridItemRef.current) {
+          return;
+        }
 
-      if (isDragging) {
+        const currentWidth = gridItemRef.current.clientWidth;
+        const currentHeight = gridItemRef.current.clientHeight;
+
         let newX = event.clientX - dragOffset.x;
         let newY = event.clientY - dragOffset.y;
 
@@ -81,20 +112,18 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
         // If the new position would reach farther right than the parent
         // then adjust the position of the right edge of the element
         // to be at the right edge of the parent.
-        if (newX + gridItemRef.current.clientWidth > dimensions.width) {
-          newX = dimensions.width - gridItemRef.current.clientWidth;
+        if (newX + currentWidth > gridDimensions.width) {
+          newX = gridDimensions.width - currentWidth;
         }
 
         // If the new position would reach farther down than the parent
         // then adjust the position of the bottom edge of the element
         // to be at the bottom edge of the parent.
-        if (newY + gridItemRef.current.clientHeight > dimensions.height) {
-          newY = dimensions.height - gridItemRef.current.clientHeight;
+        if (newY + currentHeight > gridDimensions.height) {
+          newY = gridDimensions.height - currentHeight;
         }
 
         logger.debug('onMouseMove - dragging', {
-          calcX: event.clientX - dragOffset.x,
-          calcY: event.clientY - dragOffset.y,
           newX,
           newY,
         });
@@ -103,18 +132,91 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
           x: newX,
           y: newY,
         });
+      };
+
+      const handleResize = () => {
+        if (!gridItemRef.current) {
+          return;
+        }
+
+        const currentLeft = gridItemRef.current.offsetLeft;
+        const currentTop = gridItemRef.current.offsetTop;
+
+        const currentWidth = dimensionBeforeResize.width;
+        const currentHeight = dimensionBeforeResize.height;
+
+        const deltaWidth = event.clientX - resizeOffset.x;
+        const deltaHeight = event.clientY - resizeOffset.y;
+
+        let newWidth = currentWidth + deltaWidth;
+        let newHeight = currentHeight + deltaHeight;
+
+        // If the new size would shrink the element to be smaller than
+        // the minimum size then set the size to the minimum.
+        const minWidth = 50;
+        const minHeight = 50;
+
+        if (newWidth < minWidth) {
+          newWidth = minWidth;
+        }
+
+        if (newHeight < minHeight) {
+          newHeight = minHeight;
+        }
+
+        // If the new size would reach farther right than the parent then
+        // adjust the size of the element to be at the right edge of the parent.
+        if (currentLeft + newWidth > gridDimensions.width) {
+          newWidth = gridDimensions.width - currentLeft;
+        }
+
+        // If the new size would reach farther down than the parent then
+        // adjust the size of the element to be at the bottom edge of the parent.
+        if (currentTop + newHeight > gridDimensions.height) {
+          newHeight = gridDimensions.height - currentTop;
+        }
+
+        logger.debug('onMouseMove - resizing', {
+          deltaWidth,
+          deltaHeight,
+          oldWidth: currentWidth,
+          oldHeight: currentHeight,
+          newWidth,
+          newHeight,
+          currentTop,
+          currentLeft,
+        });
+
+        setDimension({
+          width: newWidth,
+          height: newHeight,
+        });
+      };
+
+      if (isDragging) {
+        handleDrag();
+      }
+
+      if (isResizing) {
+        handleResize();
       }
     },
-    [logger, dimensions, isDragging, dragOffset]
+    [
+      logger,
+      gridDimensions,
+      isDragging,
+      dragOffset,
+      isResizing,
+      resizeOffset,
+      dimensionBeforeResize,
+    ]
   );
 
-  const onMouseUp = useCallback(
-    (_event: GridMouseEvent) => {
-      logger.debug('onMouseUp');
-      setIsDragging(false);
-    },
-    [logger]
-  );
+  const onMouseUp = useCallback(() => {
+    logger.debug('onMouseUp');
+    setIsDragging(false);
+    setIsResizing(false);
+  }, [logger]);
 
   // When we attach the `mousemove` event listeners to the draggable element
   // then if the mouse moves too quickly then it can leave the element behind.
@@ -123,47 +225,73 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
   // A workaround is to attach the `mousemove` event listeners to the `window`
   // so that the event always fires.
   useEffect(() => {
-    const windowOnMouseMove = (event: WindowEventMap['mousemove']) => {
-      onMouseMove(event);
-    };
+    // Events that signal the user has stopped dragging or resizing.
+    const onMouseUpEventAliases: Array<keyof WindowEventMap> = [
+      'mouseup',
+      'mouseleave',
+      'blur',
+    ];
 
-    const windowOnMouseUp = (event: WindowEventMap['mouseup']) => {
-      onMouseUp(event);
-    };
+    onMouseUpEventAliases.forEach((eventName) => {
+      window.addEventListener(eventName, onMouseUp);
+    });
 
-    window.addEventListener('mousemove', windowOnMouseMove);
-    window.addEventListener('mouseup', windowOnMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
 
     return () => {
-      window.removeEventListener('mousemove', windowOnMouseMove);
-      window.removeEventListener('mouseup', windowOnMouseUp);
+      onMouseUpEventAliases.forEach((eventName) => {
+        window.removeEventListener(eventName, onMouseUp);
+      });
+
+      window.removeEventListener('mousemove', onMouseMove);
     };
   }, [onMouseMove, onMouseUp]);
 
   return (
     <div
       style={{
-        height: dimensions.height,
-        width: dimensions.width,
+        position: 'relative',
+        height: gridDimensions.height,
+        width: gridDimensions.width,
       }}
     >
       <div
         ref={gridItemRef}
         style={{
-          width: '100px',
-          height: '100px',
-          backgroundColor: 'lightblue',
           position: 'relative',
           top: `${position.y}px`,
           left: `${position.x}px`,
-          cursor: 'move',
+          width: `${dimension.width}px`,
+          height: `${dimension.height}px`,
+          backgroundColor: 'lightblue',
+          overflow: 'auto',
         }}
-        onMouseDown={onMouseDown}
-        // onMouseMove={onMouseMove}
-        // onMouseUp={onMouseUp}
-        // onMouseLeave={onMouseLeave}
       >
-        Drag me!
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '20px',
+            backgroundColor: 'red',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            textAlign: 'center',
+          }}
+          onMouseDown={onDragStart}
+        >
+          Drag Handle
+        </div>
+
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            borderLeft: '10px solid transparent',
+            borderBottom: '10px solid green',
+            cursor: 'se-resize',
+          }}
+          onMouseDown={onResizeStart}
+        ></div>
       </div>
     </div>
   );
