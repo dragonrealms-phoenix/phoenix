@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLogger } from '../../hooks/logger.jsx';
-
-// NOTE: This is getting the real-time drag and drop repositioning I want.
-// However, if you move the mouse too fast then the cursor leaves behind
-// the element and it stops moving. When you move your mouse back over it
-// the element begins moving again, even if you're not holding down the mouse.
 
 export interface Grid3Props {
   /**
@@ -23,11 +18,11 @@ export interface Grid3Props {
   };
 }
 
-// We need to invoke our mouse event handlers from different event listeners
+// We need to invoke our pointer event handlers from different event listeners
 // that each have their own unique interface. Rather than force cast the events
 // to the desired interface, which may introduce a bug later, we'll create
 // a simplified interface that can be used from any event listener.
-export interface GridMouseEvent {
+export interface GridPointerEvent {
   clientX: number;
   clientY: number;
 }
@@ -50,7 +45,7 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
   const [dimensionBeforeResize, setDimensionBeforeResize] = useState(dimension);
 
   const onDragStart = useCallback(
-    (event: GridMouseEvent) => {
+    (event: GridPointerEvent) => {
       logger.debug('onDragStart');
 
       setIsDragging(true);
@@ -64,7 +59,7 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
   );
 
   const onResizeStart = useCallback(
-    (event: GridMouseEvent) => {
+    (event: GridPointerEvent) => {
       logger.debug('onResizeStart');
 
       setIsResizing(true);
@@ -82,8 +77,8 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
     [logger, dimension]
   );
 
-  const onMouseMove = useCallback(
-    (event: GridMouseEvent) => {
+  const onPointerMove = useMemo(() => {
+    const handler = (event: GridPointerEvent) => {
       const handleDrag = () => {
         if (!gridItemRef.current) {
           return;
@@ -123,7 +118,10 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
           newY = gridDimensions.height - currentHeight;
         }
 
-        logger.debug('onMouseMove - dragging', {
+        newX = Math.floor(newX);
+        newY = Math.floor(newY);
+
+        logger.debug('onPointerMove - dragging', {
           newX,
           newY,
         });
@@ -176,7 +174,10 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
           newHeight = gridDimensions.height - currentTop;
         }
 
-        logger.debug('onMouseMove - resizing', {
+        newWidth = Math.floor(newWidth);
+        newHeight = Math.floor(newHeight);
+
+        logger.debug('onPointerMove - resizing', {
           deltaWidth,
           deltaHeight,
           oldWidth: currentWidth,
@@ -200,52 +201,41 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
       if (isResizing) {
         handleResize();
       }
-    },
-    [
-      logger,
-      gridDimensions,
-      isDragging,
-      dragOffset,
-      isResizing,
-      resizeOffset,
-      dimensionBeforeResize,
-    ]
-  );
+    };
 
-  const onMouseUp = useCallback(() => {
-    logger.debug('onMouseUp');
+    return handler;
+  }, [
+    logger,
+    gridDimensions,
+    isDragging,
+    dragOffset,
+    isResizing,
+    resizeOffset,
+    dimensionBeforeResize,
+  ]);
+
+  const onPointerUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
-  }, [logger]);
+  }, []);
 
-  // When we attach the `mousemove` event listeners to the draggable element
-  // then if the mouse moves too quickly then it can leave the element behind.
-  // Once that happens, then the mouse events stop being emitted and so it
-  // doesn't reposition to stay under the mouse cursor.
-  // A workaround is to attach the `mousemove` event listeners to the `window`
-  // so that the event always fires.
   useEffect(() => {
-    // Events that signal the user has stopped dragging or resizing.
-    const onMouseUpEventAliases: Array<keyof WindowEventMap> = [
-      'mouseup',
-      'mouseleave',
-      'blur',
-    ];
-
-    onMouseUpEventAliases.forEach((eventName) => {
-      window.addEventListener(eventName, onMouseUp);
-    });
-
-    window.addEventListener('mousemove', onMouseMove);
+    // To ensure continuous repositioning of the draggable element under the
+    // cursor, we attach the `pointermove` event listeners to the `window`
+    // instead of the draggable element itself. This prevents the issue of the
+    // element being left behind when the pointer moves too quickly.
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerleave', onPointerUp);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('blur', onPointerUp);
 
     return () => {
-      onMouseUpEventAliases.forEach((eventName) => {
-        window.removeEventListener(eventName, onMouseUp);
-      });
-
-      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerleave', onPointerUp);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('blur', onPointerUp);
     };
-  }, [onMouseMove, onMouseUp]);
+  }, [onPointerMove, onPointerUp]);
 
   return (
     <div
@@ -276,7 +266,7 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
             cursor: isDragging ? 'grabbing' : 'grab',
             textAlign: 'center',
           }}
-          onMouseDown={onDragStart}
+          onPointerDown={onDragStart}
         >
           Drag Handle
         </div>
@@ -290,7 +280,7 @@ export const Grid3: React.FC<Grid3Props> = (props: Grid3Props): ReactNode => {
             borderBottom: '10px solid green',
             cursor: 'se-resize',
           }}
-          onMouseDown={onResizeStart}
+          onPointerDown={onResizeStart}
         ></div>
       </div>
     </div>
