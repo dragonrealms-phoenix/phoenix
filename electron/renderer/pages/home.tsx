@@ -182,8 +182,8 @@ const HomePage: React.FC = (): ReactNode => {
     [playCharacter]
   );
 
-  const accountName = '';
-  const accountPassword = '';
+  const accountName = 'zoan333f2p';
+  const accountPassword = '*h7RNUZJvLEJoEQXhjUsxbR2-KXrH3';
   const characterName = 'Muleoak';
   const gameCode = 'DR';
 
@@ -261,7 +261,18 @@ const HomePage: React.FC = (): ReactNode => {
           width: 400,
         }}
       >
-        <Grid4 dimensions={{ height: 390, width: 390 }} />
+        {/* <Grid
+
+          dimensions={{ height: 390, width: 390 }}
+          items={[
+            {
+              itemId: '1',
+              title: 'Title 1',
+              content: <div>Content 1</div>,
+            },
+          ]}
+        /> */}
+        <Grid4 boundary={{ height: 390, width: 390 }} />
       </div>
     </div>
   );
