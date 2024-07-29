@@ -96,7 +96,7 @@ export const GridItem: React.FC<GridItemProps> = (
   }, [onFocus, itemId]);
 
   // Set default position and size for the grid item.
-  const [{ x, y, width, height }, api] = useSpring(() => ({
+  const [{ x, y, width, height }, sizeApi] = useSpring(() => ({
     x: 0,
     y: 0,
     width: 100,
@@ -168,14 +168,14 @@ export const GridItem: React.FC<GridItemProps> = (
       const [dx, dy] = state.offset;
 
       if (isResizing(state.event)) {
-        api.set({ width: dx, height: dy });
+        sizeApi.set({ width: dx, height: dy });
       }
 
       if (isDragging(state.event)) {
-        api.set({ x: dx, y: dy });
+        sizeApi.set({ x: dx, y: dy });
       }
     },
-    [api, isResizing, isDragging]
+    [sizeApi, isResizing, isDragging]
   );
 
   const dragOptions: UserDragConfig = useMemo(() => {
@@ -215,8 +215,12 @@ export const GridItem: React.FC<GridItemProps> = (
     };
   }, [x, y, width, height, boundary, isResizing]);
 
-  const bind = useDrag(dragHandler, dragOptions);
+  // Use this function to add all of the DOM bindings props to the element(s)
+  // that you want to make draggable or resizable.
+  // Example: see our `dragHandleRef` and `resizeHandleRef` ref elements.
+  const getMouseGestureDragBindings = useDrag(dragHandler, dragOptions);
 
+  // Styles for our drag and resize handle elements.
   const handleStyles = useMemo(
     () =>
       css({
@@ -241,7 +245,7 @@ export const GridItem: React.FC<GridItemProps> = (
   );
 
   return (
-    <animated.div
+    <animated.div // react-spring element, works with the `useSpring` values
       style={{
         position: 'absolute',
         x,
@@ -279,7 +283,7 @@ export const GridItem: React.FC<GridItemProps> = (
                 justifyContent="flexStart"
                 gutterSize="none"
                 className="drag-handle"
-                {...bind()}
+                {...getMouseGestureDragBindings()}
               >
                 <EuiFlexItem grow={false}>
                   <EuiIcon type="grabOmnidirectional" />
@@ -326,7 +330,7 @@ export const GridItem: React.FC<GridItemProps> = (
               <div
                 ref={resizeHandleRef}
                 className="resize-handle"
-                {...bind()}
+                {...getMouseGestureDragBindings()}
               ></div>
             </EuiFlexItem>
           </EuiFlexGroup>
