@@ -1,3 +1,7 @@
+// Inspired by react-crop-video project by BiteSize Academy.
+// https://github.com/alexkrkn/react-crop-video/
+// https://www.youtube.com/watch?v=vDxZLN6FVqY
+
 import {
   EuiButtonIcon,
   EuiFlexGroup,
@@ -6,17 +10,31 @@ import {
   EuiSpacer,
   EuiSplitPanel,
   EuiText,
+  useEuiTheme,
 } from '@elastic/eui';
-import type {
-  CSSProperties,
-  MouseEvent,
-  ReactNode,
-  Ref,
-  TouchEvent,
-} from 'react';
-import { forwardRef, useCallback } from 'react';
+import { css } from '@emotion/react';
+import { animated, useSpring } from '@react-spring/web';
+import type { EventTypes, Handler, UserDragConfig } from '@use-gesture/react';
+import { useDrag } from '@use-gesture/react';
+import get from 'lodash-es/get';
+import isNil from 'lodash-es/isNil';
+import type { MouseEvent, ReactNode, RefObject } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 
 export interface GridItemProps {
+  /**
+   * The dimension for the grid where the item may be dragged and resized.
+   */
+  boundary: {
+    /**
+     * The max height of the grid in pixels.
+     */
+    height: number;
+    /**
+     * The max width of the grid in pixels.
+     */
+    width: number;
+  };
   /**
    * The unique identifier for the grid item.
    */
@@ -33,34 +51,16 @@ export interface GridItemProps {
    */
   onClose?: (itemId: string) => void;
   /**
-   * Required when using custom components as react-grid-layout children.
+   * Is this the focused grid item?
+   * When yes then it will be positioned above the other grid items.
    */
-  ref: Ref<HTMLDivElement>;
+  isFocused?: boolean;
   /**
-   * This property is passed to the item from the grid layout.
-   * You must assign it to the same prop of the root element of the grid item.
+   * When the grid item receives focus then notify the parent component.
+   * The parent component has responsibility for managing the `isFocused`
+   * property for all of the grid items to reflect the change.
    */
-  style?: CSSProperties;
-  /**
-   * This property is passed to the item from the grid layout.
-   * You must assign it to the same prop of the root element of the grid item.
-   */
-  className?: string;
-  /**
-   * This property is passed to the item from the grid layout.
-   * You must assign it to the same prop of the root element of the grid item.
-   */
-  onMouseDown?: (e: MouseEvent<HTMLDivElement>) => void;
-  /**
-   * This property is passed to the item from the grid layout.
-   * You must assign it to the same prop of the root element of the grid item.
-   */
-  onMouseUp?: (e: MouseEvent<HTMLDivElement>) => void;
-  /**
-   * This property is passed to the item from the grid layout.
-   * You must assign it to the same prop of the root element of the grid item.
-   */
-  onTouchEnd?: (e: TouchEvent<HTMLDivElement>) => void;
+  onFocus?: (itemId: string) => void;
   /**
    * This property contains any children nested within the grid item
    * when you're constructing the grid layout.
@@ -69,60 +69,13 @@ export interface GridItemProps {
   children?: ReactNode;
 }
 
-/**
- * The grid layout pushes resizable handles as children of the grid item.
- * When the scrollbar for the content is displayed then it creates a
- * barrier between the right-most edge of the grid item and its content.
- * Yet the resizable handles are still visible on the grid item's edge
- * just not clickable in that position, it's now offset by the scrollbar.
- * To mitigate this adjustment, we move the resizable handles to the the
- * outside of the scrollable content.
- */
-function separateResizeHandleComponents(nodes: ReactNode): {
-  children: Array<ReactNode>;
-  resizeHandles: Array<ReactNode>;
-} {
-  const children = [];
-  const resizeHandles = [];
+export const GridItem: React.FC<GridItemProps> = (
+  props: GridItemProps
+): ReactNode => {
+  const { boundary, itemId, titleBarText } = props;
+  const { isFocused, onFocus, onClose, children } = props;
 
-  if (Array.isArray(nodes)) {
-    for (const child of nodes) {
-      if (child) {
-        if (child.key?.startsWith('resizableHandle-')) {
-          resizeHandles.push(child);
-        } else {
-          children.push(child);
-        }
-      }
-    }
-  } else if (nodes) {
-    children.push(nodes);
-  }
-
-  return {
-    resizeHandles,
-    children,
-  };
-}
-
-/**
- * How to use custom components as react-grid-layout children.
- * https://github.com/react-grid-layout/react-grid-layout/tree/master?tab=readme-ov-file#custom-child-components-and-draggable-handles
- * https://stackoverflow.com/questions/67053157/react-grid-layout-error-draggablecore-not-mounted-on-dragstart
- */
-export const GridItem: React.FC<GridItemProps> = forwardRef<
-  HTMLDivElement,
-  GridItemProps
->((props, ref): ReactNode => {
-  const {
-    itemId,
-    titleBarText,
-    onClose,
-    style,
-    className,
-    children,
-    ...otherProps
-  } = props;
+  const { euiTheme } = useEuiTheme();
 
   // Handle when the user clicks the close button in the title bar.
   const onCloseClick = useCallback(
@@ -135,60 +88,252 @@ export const GridItem: React.FC<GridItemProps> = forwardRef<
     [onClose, itemId]
   );
 
-  const { resizeHandles, children: gridItemChildren } =
-    separateResizeHandleComponents(children);
+  // Handle when the user clicks or focuses the grid item.
+  const onFocusClick = useCallback(() => {
+    if (onFocus) {
+      onFocus(itemId);
+    }
+  }, [onFocus, itemId]);
+
+  // Set default position and size for the grid item.
+  const [{ x, y, width, height }, api] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100,
+  }));
+
+  const dragHandleRef = useRef<HTMLDivElement>(null);
+  const resizeHandleRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Is the event target the same element as the ref?
+   */
+  const isEventTarget = useCallback(
+    (
+      eventOrTarget: Event | EventTarget | null | undefined,
+      ref: RefObject<HTMLElement>
+    ) => {
+      if (isNil(eventOrTarget)) {
+        return false;
+      }
+
+      if (eventOrTarget === ref.current) {
+        return true;
+      }
+
+      if (get(eventOrTarget, 'target') === ref.current) {
+        return true;
+      }
+
+      if (get(eventOrTarget, 'currentTarget') === ref.current) {
+        return true;
+      }
+
+      return false;
+    },
+    []
+  );
+
+  /**
+   * Did the user click and drag the drag handle?
+   */
+  const isDragging = useCallback(
+    (eventOrTarget: Event | EventTarget | null | undefined): boolean => {
+      return isEventTarget(eventOrTarget, dragHandleRef);
+    },
+    [isEventTarget]
+  );
+
+  /**
+   * Did the user click and drag the resize handle?
+   */
+  const isResizing = useCallback(
+    (eventOrTarget: Event | EventTarget | null | undefined): boolean => {
+      return isEventTarget(eventOrTarget, resizeHandleRef);
+    },
+    [isEventTarget]
+  );
+
+  const dragHandler: Handler<'drag', EventTypes['drag']> = useCallback(
+    /**
+     * Callback to invoke when a gesture event ends.
+     * For example, when the user stops dragging or resizing.
+     */
+    (state) => {
+      // The vector for where the pointer has moved to relative to
+      // the last vector returned by the `from` drag option function.
+      // When resizing, the values are the new width and height dimensions.
+      // When dragging, the values are the new x and y coordinates.
+      const [dx, dy] = state.offset;
+
+      if (isResizing(state.event)) {
+        api.set({ width: dx, height: dy });
+      }
+
+      if (isDragging(state.event)) {
+        api.set({ x: dx, y: dy });
+      }
+    },
+    [api, isResizing, isDragging]
+  );
+
+  const dragOptions: UserDragConfig = useMemo(() => {
+    return {
+      /**
+       * When a gesture event begins, specify the reference vector
+       * from which to calculate the distance the pointer moves.
+       */
+      from: (state) => {
+        if (isResizing(state.target)) {
+          return [width.get(), height.get()];
+        }
+        return [x.get(), y.get()];
+      },
+      /**
+       * When a gesture event begins, specify the where the pointer can move.
+       * The element will not be dragged or resized outside of these bounds.
+       */
+      bounds: (state) => {
+        const containerWidth = boundary.width;
+        const containerHeight = boundary.height;
+        if (isResizing(state?.event)) {
+          return {
+            top: 50, // min height
+            left: 100, // min width
+            right: containerWidth - x.get(),
+            bottom: containerHeight - y.get(),
+          };
+        }
+        return {
+          top: 0,
+          left: 0,
+          right: containerWidth - width.get(),
+          bottom: containerHeight - height.get(),
+        };
+      },
+    };
+  }, [x, y, width, height, boundary, isResizing]);
+
+  const bind = useDrag(dragHandler, dragOptions);
+
+  const handleStyles = useMemo(
+    () =>
+      css({
+        '.drag-handle': {
+          cursor: 'grab',
+        },
+        '.drag-handle:active': {
+          cursor: 'grabbing',
+        },
+        '.resize-handle': {
+          position: 'absolute',
+          bottom: -4,
+          right: -4,
+          width: 10,
+          height: 10,
+          cursor: 'nwse-resize',
+          backgroundColor: euiTheme.colors.mediumShade,
+          borderRadius: 5,
+        },
+      }),
+    [euiTheme]
+  );
 
   return (
-    <EuiSplitPanel.Outer
-      panelRef={ref}
-      grow={false}
-      hasBorder={true}
-      style={style}
-      className={className}
-      {...otherProps}
+    <animated.div
+      style={{
+        position: 'absolute',
+        x,
+        y,
+        width,
+        height,
+        overflow: 'hidden',
+        touchAction: 'none',
+        zIndex: isFocused ? 999 : 888, // arbitrary numbers just to ensure order
+      }}
+      css={handleStyles}
+      onFocus={onFocusClick}
+      onPointerDown={onFocusClick}
     >
-      <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">
-        <EuiFlexGroup
-          responsive={false}
-          alignItems="center"
-          justifyContent="flexStart"
-          gutterSize="none"
-        >
-          <EuiFlexItem grow={1} className={'grab-handle'}>
-            <EuiIcon type="grabOmnidirectional" />
-          </EuiFlexItem>
-          <EuiFlexItem grow={true} className={'grab-handle'}>
-            <EuiText size="xs">{titleBarText}</EuiText>
-          </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <EuiFlexGroup
-              responsive={false}
-              alignItems="center"
-              justifyContent="flexEnd"
-            >
-              <EuiButtonIcon
-                title="Close"
-                iconType="cross"
-                color="accent"
-                size="xs"
-                onClick={onCloseClick}
-              />
-            </EuiFlexGroup>
-          </EuiFlexItem>
-        </EuiFlexGroup>
-      </EuiSplitPanel.Inner>
-      <EuiSpacer size="xs" />
-      <EuiSplitPanel.Inner
+      <EuiSplitPanel.Outer
         grow={true}
-        paddingSize="none"
-        className="eui-yScroll"
-        css={{ whiteSpace: 'pre-wrap' }}
+        hasBorder={true}
+        style={{
+          height: 'inherit',
+          width: 'inherit',
+        }}
       >
-        {gridItemChildren}
-      </EuiSplitPanel.Inner>
-      {resizeHandles}
-    </EuiSplitPanel.Outer>
+        <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">
+          <EuiFlexGroup
+            responsive={false}
+            alignItems="center"
+            justifyContent="flexStart"
+            gutterSize="none"
+          >
+            <EuiFlexItem grow={true}>
+              <EuiFlexGroup
+                ref={dragHandleRef}
+                responsive={false}
+                alignItems="center"
+                justifyContent="flexStart"
+                gutterSize="none"
+                className="drag-handle"
+                {...bind()}
+              >
+                <EuiFlexItem grow={false}>
+                  <EuiIcon type="grabOmnidirectional" />
+                </EuiFlexItem>
+                <EuiFlexItem grow={true}>
+                  <EuiText size="xs">{titleBarText}</EuiText>
+                </EuiFlexItem>
+              </EuiFlexGroup>
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <EuiFlexGroup
+                responsive={false}
+                alignItems="center"
+                justifyContent="flexEnd"
+              >
+                <EuiButtonIcon
+                  title="Close"
+                  iconType="cross"
+                  color="accent"
+                  size="xs"
+                  onClick={onCloseClick}
+                />
+              </EuiFlexGroup>
+            </EuiFlexItem>
+          </EuiFlexGroup>
+        </EuiSplitPanel.Inner>
+        <EuiSpacer size="xs" />
+        <EuiSplitPanel.Inner
+          grow={true}
+          paddingSize="none"
+          className="eui-yScroll"
+          css={{
+            whiteSpace: 'pre-wrap',
+          }}
+        >
+          <EuiFlexGroup
+            responsive={false}
+            alignItems="center"
+            justifyContent="flexStart"
+            gutterSize="none"
+          >
+            <EuiFlexItem grow={true}>{children}</EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <div
+                ref={resizeHandleRef}
+                className="resize-handle"
+                {...bind()}
+              ></div>
+            </EuiFlexItem>
+          </EuiFlexGroup>
+        </EuiSplitPanel.Inner>
+      </EuiSplitPanel.Outer>
+    </animated.div>
   );
-});
+};
 
 GridItem.displayName = 'GridItem';

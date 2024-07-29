@@ -8,7 +8,7 @@ import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import { equalsIgnoreCase } from '../../common/string/equals-ignore-case.js';
-import { Grid4 } from '../components/grid/grid4.jsx';
+import { Grid } from '../components/grid/grid.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
 
@@ -182,10 +182,10 @@ const HomePage: React.FC = (): ReactNode => {
     [playCharacter]
   );
 
-  const accountName = 'zoan333f2p';
-  const accountPassword = '*h7RNUZJvLEJoEQXhjUsxbR2-KXrH3';
-  const characterName = 'Muleoak';
-  const gameCode = 'DR';
+  const accountName = '';
+  const accountPassword = '';
+  const characterName = '';
+  const gameCode = '';
 
   return (
     <div>
@@ -272,7 +272,7 @@ const HomePage: React.FC = (): ReactNode => {
             },
           ]}
         /> */}
-        <Grid4 boundary={{ height: 390, width: 390 }} />
+        <Grid boundary={{ height: 390, width: 390 }} />
       </div>
     </div>
   );
