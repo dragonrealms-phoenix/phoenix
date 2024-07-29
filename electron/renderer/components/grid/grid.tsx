@@ -3,7 +3,9 @@
 // https://www.youtube.com/watch?v=vDxZLN6FVqY
 
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useLogger } from '../../hooks/logger.jsx';
+import type { GridItemMetadata } from './grid-item.jsx';
 import { GridItem } from './grid-item.jsx';
 
 export interface GridProps {
@@ -26,13 +28,39 @@ export interface GridProps {
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { boundary } = props;
 
+  const logger = useLogger('cmp:grid');
+
+  // TODO load layout from storage
+
+  // TODO determine the focused item from the layout, if none, use the first one
   const [focusedItemId, setFocusedItemId] = useState<string>('');
 
-  // TODO when an item is closed then remove it from layout and save layout
+  const onItemFocus = useCallback((itemMeta: GridItemMetadata) => {
+    const { itemId } = itemMeta;
+    setFocusedItemId(itemId);
+    // TODO when an item is resized then save layout, including the focused item
+  }, []);
+
+  const onItemClose = useCallback(
+    (itemMeta: GridItemMetadata) => {
+      const { itemId } = itemMeta;
+      // TODO when an item is closed then remove it from layout and save layout
+      logger.debug(`closed item ${itemId}`);
+    },
+    [logger]
+  );
+
+  const onItemMoveResize = useCallback(
+    (itemMeta: GridItemMetadata) => {
+      const { itemId } = itemMeta;
+      // TODO when an item is dragged then save layout
+      logger.debug(`moved item ${itemId}`);
+    },
+    [logger]
+  );
+
   // TODO when user adds an item to the grid then add it to layout and save layout
   //    - refer to UX of Genie client for adding items to the grid
-  // TODO when an item is dragged or resized then save layout
-  //    - need to pass callback to grid items to know whey their position or size changes
 
   const item1 = (
     <GridItem
@@ -40,10 +68,9 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       itemId="1"
       titleBarText="Item 1"
       isFocused={focusedItemId === '1'}
-      onFocus={setFocusedItemId}
-      onClose={() => {
-        alert('Closed item 1');
-      }}
+      onFocus={onItemFocus}
+      onClose={onItemClose}
+      onMoveResize={onItemMoveResize}
       boundary={boundary}
     >
       <div>Content1</div>
@@ -56,10 +83,9 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       itemId="2"
       titleBarText="Experience"
       isFocused={focusedItemId === '2'}
-      onFocus={setFocusedItemId}
-      onClose={() => {
-        alert('Closed item 2');
-      }}
+      onFocus={onItemFocus}
+      onClose={onItemClose}
+      onMoveResize={onItemMoveResize}
       boundary={boundary}
     >
       <div>Content2a</div>

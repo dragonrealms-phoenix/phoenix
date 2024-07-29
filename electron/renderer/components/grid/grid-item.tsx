@@ -16,10 +16,20 @@ import { css } from '@emotion/react';
 import { animated, useSpring } from '@react-spring/web';
 import type { EventTypes, Handler, UserDragConfig } from '@use-gesture/react';
 import { useDrag } from '@use-gesture/react';
+import debounce from 'lodash-es/debounce.js';
 import get from 'lodash-es/get';
 import isNil from 'lodash-es/isNil';
-import type { MouseEvent, ReactNode, RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { useCallback, useMemo, useRef } from 'react';
+
+export interface GridItemMetadata {
+  itemId: string;
+  isFocused: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export interface GridItemProps {
   /**
@@ -49,7 +59,7 @@ export interface GridItemProps {
    * Handler when the user clicks the close button in the title bar.
    * Passes the `itemId` of the grid item being closed.
    */
-  onClose?: (itemId: string) => void;
+  onClose?: (metadata: GridItemMetadata) => void;
   /**
    * Is this the focused grid item?
    * When yes then it will be positioned above the other grid items.
@@ -60,7 +70,11 @@ export interface GridItemProps {
    * The parent component has responsibility for managing the `isFocused`
    * property for all of the grid items to reflect the change.
    */
-  onFocus?: (itemId: string) => void;
+  onFocus?: (metadata: GridItemMetadata) => void;
+  /**
+   * When the grid item is moved or resized then notify the parent component.
+   */
+  onMoveResize?: (metadata: GridItemMetadata) => void;
   /**
    * This property contains any children nested within the grid item
    * when you're constructing the grid layout.
@@ -72,28 +86,10 @@ export interface GridItemProps {
 export const GridItem: React.FC<GridItemProps> = (
   props: GridItemProps
 ): ReactNode => {
-  const { boundary, itemId, titleBarText } = props;
-  const { isFocused, onFocus, onClose, children } = props;
+  const { boundary, itemId, titleBarText, isFocused = false, children } = props;
+  const { onFocus, onClose, onMoveResize } = props;
 
   const { euiTheme } = useEuiTheme();
-
-  // Handle when the user clicks the close button in the title bar.
-  const onCloseClick = useCallback(
-    (evt: MouseEvent<HTMLElement>) => {
-      evt.preventDefault();
-      if (onClose) {
-        onClose(itemId);
-      }
-    },
-    [onClose, itemId]
-  );
-
-  // Handle when the user clicks or focuses the grid item.
-  const onFocusClick = useCallback(() => {
-    if (onFocus) {
-      onFocus(itemId);
-    }
-  }, [onFocus, itemId]);
 
   // Set default position and size for the grid item.
   const [{ x, y, width, height }, sizeApi] = useSpring(() => ({
@@ -105,6 +101,35 @@ export const GridItem: React.FC<GridItemProps> = (
 
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
+
+  const getItemMetadata = useCallback(() => {
+    return {
+      itemId,
+      isFocused,
+      x: x.get(),
+      y: y.get(),
+      width: width.get(),
+      height: height.get(),
+    };
+  }, [itemId, isFocused, x, y, width, height]);
+
+  // Handle when the user clicks the close button in the title bar.
+  const onCloseClick = useCallback(() => {
+    onClose?.(getItemMetadata());
+  }, [onClose, getItemMetadata]);
+
+  // Handle when the user clicks or focuses the grid item.
+  const onFocusClick = useCallback(() => {
+    onFocus?.(getItemMetadata());
+  }, [onFocus, getItemMetadata]);
+
+  // Handle when the user moves or resizes the grid item.
+  // Because this event triggers frequently, we debounce it for performance.
+  const onMoveResizeHandler = useMemo(() => {
+    return debounce(() => {
+      onMoveResize?.(getItemMetadata());
+    }, 300);
+  }, [onMoveResize, getItemMetadata]);
 
   /**
    * Is the event target the same element as the ref?
@@ -169,13 +194,15 @@ export const GridItem: React.FC<GridItemProps> = (
 
       if (isResizing(state.event)) {
         sizeApi.set({ width: dx, height: dy });
+        onMoveResizeHandler();
       }
 
       if (isDragging(state.event)) {
         sizeApi.set({ x: dx, y: dy });
+        onMoveResizeHandler();
       }
     },
-    [sizeApi, isResizing, isDragging]
+    [sizeApi, isResizing, isDragging, onMoveResizeHandler]
   );
 
   const dragOptions: UserDragConfig = useMemo(() => {
