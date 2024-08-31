@@ -24,6 +24,7 @@ import { useCallback, useMemo, useRef } from 'react';
 
 export interface GridItemMetadata {
   itemId: string;
+  title: string;
   isFocused: boolean;
   x: number;
   y: number;
@@ -105,13 +106,14 @@ export const GridItem: React.FC<GridItemProps> = (
   const getItemMetadata = useCallback(() => {
     return {
       itemId,
+      title: titleBarText,
       isFocused,
       x: x.get(),
       y: y.get(),
       width: width.get(),
       height: height.get(),
     };
-  }, [itemId, isFocused, x, y, width, height]);
+  }, [itemId, titleBarText, isFocused, x, y, width, height]);
 
   // Handle when the user clicks the close button in the title bar.
   const onCloseClick = useCallback(() => {
