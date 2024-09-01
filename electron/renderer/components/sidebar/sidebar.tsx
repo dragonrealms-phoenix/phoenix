@@ -1,7 +1,10 @@
-import { EuiFlexGroup, EuiFlexItem, EuiFlyout, EuiPanel } from '@elastic/eui';
+import { EuiFlexGroup, EuiFlexItem, EuiFlyout } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { SidebarItemAccounts } from './sidebar-item-accounts.jsx';
+import { SidebarItemCharacters } from './sidebar-item-characters.jsx';
 import { SidebarItemHelp } from './sidebar-item-help.jsx';
+import { SidebarItemSettings } from './sidebar-item-settings.jsx';
 import { SidebarItem } from './sidebar-item.jsx';
 
 export const Sidebar: React.FC = (): ReactNode => {
@@ -76,7 +79,7 @@ export const Sidebar: React.FC = (): ReactNode => {
           outsideClickCloses={true}
           onClose={() => setShowCharacters(false)}
         >
-          <EuiPanel>Characters</EuiPanel>
+          <SidebarItemCharacters />
         </EuiFlyout>
       )}
 
@@ -89,7 +92,7 @@ export const Sidebar: React.FC = (): ReactNode => {
           outsideClickCloses={true}
           onClose={() => setShowAccounts(false)}
         >
-          <EuiPanel>Accounts</EuiPanel>
+          <SidebarItemAccounts />
         </EuiFlyout>
       )}
 
@@ -102,7 +105,7 @@ export const Sidebar: React.FC = (): ReactNode => {
           outsideClickCloses={true}
           onClose={() => setShowSettings(false)}
         >
-          <EuiPanel>Settings</EuiPanel>
+          <SidebarItemSettings />
         </EuiFlyout>
       )}
     </>
