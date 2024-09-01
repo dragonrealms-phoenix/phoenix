@@ -4,6 +4,7 @@ import { AccountServiceImpl } from '../account/account.service.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
 import { Store } from '../store/store.instance.js';
+import { listAccountsHandler } from './handlers/list-accounts.js';
 import { listCharactersHandler } from './handlers/list-characters.js';
 import { pingHandler } from './handlers/ping.js';
 import { playCharacterHandler } from './handlers/play-character.js';
@@ -80,6 +81,10 @@ export class IpcController {
       }),
 
       removeAccount: removeAccountHandler({
+        accountService: this.accountService,
+      }),
+
+      listAccounts: listAccountsHandler({
         accountService: this.accountService,
       }),
 

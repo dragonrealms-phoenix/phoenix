@@ -15,6 +15,14 @@ declare const appAPI: {
    */
   removeAccount: (options: { accountName: string }) => Promise<void>;
   /**
+   * List added accounts.
+   */
+  listAccounts: () => Promise<
+    {
+      accountName: string;
+    }[]
+  >;
+  /**
    * Add or update a character for a given play.net account and game instance.
    */
   saveCharacter: (options: {

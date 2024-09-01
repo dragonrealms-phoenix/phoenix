@@ -27,6 +27,16 @@ const appAPI = {
     return ipcRenderer.invoke('removeAccount', options);
   },
   /**
+   * List added accounts.
+   */
+  listAccounts: async (): Promise<
+    Array<{
+      accountName: string;
+    }>
+  > => {
+    return ipcRenderer.invoke('listAccounts');
+  },
+  /**
    * Add or update a character for a given play.net account and game instance.
    */
   saveCharacter: async (options: {

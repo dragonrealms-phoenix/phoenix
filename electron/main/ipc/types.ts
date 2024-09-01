@@ -24,6 +24,10 @@ export type IpcHandlerRegistry = {
   [channel in IpcInvokableEvent]: IpcInvokeHandler<channel>;
 };
 
+export type IpcSgeAccount = {
+  accountName: string;
+};
+
 export type IpcSgeCharacter = {
   gameCode: string;
   accountName: string;
