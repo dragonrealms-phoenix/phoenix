@@ -35,5 +35,10 @@
     "**/__tests__/**",
     "**/__mocks__/**"
   ],
-  "include": ["../preload/**/*.d.ts", "../common/**/*.ts", "**/*.ts"]
+  "include": [
+    "../preload/**/*.d.ts",
+    "../common/**/*.ts",
+    "**/types.ts",
+    "**/*.ts"
+  ]
 }
