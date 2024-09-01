@@ -87,11 +87,11 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
       return;
     }
     runInBackground(async () => {
-      closeModals();
       await window.api.removeAccount({
         accountName: record.accountName,
       });
       await loadAccounts();
+      closeModals();
     });
   }, [record, loadAccounts, closeModals]);
 
