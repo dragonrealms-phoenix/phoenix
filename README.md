@@ -4,9 +4,9 @@ Ignite your [DragonRealms](http://play.net/dr) journey with Phoenix, a cross-pla
 
 Phoenix is a community-supported frontend for Simutronic's text-based multiplayer game DragonRealms.
 
-![phoenix-logo](./resources/phoenix.png)
-
 🚧 Currently in development, stay tuned!
+
+![phoenix-logo](./resources/phoenix.png)
 
 ## Developing Phoenix
 
