@@ -63,18 +63,20 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
     (tableRowItem: TableRowItem) => {
       closeModals();
       setTableRowItem(tableRowItem);
+      reset(tableRowItem);
       setShowEditAccountModal(true);
     },
-    [setTableRowItem, closeModals]
+    [setTableRowItem, reset, closeModals]
   );
 
   const onRemoveAccountClick = useCallback(
     (tableRowItem: TableRowItem) => {
       closeModals();
       setTableRowItem(tableRowItem);
+      reset(tableRowItem);
       setShowRemoveAccountModal(true);
     },
-    [setTableRowItem, closeModals]
+    [setTableRowItem, reset, closeModals]
   );
 
   const onAccountSaveConfirm = useCallback(() => {
@@ -112,7 +114,6 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         cancelButtonText="Cancel"
         confirmButtonText="Save"
         buttonColor="primary"
-        defaultFocusedButton="cancel"
       >
         <EuiForm component="form">
           <EuiFormRow label="Name">
@@ -124,9 +125,11 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
                 return (
                   <EuiFieldText
                     name={field.name}
+                    defaultValue={field.value}
                     onBlur={field.onBlur}
                     onChange={field.onChange}
                     isInvalid={fieldState.invalid}
+                    autoFocus={true}
                   />
                 );
               }}
@@ -141,6 +144,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
                 return (
                   <EuiFieldPassword
                     name={field.name}
+                    defaultValue={field.value}
                     onBlur={field.onBlur}
                     onChange={field.onChange}
                     isInvalid={fieldState.invalid}
@@ -164,24 +168,22 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         cancelButtonText="Cancel"
         confirmButtonText="Save"
         buttonColor="primary"
-        defaultFocusedButton="cancel"
       >
         <EuiForm component="form">
           <EuiFormRow label="Name">
             <Controller
               name="accountName"
-              defaultValue={tableRowItem?.accountName}
               control={control}
               rules={{ required: true }}
               render={({ field, fieldState }) => {
                 return (
                   <EuiFieldText
                     name={field.name}
+                    defaultValue={field.value}
                     onBlur={field.onBlur}
                     onChange={field.onChange}
                     isInvalid={fieldState.invalid}
-                    readOnly={true}
-                    value={tableRowItem?.accountName}
+                    disabled={true}
                   />
                 );
               }}
@@ -196,10 +198,12 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
                 return (
                   <EuiFieldPassword
                     name={field.name}
+                    defaultValue={field.value}
                     onBlur={field.onBlur}
                     onChange={field.onChange}
                     isInvalid={fieldState.invalid}
                     type="dual"
+                    autoFocus={true}
                   />
                 );
               }}
@@ -208,7 +212,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         </EuiForm>
       </EuiConfirmModal>
     );
-  }, [tableRowItem, control, onAccountSaveConfirm, closeModals]);
+  }, [control, onAccountSaveConfirm, closeModals]);
 
   const accountRemoveModal = useMemo(() => {
     return (
