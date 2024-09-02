@@ -47,6 +47,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = (
 
   const buttonElmt = (
     <EuiButtonIcon
+      aria-label={label}
       onClick={onClickButton}
       iconType={iconType}
       color={iconColor}

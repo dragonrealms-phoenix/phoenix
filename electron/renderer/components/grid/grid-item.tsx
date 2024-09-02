@@ -329,6 +329,7 @@ export const GridItem: React.FC<GridItemProps> = (
                 justifyContent="flexEnd"
               >
                 <EuiButtonIcon
+                  aria-label="Close"
                   title="Close"
                   iconType="cross"
                   color="accent"
