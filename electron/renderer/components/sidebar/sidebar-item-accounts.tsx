@@ -3,7 +3,6 @@ import {
   EuiButton,
   EuiButtonIcon,
   EuiCallOut,
-  EuiCode,
   EuiConfirmModal,
   EuiFieldPassword,
   EuiFieldText,
@@ -19,6 +18,7 @@ import {
 import type { ReactNode } from 'react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { isBlank } from '../../../common/string/is-blank.js';
 import { runInBackground } from '../../lib/async/run-in-background.js';
 
@@ -31,50 +31,15 @@ interface FormRecord {
   accountPassword?: string;
 }
 
-interface FormErrors {
-  accountName?: string;
-  accountPassword?: string;
-}
-
 export const SidebarItemAccounts: React.FC = (): ReactNode => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [showRemoveAccountModal, setShowRemoveAccountModal] = useState(false);
 
-  // All the table row items (accounts) to display.
   const [tableRowItems, setTableRowItems] = useState<Array<TableRowItem>>([]);
+  const [tableRowItem, setTableRowItem] = useState<TableRowItem>();
 
-  // The contextual form record (account) for the current action.
-  const [formRecord, setFormRecord] = useState<FormRecord>({});
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-
-  const validateAccountName = useCallback(() => {
-    if (isBlank(formRecord.accountName)) {
-      setFormErrors({
-        ...formErrors,
-        accountName: 'Name is required.',
-      });
-    } else {
-      setFormErrors({
-        ...formErrors,
-        accountName: undefined,
-      });
-    }
-  }, [formRecord, formErrors]);
-
-  const validateAccountPassword = useCallback(() => {
-    if (isBlank(formRecord.accountPassword)) {
-      setFormErrors({
-        ...formErrors,
-        accountPassword: 'Password is required.',
-      });
-    } else {
-      setFormErrors({
-        ...formErrors,
-        accountPassword: undefined,
-      });
-    }
-  }, [formRecord, formErrors]);
+  const { handleSubmit, control, reset } = useForm<FormRecord>();
 
   const loadAccounts = useCallback(async () => {
     const accounts = await window.api.listAccounts();
@@ -85,9 +50,9 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
     setShowAddAccountModal(false);
     setShowEditAccountModal(false);
     setShowRemoveAccountModal(false);
-    setFormRecord({});
-    setFormErrors({});
-  }, []);
+    setTableRowItem(undefined);
+    reset({});
+  }, [reset]);
 
   const onAddAccountClick = useCallback(() => {
     closeModals();
@@ -97,58 +62,46 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
   const onEditAccountClick = useCallback(
     (tableRowItem: TableRowItem) => {
       closeModals();
-      setFormRecord(tableRowItem);
-      setFormErrors({});
+      setTableRowItem(tableRowItem);
       setShowEditAccountModal(true);
     },
-    [closeModals]
+    [setTableRowItem, closeModals]
   );
 
   const onRemoveAccountClick = useCallback(
     (tableRowItem: TableRowItem) => {
       closeModals();
-      setFormRecord(tableRowItem);
-      setFormErrors({});
+      setTableRowItem(tableRowItem);
       setShowRemoveAccountModal(true);
     },
-    [closeModals]
+    [setTableRowItem, closeModals]
   );
 
   const onAccountSaveConfirm = useCallback(() => {
     runInBackground(async () => {
-      validateAccountName();
-      validateAccountPassword();
-      if (formErrors.accountName || formErrors.accountPassword) {
-        return;
-      }
-      await window.api.saveAccount({
-        accountName: formRecord.accountName!,
-        accountPassword: formRecord.accountPassword!,
-      });
-      await loadAccounts();
-      closeModals();
+      await handleSubmit(async (data: FormRecord) => {
+        await window.api.saveAccount({
+          accountName: data.accountName!,
+          accountPassword: data.accountPassword!,
+        });
+        await loadAccounts();
+        closeModals();
+      })();
     });
-  }, [
-    formRecord,
-    formErrors,
-    validateAccountName,
-    validateAccountPassword,
-    loadAccounts,
-    closeModals,
-  ]);
+  }, [handleSubmit, loadAccounts, closeModals]);
 
   const onAccountRemoveConfirm = useCallback(() => {
     runInBackground(async () => {
-      if (isBlank(formRecord.accountName)) {
+      if (isBlank(tableRowItem?.accountName)) {
         return;
       }
       await window.api.removeAccount({
-        accountName: formRecord.accountName,
+        accountName: tableRowItem.accountName,
       });
       await loadAccounts();
       closeModals();
     });
-  }, [formRecord, loadAccounts, closeModals]);
+  }, [tableRowItem, loadAccounts, closeModals]);
 
   const accountAddModal = useMemo(() => {
     return (
@@ -162,65 +115,105 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         defaultFocusedButton="cancel"
       >
         <EuiForm component="form">
-          <EuiFormRow
-            label="Name"
-            isInvalid={!!formErrors.accountName?.length}
-            error={formErrors.accountName}
-          >
-            <EuiFieldText
+          <EuiFormRow label="Name">
+            <Controller
               name="accountName"
-              onChange={(event) => {
-                setFormRecord({
-                  ...formRecord,
-                  accountName: event.target.value,
-                });
-                validateAccountName();
+              control={control}
+              rules={{ required: true }}
+              render={({ field, fieldState }) => {
+                return (
+                  <EuiFieldText
+                    name={field.name}
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                    isInvalid={fieldState.invalid}
+                  />
+                );
               }}
-              isInvalid={!!formErrors.accountName?.length}
             />
           </EuiFormRow>
-          <EuiFormRow
-            label="Password"
-            isInvalid={!!formErrors.accountPassword?.length}
-            error={formErrors.accountPassword}
-          >
-            <EuiFieldPassword
+          <EuiFormRow label="Password">
+            <Controller
               name="accountPassword"
-              onChange={(event) => {
-                setFormRecord({
-                  ...formRecord,
-                  accountPassword: event.target.value,
-                });
-                validateAccountPassword();
+              control={control}
+              rules={{ required: true }}
+              render={({ field, fieldState }) => {
+                return (
+                  <EuiFieldPassword
+                    name={field.name}
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                    isInvalid={fieldState.invalid}
+                    type="dual"
+                  />
+                );
               }}
-              isInvalid={!!formErrors.accountPassword?.length}
-              type="dual"
             />
           </EuiFormRow>
         </EuiForm>
       </EuiConfirmModal>
     );
-  }, [
-    formRecord,
-    formErrors,
-    validateAccountName,
-    validateAccountPassword,
-    onAccountSaveConfirm,
-    closeModals,
-  ]);
+  }, [control, onAccountSaveConfirm, closeModals]);
 
   const accountEditModal = useMemo(() => {
-    return <>edit</>;
-  }, []);
+    return (
+      <EuiConfirmModal
+        title="Change Password"
+        onCancel={closeModals}
+        onConfirm={onAccountSaveConfirm}
+        cancelButtonText="Cancel"
+        confirmButtonText="Save"
+        buttonColor="primary"
+        defaultFocusedButton="cancel"
+      >
+        <EuiForm component="form">
+          <EuiFormRow label="Name">
+            <Controller
+              name="accountName"
+              defaultValue={tableRowItem?.accountName}
+              control={control}
+              rules={{ required: true }}
+              render={({ field, fieldState }) => {
+                return (
+                  <EuiFieldText
+                    name={field.name}
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                    isInvalid={fieldState.invalid}
+                    readOnly={true}
+                    value={tableRowItem?.accountName}
+                  />
+                );
+              }}
+            />
+          </EuiFormRow>
+          <EuiFormRow label="Password">
+            <Controller
+              name="accountPassword"
+              control={control}
+              rules={{ required: true }}
+              render={({ field, fieldState }) => {
+                return (
+                  <EuiFieldPassword
+                    name={field.name}
+                    onBlur={field.onBlur}
+                    onChange={field.onChange}
+                    isInvalid={fieldState.invalid}
+                    type="dual"
+                  />
+                );
+              }}
+            />
+          </EuiFormRow>
+        </EuiForm>
+      </EuiConfirmModal>
+    );
+  }, [tableRowItem, control, onAccountSaveConfirm, closeModals]);
 
   const accountRemoveModal = useMemo(() => {
     return (
       <EuiConfirmModal
-        title={
-          <>
-            Remove account <EuiCode>{formRecord.accountName}</EuiCode>?
-          </>
-        }
+        title={<>Remove account {tableRowItem?.accountName}?</>}
         onCancel={closeModals}
         onConfirm={onAccountRemoveConfirm}
         cancelButtonText="Cancel"
@@ -231,7 +224,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         Associated characters will also be removed.
       </EuiConfirmModal>
     );
-  }, [formRecord, onAccountRemoveConfirm, closeModals]);
+  }, [tableRowItem, onAccountRemoveConfirm, closeModals]);
 
   useEffect(() => {
     runInBackground(async () => {
@@ -252,9 +245,9 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         return (
           <EuiFlexGroup responsive={true} gutterSize="s" alignItems="center">
             <EuiFlexItem grow={false}>
-              <EuiToolTip content="Edit Account" position="bottom">
+              <EuiToolTip content="Change Password" position="bottom">
                 <EuiButtonIcon
-                  aria-label="Edit Account"
+                  aria-label="Change Password"
                   iconType="pencil"
                   display="base"
                   color="warning"
