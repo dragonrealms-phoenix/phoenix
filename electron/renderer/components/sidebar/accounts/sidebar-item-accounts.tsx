@@ -27,8 +27,6 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
   const [showEditAccountModal, setShowEditAccountModal] = useState(false);
   const [showRemoveAccountModal, setShowRemoveAccountModal] = useState(false);
 
-  console.log('*** rendering sidebar');
-
   // All accounts to display.
   const accounts = useListAccounts();
 
