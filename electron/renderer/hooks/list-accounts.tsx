@@ -6,6 +6,9 @@ import type { Account } from '../types/game.types.js';
 export function useListAccounts(): Array<Account> {
   const [accounts, setAccounts] = useState<Array<Account>>([]);
 
+  // TODO subscribe to pubsub to know when should reload accounts
+  //      e.g. when an account is added, updated, or removed
+
   const loadAccounts = useCallback(async () => {
     const allAccounts = await window.api.listAccounts();
 

@@ -15,6 +15,9 @@ export function useListCharacters(
 
   const [characters, setCharacters] = useState<Array<Character>>([]);
 
+  // TODO subscribe to pubsub to know when should reload characters
+  //      e.g. when an account/contact is added, updated, or removed
+
   useEffect(() => {
     runInBackground(async () => {
       const allCharacters = await window.api.listCharacters();
