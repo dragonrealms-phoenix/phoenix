@@ -1,10 +1,10 @@
 import { EuiFlexGroup, EuiFlexItem, EuiFlyout } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { SidebarItemAccounts } from './sidebar-item-accounts.jsx';
-import { SidebarItemCharacters } from './sidebar-item-characters.jsx';
-import { SidebarItemHelp } from './sidebar-item-help.jsx';
-import { SidebarItemSettings } from './sidebar-item-settings.jsx';
+import { SidebarItemAccounts } from './accounts/sidebar-item-accounts.jsx';
+import { SidebarItemCharacters } from './characters/sidebar-item-characters.jsx';
+import { SidebarItemHelp } from './help/sidebar-item-help.jsx';
+import { SidebarItemSettings } from './settings/sidebar-item-settings.jsx';
 import { SidebarItem } from './sidebar-item.jsx';
 
 export const Sidebar: React.FC = (): ReactNode => {
@@ -76,6 +76,8 @@ export const Sidebar: React.FC = (): ReactNode => {
           type="overlay"
           paddingSize="s"
           size="s"
+          className="eui-yScroll"
+          hideCloseButton={true}
           outsideClickCloses={true}
           onClose={() => setShowCharacters(false)}
         >
@@ -89,6 +91,8 @@ export const Sidebar: React.FC = (): ReactNode => {
           type="overlay"
           paddingSize="s"
           size="s"
+          className="eui-yScroll"
+          hideCloseButton={true}
           outsideClickCloses={true}
           onClose={() => setShowAccounts(false)}
         >
@@ -102,6 +106,8 @@ export const Sidebar: React.FC = (): ReactNode => {
           type="overlay"
           paddingSize="s"
           size="s"
+          className="eui-yScroll"
+          hideCloseButton={true}
           outsideClickCloses={true}
           onClose={() => setShowSettings(false)}
         >

@@ -1,5 +1,15 @@
 import type { SerializedStyles } from '@emotion/react';
 
+export interface Account {
+  accountName: string;
+}
+
+export interface Character {
+  accountName: string;
+  characterName: string;
+  gameCode: string;
+}
+
 export interface GameLogLine {
   /**
    * A unique id for this log line.

@@ -15,7 +15,7 @@ import {
   PHOENIX_RELEASES_URL,
   PHOENIX_SECURITY_URL,
   PLAY_NET_URL,
-} from '../../../common/data/urls.js';
+} from '../../../../common/data/urls.js';
 
 interface HelpMenuProps {
   items: Array<HelpItemProps>;
@@ -110,3 +110,5 @@ export const SidebarItemHelp: React.FC = (): ReactNode => {
 
   return <HelpMenu items={helpItems} />;
 };
+
+SidebarItemHelp.displayName = 'SidebarItemHelp';

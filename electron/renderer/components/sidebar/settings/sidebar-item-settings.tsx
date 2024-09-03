@@ -5,3 +5,5 @@ export const SidebarItemSettings: React.FC = (): ReactNode => {
   // TODO
   return <EuiPanel>Settings</EuiPanel>;
 };
+
+SidebarItemSettings.displayName = 'SidebarItemSettings';
