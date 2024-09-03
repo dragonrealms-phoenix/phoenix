@@ -9,7 +9,6 @@ import { includesIgnoreCase } from '../string/includes-ignore-case.js';
 import type { LogFunction, Logger } from './types.js';
 import { LogLevel } from './types.js';
 
-// TODO: is caching these necessary?
 // Cache loggers for the same scope.
 const scopedLoggers: Record<string, ElectronLogFunctions> = {};
 
