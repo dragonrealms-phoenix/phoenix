@@ -464,7 +464,7 @@ export class GameParserImpl implements GameParser {
           });
         }
         break;
-      case 'compass': // <compass>...</compass>
+      case 'compass': // <compass><dir value="e"/><dir value="sw"/></compass>
         this.compassDirections = [];
         break;
       case 'dir': // <dir value="e"/>
@@ -601,7 +601,7 @@ export class GameParserImpl implements GameParser {
     return {
       type: GameEventType.EXPERIENCE,
       eventId: uuid(),
-      skill: tagId.slice(4),
+      skill: tagId.slice(4), // remove 'exp ' prefix
       rank: 0,
       percent: 0,
       mindState: 'clear',
