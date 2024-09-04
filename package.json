@@ -28,7 +28,7 @@
   "homepage": "https://github.com/dragonrealms-phoenix/phoenix#readme",
   "license": "BSD-3-Clause",
   "main": "./electron/build/main/index.js",
-  "packageManager": "yarn@4.1.0",
+  "packageManager": "yarn@4.4.1",
   "scripts": {
     "clean:tsbuildinfo": "find electron -name '*.tsbuildinfo' -delete",
     "clean:coverage": "rm -rf coverage",
