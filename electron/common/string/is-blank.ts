@@ -7,8 +7,8 @@ import { isEmpty } from './is-empty.js';
  * We use a type guard in result to hint that if this function returns false
  * then the value cannot be null or undefined.
  */
-export function isBlank(
+export const isBlank = (
   text: string | null | undefined
-): text is null | undefined {
+): text is null | undefined => {
   return isEmpty(text?.trim());
-}
+};

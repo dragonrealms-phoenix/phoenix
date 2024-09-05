@@ -31,7 +31,7 @@ const defaultSize: WindowSize = {
  * const { height, width } = useWindowSize();
  * ```
  */
-export function useWindowSize(props?: UseWindowSizeProps): WindowSize {
+export const useWindowSize = (props?: UseWindowSizeProps): WindowSize => {
   const { delay = 100 } = props ?? {};
 
   const [size, setSize] = useState<WindowSize>(defaultSize);
@@ -54,4 +54,4 @@ export function useWindowSize(props?: UseWindowSizeProps): WindowSize {
   }, [delay]);
 
   return size;
-}
+};

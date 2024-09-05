@@ -4,9 +4,9 @@
  */
 export type Maybe<T> = NonNullable<T> | undefined;
 
-export function convertToMaybe<T>(value: T): Maybe<T> {
+export const convertToMaybe = <T>(value: T): Maybe<T> => {
   return value ?? undefined;
-}
+};
 
 /**
  * Same as Partial<T> but goes deeper and makes Partial<T> all its properties and sub-properties.

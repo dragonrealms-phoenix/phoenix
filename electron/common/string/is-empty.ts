@@ -5,8 +5,8 @@
  * We use a type guard in result to hint that if this function returns false
  * then the value cannot be null or undefined.
  */
-export function isEmpty(
+export const isEmpty = (
   text: string | null | undefined
-): text is null | undefined {
+): text is null | undefined => {
   return !text || text === '';
-}
+};

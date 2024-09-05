@@ -10,7 +10,7 @@ import type { LogData } from './types.js';
  *
  * This method mutates and returns the log data argument.
  */
-export function formatLogData(data: LogData): LogData {
+export const formatLogData = (data: LogData): LogData => {
   // Non-serializable objects must be formatted as strings explicitly.
   // For example, this mitigates error objects being logged as "{}".
   for (const entry of Object.entries(data)) {
@@ -52,4 +52,4 @@ export function formatLogData(data: LogData): LogData {
   data = maskSensitiveValues({ json: data });
 
   return data;
-}
+};

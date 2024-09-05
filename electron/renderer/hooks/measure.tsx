@@ -41,9 +41,9 @@ const defaultSize: ElementSize = {
  * <div ref={ref}></div>
  * ```
  */
-export function useMeasure<E extends Element = Element>(
+export const useMeasure = <E extends Element = Element>(
   props?: UseMeasureProps
-): UseMeasureResult<E> {
+): UseMeasureResult<E> => {
   const { delay = 100 } = props ?? {};
 
   const [element, ref] = useState<E | null>(null);
@@ -75,4 +75,4 @@ export function useMeasure<E extends Element = Element>(
   }, [observer, element]);
 
   return [ref, size];
-}
+};
