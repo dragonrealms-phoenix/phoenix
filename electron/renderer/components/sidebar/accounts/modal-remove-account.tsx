@@ -1,6 +1,7 @@
-import { EuiConfirmModal } from '@elastic/eui';
-import { type ReactNode, useCallback } from 'react';
-import { useListCharacters } from '../../../hooks/list-characters.jsx';
+import { EuiCode, EuiConfirmModal } from '@elastic/eui';
+import type { ReactNode } from 'react';
+import { useCallback } from 'react';
+import { useListCharacters } from '../../../hooks/characters.jsx';
 
 export interface ModalRemoveAccountInitialData {
   accountName: string;
@@ -41,7 +42,7 @@ export const ModalRemoveAccount: React.FC<ModalRemoveAccountProps> = (
 
   return (
     <EuiConfirmModal
-      title={<>Log out of account {initialData.accountName}?</>}
+      title={<>Log out of account?</>}
       onCancel={onModalClose}
       onConfirm={onModalConfirm}
       cancelButtonText="Cancel"
@@ -49,12 +50,24 @@ export const ModalRemoveAccount: React.FC<ModalRemoveAccountProps> = (
       buttonColor="danger"
       defaultFocusedButton="cancel"
     >
-      Associated characters will also be removed.
-      <ul>
-        {characters.map(({ characterName }) => {
-          return <li key={characterName}>{characterName}</li>;
-        })}
-      </ul>
+      <p>
+        <EuiCode>{initialData.accountName}</EuiCode>
+      </p>
+
+      {characters.length > 0 && (
+        <p>
+          Associated characters will also be removed:
+          <ul>
+            {characters.map(({ characterName }) => {
+              return (
+                <li key={characterName}>
+                  <EuiCode>{characterName}</EuiCode>
+                </li>
+              );
+            })}
+          </ul>
+        </p>
+      )}
     </EuiConfirmModal>
   );
 };
