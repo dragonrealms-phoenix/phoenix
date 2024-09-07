@@ -95,8 +95,8 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
       <EuiSpacer size="m" />
 
       <TableListAccounts
-        editAccountClick={onEditAccountClick}
-        removeAccountClick={onRemoveAccountClick}
+        onEditAccountClick={onEditAccountClick}
+        onRemoveAccountClick={onRemoveAccountClick}
       />
 
       <EuiSpacer size="m" />

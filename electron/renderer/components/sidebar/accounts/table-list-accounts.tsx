@@ -6,18 +6,19 @@ import {
   EuiInMemoryTable,
   EuiToolTip,
 } from '@elastic/eui';
-import { type ReactNode, memo, useMemo } from 'react';
+import type { ReactNode } from 'react';
+import { memo, useMemo } from 'react';
 import { useListAccounts } from '../../../hooks/accounts.jsx';
 import type { Account } from '../../../types/game.types.js';
 
 export interface TableListAccountsProps {
-  editAccountClick: (account: Account) => void;
-  removeAccountClick: (account: Account) => void;
+  onEditAccountClick: (account: Account) => void;
+  onRemoveAccountClick: (account: Account) => void;
 }
 
 export const TableListAccounts: React.FC<TableListAccountsProps> = memo(
   (props: TableListAccountsProps): ReactNode => {
-    const { editAccountClick, removeAccountClick } = props;
+    const { onEditAccountClick, onRemoveAccountClick } = props;
 
     // All accounts to display.
     const accounts = useListAccounts();
@@ -48,7 +49,7 @@ export const TableListAccounts: React.FC<TableListAccountsProps> = memo(
                       iconType="lock"
                       display="base"
                       color="warning"
-                      onClick={() => editAccountClick(account)}
+                      onClick={() => onEditAccountClick(account)}
                     />
                   </EuiToolTip>
                 </EuiFlexItem>
@@ -59,7 +60,7 @@ export const TableListAccounts: React.FC<TableListAccountsProps> = memo(
                       iconType="exit"
                       display="base"
                       color="danger"
-                      onClick={() => removeAccountClick(account)}
+                      onClick={() => onRemoveAccountClick(account)}
                     />
                   </EuiToolTip>
                 </EuiFlexItem>
@@ -68,7 +69,7 @@ export const TableListAccounts: React.FC<TableListAccountsProps> = memo(
           },
         },
       ];
-    }, [editAccountClick, removeAccountClick]);
+    }, [onEditAccountClick, onRemoveAccountClick]);
 
     return (
       <>
