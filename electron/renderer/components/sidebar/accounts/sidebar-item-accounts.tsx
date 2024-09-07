@@ -13,34 +13,34 @@ import { ModalRemoveAccount } from './modal-remove-account.jsx';
 import { TableListAccounts } from './table-list-accounts.jsx';
 
 export const SidebarItemAccounts: React.FC = (): ReactNode => {
-  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
-  const [showEditAccountModal, setShowEditAccountModal] = useState(false);
-  const [showRemoveAccountModal, setShowRemoveAccountModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
 
-  // Hooks to save and remove accounts.
+  // Hooks to manage accounts.
   const saveAccount = useSaveAccount();
   const removeAccount = useRemoveAccount();
 
-  // The contextual account being edited or removed.
+  // The contextual account being managed.
   const [account, setAccount] = useState<Account>();
 
   const closeModals = useCallback(() => {
-    setShowAddAccountModal(false);
-    setShowEditAccountModal(false);
-    setShowRemoveAccountModal(false);
+    setShowAddModal(false);
+    setShowEditModal(false);
+    setShowRemoveModal(false);
     setAccount(undefined);
   }, []);
 
   const onAddAccountClick = useCallback(() => {
     closeModals();
-    setShowAddAccountModal(true);
+    setShowAddModal(true);
   }, [closeModals]);
 
   const onEditAccountClick = useCallback(
     (account: Account) => {
       closeModals();
       setAccount(account);
-      setShowEditAccountModal(true);
+      setShowEditModal(true);
     },
     [setAccount, closeModals]
   );
@@ -49,7 +49,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
     (account: Account) => {
       closeModals();
       setAccount(account);
-      setShowRemoveAccountModal(true);
+      setShowRemoveModal(true);
     },
     [setAccount, closeModals]
   );
@@ -101,14 +101,14 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
 
       <EuiSpacer size="m" />
 
-      {showAddAccountModal && (
+      {showAddModal && (
         <ModalAddAccount
           onClose={closeModals}
           onConfirm={onAccountSaveConfirm}
         />
       )}
 
-      {showEditAccountModal && account && (
+      {showEditModal && account && (
         <ModalEditAccount
           initialData={account}
           onClose={closeModals}
@@ -116,7 +116,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
         />
       )}
 
-      {showRemoveAccountModal && account && (
+      {showRemoveModal && account && (
         <ModalRemoveAccount
           initialData={account}
           onClose={closeModals}
