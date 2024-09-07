@@ -37,7 +37,7 @@ const HomePage: React.FC = (): ReactNode => {
     if (playingCharacter) {
       const characterName = playingCharacter.characterName;
       logger.info('quitting character', { characterName });
-      await window.api.sendCommand('quit');
+      await window.api.quitCharacter();
       setPlayingCharacter(undefined);
     }
   }, [logger, playingCharacter]);
