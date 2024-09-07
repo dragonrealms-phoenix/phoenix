@@ -121,7 +121,7 @@ export const useQuitCharacter = (): QuitCharacterFn => {
 
   const fn = useCallback<QuitCharacterFn>(async (): Promise<void> => {
     if (playingCharacter) {
-      await window.api.sendCommand('quit');
+      await window.api.quitCharacter();
       setPlayingCharacter(undefined);
       publish('character:play:stopped', playingCharacter);
       publish('characters:reload');
