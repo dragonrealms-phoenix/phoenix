@@ -1,7 +1,7 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
-import { sendCommandHandler } from '../send-command.js';
+import { quitCharacterHandler } from '../quit-character.js';
 
 type GameInstanceModule = typeof import('../../../game/game.instance.js');
 
@@ -22,7 +22,7 @@ vi.mock('../../../game/game.instance.js', () => {
   };
 });
 
-describe('send-command', () => {
+describe('quit-character', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -33,22 +33,24 @@ describe('send-command', () => {
     vi.useRealTimers();
   });
 
-  describe('#sendCommandHandler', async () => {
-    it('sends a command with the game instance', async () => {
+  describe('#quitCharacterhandler', async () => {
+    it('quits playing character with the game instance', async () => {
       const mockGameService = new GameServiceMockImpl();
       mockGameInstance.getInstance.mockReturnValueOnce(mockGameService);
 
       const mockIpcDispatcher = vi.fn();
 
-      const handler = sendCommandHandler({
+      const handler = quitCharacterHandler({
         dispatch: mockIpcDispatcher,
       });
 
-      await handler(['test-command']);
+      await handler([]);
 
       expect(mockIpcDispatcher).toHaveBeenCalledWith('game:command', {
-        command: 'test-command',
+        command: 'quit',
       });
+
+      expect(mockGameService.disconnect).toHaveBeenCalledTimes(1);
     });
 
     it('throws error if game instance not found', async () => {
@@ -56,17 +58,17 @@ describe('send-command', () => {
 
       const mockIpcDispatcher = vi.fn();
 
-      const handler = sendCommandHandler({
+      const handler = quitCharacterHandler({
         dispatch: mockIpcDispatcher,
       });
 
       try {
-        await handler(['test-command']);
+        await handler([]);
         expect.unreachable('it should throw an error');
       } catch (error) {
         expect(mockIpcDispatcher).toHaveBeenCalledTimes(0);
         expect(error).toEqual(
-          new Error('[IPC:SEND_COMMAND:ERROR:GAME_INSTANCE_NOT_FOUND]')
+          new Error('[IPC:QUIT_CHARACTER:ERROR:GAME_INSTANCE_NOT_FOUND]')
         );
       }
     });

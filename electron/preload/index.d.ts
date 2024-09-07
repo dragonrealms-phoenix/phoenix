@@ -60,6 +60,12 @@ declare const appAPI: {
     gameCode: string;
   }) => Promise<void>;
   /**
+   * Quit the game with the currently playing character, if any.
+   * Similar to sending the `quit` command to the game but awaits
+   * the game to confirm the quit before resolving.
+   */
+  quitCharacter: () => Promise<void>;
+  /**
    * Sends a command to the game as the currently playing character.
    * Use the `onMessage` API to receive game data.
    */
