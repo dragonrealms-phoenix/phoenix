@@ -1,4 +1,4 @@
-import { sortBy } from 'lodash-es';
+import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import type { Account } from '../types/game.types.js';

@@ -1,12 +1,15 @@
-import { sortBy } from 'lodash-es';
+import isEqual from 'lodash-es/isEqual.js';
+import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
+import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import type { Character } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
 /**
  * Returns a list of characters.
- * Automatically refreshes the list when an character is saved or removed.
+ * Automatically refreshes the list when a character is saved or removed.
  */
 export const useListCharacters = (): Array<Character> => {
   const [characters, setCharacters] = useState<Array<Character>>([]);
@@ -32,31 +35,18 @@ export const useListCharacters = (): Array<Character> => {
   return characters;
 };
 
-type SaveCharacterFn = (options: {
-  accountName: string;
-  characterName: string;
-  gameCode: string;
-}) => Promise<void>;
+type SaveCharacterFn = (character: Character) => Promise<void>;
 
 /**
- * Provides a function that when called saves an character.
+ * Provides a function that when called saves a character.
  */
 export const useSaveCharacter = (): SaveCharacterFn => {
   const { publish } = usePubSub();
 
   const fn = useCallback<SaveCharacterFn>(
-    async (options): Promise<void> => {
-      const { accountName, characterName, gameCode } = options;
-      await window.api.saveCharacter({
-        accountName,
-        characterName,
-        gameCode,
-      });
-      publish('character:saved', {
-        accountName,
-        characterName,
-        gameCode,
-      });
+    async (character): Promise<void> => {
+      await window.api.saveCharacter(character);
+      publish('character:saved', character);
       publish('characters:reload');
     },
     [publish]
@@ -65,35 +55,130 @@ export const useSaveCharacter = (): SaveCharacterFn => {
   return fn;
 };
 
-type RemoveCharacterFn = (options: {
-  accountName: string;
-  characterName: string;
-  gameCode: string;
-}) => Promise<void>;
+type RemoveCharacterFn = (character: Character) => Promise<void>;
 
 /**
- * Provides a function that when called removes an character.
+ * Provides a function that when called removes a character.
+ * If the character is currently playing, it will be quit first.
  */
 export const useRemoveCharacter = (): RemoveCharacterFn => {
   const { publish } = usePubSub();
 
+  const playingCharacter = useGetPlayingCharacter();
+  const quitCharacter = useQuitCharacter();
+
   const fn = useCallback<RemoveCharacterFn>(
-    async (options): Promise<void> => {
-      const { accountName, characterName, gameCode } = options;
-      await window.api.removeCharacter({
-        accountName,
-        characterName,
-        gameCode,
-      });
-      publish('character:removed', {
-        accountName,
-        characterName,
-        gameCode,
-      });
+    async (character): Promise<void> => {
+      if (isEqual(playingCharacter, character)) {
+        await quitCharacter();
+      }
+      await window.api.removeCharacter(character);
+      publish('character:removed', character);
       publish('characters:reload');
     },
-    [publish]
+    [playingCharacter, quitCharacter, publish]
   );
 
   return fn;
 };
+
+type PlayCharacterFn = (character: Character) => Promise<void>;
+
+/**
+ * Provides a function that when called plays a character.
+ * If another character is already playing, it will be quit first.
+ */
+export const usePlayCharacter = (): PlayCharacterFn => {
+  const { publish } = usePubSub();
+
+  const setPlayingCharacter = useSetPlayingCharacter();
+  const quitCharacter = useQuitCharacter();
+
+  const fn = useCallback<PlayCharacterFn>(
+    async (character): Promise<void> => {
+      await quitCharacter(); // quit any currently playing character, if any
+      await window.api.playCharacter(character);
+      setPlayingCharacter(character);
+      publish('character:play:started', character);
+      publish('characters:reload');
+    },
+    [setPlayingCharacter, quitCharacter, publish]
+  );
+
+  return fn;
+};
+
+type QuitCharacterFn = () => Promise<void>;
+
+/**
+ * Provides a function that when called quits the current playing character.
+ */
+export const useQuitCharacter = (): QuitCharacterFn => {
+  const { publish } = usePubSub();
+
+  const playingCharacter = useGetPlayingCharacter();
+  const setPlayingCharacter = useSetPlayingCharacter();
+
+  const fn = useCallback<QuitCharacterFn>(async (): Promise<void> => {
+    if (playingCharacter) {
+      await window.api.sendCommand('quit');
+      setPlayingCharacter(undefined);
+      publish('character:play:stopped', playingCharacter);
+      publish('characters:reload');
+    }
+  }, [playingCharacter, setPlayingCharacter, publish]);
+
+  return fn;
+};
+
+/**
+ * Returns the character currently being played, if any.
+ */
+export const useGetPlayingCharacter = (): Character | undefined => {
+  const { playingCharacter } = characterStore(
+    useShallow((state) => {
+      return {
+        playingCharacter: state.playingCharacter,
+      };
+    })
+  );
+
+  return playingCharacter;
+};
+
+/**
+ * Internal only.
+ * Use the `usePlayCharacter` hook instead.
+ */
+const useSetPlayingCharacter = (): ((character?: Character) => void) => {
+  const { setPlayingCharacter } = characterStore(
+    useShallow((state) => {
+      return {
+        setPlayingCharacter: state.setPlayingCharacter,
+      };
+    })
+  );
+
+  return setPlayingCharacter;
+};
+
+interface CharacterStoreData {
+  /**
+   * The character currently being played, if any.
+   */
+  playingCharacter?: Character;
+
+  /**
+   * Sets the character currently being played.
+   * To signal that no character is playing, pass `undefined`.
+   */
+  setPlayingCharacter: (character?: Character) => void;
+}
+
+const characterStore = create<CharacterStoreData>((set) => ({
+  playingCharacter: undefined,
+
+  setPlayingCharacter: (character) => {
+    set({ playingCharacter: character });
+  },
+}));

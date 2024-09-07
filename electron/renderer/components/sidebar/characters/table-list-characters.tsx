@@ -8,7 +8,8 @@ import {
   EuiTitle,
   EuiToolTip,
 } from '@elastic/eui';
-import { groupBy, isNil } from 'lodash-es';
+import groupBy from 'lodash-es/groupBy.js';
+import isNil from 'lodash-es/isNil.js';
 import type { ReactElement, ReactNode } from 'react';
 import { Fragment, memo, useMemo } from 'react';
 import { useListCharacters } from '../../../hooks/characters.jsx';
