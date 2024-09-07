@@ -41,14 +41,10 @@ interface PubSub {
  *
  * For more granular control, use `usePubSub()`.
  */
-let counter = 0;
 export const useSubscribe = (
   event: string,
   subscriber: PubSubSubscriber
 ): void => {
-  counter += 1;
-  console.log('useSubscribe', counter);
-
   const subscribe = usePubSubStore((state) => state.subscribe);
 
   useEffect(() => {
