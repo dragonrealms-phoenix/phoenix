@@ -9,10 +9,9 @@ import type { ReactNode } from 'react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import { useRemoveAccount, useSaveAccount } from '../../../hooks/accounts.jsx';
-import { usePubSub } from '../../../hooks/pubsub.jsx';
+import { useShowSidebarCharacters } from '../../../hooks/sidebar.jsx';
 import { runInBackground } from '../../../lib/async/run-in-background.js';
 import type { Account } from '../../../types/game.types.js';
-import { SidebarId } from '../../../types/sidebar.types.js';
 import type { ModalAddAccountConfirmData } from './modal-add-account.jsx';
 import { ModalAddAccount } from './modal-add-account.jsx';
 import { ModalEditAccount } from './modal-edit-account.jsx';
@@ -21,8 +20,6 @@ import { ModalRemoveAccount } from './modal-remove-account.jsx';
 import { TableListAccounts } from './table-list-accounts.jsx';
 
 export const SidebarItemAccounts: React.FC = (): ReactNode => {
-  const { publish } = usePubSub();
-
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -34,9 +31,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
   // The contextual account being managed.
   const [account, setAccount] = useState<Account>();
 
-  const switchToSidebarCharacters = useCallback(() => {
-    publish('sidebar:show', SidebarId.Characters);
-  }, [publish]);
+  const showSidebarCharacters = useShowSidebarCharacters();
 
   const closeModals = useCallback(() => {
     setShowAddModal(false);
@@ -97,8 +92,8 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
     <EuiPanel>
       <EuiCallOut title="My Accounts" iconType="key" size="s">
         Add your DragonRealms accounts here, then use the{' '}
-        <EuiLink onClick={switchToSidebarCharacters}>Characters menu</EuiLink>{' '}
-        to add and play your characters.
+        <EuiLink onClick={showSidebarCharacters}>Characters menu</EuiLink> to
+        add and play your characters.
       </EuiCallOut>
 
       <EuiSpacer size="m" />

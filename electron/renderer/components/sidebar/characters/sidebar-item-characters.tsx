@@ -12,10 +12,9 @@ import {
   useRemoveCharacter,
   useSaveCharacter,
 } from '../../../hooks/characters.jsx';
-import { usePubSub } from '../../../hooks/pubsub.jsx';
+import { useShowSidebarAccounts } from '../../../hooks/sidebar.jsx';
 import { runInBackground } from '../../../lib/async/run-in-background.js';
 import type { Character } from '../../../types/game.types.js';
-import { SidebarId } from '../../../types/sidebar.types.js';
 import { TableListCharacters } from '../characters/table-list-characters.jsx';
 import type { ModalAddCharacterConfirmData } from './modal-add-character.jsx';
 import { ModalAddCharacter } from './modal-add-character.jsx';
@@ -26,8 +25,6 @@ import {
 } from './modal-remove-character.jsx';
 
 export const SidebarItemCharacters: React.FC = (): ReactNode => {
-  const { publish } = usePubSub();
-
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -40,9 +37,7 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
   // The contextual character being managed.
   const [character, setCharacter] = useState<Character>();
 
-  const switchToSidebarAccounts = useCallback(() => {
-    publish('sidebar:show', SidebarId.Accounts);
-  }, [publish]);
+  const showSidebarAccounts = useShowSidebarAccounts();
 
   const closeModals = useCallback(() => {
     setShowAddModal(false);
@@ -115,9 +110,9 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
   return (
     <EuiPanel>
       <EuiCallOut title="My Characters" iconType="user" size="s">
-        Use the{' '}
-        <EuiLink onClick={switchToSidebarAccounts}>Accounts menu</EuiLink> to
-        add your DragonRealms accounts, then add and play your characters here.
+        Use the <EuiLink onClick={showSidebarAccounts}>Accounts menu</EuiLink>{' '}
+        to add your DragonRealms accounts, then add and play your characters
+        here.
       </EuiCallOut>
 
       <EuiSpacer size="m" />
