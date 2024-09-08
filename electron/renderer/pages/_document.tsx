@@ -6,12 +6,12 @@ import { useMemo } from 'react';
 import type { LinkHTMLAttributes, ReactElement } from 'react';
 import type React from 'react';
 import type { Theme } from '../lib/theme.js';
-import { getDefaultThemeName, themeConfig } from '../lib/theme.js';
+import { getThemeName, themeConfig } from '../lib/theme.js';
 
 function createThemeLink(theme: Theme): ReactElement {
   let disabledProps = {};
 
-  if (theme.id !== getDefaultThemeName()) {
+  if (theme.id !== getThemeName()) {
     disabledProps = {
       'disabled': true,
       'aria-disabled': true,
