@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import {
   usePlayCharacter,
+  useQuitCharacter,
   useRemoveCharacter,
   useSaveCharacter,
 } from '../../../hooks/characters.jsx';
@@ -32,6 +33,7 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
 
   // Hooks to manage characters.
   const playCharacter = usePlayCharacter();
+  const quitCharacter = useQuitCharacter();
   const saveCharacter = useSaveCharacter();
   const removeCharacter = useRemoveCharacter();
 
@@ -75,12 +77,22 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
       runInBackground(async () => {
         closeModals();
         setCharacter(character);
-        // TODO navigate to game grid so user can play the character
-        alert('Play character: ' + character.characterName);
         await playCharacter(character);
+        // TODO navigate to game grid so user can play the character
       });
     },
     [closeModals, playCharacter]
+  );
+
+  const onQuitCharacterClick = useCallback(
+    (character: Character) => {
+      runInBackground(async () => {
+        closeModals();
+        setCharacter(character);
+        await quitCharacter();
+      });
+    },
+    [closeModals, quitCharacter]
   );
 
   const onCharacterSaveConfirm = useCallback(
@@ -143,6 +155,7 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
 
       <TableListCharacters
         onPlayCharacterClick={onPlayCharacterClick}
+        onQuitCharacterClick={onQuitCharacterClick}
         onEditCharacterClick={onEditCharacterClick}
         onRemoveCharacterClick={onRemoveCharacterClick}
       />

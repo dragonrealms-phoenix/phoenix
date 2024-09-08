@@ -9,10 +9,14 @@ import {
   EuiToolTip,
 } from '@elastic/eui';
 import groupBy from 'lodash-es/groupBy.js';
+import isEqual from 'lodash-es/isEqual.js';
 import isNil from 'lodash-es/isNil.js';
 import type { ReactElement, ReactNode } from 'react';
 import { Fragment, memo, useMemo } from 'react';
-import { useListCharacters } from '../../../hooks/characters.jsx';
+import {
+  useGetPlayingCharacter,
+  useListCharacters,
+} from '../../../hooks/characters.jsx';
 import { GameCodeLabels } from '../../../lib/game/game-code-labels.js';
 import type { Character } from '../../../types/game.types.js';
 
@@ -24,6 +28,7 @@ interface TableByGameCode {
 
 export interface TableListCharactersProps {
   onPlayCharacterClick: (character: Character) => void;
+  onQuitCharacterClick: (character: Character) => void;
   onEditCharacterClick: (character: Character) => void;
   onRemoveCharacterClick: (character: Character) => void;
 }
@@ -32,12 +37,16 @@ export const TableListCharacters: React.FC<TableListCharactersProps> = memo(
   (props: TableListCharactersProps): ReactNode => {
     const {
       onPlayCharacterClick,
+      onQuitCharacterClick,
       onEditCharacterClick,
       onRemoveCharacterClick,
     } = props;
 
     // All characters to display.
     const characters = useListCharacters();
+
+    // Which character is currently being played?
+    const playingCharacter = useGetPlayingCharacter();
 
     // We'll display the characters grouped by game code.
     const charactersByGameCode = useMemo(() => {
@@ -70,15 +79,27 @@ export const TableListCharacters: React.FC<TableListCharactersProps> = memo(
                 alignItems="center"
               >
                 <EuiFlexItem grow={false}>
-                  <EuiToolTip content="Play" position="bottom">
-                    <EuiButtonIcon
-                      aria-label="Play"
-                      iconType="play"
-                      display="base"
-                      color="success"
-                      onClick={() => onPlayCharacterClick(character)}
-                    />
-                  </EuiToolTip>
+                  {isEqual(playingCharacter, character) ? (
+                    <EuiToolTip content="Quit" position="bottom">
+                      <EuiButtonIcon
+                        aria-label="Quit"
+                        iconType="stopFilled"
+                        display="base"
+                        color="accent"
+                        onClick={() => onQuitCharacterClick(character)}
+                      />
+                    </EuiToolTip>
+                  ) : (
+                    <EuiToolTip content="Play" position="bottom">
+                      <EuiButtonIcon
+                        aria-label="Play"
+                        iconType="playFilled"
+                        display="base"
+                        color="success"
+                        onClick={() => onPlayCharacterClick(character)}
+                      />
+                    </EuiToolTip>
+                  )}
                 </EuiFlexItem>
                 <EuiFlexItem grow={false}>
                   <EuiToolTip content="Edit" position="bottom">
@@ -107,7 +128,13 @@ export const TableListCharacters: React.FC<TableListCharactersProps> = memo(
           },
         },
       ];
-    }, [onPlayCharacterClick, onEditCharacterClick, onRemoveCharacterClick]);
+    }, [
+      playingCharacter,
+      onPlayCharacterClick,
+      onQuitCharacterClick,
+      onEditCharacterClick,
+      onRemoveCharacterClick,
+    ]);
 
     // Create a table for each game code that has characters.
     const tablesByGameCode = useMemo<Array<TableByGameCode>>(() => {
