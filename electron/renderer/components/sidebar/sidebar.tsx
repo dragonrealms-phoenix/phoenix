@@ -1,6 +1,8 @@
 import { EuiFlexGroup, EuiFlexItem, EuiFlyout } from '@elastic/eui';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useSubscribe } from '../../hooks/pubsub.jsx';
+import { SidebarId } from '../../types/sidebar.types.js';
 import { SidebarItemAccounts } from './accounts/sidebar-item-accounts.jsx';
 import { SidebarItemCharacters } from './characters/sidebar-item-characters.jsx';
 import { SidebarItemHelp } from './help/sidebar-item-help.jsx';
@@ -11,6 +13,27 @@ export const Sidebar: React.FC = (): ReactNode => {
   const [showCharacters, setShowCharacters] = useState(false);
   const [showAccounts, setShowAccounts] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  const closeSidebar = useCallback(() => {
+    setShowCharacters(false);
+    setShowAccounts(false);
+    setShowSettings(false);
+  }, []);
+
+  useSubscribe('sidebar:show', (sidebarId: SidebarId) => {
+    closeSidebar();
+    switch (sidebarId) {
+      case SidebarId.Characters:
+        setShowCharacters(true);
+        break;
+      case SidebarId.Accounts:
+        setShowAccounts(true);
+        break;
+      case SidebarId.Settings:
+        setShowSettings(true);
+        break;
+    }
+  });
 
   return (
     <>

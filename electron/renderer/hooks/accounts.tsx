@@ -5,6 +5,22 @@ import type { Account } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
 /**
+ * Slightly more performant by reducing rerenders if
+ * all you care about is if there are accounts, not what they are.
+ */
+export const useGetHasAccounts = (): boolean => {
+  const [hasAccounts, setHasAccounts] = useState<boolean>(false);
+
+  const accounts = useListAccounts();
+
+  useEffect(() => {
+    setHasAccounts(accounts.length > 0);
+  }, [accounts]);
+
+  return hasAccounts;
+};
+
+/**
  * Returns a list of accounts.
  * Automatically refreshes the list when an account is saved or removed.
  */

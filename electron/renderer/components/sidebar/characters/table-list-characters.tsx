@@ -13,15 +13,8 @@ import isNil from 'lodash-es/isNil.js';
 import type { ReactElement, ReactNode } from 'react';
 import { Fragment, memo, useMemo } from 'react';
 import { useListCharacters } from '../../../hooks/characters.jsx';
+import { GameCodeLabels } from '../../../lib/game/game-code-labels.js';
 import type { Character } from '../../../types/game.types.js';
-
-const GAME_CODE_LABELS: Record<string, string> = {
-  DR: 'Prime',
-  DRX: 'Platinum',
-  DRF: 'Fallen',
-  DRT: 'Test',
-  DRD: 'Development',
-};
 
 interface TableByGameCode {
   gameCode: string; // e.g. 'DR'
@@ -118,13 +111,13 @@ export const TableListCharacters: React.FC<TableListCharactersProps> = memo(
 
     // Create a table for each game code that has characters.
     const tablesByGameCode = useMemo<Array<TableByGameCode>>(() => {
-      return Object.keys(GAME_CODE_LABELS)
+      return Object.keys(GameCodeLabels)
         .map((gameCode) => {
           const characters = charactersByGameCode[gameCode];
           if (characters?.length > 0) {
             return {
               gameCode,
-              gameLabel: GAME_CODE_LABELS[gameCode],
+              gameLabel: GameCodeLabels[gameCode],
               component: (
                 <EuiInMemoryTable
                   key={gameCode}

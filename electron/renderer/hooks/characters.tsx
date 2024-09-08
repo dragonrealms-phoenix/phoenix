@@ -3,6 +3,7 @@ import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
+import { isBlank } from '../../common/string/is-blank.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import type { Character } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
@@ -11,14 +12,21 @@ import { usePubSub, useSubscribe } from './pubsub.jsx';
  * Returns a list of characters.
  * Automatically refreshes the list when a character is saved or removed.
  */
-export const useListCharacters = (): Array<Character> => {
+export const useListCharacters = (options?: {
+  accountName: string;
+}): Array<Character> => {
   const [characters, setCharacters] = useState<Array<Character>>([]);
 
   const loadCharacters = useCallback(async () => {
+    const accountName = options?.accountName;
+
     const allCharacters = await window.api.listCharacters();
-    const sortedCharacters = sortBy(allCharacters, 'characterName');
+    const filteredCharacters = allCharacters.filter((character) => {
+      return isBlank(accountName) || character.accountName === accountName;
+    });
+    const sortedCharacters = sortBy(filteredCharacters, 'characterName');
     setCharacters(sortedCharacters);
-  }, []);
+  }, [options?.accountName]);
 
   // Reload when told to.
   useSubscribe('characters:reload', async () => {
