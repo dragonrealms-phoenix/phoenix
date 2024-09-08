@@ -18,6 +18,7 @@ interface PubSub {
    * Subscribes to an event.
    * Returns a method that will unsubscribe from the event.
    * Or, you can explicitly call `unsubscribe(event, subscriber)`.
+   * For automatic unsubscription, use `useSubscribe` hook.
    */
   subscribe: (
     event: string,
@@ -48,7 +49,10 @@ export const useSubscribe = (
   const subscribe = usePubSubStore((state) => state.subscribe);
 
   useEffect(() => {
-    return subscribe({ event, subscriber });
+    const unsubscribe = subscribe({ event, subscriber });
+    return () => {
+      unsubscribe();
+    };
   }, [event, subscriber, subscribe]);
 };
 
