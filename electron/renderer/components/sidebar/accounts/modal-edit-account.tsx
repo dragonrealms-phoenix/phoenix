@@ -29,7 +29,7 @@ export interface ModalEditAccountProps {
 export const ModalEditAccount: React.FC<ModalEditAccountProps> = (
   props: ModalEditAccountProps
 ): ReactNode => {
-  const { initialData = {}, onClose, onConfirm } = props;
+  const { initialData, onClose, onConfirm } = props;
 
   const form = useForm<ModalEditAccountConfirmData>();
 

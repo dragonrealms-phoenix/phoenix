@@ -81,9 +81,9 @@ export const TableListCharacters: React.FC<TableListCharactersProps> = memo(
                   </EuiToolTip>
                 </EuiFlexItem>
                 <EuiFlexItem grow={false}>
-                  <EuiToolTip content="Rename" position="bottom">
+                  <EuiToolTip content="Edit" position="bottom">
                     <EuiButtonIcon
-                      aria-label="Rename"
+                      aria-label="Edit"
                       iconType="pencil"
                       display="base"
                       color="warning"

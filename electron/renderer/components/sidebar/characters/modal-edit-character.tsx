@@ -1,14 +1,18 @@
+import type { EuiSelectOption } from '@elastic/eui';
 import {
   EuiConfirmModal,
   EuiFieldText,
   EuiForm,
   EuiFormRow,
+  EuiSelect,
 } from '@elastic/eui';
-import { useCallback, useEffect } from 'react';
+import sortBy from 'lodash-es/sortBy.js';
+import { useCallback, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useListAccounts } from '../../../hooks/accounts.jsx';
 import { runInBackground } from '../../../lib/async/run-in-background.js';
-import { GameCodeLabels } from '../../../lib/game/game-code-labels.js';
+import { GameCodeSelectOptions } from '../../../lib/game/game-code-labels.js';
 
 export interface ModalEditCharacterInitialData {
   accountName: string;
@@ -31,7 +35,42 @@ export interface ModalEditCharacterProps {
 export const ModalEditCharacter: React.FC<ModalEditCharacterProps> = (
   props: ModalEditCharacterProps
 ): ReactNode => {
-  const { initialData = {}, onClose, onConfirm } = props;
+  const { initialData, onClose, onConfirm } = props;
+
+  const accounts = useListAccounts();
+
+  const accountNameOptions = useMemo<Array<EuiSelectOption>>(() => {
+    const sortedAccounts = sortBy(accounts, 'accountName');
+    return [
+      {
+        text: 'Select an account...',
+        value: '',
+      },
+      ...sortedAccounts.map(({ accountName }) => {
+        return {
+          text: accountName,
+          value: accountName,
+          selected: accountName === initialData.accountName,
+        };
+      }),
+    ];
+  }, [accounts, initialData]);
+
+  const gameCodeOptions = useMemo<Array<EuiSelectOption>>(() => {
+    return [
+      {
+        text: 'Select an instance...',
+        value: '',
+      },
+      ...GameCodeSelectOptions.map(({ label, value }) => {
+        return {
+          text: `${label} (${value})`,
+          value,
+          selected: value === initialData.gameCode,
+        };
+      }),
+    ];
+  }, [initialData]);
 
   const form = useForm<ModalEditCharacterConfirmData>();
 
@@ -62,7 +101,7 @@ export const ModalEditCharacter: React.FC<ModalEditCharacterProps> = (
 
   return (
     <EuiConfirmModal
-      title="Rename Character"
+      title="Edit Character"
       onCancel={onModalClose}
       onConfirm={onModalConfirm}
       cancelButtonText="Cancel"
@@ -86,6 +125,7 @@ export const ModalEditCharacter: React.FC<ModalEditCharacterProps> = (
                   onBlur={field.onBlur}
                   onChange={field.onChange}
                   isInvalid={fieldState.invalid}
+                  autoFocus={true}
                 />
               );
             }}
@@ -101,13 +141,13 @@ export const ModalEditCharacter: React.FC<ModalEditCharacterProps> = (
             rules={{ required: true }}
             render={({ field, fieldState }) => {
               return (
-                <EuiFieldText
+                <EuiSelect
                   name={field.name}
                   defaultValue={field.value}
                   onBlur={field.onBlur}
                   onChange={field.onChange}
                   isInvalid={fieldState.invalid}
-                  disabled={true}
+                  options={accountNameOptions}
                 />
               );
             }}
@@ -123,13 +163,13 @@ export const ModalEditCharacter: React.FC<ModalEditCharacterProps> = (
             rules={{ required: true }}
             render={({ field, fieldState }) => {
               return (
-                <EuiFieldText
+                <EuiSelect
                   name={field.name}
-                  defaultValue={GameCodeLabels[field.value]}
+                  defaultValue={field.value}
                   onBlur={field.onBlur}
                   onChange={field.onChange}
                   isInvalid={fieldState.invalid}
-                  disabled={true}
+                  options={gameCodeOptions}
                 />
               );
             }}

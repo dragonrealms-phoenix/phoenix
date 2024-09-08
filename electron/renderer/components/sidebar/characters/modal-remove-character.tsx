@@ -41,7 +41,7 @@ export const ModalRemoveCharacter: React.FC<ModalRemoveCharacterProps> = (
 
   return (
     <EuiConfirmModal
-      title={<>Remove character?</>}
+      title="Remove character?"
       onCancel={onModalClose}
       onConfirm={onModalConfirm}
       cancelButtonText="Cancel"

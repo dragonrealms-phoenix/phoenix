@@ -42,11 +42,11 @@ export const ModalRemoveAccount: React.FC<ModalRemoveAccountProps> = (
 
   return (
     <EuiConfirmModal
-      title={<>Log out of account?</>}
+      title="Remove account?"
       onCancel={onModalClose}
       onConfirm={onModalConfirm}
       cancelButtonText="Cancel"
-      confirmButtonText="Log out"
+      confirmButtonText="Remove"
       buttonColor="danger"
       defaultFocusedButton="cancel"
     >

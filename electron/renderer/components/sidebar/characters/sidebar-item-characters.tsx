@@ -5,6 +5,7 @@ import {
   EuiPanel,
   EuiSpacer,
 } from '@elastic/eui';
+import isEqual from 'lodash-es/isEqual.js';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import {
@@ -43,11 +44,11 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
     setShowAddModal(false);
     setShowEditModal(false);
     setShowRemoveModal(false);
-    setCharacter(undefined);
   }, []);
 
   const onAddCharacterClick = useCallback(() => {
     closeModals();
+    setCharacter(undefined);
     setShowAddModal(true);
   }, [closeModals]);
 
@@ -57,7 +58,7 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
       setCharacter(character);
       setShowEditModal(true);
     },
-    [setCharacter, closeModals]
+    [closeModals]
   );
 
   const onRemoveCharacterClick = useCallback(
@@ -66,36 +67,51 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
       setCharacter(character);
       setShowRemoveModal(true);
     },
-    [setCharacter, closeModals]
+    [closeModals]
   );
 
   const onPlayCharacterClick = useCallback(
     (character: Character) => {
-      closeModals();
-      setCharacter(character);
-      // TODO play the character
-      alert('Play character: ' + character.characterName);
+      runInBackground(async () => {
+        closeModals();
+        setCharacter(character);
+        // TODO navigate to game grid so user can play the character
+        alert('Play character: ' + character.characterName);
+        await playCharacter(character);
+      });
     },
-    [setCharacter, closeModals]
+    [closeModals, playCharacter]
   );
 
   const onCharacterSaveConfirm = useCallback(
     (data: ModalAddCharacterConfirmData) => {
-      closeModals();
       runInBackground(async () => {
+        // Characters are identified by their attributes.
+        // If the user edits the character, that creates a new unique entry.
+        // We need to remove the old entry and save the new one.
+        if (character) {
+          if (!isEqual(character, data)) {
+            await removeCharacter({
+              accountName: character.accountName,
+              characterName: character.characterName,
+              gameCode: character.gameCode,
+            });
+          }
+        }
         await saveCharacter({
           accountName: data.accountName,
           characterName: data.characterName,
           gameCode: data.gameCode,
         });
+        closeModals();
+        setCharacter(undefined);
       });
     },
-    [closeModals, saveCharacter]
+    [character, closeModals, removeCharacter, saveCharacter]
   );
 
   const onCharacterRemoveConfirm = useCallback(
     (data: ModalRemoveCharacterConfirmData) => {
-      closeModals();
       runInBackground(async () => {
         await removeCharacter({
           accountName: data.accountName,
@@ -103,6 +119,8 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
           gameCode: data.gameCode,
         });
       });
+      closeModals();
+      setCharacter(undefined);
     },
     [closeModals, removeCharacter]
   );

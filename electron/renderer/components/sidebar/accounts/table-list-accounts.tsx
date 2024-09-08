@@ -54,10 +54,10 @@ export const TableListAccounts: React.FC<TableListAccountsProps> = memo(
                   </EuiToolTip>
                 </EuiFlexItem>
                 <EuiFlexItem grow={false}>
-                  <EuiToolTip content="Log Out" position="bottom">
+                  <EuiToolTip content="Remove" position="bottom">
                     <EuiButtonIcon
-                      aria-label="Log Out"
-                      iconType="exit"
+                      aria-label="Remove"
+                      iconType="cross"
                       display="base"
                       color="danger"
                       onClick={() => onRemoveAccountClick(account)}

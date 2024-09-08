@@ -37,11 +37,11 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
     setShowAddModal(false);
     setShowEditModal(false);
     setShowRemoveModal(false);
-    setAccount(undefined);
   }, []);
 
   const onAddAccountClick = useCallback(() => {
     closeModals();
+    setAccount(undefined);
     setShowAddModal(true);
   }, [closeModals]);
 
@@ -51,7 +51,7 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
       setAccount(account);
       setShowEditModal(true);
     },
-    [setAccount, closeModals]
+    [closeModals]
   );
 
   const onRemoveAccountClick = useCallback(
@@ -60,30 +60,32 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
       setAccount(account);
       setShowRemoveModal(true);
     },
-    [setAccount, closeModals]
+    [closeModals]
   );
 
   const onAccountSaveConfirm = useCallback(
     (data: ModalAddAccountConfirmData) => {
-      closeModals();
       runInBackground(async () => {
         await saveAccount({
           accountName: data.accountName,
           accountPassword: data.accountPassword,
         });
       });
+      closeModals();
+      setAccount(undefined);
     },
     [closeModals, saveAccount]
   );
 
   const onAccountRemoveConfirm = useCallback(
     (data: ModalRemoveAccountConfirmData) => {
-      closeModals();
       runInBackground(async () => {
         await removeAccount({
           accountName: data.accountName,
         });
       });
+      closeModals();
+      setAccount(undefined);
     },
     [closeModals, removeAccount]
   );
