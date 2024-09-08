@@ -11,15 +11,14 @@ import { v4 as uuid } from 'uuid';
 import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
 import type {
   ExperienceGameEvent,
-  GameConnectMessage,
-  GameDisconnectMessage,
-  GameErrorMessage,
   GameEvent,
   GameEventMessage,
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType } from '../../common/game/types.js';
 import { GameStream } from '../components/game/game-stream.jsx';
+import type { GridItemMetadata } from '../components/grid/grid-item.jsx';
+import type { GridContentItem } from '../components/grid/grid.jsx';
 import { Grid } from '../components/grid/grid.jsx';
 import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
 import { useLogger } from '../hooks/logger.jsx';
@@ -269,53 +268,6 @@ const GridPage: React.FC = (): ReactNode => {
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
-      'game:connect',
-      (_event: IpcRendererEvent, message: GameConnectMessage) => {
-        const { accountName, characterName, gameCode } = message;
-        logger.debug('game:connect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [logger]);
-
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
-      'game:disconnect',
-      (_event: IpcRendererEvent, message: GameDisconnectMessage) => {
-        const { accountName, characterName, gameCode } = message;
-        logger.debug('game:disconnect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [logger]);
-
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
-      'game:error',
-      (_event: IpcRendererEvent, message: GameErrorMessage) => {
-        const { error } = message;
-        logger.error('game:error', { error });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [logger]);
-
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
       'game:event',
       (_event: IpcRendererEvent, message: GameEventMessage) => {
         const { gameEvent } = message;
@@ -537,56 +489,127 @@ const GridPage: React.FC = (): ReactNode => {
     },
   ];
 
-  /*
-    interface GridItemStreamConfig {
-      itemId: string; // 'room'
-      title: string; // 'Room'
-      whenVisibleStreamToItemIds: string[]; // ['room'], always streams to itself, may also stream elsewhere
-      whenHiddenStreamToItemIds: string[]; // ['main'], default streams nowhere else, may also stream elsewhere
-    }
+  interface GridConfigItem {
+    itemId: string; // 'room'
+    title: string; // 'Room'
+    whenVisibleStreamToItemIds: Array<string>; // ['room'], always streams to itself, may also stream elsewhere
+    whenHiddenStreamToItemIds: Array<string>; // ['main'], default streams nowhere else, may also stream elsewhere
+  }
 
-    // when loading the layout...
-    // drop from layout any item without a config anymore
-    configItemIds = gridItemStreamConfigs.map((config) => config.itemId)
-    layout.items = layout.items.filter((item) => configItemIds.includes(item.itemId))
+  const configGridItems: Array<GridConfigItem> = [];
 
-    layoutItemIds = layout.items.map((item) => item.itemId)
-    itemIdToStreamIdsMap = {
-      // for each gridItemStreamConfig in gridItemStreamConfigs
-      //    if layoutItemIds.includes(gridItemStreamConfig.itemId)
-      //      for each itemId in gridItemStreamConfig.whenVisibleStreamToItemIds
-      //        itemIdToStreamIdsMap[itemId].push(gridItemStreamConfig.itemId)
-      //    else
-      //      for each itemId in gridItemStreamConfig.whenHiddenStreamToItemIds
-      //        itemIdToStreamIdsMap[itemId].push(gridItemStreamConfig.itemId)
-    }
+  configGridItems.push({
+    itemId: 'room',
+    title: 'Room',
+    whenVisibleStreamToItemIds: ['room'],
+    whenHiddenStreamToItemIds: ['main'],
+  });
 
-    for each item in layout.items // Array<GridItemMetadata>
-    {
-      metadata: {
-        ...item, // itemId, title, isFocused, x, y, width, height
-        title: gridItemStreamConfigs[item.itemId].title, // 'Inventory'
+  configGridItems.push({
+    itemId: 'experience',
+    title: 'Experience',
+    whenVisibleStreamToItemIds: ['experience'],
+    whenHiddenStreamToItemIds: ['main'],
+  });
+
+  configGridItems.push({
+    itemId: 'main',
+    title: 'Main',
+    whenVisibleStreamToItemIds: ['main'],
+    whenHiddenStreamToItemIds: [''],
+  });
+
+  configGridItems.push({
+    itemId: 'percWindow',
+    title: 'Spells',
+    whenVisibleStreamToItemIds: ['percWindow'],
+    whenHiddenStreamToItemIds: [],
+  });
+
+  const configItemIds = configGridItems.map((configItem) => {
+    return configItem.itemId;
+  });
+
+  let layoutGridItems: Array<GridItemMetadata> = [];
+
+  layoutGridItems.push({
+    itemId: 'room',
+    title: 'Room',
+    isFocused: false,
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100,
+  });
+
+  // layoutGridItems.push({
+  //   itemId: 'experience',
+  //   title: 'Experience',
+  //   isFocused: false,
+  //   x: 200,
+  //   y: 0,
+  //   width: 100,
+  //   height: 100,
+  // });
+
+  layoutGridItems.push({
+    itemId: 'main',
+    title: 'Main',
+    isFocused: true,
+    x: 0,
+    y: 200,
+    width: 200,
+    height: 200,
+  });
+
+  // Drop any items that no longer have a matching config item.
+  layoutGridItems = layoutGridItems.filter((layoutItem) => {
+    return configItemIds.includes(layoutItem.itemId);
+  });
+
+  const layoutItemIds = layoutGridItems.map((layoutItem) => {
+    return layoutItem.itemId;
+  });
+
+  const itemIdToStreamIdsMap: Record<string, Array<string>> = {};
+
+  // If layout includes the config item then stream to its visible items.
+  // If layout does not include the config item then stream to its hidden items.
+  configGridItems.forEach((configItem) => {
+    const streamToItemIds = layoutItemIds.includes(configItem.itemId)
+      ? configItem.whenVisibleStreamToItemIds
+      : configItem.whenHiddenStreamToItemIds;
+
+    streamToItemIds.forEach((streamToItemId) => {
+      itemIdToStreamIdsMap[streamToItemId] ||= [];
+      itemIdToStreamIdsMap[streamToItemId].push(configItem.itemId);
+    });
+  });
+
+  const contentGridItems: Array<GridContentItem> = [];
+
+  layoutGridItems.forEach((layoutItem) => {
+    const configItem = configGridItems.find((configItem) => {
+      return configItem.itemId === layoutItem.itemId;
+    });
+
+    contentGridItems.push({
+      layout: {
+        ...layoutItem,
+        title: configItem?.title ?? layoutItem.title,
       },
       content: (
         <GameStream
-          gameStreamIds={itemIdToStreamIdsMap[item.itemId]}
+          gameStreamIds={itemIdToStreamIdsMap[layoutItem.itemId].map(
+            (streamId) => {
+              return streamId === 'main' ? '' : streamId;
+            }
+          )}
           stream$={gameLogLineSubject$}
         />
       ),
-    }
-
-
-    {
-      itemId: 'room',
-      title: 'Room',
-      content: (
-        <GameStream
-          gameStreamIds={['room']}
-          stream$={gameLogLineSubject$}
-        />
-      ),
-    },
-  */
+    });
+  });
 
   return (
     <EuiPageTemplate
@@ -605,6 +628,7 @@ const GridPage: React.FC = (): ReactNode => {
               height: gridHeight,
               width: gridWidth,
             }}
+            contentItems={contentGridItems}
           />
         </div>
       </EuiPageTemplate.Section>
@@ -622,8 +646,6 @@ const GridPage: React.FC = (): ReactNode => {
     </EuiPageTemplate>
   );
 };
-
-GridPage.displayName = 'GridPage';
 
 // nextjs pages must be default exports
 export default GridPage;

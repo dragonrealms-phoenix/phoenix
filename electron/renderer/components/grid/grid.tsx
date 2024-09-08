@@ -3,10 +3,15 @@
 // https://www.youtube.com/watch?v=vDxZLN6FVqY
 
 import type { ReactNode } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useLogger } from '../../hooks/logger.jsx';
 import type { GridItemMetadata } from './grid-item.jsx';
 import { GridItem } from './grid-item.jsx';
+
+export interface GridContentItem {
+  layout: GridItemMetadata;
+  content: ReactNode;
+}
 
 export interface GridProps {
   /**
@@ -22,18 +27,25 @@ export interface GridProps {
      */
     width: number;
   };
-  // TODO indicate which items to show on the grid
+  contentItems: Array<GridContentItem>;
 }
 
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
-  const { boundary } = props;
+  const { boundary, contentItems } = props;
 
   const logger = useLogger('cmp:grid');
 
-  // TODO load layout from storage
+  // TODO when user adds an item to the grid then add it to layout and save layout
 
-  // TODO determine the focused item from the layout, if none, use the first one
-  const [focusedItemId, setFocusedItemId] = useState<string>('');
+  const focusedContentItemId = useMemo(() => {
+    const focusedItem = contentItems.find((contentItem) => {
+      return contentItem.layout.isFocused;
+    });
+    return focusedItem?.layout?.itemId ?? '';
+  }, [contentItems]);
+
+  const [focusedItemId, setFocusedItemId] =
+    useState<string>(focusedContentItemId);
 
   const onItemFocus = useCallback((itemMeta: GridItemMetadata) => {
     const { itemId } = itemMeta;
@@ -59,41 +71,31 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     [logger]
   );
 
-  // TODO when user adds an item to the grid then add it to layout and save layout
-  //    - refer to UX of Genie client for adding items to the grid
-
-  const item1 = (
-    <GridItem
-      key="1"
-      itemId="1"
-      titleBarText="Item 1"
-      isFocused={focusedItemId === '1'}
-      onFocus={onItemFocus}
-      onClose={onItemClose}
-      onMoveResize={onItemMoveResize}
-      boundary={boundary}
-    >
-      <div>Content1</div>
-    </GridItem>
-  );
-
-  const item2 = (
-    <GridItem
-      key="2"
-      itemId="2"
-      titleBarText="Experience"
-      isFocused={focusedItemId === '2'}
-      onFocus={onItemFocus}
-      onClose={onItemClose}
-      onMoveResize={onItemMoveResize}
-      boundary={boundary}
-    >
-      <div>Content2a</div>
-      <div>Content2b</div>
-      <div>Content2c</div>
-      <div>Content2d</div>
-    </GridItem>
-  );
+  const gridItems = useMemo(() => {
+    return contentItems.map((contentItem) => {
+      return (
+        <GridItem
+          key={contentItem.layout.itemId}
+          itemId={contentItem.layout.itemId}
+          titleBarText={contentItem.layout.title}
+          isFocused={contentItem.layout.itemId === focusedItemId}
+          onFocus={onItemFocus}
+          onClose={onItemClose}
+          onMoveResize={onItemMoveResize}
+          boundary={boundary}
+        >
+          {contentItem.content}
+        </GridItem>
+      );
+    });
+  }, [
+    contentItems,
+    focusedItemId,
+    boundary,
+    onItemFocus,
+    onItemClose,
+    onItemMoveResize,
+  ]);
 
   return (
     <div
@@ -104,8 +106,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         width: boundary.width,
       }}
     >
-      {item1}
-      {item2}
+      {gridItems}
     </div>
   );
 };

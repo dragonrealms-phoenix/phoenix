@@ -7,6 +7,7 @@ import Head from 'next/head';
 import { Layout } from '../components/layout.jsx';
 import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
 import { ChromeProvider } from '../context/chrome.jsx';
+import { GameProvider } from '../context/game.jsx';
 import { LoggerProvider } from '../context/logger.jsx';
 import { ThemeProvider } from '../context/theme.jsx';
 
@@ -30,9 +31,11 @@ const App: React.FC<AppProps> = ({ Component, pageProps }: AppProps) => (
       <ChromeProvider>
         <LoggerProvider>
           <EuiErrorBoundary>
-            <LayoutNoSSR>
-              <Component {...pageProps} />
-            </LayoutNoSSR>
+            <GameProvider>
+              <LayoutNoSSR>
+                <Component {...pageProps} />
+              </LayoutNoSSR>
+            </GameProvider>
           </EuiErrorBoundary>
         </LoggerProvider>
       </ChromeProvider>
