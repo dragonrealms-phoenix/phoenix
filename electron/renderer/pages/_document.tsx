@@ -34,8 +34,8 @@ function createThemeLink(theme: Theme): ReactElement {
 /**
  * Nextjs wants you to import CSS stylesheets in the `pages/_app.tsx` file.
  * However, the @elastic/eui library instructs you to load their themes here.
- * We also need to import the react-grid-layout stylesheets, so instead of
- * splitting some of that in the `pages/_app.tsx` file, we do it all here.
+ * We also need to import custom stylesheets, so instead of splitting some
+ * of that in the `pages/_app.tsx` file, we do it all here.
  *
  * To get around the eslint rule and console warnings, we cannot use
  * the `<link>` element in the `Head` element directly.
@@ -59,13 +59,9 @@ const Document: React.FC = () => {
     return themeConfig.availableThemes.map((theme) => createThemeLink(theme));
   }, []);
 
-  const reactGridLayoutStyleLink = useMemo(() => {
-    return createStyleLink({ href: '/react-grid/layout.min.css' });
-  }, []);
-
-  const reactGridResizableStyleLink = useMemo(() => {
-    return createStyleLink({ href: '/react-grid/resizable.min.css' });
-  }, []);
+  // const yourCustomStyleLink = useMemo(() => {
+  //   return createStyleLink({ href: '/your/custom.min.css' });
+  // }, []);
 
   return (
     <Html lang="en">
@@ -73,8 +69,7 @@ const Document: React.FC = () => {
         <meta name="eui-styles" />
         {euiThemeLinks}
         <meta name="eui-styles-utility" />
-        {reactGridLayoutStyleLink}
-        {reactGridResizableStyleLink}
+        {/* {yourCustomStyleLink} */}
         <meta
           httpEquiv="Content-Security-Policy"
           content={`
