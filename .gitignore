@@ -19,6 +19,7 @@
 /electron/build
 /electron/renderer/.next
 /electron/renderer/out
+/electron/renderer/public/themes
 
 # source maps
 *.js.map
