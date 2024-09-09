@@ -8,6 +8,8 @@ export class GameServiceMockImpl implements GameService {
     this.constructorSpy(args);
   }
 
+  isConnected = vi.fn<[], boolean>();
+
   connect = vi.fn<
     Parameters<GameService['connect']>,
     ReturnType<GameService['connect']>

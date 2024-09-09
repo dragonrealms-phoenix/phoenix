@@ -15,6 +15,7 @@ const { mockParser, mockSocket, mockWriteStream, mockWaitUntil } = vi.hoisted(
 
     // For mocking the game socket module.
     const mockSocket: Mocked<GameSocket> = {
+      isConnected: vi.fn(),
       connect: vi.fn(),
       disconnect: vi.fn(),
       send: vi.fn(),
@@ -73,6 +74,10 @@ vi.mock('../game.socket.js', () => {
       this.onConnect = options.onConnect;
       this.onDisconnect = options.onDisconnect;
     }
+
+    isConnected = vi.fn().mockImplementation(() => {
+      return mockSocket.isConnected();
+    });
 
     connect = vi
       .fn()
@@ -170,6 +175,8 @@ describe('game-service', () => {
 
       const gameEvent = await rxjs.firstValueFrom(gameEvents$);
       expect(gameEvent).toEqual(mockEvent);
+
+      expect(gameService.isConnected()).toBe(true);
     });
 
     it('disconnects previous connection', async () => {
@@ -227,6 +234,8 @@ describe('game-service', () => {
 
       expect(mockSocket.connect).toHaveBeenCalledTimes(1);
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
+
+      expect(gameService.isConnected()).toBe(false);
     });
 
     it('does not disconnect if already destroyed', async () => {

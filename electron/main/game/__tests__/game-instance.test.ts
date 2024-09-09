@@ -6,6 +6,8 @@ import type { GameService } from '../types.js';
 
 const { mockGameService } = vi.hoisted(() => {
   const mockGameService = {
+    isConnected: vi.fn<[], boolean>(),
+
     connect: vi.fn<
       Parameters<GameService['connect']>,
       ReturnType<GameService['connect']>
@@ -29,6 +31,10 @@ const { mockGameService } = vi.hoisted(() => {
 
 vi.mock('../game.service.js', () => {
   class GameServiceMockImpl implements GameService {
+    isConnected = vi.fn<[], boolean>().mockImplementation(() => {
+      return mockGameService.isConnected();
+    });
+
     connect = vi
       .fn<
         Parameters<GameService['connect']>,

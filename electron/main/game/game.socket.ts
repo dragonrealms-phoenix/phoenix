@@ -37,8 +37,8 @@ export class GameSocketImpl implements GameSocket {
    * There is a brief delay after sending credentials before the game server
    * is ready to receive commands. Sending commands too early will fail.
    */
-  private isConnected = false;
-  private isDestroyed = false;
+  private _isConnected = false;
+  private _isDestroyed = false;
 
   /**
    * Socket to communicate with the game server.
@@ -78,8 +78,12 @@ export class GameSocketImpl implements GameSocket {
     this.onDisconnectCallback = options.onDisconnect ?? (() => {});
   }
 
+  public isConnected(): boolean {
+    return this._isConnected;
+  }
+
   public async connect(): Promise<rxjs.Observable<string>> {
-    if (this.isConnected) {
+    if (this._isConnected) {
       await this.disconnect();
     }
 
@@ -102,7 +106,7 @@ export class GameSocketImpl implements GameSocket {
     // If we don't check both conditions then this would wait forever.
     await this.waitUntilConnectedOrDestroyed();
 
-    if (this.isDestroyed) {
+    if (this._isDestroyed) {
       throw new Error(
         `[GAME:SOCKET:STATUS:DESTROYED] failed to connect to game server`
       );
@@ -149,7 +153,7 @@ export class GameSocketImpl implements GameSocket {
     const timeout = 5000;
 
     const result = await waitUntil({
-      condition: () => this.isConnected,
+      condition: () => this._isConnected,
       interval,
       timeout,
     });
@@ -164,7 +168,7 @@ export class GameSocketImpl implements GameSocket {
     const timeout = 5000;
 
     const result = await waitUntil({
-      condition: () => this.isDestroyed,
+      condition: () => this._isDestroyed,
       interval,
       timeout,
     });
@@ -181,13 +185,13 @@ export class GameSocketImpl implements GameSocket {
 
     logger.debug('creating game socket', { host, port });
 
-    this.isConnected = false;
-    this.isDestroyed = false;
+    this._isConnected = false;
+    this._isDestroyed = false;
 
     const onGameConnect = (): void => {
-      if (!this.isConnected) {
-        this.isConnected = true;
-        this.isDestroyed = false;
+      if (!this._isConnected) {
+        this._isConnected = true;
+        this._isDestroyed = false;
       }
       try {
         this.onConnectCallback();
@@ -205,7 +209,7 @@ export class GameSocketImpl implements GameSocket {
       } catch (error) {
         logger.warn('error in disconnect callback', { event, error });
       }
-      if (!this.isDestroyed) {
+      if (!this._isDestroyed) {
         this.destroyGameSocket(socket);
       }
     };
@@ -222,7 +226,7 @@ export class GameSocketImpl implements GameSocket {
       if (buffer.endsWith('\n')) {
         const message = buffer;
         logger.trace('socket received message', { message });
-        if (!this.isConnected && message.startsWith('<mode id="GAME"/>')) {
+        if (!this._isConnected && message.startsWith('<mode id="GAME"/>')) {
           onGameConnect();
         }
         this.socketDataSubject$?.next(message);
@@ -280,8 +284,8 @@ export class GameSocketImpl implements GameSocket {
   protected destroyGameSocket(socket: net.Socket): void {
     logger.debug('destroying game socket');
 
-    this.isConnected = false;
-    this.isDestroyed = true;
+    this._isConnected = false;
+    this._isDestroyed = true;
 
     socket.pause(); // stop receiving data
     socket.destroySoon(); // flush writes then end socket connection

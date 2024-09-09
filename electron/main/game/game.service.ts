@@ -22,8 +22,8 @@ export class GameServiceImpl implements GameService {
    * There is a brief delay after sending credentials before the game server
    * is ready to receive commands. Sending commands too early will fail.
    */
-  private isConnected = false;
-  private isDestroyed = false;
+  private _isConnected = false;
+  private _isDestroyed = false;
 
   /**
    * Socket to communicate with the game server.
@@ -41,18 +41,22 @@ export class GameServiceImpl implements GameService {
     this.socket = new GameSocketImpl({
       credentials,
       onConnect: () => {
-        this.isConnected = true;
-        this.isDestroyed = false;
+        this._isConnected = true;
+        this._isDestroyed = false;
       },
       onDisconnect: () => {
-        this.isConnected = false;
-        this.isDestroyed = true;
+        this._isConnected = false;
+        this._isDestroyed = true;
       },
     });
   }
 
+  public isConnected(): boolean {
+    return this._isConnected;
+  }
+
   public async connect(): Promise<rxjs.Observable<GameEvent>> {
-    if (this.isConnected) {
+    if (this._isConnected) {
       await this.disconnect();
     }
 
@@ -72,7 +76,7 @@ export class GameServiceImpl implements GameService {
   }
 
   public async disconnect(): Promise<void> {
-    if (!this.isDestroyed) {
+    if (!this._isDestroyed) {
       logger.info('disconnecting');
       await this.socket.disconnect();
       await this.waitUntilDestroyed();
@@ -80,7 +84,7 @@ export class GameServiceImpl implements GameService {
   }
 
   public send(command: string): void {
-    if (this.isConnected) {
+    if (this._isConnected) {
       logger.debug('sending command', { command });
       this.socket.send(command);
     }
@@ -91,7 +95,7 @@ export class GameServiceImpl implements GameService {
     const timeout = 5000;
 
     const result = await waitUntil({
-      condition: () => this.isDestroyed,
+      condition: () => this._isDestroyed,
       interval,
       timeout,
     });
