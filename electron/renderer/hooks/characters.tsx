@@ -72,7 +72,7 @@ type RemoveCharacterFn = (character: Character) => Promise<void>;
 export const useRemoveCharacter = (): RemoveCharacterFn => {
   const { publish } = usePubSub();
 
-  const playingCharacter = useGetPlayingCharacter();
+  const playingCharacter = usePlayingCharacter();
   const quitCharacter = useQuitCharacter();
 
   const fn = useCallback<RemoveCharacterFn>(
@@ -124,7 +124,7 @@ type QuitCharacterFn = () => Promise<void>;
 export const useQuitCharacter = (): QuitCharacterFn => {
   const { publish } = usePubSub();
 
-  const playingCharacter = useGetPlayingCharacter();
+  const playingCharacter = usePlayingCharacter();
   const setPlayingCharacter = useSetPlayingCharacter();
 
   const fn = useCallback<QuitCharacterFn>(async (): Promise<void> => {
@@ -142,7 +142,7 @@ export const useQuitCharacter = (): QuitCharacterFn => {
 /**
  * Returns the character currently being played, if any.
  */
-export const useGetPlayingCharacter = (): Character | undefined => {
+export const usePlayingCharacter = (): Character | undefined => {
   const { playingCharacter } = characterStore(
     useShallow((state) => {
       return {

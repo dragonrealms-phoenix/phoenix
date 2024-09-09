@@ -14,8 +14,8 @@ import isNil from 'lodash-es/isNil.js';
 import type { ReactElement, ReactNode } from 'react';
 import { Fragment, memo, useMemo } from 'react';
 import {
-  useGetPlayingCharacter,
   useListCharacters,
+  usePlayingCharacter,
 } from '../../../hooks/characters.jsx';
 import { GameCodeLabels } from '../../../lib/game/game-code-labels.js';
 import type { Character } from '../../../types/game.types.js';
@@ -46,7 +46,7 @@ export const TableListCharacters: React.FC<TableListCharactersProps> = memo(
     const characters = useListCharacters();
 
     // Which character is currently being played?
-    const playingCharacter = useGetPlayingCharacter();
+    const playingCharacter = usePlayingCharacter();
 
     // We'll display the characters grouped by game code.
     const charactersByGameCode = useMemo(() => {
