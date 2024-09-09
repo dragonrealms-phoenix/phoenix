@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
 import type {
   ExperienceGameEvent,
+  GameCommandMessage,
   GameEvent,
   GameEventMessage,
   RoomGameEvent,
@@ -279,6 +280,37 @@ const GridPage: React.FC = (): ReactNode => {
       unsubscribe();
     };
   }, [logger, gameEventsSubject$]);
+
+  // When the user sends a command, echo it to the main game stream so that
+  // the user sees what they sent and can correlate to the game response.
+  useEffect(() => {
+    const unsubscribe = window.api.onMessage(
+      'game:command',
+      (_event: IpcRendererEvent, message: GameCommandMessage) => {
+        const { command } = message;
+        logger.debug('game:command', { command });
+        gameLogLineSubject$.next({
+          eventId: uuid(),
+          // TODO create some constants for known stream ids, '' = main window
+          streamId: '',
+          // TODO clean up this mess
+          styles: css({
+            fontFamily: `Verdana, ${euiTheme.font.familySerif}`,
+            fontSize: '14px',
+            fontWeight: euiTheme.font.weight.regular,
+            color: euiTheme.colors.subduedText,
+            lineHeight: 'initial',
+            paddingLeft: euiTheme.size.s,
+            paddingRight: euiTheme.size.s,
+          }),
+          text: `> ${command}`,
+        });
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [logger, gameLogLineSubject$, euiTheme]);
 
   // TODO move to a new GameCommandInput component
   const onKeyDownCommandInput = useCallback<
