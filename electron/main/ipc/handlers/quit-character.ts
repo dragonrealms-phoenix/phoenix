@@ -15,13 +15,27 @@ export const quitCharacterHandler = (options: {
 
     const gameInstance = Game.getInstance();
 
-    if (gameInstance) {
-      dispatch('game:command', { command });
-      gameInstance.send(command);
-      await sleep(1000);
-      await gameInstance.disconnect();
-    } else {
+    if (!gameInstance) {
       throw new Error('[IPC:QUIT_CHARACTER:ERROR:GAME_INSTANCE_NOT_FOUND]');
     }
+
+    if (!gameInstance.isConnected()) {
+      logger.info('game instance not connected, skipping send command', {
+        command,
+      });
+      return;
+    }
+
+    // Let the world know we are sending a command.
+    dispatch('game:command', { command });
+
+    gameInstance.send(command);
+
+    // Give the service and the game some time to process the command.
+    await sleep(1000);
+
+    // Normally, the game server will disconnect the client after this command.
+    // Just in case, explicitly disconnect ourselves.
+    await gameInstance.disconnect();
   };
 };
