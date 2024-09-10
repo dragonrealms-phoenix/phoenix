@@ -31,7 +31,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (
 ) => {
   const { children } = props;
 
-  const [colorMode, setColorMode] = useState(getThemeName());
+  const [colorMode, setColorMode] = useState<EuiThemeColorMode>(getThemeName());
 
   // On initial mount in the browser, load user's theme preference.
   useEffect(() => {

@@ -20,9 +20,9 @@ import { ModalRemoveAccount } from './modal-remove-account.jsx';
 import { TableListAccounts } from './table-list-accounts.jsx';
 
 export const SidebarItemAccounts: React.FC = (): ReactNode => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false);
 
   // Hooks to manage accounts.
   const saveAccount = useSaveAccount();

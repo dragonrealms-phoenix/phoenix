@@ -10,9 +10,9 @@ import { SidebarItemSettings } from './settings/sidebar-item-settings.jsx';
 import { SidebarItem } from './sidebar-item.jsx';
 
 export const Sidebar: React.FC = (): ReactNode => {
-  const [showCharacters, setShowCharacters] = useState(false);
-  const [showAccounts, setShowAccounts] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showCharacters, setShowCharacters] = useState<boolean>(false);
+  const [showAccounts, setShowAccounts] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
 
   const closeSidebar = useCallback(() => {
     setShowCharacters(false);

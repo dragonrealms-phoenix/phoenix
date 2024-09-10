@@ -27,9 +27,9 @@ import {
 } from './modal-remove-character.jsx';
 
 export const SidebarItemCharacters: React.FC = (): ReactNode => {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false);
 
   // Hooks to manage characters.
   const playCharacter = usePlayCharacter();

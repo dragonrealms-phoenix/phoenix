@@ -27,8 +27,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = (
 ): ReactNode => {
   const { label, iconType, iconColor, iconSize, popoverContent } = props;
 
-  const [showTooltip, setShowTooltip] = useState(true);
-  const [showPopover, setShowPopover] = useState(false);
+  const [showTooltip, setShowTooltip] = useState<boolean>(true);
+  const [showPopover, setShowPopover] = useState<boolean>(false);
 
   const onClosePopover = useCallback(() => {
     setShowTooltip(true);
