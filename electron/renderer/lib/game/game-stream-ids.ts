@@ -4,87 +4,90 @@
  * The stream id indicates which game "window" the data is intended for.
  * User-defined scripts may also output to custom streams, which
  * aren't represented here but which Phoenix will support.
+ *
+ * Note, I didn't want to use an enum so GitHub Copilot refactored
+ * this to an object where each value is a string literal `as const`.
  */
-export enum GameStreamId {
+export const GameStreamId = {
   /**
    * The main story window. This is where most game output goes.
    * This content is unique in that there is no stream id for it.
    */
-  MAIN = '',
+  MAIN: '' as const,
   /**
    * When the game sends periodic experience updates.
    */
-  EXPERIENCE = 'experience',
+  EXPERIENCE: 'experience' as const,
   /**
    * When the game sends periodic room updates.
    * Usually updated when you move rooms or when people enter/leave.
    */
-  ROOM = 'room',
+  ROOM: 'room' as const,
   /**
    * Displays what spells/abilities are active and their duration.
    */
-  SPELLS = 'percWindow',
+  SPELLS: 'percWindow' as const,
   /**
    * Lists inventory in the main container on your character.
    */
-  INVENTORY = 'inv',
+  INVENTORY: 'inv' as const,
   /**
    * For Warrior Mages and characters who have magical pets.
    * This lets the player see what their familiar sees and does.
    * It might also be used by Empaths when perceiving wounds.
    */
-  FAMILIAR = 'familiar',
+  FAMILIAR: 'familiar' as const,
   /**
    * Messages sent and received via gweths and other ESP items.
    */
-  THOUGHTS = 'thoughts',
+  THOUGHTS: 'thoughts' as const,
   /**
    * Most combat messages.
    */
-  COMBAT = 'combat',
+  COMBAT: 'combat' as const,
   /**
    * Output when you run the `ASSESS` verb.
    */
-  ASSESS = 'assess',
+  ASSESS: 'assess' as const,
   /**
    * The stream id is 'logons' but in game you toggle on/off for arrivals.
    * Only for characters who opt-in to disclose their logons.
    */
-  ARRIVALS = 'logons',
+  ARRIVALS: 'logons' as const,
   /**
    * Messages when characters die.
    * Only for characters who opt-in to disclose their deaths.
    */
-  DEATHS = 'deaths',
+  DEATHS: 'deaths' as const,
   /**
    * Periodic messaging from items with atmospheric effects.
    */
-  ATMOSPHERICS = 'atmospherics',
+  ATMOSPHERICS: 'atmospherics' as const,
   /**
    * Similar to `THOUGHTS` but for game-wide chat for beginners.
    */
-  CHATTER = 'chatter',
+  CHATTER: 'chatter' as const,
   /**
    * No idea.
    */
-  CONVERSATION = 'conversation',
+  CONVERSATION: 'conversation' as const,
   /**
    * When players send and receive whispers via `WHISPER` verb.
    */
-  WHISPERS = 'whispers',
+  WHISPERS: 'whispers' as const,
   /**
    * No idea.
    */
-  TALK = 'talk',
+  TALK: 'talk' as const,
   /**
    * When players send and receive messages via `OOC` verb.
    */
-  OOC = 'ooc',
+  OOC: 'ooc' as const,
   /**
    * No idea. Maybe things that happen when a character is in a group?
    */
-  GROUP = 'group',
-}
+  GROUP: 'group' as const,
+} as const;
 
 export interface GameStreamItemInfo {
   /**
@@ -92,7 +95,7 @@ export interface GameStreamItemInfo {
    * Assigned by DragonRealms.
    * Example: 'percWindow' (spells) or '' (main).
    */
-  streamId: GameStreamId;
+  streamId: string;
 
   /**
    * Unique identifier for the stream for our purposes.
