@@ -24,7 +24,7 @@ import { useCallback, useMemo, useRef } from 'react';
 
 export interface GridItemMetadata {
   itemId: string;
-  title: string;
+  itemTitle: string;
   isFocused: boolean;
   x: number;
   y: number;
@@ -32,20 +32,58 @@ export interface GridItemMetadata {
   height: number;
 }
 
+/**
+ * The dimension for the grid where the item may be dragged and resized.
+ */
+export interface GridItemBoundary {
+  /**
+   * The max height of the grid in pixels.
+   */
+  height: number;
+  /**
+   * The max width of the grid in pixels.
+   */
+  width: number;
+}
+
+/**
+ * The positional layout for the grid item.
+ */
+export interface GridItemLayout {
+  /**
+   * The x coordinate for the grid item.
+   * The leftmost edge of the grid item.
+   */
+  x: number;
+  /**
+   * The y coordinate for the grid item.
+   * The topmost edge of the grid item.
+   */
+  y: number;
+  /**
+   * The width dimension for the grid item.
+   * The horizontal length of the grid item.
+   * Rightmost edge is `x + width`.
+   */
+  width: number;
+  /**
+   * The height dimension for the grid item.
+   * The vertical length of the grid item.
+   * Bottommost edge is `y + height`.
+   */
+  height: number;
+}
+
 export interface GridItemProps {
   /**
    * The dimension for the grid where the item may be dragged and resized.
    */
-  boundary: {
-    /**
-     * The max height of the grid in pixels.
-     */
-    height: number;
-    /**
-     * The max width of the grid in pixels.
-     */
-    width: number;
-  };
+  boundary: GridItemBoundary;
+  /**
+   * The positional layout for the grid item.
+   * If not specified then a default location will be used.
+   */
+  layout?: GridItemLayout;
   /**
    * The unique identifier for the grid item.
    */
@@ -55,7 +93,7 @@ export interface GridItemProps {
    * Note the prop `title` is reserved and refers to titling a DOM element,
    * not for passing data to child components. So using a more specific name.
    */
-  titleBarText: string;
+  itemTitle: string;
   /**
    * Handler when the user clicks the close button in the title bar.
    * Passes the `itemId` of the grid item being closed.
@@ -84,36 +122,42 @@ export interface GridItemProps {
   children?: ReactNode;
 }
 
+const DEFAULT_GRID_ITEM_LAYOUT: GridItemLayout = {
+  x: 0,
+  y: 0,
+  width: 500,
+  height: 500,
+};
+
 export const GridItem: React.FC<GridItemProps> = (
   props: GridItemProps
 ): ReactNode => {
-  const { boundary, itemId, titleBarText, isFocused = false, children } = props;
+  const { itemId, itemTitle, isFocused = false, children } = props;
+  const { boundary, layout = DEFAULT_GRID_ITEM_LAYOUT } = props;
   const { onFocus, onClose, onMoveResize } = props;
 
   const { euiTheme } = useEuiTheme();
 
   // Set default position and size for the grid item.
-  const [{ x, y, width, height }, sizeApi] = useSpring(() => ({
-    x: 0,
-    y: 0,
-    width: 100,
-    height: 100,
-  }));
+  // Like `useState`, we can provide the default value, but as a function.
+  const [{ x, y, width, height }, sizeApi] = useSpring<GridItemLayout>(() => {
+    return layout;
+  }, [layout]);
 
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
 
-  const getItemMetadata = useCallback(() => {
+  const getItemMetadata = useCallback((): GridItemMetadata => {
     return {
       itemId,
-      title: titleBarText,
+      itemTitle,
       isFocused,
       x: x.get(),
       y: y.get(),
       width: width.get(),
       height: height.get(),
     };
-  }, [itemId, titleBarText, isFocused, x, y, width, height]);
+  }, [itemId, itemTitle, isFocused, x, y, width, height]);
 
   // Handle when the user clicks the close button in the title bar.
   const onCloseClick = useCallback(() => {
@@ -318,7 +362,7 @@ export const GridItem: React.FC<GridItemProps> = (
                   <EuiIcon type="grabOmnidirectional" />
                 </EuiFlexItem>
                 <EuiFlexItem grow={true}>
-                  <EuiText size="xs">{titleBarText}</EuiText>
+                  <EuiText size="xs">{itemTitle}</EuiText>
                 </EuiFlexItem>
               </EuiFlexGroup>
             </EuiFlexItem>

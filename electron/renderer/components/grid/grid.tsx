@@ -77,7 +77,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
         <GridItem
           key={contentItem.layout.itemId}
           itemId={contentItem.layout.itemId}
-          titleBarText={contentItem.layout.title}
+          itemTitle={contentItem.layout.itemTitle}
           isFocused={contentItem.layout.itemId === focusedItemId}
           onFocus={onItemFocus}
           onClose={onItemClose}
