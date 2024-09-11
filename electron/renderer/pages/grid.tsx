@@ -5,7 +5,7 @@ import { css } from '@emotion/react';
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
@@ -33,20 +33,20 @@ import type { GameLogLine } from '../types/game.types.js';
 // https://nextjs.org/docs/messages/react-hydration-error
 const GridNoSSR = NoSSR(Grid);
 
-// I started tracking these via `useState` but when calling their setter
-// the value did not update fast enough before a text game event
-// was received, resulting in text routing to the wrong stream window
-// or not formatting correctly. So I moved them to global variables.
-let gameStreamId = '';
-let textOutputClass = '';
-let textStylePreset = '';
-let textStyleBold = false;
-
 const GridPage: React.FC = (): ReactNode => {
   const logger = useLogger('page:grid');
 
+  // I started tracking these via `useState` but when calling their setter
+  // the value did not update fast enough before a text game event
+  // was received, resulting in text routing to the wrong stream window
+  // or not formatting correctly. So I moved them to refs instead.
+  const gameStreamIdRef = useRef<string>('');
+  const textOutputClassRef = useRef<string>('');
+  const textStylePresetRef = useRef<string>('');
+  const textStyleBoldRef = useRef<boolean>(false);
+
   // Game events will be emitted from the IPC `game:event` channel.
-  // Here we subscribe and route them to the correct grid item.
+  // This page subscribes and routes them to the correct grid item.
   const gameEventsSubject$ = useObservable(() => {
     return new rxjs.Subject<GameEvent>();
   });
@@ -60,31 +60,33 @@ const GridPage: React.FC = (): ReactNode => {
 
   const { euiTheme } = useEuiTheme();
 
-  // Do no memoize this function with `useCallback` or `useMemo`
-  // because it needs to reference the current values of both
-  // tracked and non-tracked variables.
-  // If we memoize it then stale values would be used.
-  const computeTextStyles = (): SerializedStyles => {
-    // TODO user pref for 'mono' or 'serif' font family and size
-    let fontFamily = `Verdana, ${euiTheme.font.familySerif}`;
+  const computeTextStyles = useCallback((): SerializedStyles => {
+    // TODO user pref for 'mono' or 'serif' font family
+    let fontFamily = euiTheme.font.familySerif;
+    // TODO user pref for font size
     let fontSize = '14px';
     let fontWeight = euiTheme.font.weight.regular;
     let fontColor = euiTheme.colors.text;
 
-    if (textOutputClass === 'mono') {
-      fontFamily = `${euiTheme.font.familyCode}`;
+    if (textOutputClassRef.current === 'mono') {
+      fontFamily = euiTheme.font.familyCode;
       fontSize = euiTheme.size.m;
     }
 
-    if (textStyleBold) {
+    if (textStyleBoldRef.current) {
       fontWeight = euiTheme.font.weight.bold;
     }
 
-    if (textStylePreset === 'roomName') {
+    if (textStylePresetRef.current === 'roomName') {
       fontColor = euiTheme.colors.title;
       fontWeight = euiTheme.font.weight.bold;
     }
 
+    // TODO rather than return the calculated CSS styles,
+    //      return an object that indicates with keys from the euiTheme to use
+    //      For example, { fontFamily: 'code', fontSize: 'm', fontWeight: 'bold', color: 'title' }
+    //      This will allow the GameStreamText component to apply the correct styles
+    //      when the user's swaps the theme from light to dark mode
     const textStyles = css({
       fontFamily,
       fontSize,
@@ -96,7 +98,7 @@ const GridPage: React.FC = (): ReactNode => {
     });
 
     return textStyles;
-  };
+  }, [euiTheme]);
 
   // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
@@ -165,27 +167,27 @@ const GridPage: React.FC = (): ReactNode => {
         });
         break;
       case GameEventType.PUSH_STREAM:
-        gameStreamId = gameEvent.streamId;
+        gameStreamIdRef.current = gameEvent.streamId;
         break;
       case GameEventType.POP_STREAM:
-        gameStreamId = '';
+        gameStreamIdRef.current = '';
         break;
       case GameEventType.PUSH_BOLD:
-        textStyleBold = true;
+        textStyleBoldRef.current = true;
         break;
       case GameEventType.POP_BOLD:
-        textStyleBold = false;
+        textStyleBoldRef.current = false;
         break;
       case GameEventType.TEXT_OUTPUT_CLASS:
-        textOutputClass = gameEvent.textOutputClass;
+        textOutputClassRef.current = gameEvent.textOutputClass;
         break;
       case GameEventType.TEXT_STYLE_PRESET:
-        textStylePreset = gameEvent.textStylePreset;
+        textStylePresetRef.current = gameEvent.textStylePreset;
         break;
       case GameEventType.TEXT:
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
-          streamId: gameStreamId,
+          streamId: gameStreamIdRef.current,
           styles: textStyles,
           text: gameEvent.text,
         });
