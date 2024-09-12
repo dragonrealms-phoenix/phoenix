@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
-import { type ReactNode, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { useLogger } from '../hooks/logger.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
 
