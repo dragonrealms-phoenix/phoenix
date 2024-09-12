@@ -22,14 +22,15 @@ import isNil from 'lodash-es/isNil';
 import type { ReactNode, RefObject } from 'react';
 import { useCallback, useMemo, useRef } from 'react';
 
+/**
+ * The information shared between the grid item and the grid.
+ * For example, to notify when the item's layout or position changes.
+ */
 export interface GridItemMetadata {
   itemId: string;
   itemTitle: string;
   isFocused: boolean;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  itemLayout: GridItemLayout;
 }
 
 /**
@@ -152,10 +153,12 @@ export const GridItem: React.FC<GridItemProps> = (
       itemId,
       itemTitle,
       isFocused,
-      x: x.get(),
-      y: y.get(),
-      width: width.get(),
-      height: height.get(),
+      itemLayout: {
+        x: x.get(),
+        y: y.get(),
+        width: width.get(),
+        height: height.get(),
+      },
     };
   }, [itemId, itemTitle, isFocused, x, y, width, height]);
 
@@ -178,7 +181,9 @@ export const GridItem: React.FC<GridItemProps> = (
   }, [onMoveResize, getItemMetadata]);
 
   /**
-   * Is the event target the same element as the ref?
+   * Is the event's target the same element as the ref?
+   * This helps us identify if the user has clicked on
+   * the drag or resize handle elements.
    */
   const isEventTarget = useCallback(
     (

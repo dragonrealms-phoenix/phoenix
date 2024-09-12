@@ -389,30 +389,36 @@ const GridPage: React.FC = (): ReactNode => {
     itemId: 'room',
     itemTitle: 'Room',
     isFocused: false,
-    x: 0,
-    y: 0,
-    width: 100,
-    height: 100,
+    itemLayout: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    },
   });
 
   layoutGridItems.push({
     itemId: 'experience',
     itemTitle: 'Experience',
     isFocused: false,
-    x: 200,
-    y: 0,
-    width: 100,
-    height: 100,
+    itemLayout: {
+      x: 200,
+      y: 0,
+      width: 100,
+      height: 100,
+    },
   });
 
   layoutGridItems.push({
     itemId: 'main',
     itemTitle: 'Main',
     isFocused: true,
-    x: 0,
-    y: 200,
-    width: 200,
-    height: 200,
+    itemLayout: {
+      x: 0,
+      y: 200,
+      width: 200,
+      height: 200,
+    },
   });
 
   // Drop any items that no longer have a matching config item.
