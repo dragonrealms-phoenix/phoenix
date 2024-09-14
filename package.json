@@ -62,7 +62,6 @@
     "test": "yarn clean && vitest",
     "prepare": "npx husky && electron-builder install-app-deps",
     "semantic-release": "npx semantic-release",
-    "syncyarnlock": "npx syncyarnlock",
     "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh"
   },
   "dependencies": {
