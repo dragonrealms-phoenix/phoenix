@@ -60,6 +60,7 @@
     "build:mac": "yarn build && electron-builder --mac --config",
     "build:linux": "yarn build && electron-builder --linux --config",
     "test": "yarn clean && vitest",
+    "ts-node": "node --loader ts-node/esm --no-warnings=ExperimentalWarning -e \"import('${0}')\"",
     "prepare": "npx husky && electron-builder install-app-deps",
     "semantic-release": "npx semantic-release",
     "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh"
