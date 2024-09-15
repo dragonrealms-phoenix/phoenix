@@ -29,7 +29,7 @@ export const useListCharacters = (options?: {
   }, [options?.accountName]);
 
   // Reload when told to.
-  useSubscribe('characters:reload', async () => {
+  useSubscribe(['characters:reload'], async () => {
     await loadCharacters();
   });
 
@@ -53,6 +53,7 @@ export const useSaveCharacter = (): SaveCharacterFn => {
 
   const fn = useCallback<SaveCharacterFn>(
     async (character): Promise<void> => {
+      publish('character:saving', character);
       await window.api.saveCharacter(character);
       publish('character:saved', character);
       publish('characters:reload');
@@ -77,6 +78,7 @@ export const useRemoveCharacter = (): RemoveCharacterFn => {
 
   const fn = useCallback<RemoveCharacterFn>(
     async (character): Promise<void> => {
+      publish('character:removing', character);
       if (isEqual(playingCharacter, character)) {
         await quitCharacter();
       }
@@ -104,6 +106,7 @@ export const usePlayCharacter = (): PlayCharacterFn => {
 
   const fn = useCallback<PlayCharacterFn>(
     async (character): Promise<void> => {
+      publish('character:play:starting', character);
       await quitCharacter(); // quit any currently playing character, if any
       await window.api.playCharacter(character);
       setPlayingCharacter(character);
@@ -129,6 +132,7 @@ export const useQuitCharacter = (): QuitCharacterFn => {
 
   const fn = useCallback<QuitCharacterFn>(async (): Promise<void> => {
     if (playingCharacter) {
+      publish('character:play:stopping', playingCharacter);
       await window.api.quitCharacter();
       setPlayingCharacter(undefined);
       publish('character:play:stopped', playingCharacter);

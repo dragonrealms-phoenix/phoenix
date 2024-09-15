@@ -34,7 +34,7 @@ export const useListAccounts = (): Array<Account> => {
   }, []);
 
   // Reload when told to.
-  useSubscribe('accounts:reload', async () => {
+  useSubscribe(['accounts:reload'], async () => {
     await loadAccounts();
   });
 
@@ -62,6 +62,7 @@ export const useSaveAccount = (): SaveAccountFn => {
   const fn = useCallback<SaveAccountFn>(
     async (options): Promise<void> => {
       const { accountName, accountPassword } = options;
+      publish('account:saving', { accountName });
       await window.api.saveAccount({ accountName, accountPassword });
       publish('account:saved', { accountName });
       publish('accounts:reload');
@@ -83,6 +84,7 @@ export const useRemoveAccount = (): RemoveAccountFn => {
   const fn = useCallback<RemoveAccountFn>(
     async (options): Promise<void> => {
       const { accountName } = options;
+      publish('account:removing', { accountName });
       await window.api.removeAccount({ accountName });
       publish('account:removed', { accountName });
       publish('accounts:reload');

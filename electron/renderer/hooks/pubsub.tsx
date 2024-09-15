@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
+import type { Logger } from '../../common/logger/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
+import { createLogger } from '../lib/logger/create-logger.js';
 
 export type PubSubSubscriber = (data?: any) => Promise<void> | void;
 
@@ -37,23 +39,27 @@ interface PubSub {
 }
 
 /**
- * Hook that subscribes to an event.
+ * Hook that subscribes to one or more events.
  * Automatically unsubscribes when the component unmounts.
  *
  * For more granular control, use `usePubSub()`.
  */
 export const useSubscribe = (
-  event: string,
+  events: Array<string>,
   subscriber: PubSubSubscriber
 ): void => {
   const subscribe = usePubSubStore((state) => state.subscribe);
 
   useEffect(() => {
-    const unsubscribe = subscribe({ event, subscriber });
+    const unsubscribes = events.map((event) => {
+      return subscribe({ event, subscriber });
+    });
     return () => {
-      unsubscribe();
+      unsubscribes.forEach((unsubscribe) => {
+        unsubscribe();
+      });
     };
-  }, [event, subscriber, subscribe]);
+  }, [events, subscriber, subscribe]);
 };
 
 /**
@@ -100,6 +106,11 @@ export const usePubSub = (): PubSub => {
 
 interface PubSubStoreData {
   /**
+   * Private logger for the pubsub store.
+   */
+  logger: Logger;
+
+  /**
    * Map of event names to subscribers.
    */
   subscribers: Record<string, Array<PubSubSubscriber>>;
@@ -132,6 +143,8 @@ interface PubSubStoreData {
  * An implementation of the PubSub pattern.
  */
 const usePubSubStore = create<PubSubStoreData>((set, get) => ({
+  logger: createLogger('hooks:pubsub'),
+
   subscribers: {},
 
   subscribe: (options: { event: string; subscriber: PubSubSubscriber }) => {
@@ -188,8 +201,15 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
     // so that a slow subscriber doesn't block the others.
     runInBackground(async () => {
       await Promise.allSettled(
-        subscribers.map((subscriber) => {
-          return subscriber(data);
+        subscribers.map(async (subscriber) => {
+          try {
+            await subscriber(data);
+          } catch (error) {
+            get().logger.error('error in pubsub subscriber', {
+              event,
+              error,
+            });
+          }
         })
       );
     });

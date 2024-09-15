@@ -1,6 +1,8 @@
 import type { IpcRendererEvent } from 'electron';
+import { EuiLoadingSpinner, EuiOverlayMask } from '@elastic/eui';
+import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
-import { createContext, useEffect } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import type {
   GameConnectMessage,
   GameDisconnectMessage,
@@ -8,6 +10,7 @@ import type {
 } from '../../common/game/types.js';
 import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
+import { useSubscribe } from '../hooks/pubsub.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
 
 /**
@@ -34,8 +37,40 @@ export const GameProvider: React.FC<GameProviderProps> = (
   const { children } = props;
 
   const logger = useLogger('context:game');
+  const router = useRouter();
 
   const quitCharacter = useQuitCharacter();
+
+  // To protect against a user pressing play/stop while the app
+  // is transitioning between characters, show a loading spinner.
+  const [showPlayStartingOverlay, setShowPlayStartingOverlay] =
+    useState<boolean>(false);
+
+  const [showPlayStoppingOverlay, setShowPlayStoppingOverlay] =
+    useState<boolean>(false);
+
+  // You may be lured into subscribing to multiple events
+  // to set a single overlay state as true/false, but don't do that.
+  // The start/stop events fire back-to-back when you play
+  // a second character and one is already playing. What you see
+  // is a quick flicker of the overlay then no overlay at all.
+  // Instead, use two variables to drive the overlay.
+  useSubscribe(['character:play:starting'], async () => {
+    setShowPlayStartingOverlay(true);
+  });
+
+  useSubscribe(['character:play:started'], async () => {
+    setShowPlayStartingOverlay(false);
+    await router.push('/grid');
+  });
+
+  useSubscribe(['character:play:stopping'], async () => {
+    setShowPlayStoppingOverlay(true);
+  });
+
+  useSubscribe(['character:play:stopped'], async () => {
+    setShowPlayStoppingOverlay(false);
+  });
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -90,5 +125,16 @@ export const GameProvider: React.FC<GameProviderProps> = (
     };
   }, [logger]);
 
-  return <GameContext.Provider value={{}}>{children}</GameContext.Provider>;
+  return (
+    <GameContext.Provider value={{}}>
+      <>
+        {(showPlayStartingOverlay || showPlayStoppingOverlay) && (
+          <EuiOverlayMask>
+            <EuiLoadingSpinner size="l" />
+          </EuiOverlayMask>
+        )}
+        {children}
+      </>
+    </GameContext.Provider>
+  );
 };
