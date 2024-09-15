@@ -21,59 +21,11 @@ import get from 'lodash-es/get';
 import isNil from 'lodash-es/isNil';
 import type { ReactNode, RefObject } from 'react';
 import { useCallback, useMemo, useRef } from 'react';
-
-/**
- * The information shared between the grid item and the grid.
- * For example, to notify when the item's layout or position changes.
- */
-export interface GridItemMetadata {
-  itemId: string;
-  itemTitle: string;
-  isFocused: boolean;
-  itemLayout: GridItemLayout;
-}
-
-/**
- * The dimension for the grid where the item may be dragged and resized.
- */
-export interface GridItemBoundary {
-  /**
-   * The max height of the grid in pixels.
-   */
-  height: number;
-  /**
-   * The max width of the grid in pixels.
-   */
-  width: number;
-}
-
-/**
- * The positional layout for the grid item.
- */
-export interface GridItemLayout {
-  /**
-   * The x coordinate for the grid item.
-   * The leftmost edge of the grid item.
-   */
-  x: number;
-  /**
-   * The y coordinate for the grid item.
-   * The topmost edge of the grid item.
-   */
-  y: number;
-  /**
-   * The width dimension for the grid item.
-   * The horizontal length of the grid item.
-   * Rightmost edge is `x + width`.
-   */
-  width: number;
-  /**
-   * The height dimension for the grid item.
-   * The vertical length of the grid item.
-   * Bottommost edge is `y + height`.
-   */
-  height: number;
-}
+import type {
+  GridItemBoundary,
+  GridItemInfo,
+  GridItemLayout,
+} from '../../types/grid.types.js';
 
 export interface GridItemProps {
   /**
@@ -99,7 +51,7 @@ export interface GridItemProps {
    * Handler when the user clicks the close button in the title bar.
    * Passes the `itemId` of the grid item being closed.
    */
-  onClose?: (metadata: GridItemMetadata) => void;
+  onClose?: (item: GridItemInfo) => void;
   /**
    * Is this the focused grid item?
    * When yes then it will be positioned above the other grid items.
@@ -110,11 +62,11 @@ export interface GridItemProps {
    * The parent component has responsibility for managing the `isFocused`
    * property for all of the grid items to reflect the change.
    */
-  onFocus?: (metadata: GridItemMetadata) => void;
+  onFocus?: (item: GridItemInfo) => void;
   /**
    * When the grid item is moved or resized then notify the parent component.
    */
-  onMoveResize?: (metadata: GridItemMetadata) => void;
+  onMoveResize?: (item: GridItemInfo) => void;
   /**
    * This property contains any children nested within the grid item
    * when you're constructing the grid layout.
@@ -148,12 +100,12 @@ export const GridItem: React.FC<GridItemProps> = (
   const dragHandleRef = useRef<HTMLDivElement>(null);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
 
-  const getItemMetadata = useCallback((): GridItemMetadata => {
+  const getItemInfo = useCallback((): GridItemInfo => {
     return {
       itemId,
       itemTitle,
       isFocused,
-      itemLayout: {
+      layout: {
         x: x.get(),
         y: y.get(),
         width: width.get(),
@@ -164,21 +116,21 @@ export const GridItem: React.FC<GridItemProps> = (
 
   // Handle when the user clicks the close button in the title bar.
   const onCloseClick = useCallback(() => {
-    onClose?.(getItemMetadata());
-  }, [onClose, getItemMetadata]);
+    onClose?.(getItemInfo());
+  }, [onClose, getItemInfo]);
 
   // Handle when the user clicks or focuses the grid item.
   const onFocusClick = useCallback(() => {
-    onFocus?.(getItemMetadata());
-  }, [onFocus, getItemMetadata]);
+    onFocus?.(getItemInfo());
+  }, [onFocus, getItemInfo]);
 
   // Handle when the user moves or resizes the grid item.
   // Because this event triggers frequently, we debounce it for performance.
   const onMoveResizeHandler = useMemo(() => {
     return debounce(() => {
-      onMoveResize?.(getItemMetadata());
+      onMoveResize?.(getItemInfo());
     }, 300);
-  }, [onMoveResize, getItemMetadata]);
+  }, [onMoveResize, getItemInfo]);
 
   /**
    * Is the event's target the same element as the ref?
