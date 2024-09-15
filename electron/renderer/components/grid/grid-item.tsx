@@ -265,6 +265,7 @@ export const GridItem: React.FC<GridItemProps> = (
         },
         '.drag-handle:active': {
           cursor: 'grabbing',
+          touchAction: 'none',
         },
         '.resize-handle': {
           position: 'absolute',
@@ -273,6 +274,7 @@ export const GridItem: React.FC<GridItemProps> = (
           width: 10,
           height: 10,
           cursor: 'nwse-resize',
+          touchAction: 'none',
           backgroundColor: euiTheme.colors.mediumShade,
           borderRadius: 5,
         },
