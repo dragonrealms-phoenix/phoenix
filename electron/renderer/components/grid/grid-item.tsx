@@ -196,12 +196,18 @@ export const GridItem: React.FC<GridItemProps> = (
       const [dx, dy] = state.offset;
 
       if (isResizing(state.event)) {
-        sizeApi.set({ width: dx, height: dy });
+        sizeApi.set({
+          width: Math.trunc(dx),
+          height: Math.trunc(dy),
+        });
         onMoveResizeHandler();
       }
 
       if (isDragging(state.event)) {
-        sizeApi.set({ x: dx, y: dy });
+        sizeApi.set({
+          x: Math.trunc(dx),
+          y: Math.trunc(dy),
+        });
         onMoveResizeHandler();
       }
     },
