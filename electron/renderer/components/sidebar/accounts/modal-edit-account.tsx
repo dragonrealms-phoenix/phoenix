@@ -38,14 +38,14 @@ export const ModalEditAccount: React.FC<ModalEditAccountProps> = (
   }, [form, initialData]);
 
   const onModalClose = useCallback(
-    (_event?: React.UIEvent) => {
+    (_event?: React.BaseSyntheticEvent) => {
       onClose();
     },
     [onClose]
   );
 
   const onModalConfirm = useCallback(
-    (event: React.UIEvent) => {
+    (event: React.BaseSyntheticEvent) => {
       runInBackground(async () => {
         const handler = form.handleSubmit(
           (data: ModalEditAccountConfirmData) => {
@@ -67,7 +67,12 @@ export const ModalEditAccount: React.FC<ModalEditAccountProps> = (
       confirmButtonText="Save"
       buttonColor="primary"
     >
-      <EuiForm component="form">
+      <EuiForm component="form" onSubmit={onModalConfirm}>
+        {/* Hidden submit button to ensure form submission on Enter key press. */}
+        {/* Since we are in a confirm modal, we don't have a visible form button. */}
+        {/* Otherwise you'd see two buttons, one for form and one for modal. */}
+        <button type="submit" hidden={true} />
+
         <EuiFormRow
           label="Name"
           isInvalid={!!form.formState.errors.accountName}
