@@ -18,15 +18,19 @@ import type {
 } from '../../common/game/types.js';
 import { GameEventType } from '../../common/game/types.js';
 import { GameStream } from '../components/game/game-stream.jsx';
-import type { GridItemMetadata } from '../components/grid/grid-item.jsx';
-import type { GridContentItem } from '../components/grid/grid.jsx';
 import { Grid } from '../components/grid/grid.jsx';
 import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
 import { useWindowSize } from '../hooks/window-size.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { GameLogLine } from '../types/game.types.js';
+import { getGameItemInfo } from '../lib/game/game-item-info.js';
+import { GameItemId, type GameLogLine } from '../types/game.types.js';
+import type {
+  GridItemConfig,
+  GridItemContent,
+  GridItemInfo,
+} from '../types/grid.types.js';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
@@ -342,54 +346,53 @@ const GridPage: React.FC = (): ReactNode => {
   const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
   const gridHeight = windowSize.height - bottomBarSize.height - 40;
 
-  interface GridConfigItem {
-    itemId: string; // 'room'
-    title: string; // 'Room'
-    whenVisibleStreamToItemIds: Array<string>; // ['room'], always streams to itself, may also stream elsewhere
-    whenHiddenStreamToItemIds: Array<string>; // ['main'], default streams nowhere else, may also stream elsewhere
-  }
-
-  const configGridItems: Array<GridConfigItem> = [];
+  // TODO define a default config set
+  // TODO allow users to customize the set and add/remove items
+  // TODO IPC handler to get/save the user's config set
+  const configGridItems: Array<GridItemConfig> = [];
 
   configGridItems.push({
-    itemId: 'room',
-    title: 'Room',
-    whenVisibleStreamToItemIds: ['room'],
-    whenHiddenStreamToItemIds: ['main'],
-  });
-
-  configGridItems.push({
-    itemId: 'experience',
-    title: 'Experience',
-    whenVisibleStreamToItemIds: ['experience'],
-    whenHiddenStreamToItemIds: ['main'],
-  });
-
-  configGridItems.push({
-    itemId: 'main',
-    title: 'Main',
-    whenVisibleStreamToItemIds: ['main'],
-    whenHiddenStreamToItemIds: [''],
-  });
-
-  configGridItems.push({
-    itemId: 'percWindow',
-    title: 'Spells',
-    whenVisibleStreamToItemIds: ['percWindow'],
+    gameItemInfo: getGameItemInfo(GameItemId.ROOM),
+    whenVisibleStreamToItemIds: [GameItemId.ROOM],
     whenHiddenStreamToItemIds: [],
   });
 
-  const configItemIds = configGridItems.map((configItem) => {
-    return configItem.itemId;
+  configGridItems.push({
+    gameItemInfo: getGameItemInfo(GameItemId.EXPERIENCE),
+    whenVisibleStreamToItemIds: [GameItemId.EXPERIENCE],
+    whenHiddenStreamToItemIds: [],
   });
 
-  let layoutGridItems: Array<GridItemMetadata> = [];
+  configGridItems.push({
+    gameItemInfo: getGameItemInfo(GameItemId.MAIN),
+    whenVisibleStreamToItemIds: [GameItemId.MAIN],
+    whenHiddenStreamToItemIds: [],
+  });
+
+  configGridItems.push({
+    gameItemInfo: getGameItemInfo(GameItemId.SPELLS),
+    whenVisibleStreamToItemIds: [GameItemId.SPELLS],
+    whenHiddenStreamToItemIds: [],
+  });
+
+  const configItemsMap: Record<string, GridItemConfig> = {};
+  const configItemIds: Array<string> = [];
+  configGridItems.forEach((configItem) => {
+    const itemId = configItem.gameItemInfo.itemId;
+    configItemsMap[itemId] = configItem;
+    configItemIds.push(itemId);
+  });
+
+  // TODO define a default layout
+  // TODO IPC handler to get/save a layout
+  // TODO allow user to assign layouts to characters
+  let layoutGridItems = new Array<GridItemInfo>();
 
   layoutGridItems.push({
     itemId: 'room',
     itemTitle: 'Room',
     isFocused: false,
-    itemLayout: {
+    layout: {
       x: 0,
       y: 0,
       width: 100,
@@ -401,8 +404,20 @@ const GridPage: React.FC = (): ReactNode => {
     itemId: 'experience',
     itemTitle: 'Experience',
     isFocused: false,
-    itemLayout: {
+    layout: {
       x: 200,
+      y: 0,
+      width: 100,
+      height: 100,
+    },
+  });
+
+  layoutGridItems.push({
+    itemId: 'spells',
+    itemTitle: 'Spells',
+    isFocused: false,
+    layout: {
+      x: 800,
       y: 0,
       width: 100,
       height: 100,
@@ -413,7 +428,7 @@ const GridPage: React.FC = (): ReactNode => {
     itemId: 'main',
     itemTitle: 'Main',
     isFocused: true,
-    itemLayout: {
+    layout: {
       x: 0,
       y: 200,
       width: 200,
@@ -426,44 +441,67 @@ const GridPage: React.FC = (): ReactNode => {
     return configItemIds.includes(layoutItem.itemId);
   });
 
-  const layoutItemIds = layoutGridItems.map((layoutItem) => {
-    return layoutItem.itemId;
+  const layoutItemsMap: Record<string, GridItemInfo> = {};
+  const layoutItemIds: Array<string> = [];
+  layoutGridItems.forEach((layoutItem) => {
+    const itemId = layoutItem.itemId;
+    layoutItemsMap[itemId] = layoutItem;
+    layoutItemIds.push(itemId);
   });
 
-  const itemIdToStreamIdsMap: Record<string, Array<string>> = {};
+  // Map of item ids to the item ids that should stream to it.
+  // The key is the item id that should receive the stream(s).
+  // The values are the items redirecting their stream to the key item.
+  const itemStreamMapping: Record<string, Array<string>> = {};
 
   // If layout includes the config item then stream to its visible items.
   // If layout does not include the config item then stream to its hidden items.
   configGridItems.forEach((configItem) => {
-    const streamToItemIds = layoutItemIds.includes(configItem.itemId)
+    const itemId = configItem.gameItemInfo.itemId;
+
+    const streamToItemIds = layoutItemsMap[itemId]
       ? configItem.whenVisibleStreamToItemIds
       : configItem.whenHiddenStreamToItemIds;
 
-    streamToItemIds.forEach((streamToItemId) => {
-      itemIdToStreamIdsMap[streamToItemId] ||= [];
-      itemIdToStreamIdsMap[streamToItemId].push(configItem.itemId);
-    });
+    // TODO rename this method and move it out the for-each loop
+    // If an item is hidden and redirects elsewhere, follow the chain
+    // until we find an item that is visible to truly redirect to.
+    // This is necessary because the layout may not include all items.
+    const funcX = (streamToItemIds: Array<string>, itemId: string) => {
+      streamToItemIds.forEach((streamToItemId) => {
+        if (layoutItemsMap[streamToItemId]) {
+          // We're in luck. We found a visible item to stream to.
+          itemStreamMapping[streamToItemId] ||= [];
+          itemStreamMapping[streamToItemId].push(itemId);
+        } else {
+          // Well, where the hidden item wanted to redirect to
+          // also is hidden so we need to keep looking for a visible item.
+          funcX(
+            configItemsMap[streamToItemId].whenHiddenStreamToItemIds,
+            itemId
+          );
+        }
+      });
+    };
+
+    funcX(streamToItemIds, itemId);
   });
 
-  const contentGridItems: Array<GridContentItem> = [];
+  const contentGridItems: Array<GridItemContent> = [];
 
   layoutGridItems.forEach((layoutItem) => {
-    const configItem = configGridItems.find((configItem) => {
-      return configItem.itemId === layoutItem.itemId;
-    });
+    const configItem = configItemsMap[layoutItem.itemId];
 
     contentGridItems.push({
-      layout: {
-        ...layoutItem,
-        itemTitle: configItem?.title ?? layoutItem.itemTitle,
-      },
+      itemId: layoutItem.itemId,
+      itemTitle: configItem.gameItemInfo.itemTitle ?? layoutItem.itemTitle,
+      isFocused: layoutItem.isFocused,
+      layout: layoutItem.layout,
       content: (
         <GameStream
-          gameStreamIds={itemIdToStreamIdsMap[layoutItem.itemId].map(
-            (streamId) => {
-              return streamId === 'main' ? '' : streamId;
-            }
-          )}
+          gameStreamIds={itemStreamMapping[layoutItem.itemId].map((itemId) => {
+            return configItemsMap[itemId].gameItemInfo.streamId;
+          })}
           stream$={gameLogLineSubject$}
         />
       ),
