@@ -121,8 +121,13 @@ export const GridItem: React.FC<GridItemProps> = (
 
   // Handle when the user clicks or focuses the grid item.
   const onFocusClick = useCallback(() => {
-    onFocus?.(getItemInfo());
-  }, [onFocus, getItemInfo]);
+    if (!isFocused) {
+      onFocus?.({
+        ...getItemInfo(),
+        isFocused: true,
+      });
+    }
+  }, [onFocus, getItemInfo, isFocused]);
 
   // Handle when the user moves or resizes the grid item.
   // Because this event triggers frequently, we debounce it for performance.
@@ -196,22 +201,26 @@ export const GridItem: React.FC<GridItemProps> = (
       const [dx, dy] = state.offset;
 
       if (isResizing(state.event)) {
-        sizeApi.set({
-          width: Math.trunc(dx),
-          height: Math.trunc(dy),
-        });
-        onMoveResizeHandler();
+        if (width.get() !== Math.trunc(dx) || height.get() !== Math.trunc(dy)) {
+          sizeApi.set({
+            width: Math.trunc(dx),
+            height: Math.trunc(dy),
+          });
+          onMoveResizeHandler();
+        }
       }
 
       if (isDragging(state.event)) {
-        sizeApi.set({
-          x: Math.trunc(dx),
-          y: Math.trunc(dy),
-        });
-        onMoveResizeHandler();
+        if (x.get() !== Math.trunc(dx) || y.get() !== Math.trunc(dy)) {
+          sizeApi.set({
+            x: Math.trunc(dx),
+            y: Math.trunc(dy),
+          });
+          onMoveResizeHandler();
+        }
       }
     },
-    [sizeApi, isResizing, isDragging, onMoveResizeHandler]
+    [x, y, width, height, sizeApi, isResizing, isDragging, onMoveResizeHandler]
   );
 
   const dragOptions: UserDragConfig = useMemo(() => {
