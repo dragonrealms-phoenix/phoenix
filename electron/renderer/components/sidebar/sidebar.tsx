@@ -100,7 +100,8 @@ export const Sidebar: React.FC = (): ReactNode => {
           paddingSize="s"
           size="s"
           className="eui-yScroll"
-          hideCloseButton={true}
+          pushAnimation={true}
+          hideCloseButton={false}
           outsideClickCloses={true}
           onClose={() => setShowCharacters(false)}
         >
@@ -115,7 +116,8 @@ export const Sidebar: React.FC = (): ReactNode => {
           paddingSize="s"
           size="s"
           className="eui-yScroll"
-          hideCloseButton={true}
+          pushAnimation={true}
+          hideCloseButton={false}
           outsideClickCloses={true}
           onClose={() => setShowAccounts(false)}
         >
@@ -130,7 +132,8 @@ export const Sidebar: React.FC = (): ReactNode => {
           paddingSize="s"
           size="s"
           className="eui-yScroll"
-          hideCloseButton={true}
+          pushAnimation={true}
+          hideCloseButton={false}
           outsideClickCloses={true}
           onClose={() => setShowSettings(false)}
         >

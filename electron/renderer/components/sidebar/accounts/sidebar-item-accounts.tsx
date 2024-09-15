@@ -91,50 +91,50 @@ export const SidebarItemAccounts: React.FC = (): ReactNode => {
   );
 
   return (
-    <EuiPanel>
+    <EuiPanel paddingSize="none">
       <EuiCallOut title="My Accounts" iconType="key" size="s">
         Add your DragonRealms accounts here, then use the{' '}
         <EuiLink onClick={showSidebarCharacters}>Characters menu</EuiLink> to
         add and play your characters.
       </EuiCallOut>
 
-      <EuiSpacer size="m" />
+      <EuiPanel paddingSize="s" hasShadow={false}>
+        <EuiButton size="s" onClick={() => onAddAccountClick()}>
+          Add Account
+        </EuiButton>
 
-      <EuiButton size="s" onClick={() => onAddAccountClick()}>
-        Add Account
-      </EuiButton>
+        <EuiSpacer size="m" />
 
-      <EuiSpacer size="m" />
-
-      <TableListAccounts
-        onEditAccountClick={onEditAccountClick}
-        onRemoveAccountClick={onRemoveAccountClick}
-      />
-
-      <EuiSpacer size="m" />
-
-      {showAddModal && (
-        <ModalAddAccount
-          onClose={closeModals}
-          onConfirm={onAccountSaveConfirm}
+        <TableListAccounts
+          onEditAccountClick={onEditAccountClick}
+          onRemoveAccountClick={onRemoveAccountClick}
         />
-      )}
 
-      {showEditModal && account && (
-        <ModalEditAccount
-          initialData={account}
-          onClose={closeModals}
-          onConfirm={onAccountSaveConfirm}
-        />
-      )}
+        <EuiSpacer size="m" />
 
-      {showRemoveModal && account && (
-        <ModalRemoveAccount
-          initialData={account}
-          onClose={closeModals}
-          onConfirm={onAccountRemoveConfirm}
-        />
-      )}
+        {showAddModal && (
+          <ModalAddAccount
+            onClose={closeModals}
+            onConfirm={onAccountSaveConfirm}
+          />
+        )}
+
+        {showEditModal && account && (
+          <ModalEditAccount
+            initialData={account}
+            onClose={closeModals}
+            onConfirm={onAccountSaveConfirm}
+          />
+        )}
+
+        {showRemoveModal && account && (
+          <ModalRemoveAccount
+            initialData={account}
+            onClose={closeModals}
+            onConfirm={onAccountRemoveConfirm}
+          />
+        )}
+      </EuiPanel>
     </EuiPanel>
   );
 };

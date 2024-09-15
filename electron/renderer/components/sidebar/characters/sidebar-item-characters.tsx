@@ -138,52 +138,52 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
   );
 
   return (
-    <EuiPanel>
+    <EuiPanel paddingSize="none">
       <EuiCallOut title="My Characters" iconType="user" size="s">
         Use the <EuiLink onClick={showSidebarAccounts}>Accounts menu</EuiLink>{' '}
         to add your DragonRealms accounts, then add and play your characters
         here.
       </EuiCallOut>
 
-      <EuiSpacer size="m" />
+      <EuiPanel paddingSize="s" hasShadow={false}>
+        <EuiButton size="s" onClick={() => onAddCharacterClick()}>
+          Add Character
+        </EuiButton>
 
-      <EuiButton size="s" onClick={() => onAddCharacterClick()}>
-        Add Character
-      </EuiButton>
+        <EuiSpacer size="m" />
 
-      <EuiSpacer size="m" />
-
-      <TableListCharacters
-        onPlayCharacterClick={onPlayCharacterClick}
-        onQuitCharacterClick={onQuitCharacterClick}
-        onEditCharacterClick={onEditCharacterClick}
-        onRemoveCharacterClick={onRemoveCharacterClick}
-      />
-
-      <EuiSpacer size="m" />
-
-      {showAddModal && (
-        <ModalAddCharacter
-          onClose={closeModals}
-          onConfirm={onCharacterSaveConfirm}
+        <TableListCharacters
+          onPlayCharacterClick={onPlayCharacterClick}
+          onQuitCharacterClick={onQuitCharacterClick}
+          onEditCharacterClick={onEditCharacterClick}
+          onRemoveCharacterClick={onRemoveCharacterClick}
         />
-      )}
 
-      {showEditModal && character && (
-        <ModalEditCharacter
-          initialData={character}
-          onClose={closeModals}
-          onConfirm={onCharacterSaveConfirm}
-        />
-      )}
+        <EuiSpacer size="m" />
 
-      {showRemoveModal && character && (
-        <ModalRemoveCharacter
-          initialData={character}
-          onClose={closeModals}
-          onConfirm={onCharacterRemoveConfirm}
-        />
-      )}
+        {showAddModal && (
+          <ModalAddCharacter
+            onClose={closeModals}
+            onConfirm={onCharacterSaveConfirm}
+          />
+        )}
+
+        {showEditModal && character && (
+          <ModalEditCharacter
+            initialData={character}
+            onClose={closeModals}
+            onConfirm={onCharacterSaveConfirm}
+          />
+        )}
+
+        {showRemoveModal && character && (
+          <ModalRemoveCharacter
+            initialData={character}
+            onClose={closeModals}
+            onConfirm={onCharacterRemoveConfirm}
+          />
+        )}
+      </EuiPanel>
     </EuiPanel>
   );
 };
