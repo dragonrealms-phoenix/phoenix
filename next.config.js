@@ -188,13 +188,13 @@ const nextConfig = {
       new EnvironmentPlugin({
         // Electron renderer process doesn't have node enabled
         // so we need webpack to replace all uses of `process.env`.
-        SENTRY_INGEST_DOMAIN: process.env.SENTRY_INGEST_DOMAIN,
-        SENTRY_DSN: process.env.SENTRY_DSN,
-        SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
-        SENTRY_ORG: process.env.SENTRY_ORG,
-        SENTRY_PROJECT: process.env.SENTRY_PROJECT,
-        APP_ENV: process.env.APP_ENV,
-        LOG_LEVEL: process.env.LOG_LEVEL,
+        SENTRY_INGEST_DOMAIN: process.env.SENTRY_INGEST_DOMAIN ?? '',
+        SENTRY_DSN: process.env.SENTRY_DSN ?? '',
+        SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN ?? '',
+        SENTRY_ORG: process.env.SENTRY_ORG ?? '',
+        SENTRY_PROJECT: process.env.SENTRY_PROJECT ?? '',
+        APP_ENV: process.env.APP_ENV ?? '',
+        LOG_LEVEL: process.env.LOG_LEVEL ?? '',
         // I don't remember why I blank these out.
         // It fixes something, maybe with the env name sent to Sentry?
         NEXT_PUBLIC_VERCEL_ENV: '',
