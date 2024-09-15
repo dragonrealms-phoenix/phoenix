@@ -22,22 +22,17 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
 
   const logger = useLogger('cmp:grid');
 
-  // TODO when user adds an item to the grid then add it to layout and save layout
-
-  const focusedContentItemId = useMemo(() => {
+  const [focusedItemId, setFocusedItemId] = useState<string>(() => {
     const focusedItem = contentItems.find((contentItem) => {
       return contentItem.isFocused;
     });
     return focusedItem?.itemId ?? '';
-  }, [contentItems]);
-
-  const [focusedItemId, setFocusedItemId] =
-    useState<string>(focusedContentItemId);
+  });
 
   const onItemFocus = useCallback(
     (item: GridItemInfo) => {
       const { itemId } = item;
-      logger.debug(`focused item ${itemId}`, { item });
+      logger.debug('focused item', { item });
       setFocusedItemId(itemId);
     },
     [logger]
@@ -45,16 +40,14 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
 
   const onItemClose = useCallback(
     (item: GridItemInfo) => {
-      const { itemId } = item;
-      logger.debug(`closed item ${itemId}`, { item });
+      logger.debug('closed item', { item });
     },
     [logger]
   );
 
   const onItemMoveResize = useCallback(
     (item: GridItemInfo) => {
-      const { itemId } = item;
-      logger.debug(`moved item ${itemId}`, { item });
+      logger.debug('moved item', { item });
     },
     [logger]
   );
