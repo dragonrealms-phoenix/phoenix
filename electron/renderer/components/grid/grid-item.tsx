@@ -20,7 +20,7 @@ import debounce from 'lodash-es/debounce.js';
 import get from 'lodash-es/get';
 import isNil from 'lodash-es/isNil';
 import type { ReactNode, RefObject } from 'react';
-import { useCallback, useMemo, useRef } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import type {
   GridItemBoundary,
   GridItemInfo,
@@ -82,310 +82,322 @@ const DEFAULT_GRID_ITEM_LAYOUT: GridItemLayout = {
   height: 500,
 };
 
-export const GridItem: React.FC<GridItemProps> = (
-  props: GridItemProps
-): ReactNode => {
-  const { itemId, itemTitle, isFocused = false, children } = props;
-  const { boundary, layout = DEFAULT_GRID_ITEM_LAYOUT } = props;
-  const { onFocus, onClose, onMoveResize } = props;
+export const GridItem: React.FC<GridItemProps> = memo(
+  (props: GridItemProps): ReactNode => {
+    const { itemId, itemTitle, isFocused = false, children } = props;
+    const { boundary, layout = DEFAULT_GRID_ITEM_LAYOUT } = props;
+    const { onFocus, onClose, onMoveResize } = props;
 
-  const { euiTheme } = useEuiTheme();
+    const { euiTheme } = useEuiTheme();
 
-  // Set default position and size for the grid item.
-  // Like `useState`, we can provide the default value, but as a function.
-  const [{ x, y, width, height }, sizeApi] = useSpring<GridItemLayout>(() => {
-    return layout;
-  }, [layout]);
+    // Set default position and size for the grid item.
+    // Like `useState`, we can provide the default value, but as a function.
+    const [{ x, y, width, height }, sizeApi] = useSpring<GridItemLayout>(() => {
+      return layout;
+    }, [layout]);
 
-  const dragHandleRef = useRef<HTMLDivElement>(null);
-  const resizeHandleRef = useRef<HTMLDivElement>(null);
+    const dragHandleRef = useRef<HTMLDivElement>(null);
+    const resizeHandleRef = useRef<HTMLDivElement>(null);
 
-  const getItemInfo = useCallback((): GridItemInfo => {
-    return {
-      itemId,
-      itemTitle,
-      isFocused,
-      layout: {
-        x: x.get(),
-        y: y.get(),
-        width: width.get(),
-        height: height.get(),
-      },
-    };
-  }, [itemId, itemTitle, isFocused, x, y, width, height]);
+    const getItemInfo = useCallback((): GridItemInfo => {
+      return {
+        itemId,
+        itemTitle,
+        isFocused,
+        layout: {
+          x: x.get(),
+          y: y.get(),
+          width: width.get(),
+          height: height.get(),
+        },
+      };
+    }, [itemId, itemTitle, isFocused, x, y, width, height]);
 
-  // Handle when the user clicks the close button in the title bar.
-  const onCloseClick = useCallback(() => {
-    onClose?.(getItemInfo());
-  }, [onClose, getItemInfo]);
+    // Handle when the user clicks the close button in the title bar.
+    const onCloseClick = useCallback(() => {
+      onClose?.(getItemInfo());
+    }, [onClose, getItemInfo]);
 
-  // Handle when the user clicks or focuses the grid item.
-  const onFocusClick = useCallback(() => {
-    if (!isFocused) {
-      onFocus?.({
-        ...getItemInfo(),
-        isFocused: true,
-      });
-    }
-  }, [onFocus, getItemInfo, isFocused]);
-
-  // Handle when the user moves or resizes the grid item.
-  // Because this event triggers frequently, we debounce it for performance.
-  const onMoveResizeHandler = useMemo(() => {
-    return debounce(() => {
-      onMoveResize?.(getItemInfo());
-    }, 300);
-  }, [onMoveResize, getItemInfo]);
-
-  /**
-   * Is the event's target the same element as the ref?
-   * This helps us identify if the user has clicked on
-   * the drag or resize handle elements.
-   */
-  const isEventTarget = useCallback(
-    (
-      eventOrTarget: Event | EventTarget | null | undefined,
-      ref: RefObject<HTMLElement>
-    ) => {
-      if (isNil(eventOrTarget)) {
-        return false;
+    // Handle when the user clicks or focuses the grid item.
+    const onFocusClick = useCallback(() => {
+      if (!isFocused) {
+        onFocus?.({
+          ...getItemInfo(),
+          isFocused: true,
+        });
       }
+    }, [onFocus, getItemInfo, isFocused]);
 
-      if (eventOrTarget === ref.current) {
-        return true;
-      }
+    // Handle when the user moves or resizes the grid item.
+    // Because this event triggers frequently, we debounce it for performance.
+    const onMoveResizeHandler = useMemo(() => {
+      return debounce(() => {
+        onMoveResize?.(getItemInfo());
+      }, 300);
+    }, [onMoveResize, getItemInfo]);
 
-      if (get(eventOrTarget, 'target') === ref.current) {
-        return true;
-      }
-
-      if (get(eventOrTarget, 'currentTarget') === ref.current) {
-        return true;
-      }
-
-      return false;
-    },
-    []
-  );
-
-  /**
-   * Did the user click and drag the drag handle?
-   */
-  const isDragging = useCallback(
-    (eventOrTarget: Event | EventTarget | null | undefined): boolean => {
-      return isEventTarget(eventOrTarget, dragHandleRef);
-    },
-    [isEventTarget]
-  );
-
-  /**
-   * Did the user click and drag the resize handle?
-   */
-  const isResizing = useCallback(
-    (eventOrTarget: Event | EventTarget | null | undefined): boolean => {
-      return isEventTarget(eventOrTarget, resizeHandleRef);
-    },
-    [isEventTarget]
-  );
-
-  const dragHandler: Handler<'drag', EventTypes['drag']> = useCallback(
     /**
-     * Callback to invoke when a gesture event ends.
-     * For example, when the user stops dragging or resizing.
+     * Is the event's target the same element as the ref?
+     * This helps us identify if the user has clicked on
+     * the drag or resize handle elements.
      */
-    (state) => {
-      // The vector for where the pointer has moved to relative to
-      // the last vector returned by the `from` drag option function.
-      // When resizing, the values are the new width and height dimensions.
-      // When dragging, the values are the new x and y coordinates.
-      const [dx, dy] = state.offset;
-
-      if (isResizing(state.event)) {
-        if (width.get() !== Math.trunc(dx) || height.get() !== Math.trunc(dy)) {
-          sizeApi.set({
-            width: Math.trunc(dx),
-            height: Math.trunc(dy),
-          });
-          onMoveResizeHandler();
+    const isEventTarget = useCallback(
+      (
+        eventOrTarget: Event | EventTarget | null | undefined,
+        ref: RefObject<HTMLElement>
+      ) => {
+        if (isNil(eventOrTarget)) {
+          return false;
         }
-      }
 
-      if (isDragging(state.event)) {
-        if (x.get() !== Math.trunc(dx) || y.get() !== Math.trunc(dy)) {
-          sizeApi.set({
-            x: Math.trunc(dx),
-            y: Math.trunc(dy),
-          });
-          onMoveResizeHandler();
+        if (eventOrTarget === ref.current) {
+          return true;
         }
-      }
-    },
-    [x, y, width, height, sizeApi, isResizing, isDragging, onMoveResizeHandler]
-  );
 
-  const dragOptions: UserDragConfig = useMemo(() => {
-    return {
-      /**
-       * When a gesture event begins, specify the reference vector
-       * from which to calculate the distance the pointer moves.
-       */
-      from: (state) => {
-        if (isResizing(state.target)) {
-          return [width.get(), height.get()];
+        if (get(eventOrTarget, 'target') === ref.current) {
+          return true;
         }
-        return [x.get(), y.get()];
+
+        if (get(eventOrTarget, 'currentTarget') === ref.current) {
+          return true;
+        }
+
+        return false;
       },
-      /**
-       * When a gesture event begins, specify the where the pointer can move.
-       * The element will not be dragged or resized outside of these bounds.
-       */
-      bounds: (state) => {
-        const containerWidth = boundary.width;
-        const containerHeight = boundary.height;
-        if (isResizing(state?.event)) {
-          return {
-            top: 50, // min height
-            left: 100, // min width
-            right: containerWidth - x.get(),
-            bottom: containerHeight - y.get(),
-          };
-        }
-        return {
-          top: 0,
-          left: 0,
-          right: containerWidth - width.get(),
-          bottom: containerHeight - height.get(),
-        };
+      []
+    );
+
+    /**
+     * Did the user click and drag the drag handle?
+     */
+    const isDragging = useCallback(
+      (eventOrTarget: Event | EventTarget | null | undefined): boolean => {
+        return isEventTarget(eventOrTarget, dragHandleRef);
       },
-    };
-  }, [x, y, width, height, boundary, isResizing]);
+      [isEventTarget]
+    );
 
-  // Use this function to add all of the DOM bindings props to the element(s)
-  // that you want to make draggable or resizable.
-  // Example: see our `dragHandleRef` and `resizeHandleRef` ref elements.
-  const getMouseGestureDragBindings = useDrag(dragHandler, dragOptions);
+    /**
+     * Did the user click and drag the resize handle?
+     */
+    const isResizing = useCallback(
+      (eventOrTarget: Event | EventTarget | null | undefined): boolean => {
+        return isEventTarget(eventOrTarget, resizeHandleRef);
+      },
+      [isEventTarget]
+    );
 
-  // Styles for our drag and resize handle elements.
-  const handleStyles = useMemo(
-    () =>
-      css({
-        '.drag-handle': {
-          cursor: 'grab',
-        },
-        '.drag-handle:active': {
-          cursor: 'grabbing',
-          touchAction: 'none',
-        },
-        '.resize-handle': {
-          position: 'absolute',
-          bottom: -4,
-          right: -4,
-          width: 10,
-          height: 10,
-          cursor: 'nwse-resize',
-          touchAction: 'none',
-          backgroundColor: euiTheme.colors.mediumShade,
-          borderRadius: 5,
-        },
-      }),
-    [euiTheme]
-  );
+    const dragHandler: Handler<'drag', EventTypes['drag']> = useCallback(
+      /**
+       * Callback to invoke when a gesture event ends.
+       * For example, when the user stops dragging or resizing.
+       */
+      (state) => {
+        // The vector for where the pointer has moved to relative to
+        // the last vector returned by the `from` drag option function.
+        // When resizing, the values are the new width and height dimensions.
+        // When dragging, the values are the new x and y coordinates.
+        const [dx, dy] = state.offset;
 
-  return (
-    <animated.div // react-spring element, works with the `useSpring` values
-      style={{
-        position: 'absolute',
+        if (isResizing(state.event)) {
+          if (
+            width.get() !== Math.trunc(dx) ||
+            height.get() !== Math.trunc(dy)
+          ) {
+            sizeApi.set({
+              width: Math.trunc(dx),
+              height: Math.trunc(dy),
+            });
+            onMoveResizeHandler();
+          }
+        }
+
+        if (isDragging(state.event)) {
+          if (x.get() !== Math.trunc(dx) || y.get() !== Math.trunc(dy)) {
+            sizeApi.set({
+              x: Math.trunc(dx),
+              y: Math.trunc(dy),
+            });
+            onMoveResizeHandler();
+          }
+        }
+      },
+      [
         x,
         y,
         width,
         height,
-        overflow: 'hidden',
-        touchAction: 'none',
-        zIndex: isFocused ? 999 : 888, // arbitrary numbers just to ensure order
-      }}
-      css={handleStyles}
-      onFocus={onFocusClick}
-      onPointerDown={onFocusClick}
-    >
-      <EuiSplitPanel.Outer
-        grow={true}
-        hasBorder={true}
+        sizeApi,
+        isResizing,
+        isDragging,
+        onMoveResizeHandler,
+      ]
+    );
+
+    const dragOptions: UserDragConfig = useMemo(() => {
+      return {
+        /**
+         * When a gesture event begins, specify the reference vector
+         * from which to calculate the distance the pointer moves.
+         */
+        from: (state) => {
+          if (isResizing(state.target)) {
+            return [width.get(), height.get()];
+          }
+          return [x.get(), y.get()];
+        },
+        /**
+         * When a gesture event begins, specify the where the pointer can move.
+         * The element will not be dragged or resized outside of these bounds.
+         */
+        bounds: (state) => {
+          const containerWidth = boundary.width;
+          const containerHeight = boundary.height;
+          if (isResizing(state?.event)) {
+            return {
+              top: 50, // min height
+              left: 100, // min width
+              right: containerWidth - x.get(),
+              bottom: containerHeight - y.get(),
+            };
+          }
+          return {
+            top: 0,
+            left: 0,
+            right: containerWidth - width.get(),
+            bottom: containerHeight - height.get(),
+          };
+        },
+      };
+    }, [x, y, width, height, boundary, isResizing]);
+
+    // Use this function to add all of the DOM bindings props to the element(s)
+    // that you want to make draggable or resizable.
+    // Example: see our `dragHandleRef` and `resizeHandleRef` ref elements.
+    const getMouseGestureDragBindings = useDrag(dragHandler, dragOptions);
+
+    // Styles for our drag and resize handle elements.
+    const handleStyles = useMemo(
+      () =>
+        css({
+          '.drag-handle': {
+            cursor: 'grab',
+          },
+          '.drag-handle:active': {
+            cursor: 'grabbing',
+            touchAction: 'none',
+          },
+          '.resize-handle': {
+            position: 'absolute',
+            bottom: -4,
+            right: -4,
+            width: 10,
+            height: 10,
+            cursor: 'nwse-resize',
+            touchAction: 'none',
+            backgroundColor: euiTheme.colors.mediumShade,
+            borderRadius: 5,
+          },
+        }),
+      [euiTheme]
+    );
+
+    return (
+      <animated.div // react-spring element, works with the `useSpring` values
         style={{
-          height: 'inherit',
-          width: 'inherit',
+          position: 'absolute',
+          x,
+          y,
+          width,
+          height,
+          overflow: 'hidden',
+          touchAction: 'none',
+          zIndex: isFocused ? 999 : 888, // arbitrary numbers just to ensure order
         }}
+        css={handleStyles}
+        onFocus={onFocusClick}
+        onPointerDown={onFocusClick}
       >
-        <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">
-          <EuiFlexGroup
-            responsive={false}
-            alignItems="center"
-            justifyContent="flexStart"
-            gutterSize="none"
-          >
-            <EuiFlexItem grow={true}>
-              <EuiFlexGroup
-                ref={dragHandleRef}
-                responsive={false}
-                alignItems="center"
-                justifyContent="flexStart"
-                gutterSize="none"
-                className="drag-handle"
-                {...getMouseGestureDragBindings()}
-              >
-                <EuiFlexItem grow={false}>
-                  <EuiIcon type="grabOmnidirectional" />
-                </EuiFlexItem>
-                <EuiFlexItem grow={true}>
-                  <EuiText size="xs">{itemTitle}</EuiText>
-                </EuiFlexItem>
-              </EuiFlexGroup>
-            </EuiFlexItem>
-            <EuiFlexItem grow={false}>
-              <EuiFlexGroup
-                responsive={false}
-                alignItems="center"
-                justifyContent="flexEnd"
-              >
-                <EuiButtonIcon
-                  aria-label="Close"
-                  title="Close"
-                  iconType="cross"
-                  color="accent"
-                  size="xs"
-                  onClick={onCloseClick}
-                />
-              </EuiFlexGroup>
-            </EuiFlexItem>
-          </EuiFlexGroup>
-        </EuiSplitPanel.Inner>
-        <EuiSpacer size="xs" />
-        <EuiSplitPanel.Inner
+        <EuiSplitPanel.Outer
           grow={true}
-          paddingSize="none"
-          className="eui-yScroll"
-          css={{
-            whiteSpace: 'pre-wrap',
+          hasBorder={true}
+          style={{
+            height: 'inherit',
+            width: 'inherit',
           }}
         >
-          <EuiFlexGroup
-            responsive={false}
-            alignItems="center"
-            justifyContent="flexStart"
-            gutterSize="none"
+          <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">
+            <EuiFlexGroup
+              responsive={false}
+              alignItems="center"
+              justifyContent="flexStart"
+              gutterSize="none"
+            >
+              <EuiFlexItem grow={true}>
+                <EuiFlexGroup
+                  ref={dragHandleRef}
+                  responsive={false}
+                  alignItems="center"
+                  justifyContent="flexStart"
+                  gutterSize="none"
+                  className="drag-handle"
+                  {...getMouseGestureDragBindings()}
+                >
+                  <EuiFlexItem grow={false}>
+                    <EuiIcon type="grabOmnidirectional" />
+                  </EuiFlexItem>
+                  <EuiFlexItem grow={true}>
+                    <EuiText size="xs">{itemTitle}</EuiText>
+                  </EuiFlexItem>
+                </EuiFlexGroup>
+              </EuiFlexItem>
+              <EuiFlexItem grow={false}>
+                <EuiFlexGroup
+                  responsive={false}
+                  alignItems="center"
+                  justifyContent="flexEnd"
+                >
+                  <EuiButtonIcon
+                    aria-label="Close"
+                    title="Close"
+                    iconType="cross"
+                    color="accent"
+                    size="xs"
+                    onClick={onCloseClick}
+                  />
+                </EuiFlexGroup>
+              </EuiFlexItem>
+            </EuiFlexGroup>
+          </EuiSplitPanel.Inner>
+          <EuiSpacer size="xs" />
+          <EuiSplitPanel.Inner
+            grow={true}
+            paddingSize="none"
+            className="eui-yScroll"
+            css={{
+              whiteSpace: 'pre-wrap',
+            }}
           >
-            <EuiFlexItem grow={true}>{children}</EuiFlexItem>
-            <EuiFlexItem grow={false}>
-              <div
-                ref={resizeHandleRef}
-                className="resize-handle"
-                {...getMouseGestureDragBindings()}
-              ></div>
-            </EuiFlexItem>
-          </EuiFlexGroup>
-        </EuiSplitPanel.Inner>
-      </EuiSplitPanel.Outer>
-    </animated.div>
-  );
-};
+            <EuiFlexGroup
+              responsive={false}
+              alignItems="center"
+              justifyContent="flexStart"
+              gutterSize="none"
+            >
+              <EuiFlexItem grow={true}>{children}</EuiFlexItem>
+              <EuiFlexItem grow={false}>
+                <div
+                  ref={resizeHandleRef}
+                  className="resize-handle"
+                  {...getMouseGestureDragBindings()}
+                ></div>
+              </EuiFlexItem>
+            </EuiFlexGroup>
+          </EuiSplitPanel.Inner>
+        </EuiSplitPanel.Outer>
+      </animated.div>
+    );
+  }
+);
 
 GridItem.displayName = 'GridItem';
