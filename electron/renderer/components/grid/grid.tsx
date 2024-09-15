@@ -34,17 +34,19 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const [focusedItemId, setFocusedItemId] =
     useState<string>(focusedContentItemId);
 
-  const onItemFocus = useCallback((item: GridItemInfo) => {
-    const { itemId } = item;
-    setFocusedItemId(itemId);
-    // TODO when an item is resized then save layout, including the focused item
-  }, []);
+  const onItemFocus = useCallback(
+    (item: GridItemInfo) => {
+      const { itemId } = item;
+      logger.debug(`focused item ${itemId}`, { item });
+      setFocusedItemId(itemId);
+    },
+    [logger]
+  );
 
   const onItemClose = useCallback(
     (item: GridItemInfo) => {
       const { itemId } = item;
-      // TODO when an item is closed then remove it from layout and save layout
-      logger.debug(`closed item ${itemId}`);
+      logger.debug(`closed item ${itemId}`, { item });
     },
     [logger]
   );
@@ -52,8 +54,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const onItemMoveResize = useCallback(
     (item: GridItemInfo) => {
       const { itemId } = item;
-      // TODO when an item is dragged then save layout
-      logger.debug(`moved item ${itemId}`);
+      logger.debug(`moved item ${itemId}`, { item });
     },
     [logger]
   );
@@ -66,10 +67,11 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
           itemId={contentItem.itemId}
           itemTitle={contentItem.itemTitle}
           isFocused={contentItem.itemId === focusedItemId}
+          layout={contentItem.layout}
+          boundary={boundary}
           onFocus={onItemFocus}
           onClose={onItemClose}
           onMoveResize={onItemMoveResize}
-          boundary={boundary}
         >
           {contentItem.content}
         </GridItem>
