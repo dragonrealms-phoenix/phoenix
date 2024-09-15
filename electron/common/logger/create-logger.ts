@@ -5,25 +5,18 @@ import type {
   LogFunctions as ElectronLogFunctions,
   Logger as ElectronLogger,
 } from 'electron-log';
-import { includesIgnoreCase } from '../string/includes-ignore-case.js';
+import { initializeLogging } from './initialize-logging.js';
 import type { LogFunction, Logger } from './types.js';
-import { LogLevel } from './types.js';
 
 // Cache loggers for the same scope.
 const scopedLoggers: Record<string, ElectronLogFunctions> = {};
 
 interface ElectronLogFunctionsExtended extends ElectronLogFunctions {
   /**
-   * Alias for electron logger's 'silly' level.
+   * Alternative to electron logger's 'silly' level.
    */
   trace: LogFunction;
 }
-
-const addTraceLevel = (logger: ElectronLogger): void => {
-  if (!includesIgnoreCase(logger.levels, LogLevel.TRACE)) {
-    logger.addLevel(LogLevel.TRACE);
-  }
-};
 
 export const createLogger = (options: {
   /**
@@ -44,7 +37,8 @@ export const createLogger = (options: {
   const scope = options?.scope ?? '';
   const electronLogger = options.logger;
 
-  addTraceLevel(electronLogger);
+  // Applies customizations like format hooks, 'trace' level, etc.
+  initializeLogging(electronLogger);
 
   if (!scopedLoggers[scope]) {
     if (scope.length > 0) {
