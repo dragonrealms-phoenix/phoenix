@@ -62,6 +62,9 @@ const GridPage: React.FC = (): ReactNode => {
     return new rxjs.Subject<GameLogLine>();
   });
 
+  // TODO load the grid config items
+  // TODO load the grid layout items
+
   const { euiTheme } = useEuiTheme();
 
   const computeTextStyles = useCallback((): SerializedStyles => {
@@ -90,7 +93,7 @@ const GridPage: React.FC = (): ReactNode => {
     //      return an object that indicates with keys from the euiTheme to use
     //      For example, { fontFamily: 'code', fontSize: 'm', fontWeight: 'bold', color: 'title' }
     //      This will allow the GameStreamText component to apply the correct styles
-    //      when the user's swaps the theme from light to dark mode
+    //      when the user swaps the theme from light to dark mode
     const textStyles = css({
       fontFamily,
       fontSize,
@@ -395,8 +398,8 @@ const GridPage: React.FC = (): ReactNode => {
     layout: {
       x: 0,
       y: 0,
-      width: 100,
-      height: 100,
+      width: 828,
+      height: 200,
     },
   });
 
@@ -405,10 +408,10 @@ const GridPage: React.FC = (): ReactNode => {
     itemTitle: 'Experience',
     isFocused: false,
     layout: {
-      x: 200,
+      x: 828,
       y: 0,
-      width: 100,
-      height: 100,
+      width: 306,
+      height: 392,
     },
   });
 
@@ -417,10 +420,10 @@ const GridPage: React.FC = (): ReactNode => {
     itemTitle: 'Spells',
     isFocused: false,
     layout: {
-      x: 800,
-      y: 0,
-      width: 100,
-      height: 100,
+      x: 828,
+      y: 390,
+      width: 306,
+      height: 310,
     },
   });
 
@@ -431,8 +434,8 @@ const GridPage: React.FC = (): ReactNode => {
     layout: {
       x: 0,
       y: 200,
-      width: 200,
-      height: 200,
+      width: 828,
+      height: 500,
     },
   });
 
