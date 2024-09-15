@@ -5,29 +5,16 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useLogger } from '../../hooks/logger.jsx';
-import type { GridItemMetadata } from './grid-item.jsx';
+import type {
+  GridItemBoundary,
+  GridItemContent,
+  GridItemInfo,
+} from '../../types/grid.types.js';
 import { GridItem } from './grid-item.jsx';
 
-export interface GridContentItem {
-  layout: GridItemMetadata;
-  content: ReactNode;
-}
-
 export interface GridProps {
-  /**
-   * The dimension for the grid.
-   */
-  boundary: {
-    /**
-     * The max height of the grid in pixels.
-     */
-    height: number;
-    /**
-     * The max width of the grid in pixels.
-     */
-    width: number;
-  };
-  contentItems: Array<GridContentItem>;
+  boundary: GridItemBoundary;
+  contentItems: Array<GridItemContent>;
 }
 
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
@@ -39,23 +26,23 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
 
   const focusedContentItemId = useMemo(() => {
     const focusedItem = contentItems.find((contentItem) => {
-      return contentItem.layout.isFocused;
+      return contentItem.isFocused;
     });
-    return focusedItem?.layout?.itemId ?? '';
+    return focusedItem?.itemId ?? '';
   }, [contentItems]);
 
   const [focusedItemId, setFocusedItemId] =
     useState<string>(focusedContentItemId);
 
-  const onItemFocus = useCallback((itemMeta: GridItemMetadata) => {
-    const { itemId } = itemMeta;
+  const onItemFocus = useCallback((item: GridItemInfo) => {
+    const { itemId } = item;
     setFocusedItemId(itemId);
     // TODO when an item is resized then save layout, including the focused item
   }, []);
 
   const onItemClose = useCallback(
-    (itemMeta: GridItemMetadata) => {
-      const { itemId } = itemMeta;
+    (item: GridItemInfo) => {
+      const { itemId } = item;
       // TODO when an item is closed then remove it from layout and save layout
       logger.debug(`closed item ${itemId}`);
     },
@@ -63,8 +50,8 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   );
 
   const onItemMoveResize = useCallback(
-    (itemMeta: GridItemMetadata) => {
-      const { itemId } = itemMeta;
+    (item: GridItemInfo) => {
+      const { itemId } = item;
       // TODO when an item is dragged then save layout
       logger.debug(`moved item ${itemId}`);
     },
@@ -75,10 +62,10 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     return contentItems.map((contentItem) => {
       return (
         <GridItem
-          key={contentItem.layout.itemId}
-          itemId={contentItem.layout.itemId}
-          itemTitle={contentItem.layout.itemTitle}
-          isFocused={contentItem.layout.itemId === focusedItemId}
+          key={contentItem.itemId}
+          itemId={contentItem.itemId}
+          itemTitle={contentItem.itemTitle}
+          isFocused={contentItem.itemId === focusedItemId}
           onFocus={onItemFocus}
           onClose={onItemClose}
           onMoveResize={onItemMoveResize}
