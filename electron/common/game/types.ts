@@ -1,4 +1,62 @@
 /**
+ * Simutronics has multiple games and instances per game.
+ * Only interested in DragonRealms, though.
+ */
+export enum GameCode {
+  PRIME = 'DR',
+  PLATINUM = 'DRX',
+  FALLEN = 'DRF',
+  TEST = 'DRT',
+  DEVELOPMENT = 'DRD',
+}
+
+export interface GameCodeMeta {
+  /**
+   * The game code.
+   * Example: 'DR' or 'DRX'.
+   */
+  code: GameCode;
+  /**
+   * The code name.
+   * Example: 'Prime' or 'Platinum'.
+   */
+  name: string;
+  /**
+   * The game name.
+   * Example: 'DragonRealms'.
+   */
+  game: string;
+}
+
+export const GameCodeMetaMap: Record<GameCode, GameCodeMeta> = {
+  DR: {
+    code: GameCode.PRIME,
+    name: 'Prime',
+    game: 'DragonRealms',
+  },
+  DRX: {
+    code: GameCode.PLATINUM,
+    name: 'Platinum',
+    game: 'DragonRealms',
+  },
+  DRF: {
+    code: GameCode.FALLEN,
+    name: 'Fallen',
+    game: 'DragonRealms',
+  },
+  DRT: {
+    code: GameCode.TEST,
+    name: 'Test',
+    game: 'DragonRealms',
+  },
+  DRD: {
+    code: GameCode.DEVELOPMENT,
+    name: 'Development',
+    game: 'DragonRealms',
+  },
+};
+
+/**
  * Events emitted by the game parser of data received from the game socket.
  */
 export type GameEvent =
