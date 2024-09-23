@@ -281,7 +281,6 @@ const GridPage: React.FC = (): ReactNode => {
       'game:event',
       (_event: IpcRendererEvent, message: GameEventMessage) => {
         const { gameEvent } = message;
-        logger.debug('game:event', { gameEvent });
         gameEventsSubject$.next(gameEvent);
       }
     );
@@ -297,7 +296,6 @@ const GridPage: React.FC = (): ReactNode => {
       'game:command',
       (_event: IpcRendererEvent, message: GameCommandMessage) => {
         const { command } = message;
-        logger.debug('game:command', { command });
         gameLogLineSubject$.next({
           eventId: uuid(),
           // TODO create some constants for known stream ids, '' = main window
