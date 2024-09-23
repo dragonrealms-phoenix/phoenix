@@ -1,18 +1,8 @@
+import type { Account, Character } from '../../common/account/types.js';
 import type { Maybe } from '../../common/types.js';
 
 export type ListAccountsType = Array<ListAccountsItemType>;
 export type ListAccountsItemType = Omit<Account, 'accountPassword'>;
-
-export interface Account {
-  accountName: string;
-  accountPassword: string;
-}
-
-export interface Character {
-  accountName: string;
-  characterName: string;
-  gameCode: string;
-}
 
 /**
  * A data-store abstraction over managing local accounts and characters.
