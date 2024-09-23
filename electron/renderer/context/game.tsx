@@ -118,6 +118,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
         logger.error('game:error', { error });
+        // TODO surface error to user
       }
     );
     return () => {
