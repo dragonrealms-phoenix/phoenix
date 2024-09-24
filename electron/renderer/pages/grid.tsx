@@ -345,7 +345,7 @@ const GridPage: React.FC = (): ReactNode => {
   const windowSize = useWindowSize();
   const [bottomBarRef, bottomBarSize] = useMeasure<HTMLInputElement>();
   const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
-  const gridHeight = windowSize.height - bottomBarSize.height - 40;
+  const gridHeight = windowSize.height - bottomBarSize.height - 1;
 
   const contentGridItems = useMemo<Array<GridItemContent>>(() => {
     // TODO define a default config set
@@ -422,7 +422,7 @@ const GridPage: React.FC = (): ReactNode => {
         x: 828,
         y: 390,
         width: 306,
-        height: 310,
+        height: 355,
       },
     });
 
@@ -434,7 +434,7 @@ const GridPage: React.FC = (): ReactNode => {
         x: 0,
         y: 200,
         width: 828,
-        height: 500,
+        height: 545,
       },
     });
 
@@ -525,7 +525,7 @@ const GridPage: React.FC = (): ReactNode => {
       responsive={[]}
       css={{ height: '100%', maxWidth: 'unset' }}
     >
-      <EuiPageTemplate.Section grow={true}>
+      <EuiPageTemplate.Section grow={true} paddingSize="none">
         <div ref={gridWidthRef}>
           <GridNoSSR
             boundary={{
