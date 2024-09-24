@@ -41,12 +41,12 @@ export const GameStream: React.FC<GameStreamProps> = (
 
   const appendGameLogLines = useCallback((newLogLines: Array<GameLogLine>) => {
     // Max number of most recent lines to keep.
-    const scrollbackBuffer = 500;
+    const scrollbackBufferSize = 500;
     setGameLogLines((oldLogLines) => {
       // Append new log line to the list.
       newLogLines = oldLogLines.concat(newLogLines);
       // Trim the back of the list to keep it within the scrollback buffer.
-      newLogLines = newLogLines.slice(scrollbackBuffer * -1);
+      newLogLines = newLogLines.slice(scrollbackBufferSize * -1);
       return newLogLines;
     });
   }, []);
