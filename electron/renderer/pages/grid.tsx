@@ -536,7 +536,12 @@ const GridPage: React.FC = (): ReactNode => {
           />
         </div>
       </EuiPageTemplate.Section>
-      <EuiPageTemplate.BottomBar>
+      <EuiPageTemplate.BottomBar
+        paddingSize="none"
+        css={{
+          backgroundColor: euiTheme.colors.lightestShade,
+        }}
+      >
         <div ref={bottomBarRef}>
           <EuiFieldText
             compressed={true}
