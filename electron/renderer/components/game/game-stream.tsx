@@ -37,20 +37,19 @@ export const GameStream: React.FC<GameStreamProps> = (
   });
 
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
+  const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const appendGameLogLine = useCallback((newLogLine: GameLogLine) => {
+  const appendGameLogLines = useCallback((newLogLines: Array<GameLogLine>) => {
     // Max number of most recent lines to keep.
     const scrollbackBuffer = 500;
     setGameLogLines((oldLogLines) => {
       // Append new log line to the list.
-      let newLogLines = oldLogLines.concat(newLogLine);
+      newLogLines = oldLogLines.concat(newLogLines);
       // Trim the back of the list to keep it within the scrollback buffer.
       newLogLines = newLogLines.slice(scrollbackBuffer * -1);
       return newLogLines;
     });
   }, []);
-
-  const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
@@ -60,23 +59,30 @@ export const GameStream: React.FC<GameStreamProps> = (
   }, []);
 
   useSubscription(filteredStream$, (logLine) => {
-    if (logLine.text === '__CLEAR_STREAM__') {
-      // Clear the stream after a short delay to prevent flickering
-      // caused by a flash of empty content then the new content.
-      clearStreamTimeoutRef.current = setTimeout(() => {
-        setGameLogLines([]);
-      }, 1000);
-    } else {
-      // If we receieved a new log line, cancel any pending clear stream.
-      // Set the game log lines to the new log line to prevent flickering.
-      if (clearStreamTimeoutRef.current) {
-        clearTimeout(clearStreamTimeoutRef.current);
-        clearStreamTimeoutRef.current = undefined;
-        setGameLogLines([logLine]);
+    // Decouple state updates from the stream subscription to mitigate
+    // "Cannot update a component while rendering a different component".
+    // This gives some control of the event loop back to react
+    // to smartly (re)render all components and state changes.
+    // We use `setTimeout` because browser doesn't have `setImmediate`.
+    setTimeout(() => {
+      if (logLine.text === '__CLEAR_STREAM__') {
+        // Clear the stream after a short delay to prevent flickering
+        // caused by a flash of empty content then the new content.
+        clearStreamTimeoutRef.current = setTimeout(() => {
+          setGameLogLines([]);
+        }, 1000);
       } else {
-        appendGameLogLine(logLine);
+        // If we receieved a new log line, cancel any pending clear stream.
+        // Set the game log lines to the new log line to prevent flickering.
+        if (clearStreamTimeoutRef.current) {
+          clearTimeout(clearStreamTimeoutRef.current);
+          clearStreamTimeoutRef.current = undefined;
+          setGameLogLines([logLine]);
+        } else {
+          appendGameLogLines([logLine]);
+        }
       }
-    }
+    });
   });
 
   // Scroll to the bottom of the scrollable element when new content is added.
