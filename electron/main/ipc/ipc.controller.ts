@@ -4,9 +4,11 @@ import { AccountServiceImpl } from '../account/account.service.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
 import { Store } from '../store/store.instance.js';
+import { listAccountsHandler } from './handlers/list-accounts.js';
 import { listCharactersHandler } from './handlers/list-characters.js';
 import { pingHandler } from './handlers/ping.js';
 import { playCharacterHandler } from './handlers/play-character.js';
+import { quitCharacterHandler } from './handlers/quit-character.js';
 import { removeAccountHandler } from './handlers/remove-account.js';
 import { removeCharacterHandler } from './handlers/remove-character.js';
 import { saveAccountHandler } from './handlers/save-account.js';
@@ -83,6 +85,10 @@ export class IpcController {
         accountService: this.accountService,
       }),
 
+      listAccounts: listAccountsHandler({
+        accountService: this.accountService,
+      }),
+
       saveCharacter: saveCharacterHandler({
         accountService: this.accountService,
       }),
@@ -98,6 +104,10 @@ export class IpcController {
       playCharacter: playCharacterHandler({
         dispatch: this.dispatch,
         accountService: this.accountService,
+      }),
+
+      quitCharacter: quitCharacterHandler({
+        dispatch: this.dispatch,
       }),
 
       sendCommand: sendCommandHandler({

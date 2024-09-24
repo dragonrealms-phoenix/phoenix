@@ -1,4 +1,3 @@
-import type { Layout } from 'react-grid-layout';
 import type { Maybe } from '../../common/types.js';
 
 export enum PreferenceKey {
@@ -38,7 +37,8 @@ export enum PreferenceKey {
   /**
    * Map of character names to grid layouts.
    *
-   * Example keys include character names like 'Alice', 'Bob', 'Carol', etc.
+   * Key format: `${accountName}:${characterName}:${gameCode}`.
+   * Example: `MyAccount:Katoak:DR`.
    *
    * They also include the special key '__DEFAULT__', which is used
    * when no character-specific grid layout is defined.
@@ -70,16 +70,17 @@ export type PreferenceKeyToTypeMap = {
   [PreferenceKey.GAME_STREAM_GRID_LAYOUTS]: {
     /**
      * Who the grid layout belongs to.
+     * Example: `${accountName}:${characterName}:${gameCode}`
      */
     [key: string]: {
       /**
-       * The items on the grid.
+       * The items on the grid and how they are laid out.
        */
-      gridItems: Array<{ id: string; title: string }>;
-      /**
-       * How those items are positioned on the grid.
-       */
-      gridLayout: Array<Layout>;
+      gridItems: Array<{
+        // TODO add more properties like position, size, etc.
+        id: string;
+        title: string;
+      }>;
     };
   };
 };

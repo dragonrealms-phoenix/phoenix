@@ -45,7 +45,7 @@ describe('URLs', () => {
   });
 
   it('PLAY_NET_URL', () => {
-    expect(urls.PLAY_NET_URL).toBe('http://play.net/dr');
+    expect(urls.PLAY_NET_URL).toBe('https://www.play.net/dr');
   });
 
   it('ELANTHIPEDIA_URL', () => {

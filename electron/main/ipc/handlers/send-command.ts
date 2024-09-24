@@ -14,11 +14,20 @@ export const sendCommandHandler = (options: {
 
     const gameInstance = Game.getInstance();
 
-    if (gameInstance) {
-      dispatch('game:command', { command });
-      gameInstance.send(command);
-    } else {
+    if (!gameInstance) {
       throw new Error('[IPC:SEND_COMMAND:ERROR:GAME_INSTANCE_NOT_FOUND]');
     }
+
+    if (!gameInstance.isConnected()) {
+      logger.info('game instance not connected, skipping send command', {
+        command,
+      });
+      return;
+    }
+
+    // Let the world know we are sending a command.
+    dispatch('game:command', { command });
+
+    gameInstance.send(command);
   };
 };

@@ -5,15 +5,13 @@ import { css } from '@emotion/react';
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
 import type {
   ExperienceGameEvent,
-  GameConnectMessage,
-  GameDisconnectMessage,
-  GameErrorMessage,
+  GameCommandMessage,
   GameEvent,
   GameEventMessage,
   RoomGameEvent,
@@ -26,27 +24,33 @@ import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
 import { useWindowSize } from '../hooks/window-size.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { GameLogLine } from '../types/game.types.js';
+import { getGameItemInfo } from '../lib/game/game-item-info.js';
+import { GameItemId, type GameLogLine } from '../types/game.types.js';
+import type {
+  GridItemConfig,
+  GridItemContent,
+  GridItemInfo,
+} from '../types/grid.types.js';
 
 // The grid dynamically modifies the DOM, so we can't use SSR
 // because the server and client DOMs will be out of sync.
 // https://nextjs.org/docs/messages/react-hydration-error
 const GridNoSSR = NoSSR(Grid);
 
-// I started tracking these via `useState` but when calling their setter
-// the value did not update fast enough before a text game event
-// was received, resulting in text routing to the wrong stream window
-// or not formatting correctly. So I moved them to global variables.
-let gameStreamId = '';
-let textOutputClass = '';
-let textStylePreset = '';
-let textStyleBold = false;
-
 const GridPage: React.FC = (): ReactNode => {
   const logger = useLogger('page:grid');
 
+  // I started tracking these via `useState` but when calling their setter
+  // the value did not update fast enough before a text game event
+  // was received, resulting in text routing to the wrong stream window
+  // or not formatting correctly. So I moved them to refs instead.
+  const gameStreamIdRef = useRef<string>('');
+  const textOutputClassRef = useRef<string>('');
+  const textStylePresetRef = useRef<string>('');
+  const textStyleBoldRef = useRef<boolean>(false);
+
   // Game events will be emitted from the IPC `game:event` channel.
-  // Here we subscribe and route them to the correct grid item.
+  // This page subscribes and routes them to the correct grid item.
   const gameEventsSubject$ = useObservable(() => {
     return new rxjs.Subject<GameEvent>();
   });
@@ -58,33 +62,38 @@ const GridPage: React.FC = (): ReactNode => {
     return new rxjs.Subject<GameLogLine>();
   });
 
+  // TODO load the grid config items
+  // TODO load the grid layout items
+
   const { euiTheme } = useEuiTheme();
 
-  // Do no memoize this function with `useCallback` or `useMemo`
-  // because it needs to reference the current values of both
-  // tracked and non-tracked variables.
-  // If we memoize it then stale values would be used.
-  const computeTextStyles = (): SerializedStyles => {
-    // TODO user pref for 'mono' or 'serif' font family and size
-    let fontFamily = `Verdana, ${euiTheme.font.familySerif}`;
+  const computeTextStyles = useCallback((): SerializedStyles => {
+    // TODO user pref for 'mono' or 'serif' font family
+    let fontFamily = euiTheme.font.familySerif;
+    // TODO user pref for font size
     let fontSize = '14px';
     let fontWeight = euiTheme.font.weight.regular;
     let fontColor = euiTheme.colors.text;
 
-    if (textOutputClass === 'mono') {
-      fontFamily = `${euiTheme.font.familyCode}`;
+    if (textOutputClassRef.current === 'mono') {
+      fontFamily = euiTheme.font.familyCode;
       fontSize = euiTheme.size.m;
     }
 
-    if (textStyleBold) {
+    if (textStyleBoldRef.current) {
       fontWeight = euiTheme.font.weight.bold;
     }
 
-    if (textStylePreset === 'roomName') {
+    if (textStylePresetRef.current === 'roomName') {
       fontColor = euiTheme.colors.title;
       fontWeight = euiTheme.font.weight.bold;
     }
 
+    // TODO rather than return the calculated CSS styles,
+    //      return an object that indicates with keys from the euiTheme to use
+    //      For example, { fontFamily: 'code', fontSize: 'm', fontWeight: 'bold', color: 'title' }
+    //      This will allow the GameStreamText component to apply the correct styles
+    //      when the user swaps the theme from light to dark mode
     const textStyles = css({
       fontFamily,
       fontSize,
@@ -96,7 +105,7 @@ const GridPage: React.FC = (): ReactNode => {
     });
 
     return textStyles;
-  };
+  }, [euiTheme]);
 
   // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
@@ -165,27 +174,27 @@ const GridPage: React.FC = (): ReactNode => {
         });
         break;
       case GameEventType.PUSH_STREAM:
-        gameStreamId = gameEvent.streamId;
+        gameStreamIdRef.current = gameEvent.streamId;
         break;
       case GameEventType.POP_STREAM:
-        gameStreamId = '';
+        gameStreamIdRef.current = '';
         break;
       case GameEventType.PUSH_BOLD:
-        textStyleBold = true;
+        textStyleBoldRef.current = true;
         break;
       case GameEventType.POP_BOLD:
-        textStyleBold = false;
+        textStyleBoldRef.current = false;
         break;
       case GameEventType.TEXT_OUTPUT_CLASS:
-        textOutputClass = gameEvent.textOutputClass;
+        textOutputClassRef.current = gameEvent.textOutputClass;
         break;
       case GameEventType.TEXT_STYLE_PRESET:
-        textStylePreset = gameEvent.textStylePreset;
+        textStylePresetRef.current = gameEvent.textStylePreset;
         break;
       case GameEventType.TEXT:
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
-          streamId: gameStreamId,
+          streamId: gameStreamIdRef.current,
           styles: textStyles,
           text: gameEvent.text,
         });
@@ -269,57 +278,9 @@ const GridPage: React.FC = (): ReactNode => {
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
-      'game:connect',
-      (_event: IpcRendererEvent, message: GameConnectMessage) => {
-        const { accountName, characterName, gameCode } = message;
-        logger.debug('game:connect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [logger]);
-
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
-      'game:disconnect',
-      (_event: IpcRendererEvent, message: GameDisconnectMessage) => {
-        const { accountName, characterName, gameCode } = message;
-        logger.debug('game:disconnect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [logger]);
-
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
-      'game:error',
-      (_event: IpcRendererEvent, message: GameErrorMessage) => {
-        const { error } = message;
-        logger.error('game:error', { error });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [logger]);
-
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
       'game:event',
       (_event: IpcRendererEvent, message: GameEventMessage) => {
         const { gameEvent } = message;
-        logger.debug('game:event', { gameEvent });
         gameEventsSubject$.next(gameEvent);
       }
     );
@@ -327,6 +288,36 @@ const GridPage: React.FC = (): ReactNode => {
       unsubscribe();
     };
   }, [logger, gameEventsSubject$]);
+
+  // When the user sends a command, echo it to the main game stream so that
+  // the user sees what they sent and can correlate to the game response.
+  useEffect(() => {
+    const unsubscribe = window.api.onMessage(
+      'game:command',
+      (_event: IpcRendererEvent, message: GameCommandMessage) => {
+        const { command } = message;
+        gameLogLineSubject$.next({
+          eventId: uuid(),
+          // TODO create some constants for known stream ids, '' = main window
+          streamId: '',
+          // TODO clean up this mess
+          styles: css({
+            fontFamily: `Verdana, ${euiTheme.font.familySerif}`,
+            fontSize: '14px',
+            fontWeight: euiTheme.font.weight.regular,
+            color: euiTheme.colors.subduedText,
+            lineHeight: 'initial',
+            paddingLeft: euiTheme.size.s,
+            paddingRight: euiTheme.size.s,
+          }),
+          text: `> ${command}`,
+        });
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [logger, gameLogLineSubject$, euiTheme]);
 
   // TODO move to a new GameCommandInput component
   const onKeyDownCommandInput = useCallback<
@@ -354,7 +345,175 @@ const GridPage: React.FC = (): ReactNode => {
   const windowSize = useWindowSize();
   const [bottomBarRef, bottomBarSize] = useMeasure<HTMLInputElement>();
   const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
-  const gridHeight = windowSize.height - bottomBarSize.height - 40;
+  const gridHeight = windowSize.height - bottomBarSize.height - 1;
+
+  const contentGridItems = useMemo<Array<GridItemContent>>(() => {
+    // TODO define a default config set
+    // TODO allow users to customize the set and add/remove items
+    // TODO IPC handler to get/save the user's config set
+    const configGridItems: Array<GridItemConfig> = [];
+
+    configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.ROOM),
+      whenVisibleStreamToItemIds: [GameItemId.ROOM],
+      whenHiddenStreamToItemIds: [],
+    });
+
+    configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.EXPERIENCE),
+      whenVisibleStreamToItemIds: [GameItemId.EXPERIENCE],
+      whenHiddenStreamToItemIds: [],
+    });
+
+    configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.MAIN),
+      whenVisibleStreamToItemIds: [GameItemId.MAIN],
+      whenHiddenStreamToItemIds: [],
+    });
+
+    configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.SPELLS),
+      whenVisibleStreamToItemIds: [GameItemId.SPELLS],
+      whenHiddenStreamToItemIds: [],
+    });
+
+    const configItemsMap: Record<string, GridItemConfig> = {};
+    const configItemIds: Array<string> = [];
+    configGridItems.forEach((configItem) => {
+      const itemId = configItem.gameItemInfo.itemId;
+      configItemsMap[itemId] = configItem;
+      configItemIds.push(itemId);
+    });
+
+    // TODO define a default layout
+    // TODO IPC handler to get/save a layout
+    // TODO allow user to assign layouts to characters
+    let layoutGridItems = new Array<GridItemInfo>();
+
+    layoutGridItems.push({
+      itemId: 'room',
+      itemTitle: 'Room',
+      isFocused: false,
+      layout: {
+        x: 0,
+        y: 0,
+        width: 828,
+        height: 200,
+      },
+    });
+
+    layoutGridItems.push({
+      itemId: 'experience',
+      itemTitle: 'Experience',
+      isFocused: false,
+      layout: {
+        x: 828,
+        y: 0,
+        width: 306,
+        height: 392,
+      },
+    });
+
+    layoutGridItems.push({
+      itemId: 'spells',
+      itemTitle: 'Spells',
+      isFocused: false,
+      layout: {
+        x: 828,
+        y: 390,
+        width: 306,
+        height: 355,
+      },
+    });
+
+    layoutGridItems.push({
+      itemId: 'main',
+      itemTitle: 'Main',
+      isFocused: true,
+      layout: {
+        x: 0,
+        y: 200,
+        width: 828,
+        height: 545,
+      },
+    });
+
+    // Drop any items that no longer have a matching config item.
+    layoutGridItems = layoutGridItems.filter((layoutItem) => {
+      return configItemIds.includes(layoutItem.itemId);
+    });
+
+    const layoutItemsMap: Record<string, GridItemInfo> = {};
+    const layoutItemIds: Array<string> = [];
+    layoutGridItems.forEach((layoutItem) => {
+      const itemId = layoutItem.itemId;
+      layoutItemsMap[itemId] = layoutItem;
+      layoutItemIds.push(itemId);
+    });
+
+    // Map of item ids to the item ids that should stream to it.
+    // The key is the item id that should receive the stream(s).
+    // The values are the items redirecting their stream to the key item.
+    const itemStreamMapping: Record<string, Array<string>> = {};
+
+    // If layout includes the config item then stream to its visible items.
+    // If layout does not include the config item then stream to its hidden items.
+    configGridItems.forEach((configItem) => {
+      const itemId = configItem.gameItemInfo.itemId;
+
+      const streamToItemIds = layoutItemsMap[itemId]
+        ? configItem.whenVisibleStreamToItemIds
+        : configItem.whenHiddenStreamToItemIds;
+
+      // TODO rename this method and move it out the for-each loop
+      // If an item is hidden and redirects elsewhere, follow the chain
+      // until we find an item that is visible to truly redirect to.
+      // This is necessary because the layout may not include all items.
+      const funcX = (streamToItemIds: Array<string>, itemId: string) => {
+        streamToItemIds.forEach((streamToItemId) => {
+          if (layoutItemsMap[streamToItemId]) {
+            // We're in luck. We found a visible item to stream to.
+            itemStreamMapping[streamToItemId] ||= [];
+            itemStreamMapping[streamToItemId].push(itemId);
+          } else {
+            // Well, where the hidden item wanted to redirect to
+            // also is hidden so we need to keep looking for a visible item.
+            funcX(
+              configItemsMap[streamToItemId].whenHiddenStreamToItemIds,
+              itemId
+            );
+          }
+        });
+      };
+
+      funcX(streamToItemIds, itemId);
+    });
+
+    const contentGridItems: Array<GridItemContent> = [];
+
+    layoutGridItems.forEach((layoutItem) => {
+      const configItem = configItemsMap[layoutItem.itemId];
+
+      contentGridItems.push({
+        itemId: layoutItem.itemId,
+        itemTitle: configItem.gameItemInfo.itemTitle ?? layoutItem.itemTitle,
+        isFocused: layoutItem.isFocused,
+        layout: layoutItem.layout,
+        content: (
+          <GameStream
+            gameStreamIds={itemStreamMapping[layoutItem.itemId].map(
+              (itemId) => {
+                return configItemsMap[itemId].gameItemInfo.streamId;
+              }
+            )}
+            stream$={gameLogLineSubject$}
+          />
+        ),
+      });
+    });
+
+    return contentGridItems;
+  }, [gameLogLineSubject$]);
 
   return (
     <EuiPageTemplate
@@ -366,199 +525,23 @@ const GridPage: React.FC = (): ReactNode => {
       responsive={[]}
       css={{ height: '100%', maxWidth: 'unset' }}
     >
-      <EuiPageTemplate.Section grow={true}>
+      <EuiPageTemplate.Section grow={true} paddingSize="none">
         <div ref={gridWidthRef}>
           <GridNoSSR
-            dimensions={{
+            boundary={{
               height: gridHeight,
               width: gridWidth,
             }}
-            items={[
-              {
-                itemId: 'room',
-                title: 'Room',
-                content: (
-                  <GameStream
-                    gameStreamIds={['room']}
-                    stream$={gameLogLineSubject$}
-                  />
-                ),
-              },
-              {
-                itemId: 'experience',
-                title: 'Experience',
-                content: (
-                  <GameStream
-                    gameStreamIds={['experience']}
-                    stream$={gameLogLineSubject$}
-                  />
-                ),
-              },
-              // {
-              //   itemId: 'percWindow',
-              //   title: 'Spells',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['percWindow']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'inv',
-              //   title: 'Inventory',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['inv']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'familiar',
-              //   title: 'Familiar',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['familiar']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'thoughts',
-              //   title: 'Thoughts',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['thoughts']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'combat',
-              //   title: 'Combat',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['combat']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'assess',
-              //   title: 'Assess',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['assess']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'logons',
-              //   title: 'Arrivals',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['logons']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'death',
-              //   title: 'Deaths',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['death']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'atmospherics',
-              //   title: 'Atmospherics',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['atmospherics']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'chatter',
-              //   title: 'Chatter',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['chatter']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'conversation',
-              //   title: 'Conversation',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['conversation']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'whispers',
-              //   title: 'Whispers',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['whispers']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'talk',
-              //   title: 'Talk',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['talk']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'ooc',
-              //   title: 'OOC',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['ooc']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              // {
-              //   itemId: 'group',
-              //   title: 'Group',
-              //   content: (
-              //     <GameStream
-              //       gameStreamIds={['group']}
-              //       stream$={gameLogLineSubject$}
-              //     />
-              //   ),
-              // },
-              {
-                itemId: 'main',
-                title: 'Main',
-                content: (
-                  <GameStream
-                    gameStreamIds={['']}
-                    stream$={gameLogLineSubject$}
-                  />
-                ),
-              },
-            ]}
+            contentItems={contentGridItems}
           />
         </div>
       </EuiPageTemplate.Section>
-      <EuiPageTemplate.BottomBar>
+      <EuiPageTemplate.BottomBar
+        paddingSize="none"
+        css={{
+          backgroundColor: euiTheme.colors.lightestShade,
+        }}
+      >
         <div ref={bottomBarRef}>
           <EuiFieldText
             compressed={true}
@@ -572,8 +555,6 @@ const GridPage: React.FC = (): ReactNode => {
     </EuiPageTemplate>
   );
 };
-
-GridPage.displayName = 'GridPage';
 
 // nextjs pages must be default exports
 export default GridPage;

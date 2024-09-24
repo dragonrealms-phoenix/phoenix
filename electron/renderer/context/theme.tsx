@@ -4,11 +4,7 @@
 import type { EuiThemeColorMode } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
-import {
-  enableTheme,
-  getDefaultThemeName,
-  getThemeName,
-} from '../lib/theme.js';
+import { enableTheme, getThemeName } from '../lib/theme.js';
 
 /**
  * React context for storing theme-related data and callbacks.
@@ -35,9 +31,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (
 ) => {
   const { children } = props;
 
-  const [colorMode, setColorMode] = useState(getDefaultThemeName());
+  const [colorMode, setColorMode] = useState<EuiThemeColorMode>(getThemeName());
 
-  // On initial mount in the browser, use any theme from local storage.
+  // On initial mount in the browser, load user's theme preference.
   useEffect(() => {
     setColorMode(getThemeName());
   }, []);

@@ -1,8 +1,8 @@
 import type { Maybe } from '../../common/types.js';
 
-export function hasLocalStorage(): boolean {
+export const hasLocalStorage = (): boolean => {
   return typeof localStorage !== 'undefined';
-}
+};
 
 export const LocalStorage = {
   /**

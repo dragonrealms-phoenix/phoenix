@@ -1,3 +1,5 @@
+import { GameCode } from '../../common/game/types.js';
+
 export enum SGEGameProtocol {
   STORMFRONT = 'STORM',
 }
@@ -7,11 +9,11 @@ export enum SGEGameProtocol {
  * Only interested in DragonRealms, though.
  */
 export enum SGEGameCode {
-  DRAGONREALMS_PRIME = 'DR',
-  DRAGONREALMS_DEVELOPMENT = 'DRD',
-  DRAGONREALMS_THE_FALLEN = 'DRF',
-  DRAGONREALMS_PRIME_TEST = 'DRT',
-  DRAGONREALMS_PLATINUM = 'DRX',
+  DRAGONREALMS_PRIME = GameCode.PRIME,
+  DRAGONREALMS_FALLEN = GameCode.FALLEN,
+  DRAGONREALMS_PLATINUM = GameCode.PLATINUM,
+  DRAGONREALMS_TEST = GameCode.TEST,
+  DRAGONREALMS_DEVELOPMENT = GameCode.DEVELOPMENT,
 }
 
 export interface SGEGame {

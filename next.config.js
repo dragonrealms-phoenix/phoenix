@@ -188,13 +188,13 @@ const nextConfig = {
       new EnvironmentPlugin({
         // Electron renderer process doesn't have node enabled
         // so we need webpack to replace all uses of `process.env`.
-        SENTRY_INGEST_DOMAIN: process.env.SENTRY_INGEST_DOMAIN,
-        SENTRY_DSN: process.env.SENTRY_DSN,
-        SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
-        SENTRY_ORG: process.env.SENTRY_ORG,
-        SENTRY_PROJECT: process.env.SENTRY_PROJECT,
-        APP_ENV: process.env.APP_ENV,
-        LOG_LEVEL: process.env.LOG_LEVEL,
+        SENTRY_INGEST_DOMAIN: process.env.SENTRY_INGEST_DOMAIN ?? '',
+        SENTRY_DSN: process.env.SENTRY_DSN ?? '',
+        SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN ?? '',
+        SENTRY_ORG: process.env.SENTRY_ORG ?? '',
+        SENTRY_PROJECT: process.env.SENTRY_PROJECT ?? '',
+        APP_ENV: process.env.APP_ENV ?? '',
+        LOG_LEVEL: process.env.LOG_LEVEL ?? '',
         // I don't remember why I blank these out.
         // It fixes something, maybe with the env name sent to Sentry?
         NEXT_PUBLIC_VERCEL_ENV: '',
@@ -204,11 +204,6 @@ const nextConfig = {
       // Copy @elastic/eui theme files
       new CopyWebpackPlugin({
         patterns: buildElasticThemeFileCopyPatterns(),
-      }),
-
-      // Copy react-grid-layout theme files
-      new CopyWebpackPlugin({
-        patterns: buildReactGridThemeFileCopyPatterns(),
       }),
 
       // Moment ships with a large number of locales. Exclude them, leaving
@@ -397,30 +392,6 @@ function buildThemeConfig() {
  */
 function buildElasticThemeFileCopyPatterns() {
   return themeConfig.copyConfig;
-}
-
-/**
- * @returns {import('copy-webpack-plugin').ObjectPattern[]}
- */
-function buildReactGridThemeFileCopyPatterns() {
-  // Where to copy assets from.
-  const nodeModulesPath = path.join(__dirname, 'node_modules');
-  const reactGridLayoutPath = path.join(nodeModulesPath, 'react-grid-layout');
-  const reactResizablePath = path.join(nodeModulesPath, 'react-resizable');
-
-  // Where to copy the assets to.
-  const publicPath = path.join(__dirname, 'electron', 'renderer', `public`);
-
-  return [
-    {
-      from: path.join(reactGridLayoutPath, 'css', 'styles.css'),
-      to: path.join(publicPath, 'react-grid', `layout.min.css`),
-    },
-    {
-      from: path.join(reactResizablePath, 'css', 'styles.css'),
-      to: path.join(publicPath, 'react-grid', 'resizable.min.css'),
-    },
-  ];
 }
 
 /**

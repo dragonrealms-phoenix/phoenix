@@ -88,6 +88,9 @@ export const clearElectronLoggerMockProps = (
     console: {},
     file: {},
   };
+  // This is a private property defined by `initializeLogging` method.
+  // Reset it so that the logger can be re-initialized in each test.
+  (logger as any).__phoenix_initialized = false;
 };
 
 export { mockElectronLogMain, mockElectronLogRenderer };

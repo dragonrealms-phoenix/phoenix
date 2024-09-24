@@ -1,5 +1,8 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mockCreateLogger } from '../../../../common/__mocks__/create-logger.mock.js';
+import type { Logger } from '../../../../common/logger/types.js';
+import { runInBackground } from '../../../async/run-in-background.js';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
 import { sendCommandHandler } from '../send-command.js';
 
@@ -22,7 +25,13 @@ vi.mock('../../../game/game.instance.js', () => {
   };
 });
 
-describe('save-character', () => {
+describe('send-command', () => {
+  let logger: Logger;
+
+  beforeEach(() => {
+    logger = mockCreateLogger();
+  });
+
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -34,8 +43,38 @@ describe('save-character', () => {
   });
 
   describe('#sendCommandHandler', async () => {
-    it('saves a command with the game instance', async () => {
+    it('sends a command with the game instance', async () => {
       const mockGameService = new GameServiceMockImpl();
+      mockGameService.isConnected.mockReturnValueOnce(true);
+
+      mockGameInstance.getInstance.mockReturnValueOnce(mockGameService);
+
+      const mockIpcDispatcher = vi.fn();
+
+      const handler = sendCommandHandler({
+        dispatch: mockIpcDispatcher,
+      });
+
+      // Run the handler in the background so that we can
+      // advance the mock timers for a speedier test.
+      // Normally, this handler waits a second between its actions.
+      runInBackground(async () => {
+        await handler(['test-command']);
+      });
+
+      await vi.advanceTimersToNextTimerAsync();
+
+      expect(mockIpcDispatcher).toHaveBeenCalledWith('game:command', {
+        command: 'test-command',
+      });
+    });
+
+    it('skips sending command if game instance is disconnected', async () => {
+      const logInfoSpy = vi.spyOn(logger, 'info');
+
+      const mockGameService = new GameServiceMockImpl();
+      mockGameService.isConnected.mockReturnValueOnce(false);
+
       mockGameInstance.getInstance.mockReturnValueOnce(mockGameService);
 
       const mockIpcDispatcher = vi.fn();
@@ -46,9 +85,18 @@ describe('save-character', () => {
 
       await handler(['test-command']);
 
-      expect(mockIpcDispatcher).toHaveBeenCalledWith('game:command', {
-        command: 'test-command',
-      });
+      expect(logInfoSpy).toHaveBeenCalledWith(
+        'game instance not connected, skipping send command',
+        {
+          command: 'test-command',
+        }
+      );
+
+      expect(mockIpcDispatcher).not.toHaveBeenCalled();
+
+      expect(mockGameService.send).not.toHaveBeenCalled();
+
+      expect(mockGameService.disconnect).not.toHaveBeenCalled();
     });
 
     it('throws error if game instance not found', async () => {

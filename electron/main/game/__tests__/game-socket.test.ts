@@ -88,9 +88,16 @@ describe('game-socket', () => {
       // Connect to socket and begin listening for data.
       const socketDataPromise = socket.connect();
 
+      // Not connected yet because the socket has not received the data
+      // that indicates that the game connection is established.
+      expect(socket.isConnected()).toBe(false);
+
       // At this point the socket is listening for data from the game server.
       // Emit data from the game server signaling that the connection is ready.
       mockSocket.emitData('<mode id="GAME"/>\n');
+
+      // Now the socket is connected because it received the expected data.
+      expect(socket.isConnected()).toBe(true);
 
       // Run timer so that the delayed newlines sent on connect are seen.
       await vi.runAllTimersAsync();
@@ -124,6 +131,8 @@ describe('game-socket', () => {
       mockSocket.emitData('<data/>\n');
 
       await socket.disconnect();
+
+      expect(socket.isConnected()).toBe(false);
 
       // First subscriber receives all buffered and new events.
       expect(subscriber1NextSpy).toHaveBeenCalledTimes(2);

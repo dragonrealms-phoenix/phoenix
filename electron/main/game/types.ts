@@ -3,6 +3,11 @@ import type { GameEvent } from '../../common/game/types.js';
 
 export interface GameService {
   /**
+   * Returns true if connected to the game server.
+   */
+  isConnected(): boolean;
+
+  /**
    * Connect to the game server.
    * Returns an observable that emits game events parsed from raw output.
    * Upon disconnect, the observable will complete and no longer emit values.
@@ -24,6 +29,11 @@ export interface GameService {
 }
 
 export interface GameSocket {
+  /**
+   * Returns true if connected to the game server.
+   */
+  isConnected(): boolean;
+
   /**
    * Connect to the game server.
    * Returns an observable that emits game server output.

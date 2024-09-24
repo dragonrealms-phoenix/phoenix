@@ -27,6 +27,16 @@ const appAPI = {
     return ipcRenderer.invoke('removeAccount', options);
   },
   /**
+   * List added accounts.
+   */
+  listAccounts: async (): Promise<
+    Array<{
+      accountName: string;
+    }>
+  > => {
+    return ipcRenderer.invoke('listAccounts');
+  },
+  /**
    * Add or update a character for a given play.net account and game instance.
    */
   saveCharacter: async (options: {
@@ -70,6 +80,14 @@ const appAPI = {
     gameCode: string;
   }): Promise<void> => {
     return ipcRenderer.invoke('playCharacter', options);
+  },
+  /**
+   * Quit the game with the currently playing character, if any.
+   * Similar to sending the `quit` command to the game but awaits
+   * the game to confirm the quit before resolving.
+   */
+  quitCharacter: async (): Promise<void> => {
+    return ipcRenderer.invoke('quitCharacter');
   },
   /**
    * Sends a command to the game as the currently playing character.

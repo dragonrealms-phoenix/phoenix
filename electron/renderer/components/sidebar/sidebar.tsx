@@ -1,13 +1,39 @@
-import { EuiFlexGroup, EuiFlexItem, EuiFlyout, EuiPanel } from '@elastic/eui';
+import { EuiFlexGroup, EuiFlexItem, EuiFlyout } from '@elastic/eui';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
-import { SidebarItemHelp } from './sidebar-item-help.jsx';
+import { useCallback, useState } from 'react';
+import { useSubscribe } from '../../hooks/pubsub.jsx';
+import { SidebarId } from '../../types/sidebar.types.js';
+import { SidebarItemAccounts } from './accounts/sidebar-item-accounts.jsx';
+import { SidebarItemCharacters } from './characters/sidebar-item-characters.jsx';
+import { SidebarItemHelp } from './help/sidebar-item-help.jsx';
+import { SidebarItemSettings } from './settings/sidebar-item-settings.jsx';
 import { SidebarItem } from './sidebar-item.jsx';
 
 export const Sidebar: React.FC = (): ReactNode => {
-  const [showCharacters, setShowCharacters] = useState(false);
-  const [showAccounts, setShowAccounts] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showCharacters, setShowCharacters] = useState<boolean>(false);
+  const [showAccounts, setShowAccounts] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+
+  const closeSidebar = useCallback(() => {
+    setShowCharacters(false);
+    setShowAccounts(false);
+    setShowSettings(false);
+  }, []);
+
+  useSubscribe(['sidebar:show'], (sidebarId: SidebarId) => {
+    closeSidebar();
+    switch (sidebarId) {
+      case SidebarId.Characters:
+        setShowCharacters(true);
+        break;
+      case SidebarId.Accounts:
+        setShowAccounts(true);
+        break;
+      case SidebarId.Settings:
+        setShowSettings(true);
+        break;
+    }
+  });
 
   return (
     <>
@@ -73,10 +99,13 @@ export const Sidebar: React.FC = (): ReactNode => {
           type="overlay"
           paddingSize="s"
           size="s"
+          className="eui-yScroll"
+          pushAnimation={true}
+          hideCloseButton={false}
           outsideClickCloses={true}
           onClose={() => setShowCharacters(false)}
         >
-          <EuiPanel>Characters</EuiPanel>
+          <SidebarItemCharacters />
         </EuiFlyout>
       )}
 
@@ -86,10 +115,13 @@ export const Sidebar: React.FC = (): ReactNode => {
           type="overlay"
           paddingSize="s"
           size="s"
+          className="eui-yScroll"
+          pushAnimation={true}
+          hideCloseButton={false}
           outsideClickCloses={true}
           onClose={() => setShowAccounts(false)}
         >
-          <EuiPanel>Accounts</EuiPanel>
+          <SidebarItemAccounts />
         </EuiFlyout>
       )}
 
@@ -99,10 +131,13 @@ export const Sidebar: React.FC = (): ReactNode => {
           type="overlay"
           paddingSize="s"
           size="s"
+          className="eui-yScroll"
+          pushAnimation={true}
+          hideCloseButton={false}
           outsideClickCloses={true}
           onClose={() => setShowSettings(false)}
         >
-          <EuiPanel>Settings</EuiPanel>
+          <SidebarItemSettings />
         </EuiFlyout>
       )}
     </>

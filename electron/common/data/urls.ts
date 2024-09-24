@@ -7,5 +7,5 @@ export const PHOENIX_LICENSE_URL = `${GITHUB_BASE_URL}/blob/main/LICENSE.md`;
 export const PHOENIX_PRIVACY_URL = `${GITHUB_BASE_URL}/blob/main/PRIVACY.md`;
 export const PHOENIX_SECURITY_URL = `${GITHUB_BASE_URL}/blob/main/SECURITY.md`;
 
-export const PLAY_NET_URL = `http://play.net/dr`;
+export const PLAY_NET_URL = `https://www.play.net/dr`;
 export const ELANTHIPEDIA_URL = `https://elanthipedia.play.net`;
