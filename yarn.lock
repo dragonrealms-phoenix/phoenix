@@ -12459,7 +12459,7 @@ __metadata:
     react-hook-form: "npm:^7.53.0"
     rxjs: "npm:^7.8.1"
     semantic-release: "npm:^24.1.2"
-    snyk: "npm:^1.1280.1"
+    snyk: "npm:^1.1293.1"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.6.2"
     uuid: "npm:^10.0.0"
@@ -14091,15 +14091,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snyk@npm:^1.1280.1":
-  version: 1.1293.0
-  resolution: "snyk@npm:1.1293.0"
+"snyk@npm:^1.1293.1":
+  version: 1.1293.1
+  resolution: "snyk@npm:1.1293.1"
   dependencies:
     "@sentry/node": "npm:^7.36.0"
     global-agent: "npm:^3.0.0"
   bin:
     snyk: bin/snyk
-  checksum: 10c0/ef5af779a16d0a61074da31e859b9596958cc96d045c6de773ec4e80bbfd7afbc07e55227c6f875db84562edc830a3b5c25be369e0e7040a999510b713fc8969
+  checksum: 10c0/c1006ddf4b538d58cf0c5d392215876abf471e4e33828a79431b13ae775f6c829a7fbc5e9e46f5bf35879fc4aff52d0eebc8aab5ebd3837d8b7110e67d3e4d76
   languageName: node
   linkType: hard
 

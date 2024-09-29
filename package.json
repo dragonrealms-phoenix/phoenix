@@ -138,7 +138,7 @@
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "semantic-release": "^24.1.2",
-    "snyk": "^1.1280.1",
+    "snyk": "^1.1293.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2",
     "vitest": "^2.1.1",
