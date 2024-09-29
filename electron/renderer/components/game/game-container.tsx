@@ -4,7 +4,7 @@ import { GameGrid } from './game-grid.jsx';
 import { GameTopBar } from './game-top-bar.jsx';
 
 export interface GameContainerProps {
-  // TODO
+  todo?: true;
 }
 
 export const GameContainer: React.FC<GameContainerProps> = (
