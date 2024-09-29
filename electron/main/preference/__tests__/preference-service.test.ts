@@ -1,6 +1,6 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Maybe } from '../../../common/types.js';
+import { StoreServiceMockImpl } from '../../store/__mocks__/store-service.mock.js';
 import type { StoreService } from '../../store/types.js';
 import { PreferenceServiceImpl } from '../preference.service.js';
 import type { PreferenceKey, PreferenceService } from '../types.js';
@@ -10,13 +10,7 @@ describe('preference-service', () => {
   let preferenceService: PreferenceService;
 
   beforeEach(() => {
-    storeService = {
-      keys: vi.fn<[], Promise<Array<string>>>(),
-      get: vi.fn<[string], Promise<Maybe<any>>>(),
-      set: vi.fn<[string, any], Promise<void>>(),
-      remove: vi.fn<[string], Promise<void>>(),
-      removeAll: vi.fn<[], Promise<void>>(),
-    };
+    storeService = new StoreServiceMockImpl();
 
     storeService.get.mockImplementation(async (key: string) => {
       if (key === 'key') {

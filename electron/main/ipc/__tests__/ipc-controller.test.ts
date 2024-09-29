@@ -1,5 +1,6 @@
 import type { Mock, Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Maybe } from '../../../common/types.js';
 import { AccountServiceMockImpl } from '../../account/__mocks__/account-service.mock.js';
 import type { AccountService } from '../../account/types.js';
 import type { GameService } from '../../game/types.js';
@@ -25,6 +26,7 @@ const {
   mockIpcMain,
 } = await vi.hoisted(async () => {
   const mockGameService: Mocked<GameService> = {
+    isConnected: vi.fn(),
     connect: vi.fn(),
     disconnect: vi.fn(),
     send: vi.fn(),
@@ -38,53 +40,22 @@ const {
   const mockAccountService: MockAccountService = {
     constructorSpy: vi.fn(),
 
-    listAccounts: vi.fn<
-      Parameters<AccountService['listAccounts']>,
-      ReturnType<AccountService['listAccounts']>
-    >(),
-
-    getAccount: vi.fn<
-      Parameters<AccountService['getAccount']>,
-      ReturnType<AccountService['getAccount']>
-    >(),
-
-    saveAccount: vi.fn<
-      Parameters<AccountService['saveAccount']>,
-      ReturnType<AccountService['saveAccount']>
-    >(),
-
-    removeAccount: vi.fn<
-      Parameters<AccountService['removeAccount']>,
-      ReturnType<AccountService['removeAccount']>
-    >(),
-
-    listCharacters: vi.fn<
-      Parameters<AccountService['listCharacters']>,
-      ReturnType<AccountService['listCharacters']>
-    >(),
-
-    getCharacter: vi.fn<
-      Parameters<AccountService['getCharacter']>,
-      ReturnType<AccountService['getCharacter']>
-    >(),
-
-    saveCharacter: vi.fn<
-      Parameters<AccountService['saveCharacter']>,
-      ReturnType<AccountService['saveCharacter']>
-    >(),
-
-    removeCharacter: vi.fn<
-      Parameters<AccountService['removeCharacter']>,
-      ReturnType<AccountService['removeCharacter']>
-    >(),
+    listAccounts: vi.fn<AccountService['listAccounts']>(),
+    getAccount: vi.fn<AccountService['getAccount']>(),
+    saveAccount: vi.fn<AccountService['saveAccount']>(),
+    removeAccount: vi.fn<AccountService['removeAccount']>(),
+    listCharacters: vi.fn<AccountService['listCharacters']>(),
+    getCharacter: vi.fn<AccountService['getCharacter']>(),
+    saveCharacter: vi.fn<AccountService['saveCharacter']>(),
+    removeCharacter: vi.fn<AccountService['removeCharacter']>(),
   };
 
   const mockStoreService: Mocked<StoreService> = {
-    keys: vi.fn<[], Promise<Array<string>>>(),
-    get: vi.fn<[string], Promise<any>>(),
-    set: vi.fn<[string, any], Promise<void>>(),
-    remove: vi.fn<[string], Promise<void>>(),
-    removeAll: vi.fn<[], Promise<void>>(),
+    keys: vi.fn<StoreService['keys']>(),
+    get: vi.fn<(key: string) => Promise<Maybe<any>>>(),
+    set: vi.fn<StoreService['set']>(),
+    remove: vi.fn<StoreService['remove']>(),
+    removeAll: vi.fn<StoreService['removeAll']>(),
   };
 
   const mockIpcPingHandler = vi.fn();
@@ -130,73 +101,49 @@ vi.mock('../../account/account.service.js', () => {
     }
 
     listAccounts = vi
-      .fn<
-        Parameters<AccountService['listAccounts']>,
-        ReturnType<AccountService['listAccounts']>
-      >()
+      .fn<AccountService['listAccounts']>()
       .mockImplementation(async () => {
         return mockAccountService.listAccounts();
       });
 
     getAccount = vi
-      .fn<
-        Parameters<AccountService['getAccount']>,
-        ReturnType<AccountService['getAccount']>
-      >()
+      .fn<AccountService['getAccount']>()
       .mockImplementation(async (options) => {
         return mockAccountService.getAccount(options);
       });
 
     saveAccount = vi
-      .fn<
-        Parameters<AccountService['saveAccount']>,
-        ReturnType<AccountService['saveAccount']>
-      >()
+      .fn<AccountService['saveAccount']>()
       .mockImplementation(async (account) => {
         return mockAccountService.saveAccount(account);
       });
 
     removeAccount = vi
-      .fn<
-        Parameters<AccountService['removeAccount']>,
-        ReturnType<AccountService['removeAccount']>
-      >()
+      .fn<AccountService['removeAccount']>()
       .mockImplementation(async (options) => {
         return mockAccountService.removeAccount(options);
       });
 
     listCharacters = vi
-      .fn<
-        Parameters<AccountService['listCharacters']>,
-        ReturnType<AccountService['listCharacters']>
-      >()
+      .fn<AccountService['listCharacters']>()
       .mockImplementation(async (options) => {
         return mockAccountService.listCharacters(options);
       });
 
     getCharacter = vi
-      .fn<
-        Parameters<AccountService['getCharacter']>,
-        ReturnType<AccountService['getCharacter']>
-      >()
+      .fn<AccountService['getCharacter']>()
       .mockImplementation(async (options) => {
         return mockAccountService.getCharacter(options);
       });
 
     saveCharacter = vi
-      .fn<
-        Parameters<AccountService['saveCharacter']>,
-        ReturnType<AccountService['saveCharacter']>
-      >()
+      .fn<AccountService['saveCharacter']>()
       .mockImplementation(async (character) => {
         return mockAccountService.saveCharacter(character);
       });
 
     removeCharacter = vi
-      .fn<
-        Parameters<AccountService['removeCharacter']>,
-        ReturnType<AccountService['removeCharacter']>
-      >()
+      .fn<AccountService['removeCharacter']>()
       .mockImplementation(async (character) => {
         return mockAccountService.removeCharacter(character);
       });

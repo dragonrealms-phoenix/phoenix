@@ -1,65 +1,10 @@
 import { afterEach } from 'node:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SGEGameCredentials } from '../../sge/types.js';
+import { GameServiceMockImpl } from '../__mocks__/game-service.mock.js';
 import { GameServiceImpl } from '../game.service.js';
-import type { GameService } from '../types.js';
-
-const { mockGameService } = vi.hoisted(() => {
-  const mockGameService = {
-    isConnected: vi.fn<[], boolean>(),
-
-    connect: vi.fn<
-      Parameters<GameService['connect']>,
-      ReturnType<GameService['connect']>
-    >(),
-
-    disconnect: vi.fn<
-      Parameters<GameService['disconnect']>,
-      ReturnType<GameService['disconnect']>
-    >(),
-
-    send: vi.fn<
-      Parameters<GameService['send']>,
-      ReturnType<GameService['send']>
-    >(),
-  };
-
-  return {
-    mockGameService,
-  };
-});
 
 vi.mock('../game.service.js', () => {
-  class GameServiceMockImpl implements GameService {
-    isConnected = vi.fn<[], boolean>().mockImplementation(() => {
-      return mockGameService.isConnected();
-    });
-
-    connect = vi
-      .fn<
-        Parameters<GameService['connect']>,
-        ReturnType<GameService['connect']>
-      >()
-      .mockImplementation(async () => {
-        return mockGameService.connect();
-      });
-
-    disconnect = vi
-      .fn<
-        Parameters<GameService['disconnect']>,
-        ReturnType<GameService['disconnect']>
-      >()
-      .mockImplementation(async () => {
-        return mockGameService.disconnect();
-      });
-
-    send = vi
-      .fn<Parameters<GameService['send']>, ReturnType<GameService['send']>>()
-      .mockImplementation((command) => {
-        return mockGameService.send(command);
-      });
-  }
-
   return {
     GameServiceImpl: GameServiceMockImpl,
   };

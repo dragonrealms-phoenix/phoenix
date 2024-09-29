@@ -4,6 +4,7 @@ import type {
   RendererLogger as ElectronRendererLogger,
 } from 'electron-log';
 import { vi } from 'vitest';
+import type { Logger } from '../logger/types.js';
 import type { DeepPartial } from '../types.js';
 
 const { mockElectronLogMain, mockElectronLogRenderer } = vi.hoisted(() => {
@@ -17,11 +18,11 @@ const { mockElectronLogMain, mockElectronLogRenderer } = vi.hoisted(() => {
       // When the scope function is called it will call the scopeReturnValue
       // function which will return the desired mock.
       scope: vi.fn().mockImplementation(() => logger),
-      error: vi.fn(),
-      warn: vi.fn(),
-      info: vi.fn(),
-      debug: vi.fn(),
-      trace: vi.fn(),
+      error: vi.fn<Logger['error']>(),
+      warn: vi.fn<Logger['warn']>(),
+      info: vi.fn<Logger['info']>(),
+      debug: vi.fn<Logger['debug']>(),
+      trace: vi.fn<Logger['trace']>(),
       addLevel: vi.fn(),
       levels: ['debug', 'info', 'warn', 'error'],
       hooks: [],

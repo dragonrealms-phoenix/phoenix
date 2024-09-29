@@ -32,12 +32,7 @@ export interface AccountService {
   removeAccount(options: { accountName: string }): Promise<void>;
 
   /**
-   * Lists all characters.
-   */
-  listCharacters(): Promise<Array<Character>>;
-
-  /**
-   * Lists all characters for an account.
+   * Lists all characters, optionally filtered by an account.
    */
   listCharacters(options?: { accountName?: string }): Promise<Array<Character>>;
 

@@ -1,23 +1,19 @@
 import { vi } from 'vitest';
 import type { Logger } from '../logger/types.js';
-import type { DeepPartial } from '../types.js';
 
 type CreateLoggerModule = typeof import('../logger/create-logger.js');
 
 const { mockCreateLogger } = vi.hoisted(() => {
   const logger: Logger = {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-    trace: vi.fn(),
+    error: vi.fn<Logger['error']>(),
+    warn: vi.fn<Logger['warn']>(),
+    info: vi.fn<Logger['info']>(),
+    debug: vi.fn<Logger['debug']>(),
+    trace: vi.fn<Logger['trace']>(),
   };
 
   const mockCreateLogger = vi
-    .fn<
-      DeepPartial<Parameters<CreateLoggerModule['createLogger']>>,
-      ReturnType<CreateLoggerModule['createLogger']>
-    >()
+    .fn<CreateLoggerModule['createLogger']>()
     .mockReturnValue(logger);
 
   return { mockCreateLogger };

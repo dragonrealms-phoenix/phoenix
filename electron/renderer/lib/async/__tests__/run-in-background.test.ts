@@ -8,6 +8,7 @@ import {
   vi,
 } from 'vitest';
 import { mockCreateLogger } from '../../../../common/__mocks__/create-logger.mock.js';
+import { mockElectronLogRenderer } from '../../../../common/__mocks__/electron-log.mock.js';
 import type { Logger } from '../../../../common/logger/types.js';
 import { runInBackground } from '../run-in-background.js';
 
@@ -23,7 +24,10 @@ describe('run-in-background', () => {
   let logger: Logger;
 
   beforeAll(() => {
-    logger = mockCreateLogger({ scope: 'test' });
+    logger = mockCreateLogger({
+      scope: 'test',
+      logger: mockElectronLogRenderer,
+    });
   });
 
   beforeEach(() => {

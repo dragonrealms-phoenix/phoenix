@@ -23,16 +23,8 @@ const { mockGameInstance, mockSgeService } = vi.hoisted(() => {
 
   const mockSgeService: MockSGEService = {
     constructorSpy: vi.fn(),
-
-    loginCharacter: vi.fn<
-      Parameters<SGEService['loginCharacter']>,
-      ReturnType<SGEService['loginCharacter']>
-    >(),
-
-    listCharacters: vi.fn<
-      Parameters<SGEService['listCharacters']>,
-      ReturnType<SGEService['listCharacters']>
-    >(),
+    loginCharacter: vi.fn<SGEService['loginCharacter']>(),
+    listCharacters: vi.fn<SGEService['listCharacters']>(),
   };
 
   return {
@@ -54,19 +46,13 @@ vi.mock('../../../sge/sge.service.js', () => {
     }
 
     loginCharacter = vi
-      .fn<
-        Parameters<SGEService['loginCharacter']>,
-        ReturnType<SGEService['loginCharacter']>
-      >()
+      .fn<SGEService['loginCharacter']>()
       .mockImplementation(async (characterName) => {
         return mockSgeService.loginCharacter(characterName);
       });
 
     listCharacters = vi
-      .fn<
-        Parameters<SGEService['listCharacters']>,
-        ReturnType<SGEService['listCharacters']>
-      >()
+      .fn<SGEService['listCharacters']>()
       .mockImplementation(async () => {
         return mockSgeService.listCharacters();
       });

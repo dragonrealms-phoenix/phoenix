@@ -1,6 +1,7 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockCreateLogger } from '../../../../common/__mocks__/create-logger.mock.js';
+import { mockElectronLogMain } from '../../../../common/__mocks__/electron-log.mock.js';
 import type { Logger } from '../../../../common/logger/types.js';
 import { runInBackground } from '../../../async/run-in-background.js';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
@@ -29,7 +30,9 @@ describe('send-command', () => {
   let logger: Logger;
 
   beforeEach(() => {
-    logger = mockCreateLogger();
+    logger = mockCreateLogger({
+      logger: mockElectronLogMain,
+    });
   });
 
   beforeEach(() => {

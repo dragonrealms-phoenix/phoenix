@@ -22,7 +22,7 @@ vi.mock('node:tls', () => {
   const tlsMock: Partial<TLSModule> = {
     // Each test spies on `tls.connect` to specify their own socket to test.
     // Mocking the method here so that it can be spied upon as a mocked module.
-    connect: vi.fn<[], tls.TLSSocket>(),
+    connect: vi.fn<() => tls.TLSSocket>(),
   };
 
   return {
