@@ -11884,7 +11884,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"observable-hooks@npm:^4.2.3":
+"observable-hooks@npm:^4.2.4":
   version: 4.2.4
   resolution: "observable-hooks@npm:4.2.4"
   peerDependencies:
@@ -12441,7 +12441,7 @@ __metadata:
     lodash-es: "npm:^4.17.21"
     moment: "npm:^2.30.1"
     next: "npm:^14.1.0"
-    observable-hooks: "npm:^4.2.3"
+    observable-hooks: "npm:^4.2.4"
     prettier: "npm:^3.3.3"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
