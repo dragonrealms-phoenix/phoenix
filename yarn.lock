@@ -12462,7 +12462,7 @@ __metadata:
     snyk: "npm:^1.1280.1"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.6.2"
-    uuid: "npm:^9.0.1"
+    uuid: "npm:^10.0.0"
     vitest: "npm:^2.1.1"
     webpack: "npm:^5.95.0"
     zustand: "npm:^4.5.5"
@@ -15530,6 +15530,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "uuid@npm:10.0.0"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 10c0/eab18c27fe4ab9fb9709a5d5f40119b45f2ec8314f8d4cf12ce27e4c6f4ffa4a6321dc7db6c515068fa373c075b49691ba969f0010bf37f44c37ca40cd6bf7fe
+  languageName: node
+  linkType: hard
+
 "uuid@npm:^8.3.0":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
@@ -15539,7 +15548,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^9.0.0, uuid@npm:^9.0.1":
+"uuid@npm:^9.0.0":
   version: 9.0.1
   resolution: "uuid@npm:9.0.1"
   bin:
