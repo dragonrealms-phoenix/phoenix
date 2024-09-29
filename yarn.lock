@@ -3452,7 +3452,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-spring/web@npm:^9.7.3":
+"@react-spring/web@npm:^9.7.4":
   version: 9.7.4
   resolution: "@react-spring/web@npm:9.7.4"
   dependencies:
@@ -12392,7 +12392,7 @@ __metadata:
     "@emotion/react": "npm:^11.11.3"
     "@faker-js/faker": "npm:^9.0.3"
     "@next/eslint-plugin-next": "npm:^14.2.13"
-    "@react-spring/web": "npm:^9.7.3"
+    "@react-spring/web": "npm:^9.7.4"
     "@semantic-release/changelog": "npm:^6.0.3"
     "@semantic-release/commit-analyzer": "npm:^13.0.0"
     "@semantic-release/git": "npm:^10.0.1"
