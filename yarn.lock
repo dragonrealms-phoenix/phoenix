@@ -12515,7 +12515,7 @@ __metadata:
     uuid: "npm:^9.0.1"
     vitest: "npm:^1.3.1"
     webpack: "npm:^5.90.3"
-    zustand: "npm:^4.5.1"
+    zustand: "npm:^4.5.5"
   languageName: unknown
   linkType: soft
 
@@ -16188,7 +16188,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zustand@npm:^4.5.1":
+"zustand@npm:^4.5.5":
   version: 4.5.5
   resolution: "zustand@npm:4.5.5"
   dependencies:
