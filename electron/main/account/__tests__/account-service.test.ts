@@ -1,6 +1,6 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Maybe } from '../../../common/types.js';
+import { StoreServiceMockImpl } from '../../store/__mocks__/store-service.mock.js';
 import type { StoreService } from '../../store/types.js';
 import { AccountServiceImpl } from '../account.service.js';
 import type { AccountService } from '../types.js';
@@ -40,13 +40,7 @@ describe('account-service', () => {
 
     mockSafeStorageDecryptString.mockReturnValueOnce('test-password');
 
-    storeService = {
-      keys: vi.fn<[], Promise<Array<string>>>(),
-      get: vi.fn<[string], Promise<Maybe<any>>>(),
-      set: vi.fn<[string, any], Promise<void>>(),
-      remove: vi.fn<[string], Promise<void>>(),
-      removeAll: vi.fn<[], Promise<void>>(),
-    };
+    storeService = new StoreServiceMockImpl();
 
     accountService = new AccountServiceImpl({
       storeService,

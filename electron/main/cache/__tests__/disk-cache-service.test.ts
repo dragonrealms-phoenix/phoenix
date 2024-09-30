@@ -10,6 +10,7 @@ import {
   vi,
 } from 'vitest';
 import { mockCreateLogger } from '../../../common/__mocks__/create-logger.mock.js';
+import { mockElectronLogMain } from '../../../common/__mocks__/electron-log.mock.js';
 import type { Logger } from '../../../common/logger/types.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 import type { CacheService } from '../types.js';
@@ -86,7 +87,10 @@ describe('disk-cache-service', () => {
   let logger: Logger;
 
   beforeAll(() => {
-    logger = mockCreateLogger({ scope: 'test' });
+    logger = mockCreateLogger({
+      scope: 'test',
+      logger: mockElectronLogMain,
+    });
   });
 
   beforeEach(() => {

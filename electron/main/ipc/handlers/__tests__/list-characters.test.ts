@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Character } from '../../../../common/account/types.js';
 import { AccountServiceMockImpl } from '../../../account/__mocks__/account-service.mock.js';
-import type { Character } from '../../../account/types.js';
 import { listCharactersHandler } from '../list-characters.js';
 
 describe('list-characters', () => {

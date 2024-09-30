@@ -3,29 +3,14 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const { mockContextBridge, mockIpcRenderer } = vi.hoisted(() => {
   const mockContextBridge = {
-    exposeInMainWorld: vi.fn<
-      Parameters<ContextBridge['exposeInMainWorld']>,
-      ReturnType<ContextBridge['exposeInMainWorld']>
-    >(),
+    exposeInMainWorld: vi.fn<ContextBridge['exposeInMainWorld']>(),
   };
 
   const mockIpcRenderer = {
-    invoke: vi.fn<
-      Parameters<IpcRenderer['invoke']>,
-      ReturnType<IpcRenderer['invoke']>
-    >(),
-
-    on: vi.fn<Parameters<IpcRenderer['on']>, ReturnType<IpcRenderer['on']>>(),
-
-    off: vi.fn<
-      Parameters<IpcRenderer['off']>,
-      ReturnType<IpcRenderer['off']>
-    >(),
-
-    removeAllListeners: vi.fn<
-      Parameters<IpcRenderer['removeAllListeners']>,
-      ReturnType<IpcRenderer['removeAllListeners']>
-    >(),
+    invoke: vi.fn<IpcRenderer['invoke']>(),
+    on: vi.fn<IpcRenderer['on']>(),
+    off: vi.fn<IpcRenderer['off']>(),
+    removeAllListeners: vi.fn<IpcRenderer['removeAllListeners']>(),
   };
 
   return {

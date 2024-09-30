@@ -10,15 +10,15 @@ const { mockParser, mockSocket, mockWriteStream, mockWaitUntil } = vi.hoisted(
   () => {
     // For mocking the game parser module.
     const mockParser: Mocked<GameParser> = {
-      parse: vi.fn(),
+      parse: vi.fn<GameParser['parse']>(),
     };
 
     // For mocking the game socket module.
     const mockSocket: Mocked<GameSocket> = {
-      isConnected: vi.fn(),
-      connect: vi.fn(),
-      disconnect: vi.fn(),
-      send: vi.fn(),
+      isConnected: vi.fn<GameSocket['isConnected']>(),
+      connect: vi.fn<GameSocket['connect']>(),
+      disconnect: vi.fn<GameSocket['disconnect']>(),
+      send: vi.fn<GameSocket['send']>(),
     };
 
     // When game service connects and log level is trace then it creates

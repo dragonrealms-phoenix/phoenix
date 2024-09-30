@@ -1,50 +1,20 @@
+import type { Mocked } from 'vitest';
 import { vi } from 'vitest';
 import type { AccountService } from '../types.js';
 
-export class AccountServiceMockImpl implements AccountService {
+export class AccountServiceMockImpl implements Mocked<AccountService> {
   constructorSpy = vi.fn();
 
   constructor(...args: Array<any>) {
     this.constructorSpy(args);
   }
 
-  listAccounts = vi.fn<
-    Parameters<AccountService['listAccounts']>,
-    ReturnType<AccountService['listAccounts']>
-  >();
-
-  getAccount = vi.fn<
-    Parameters<AccountService['getAccount']>,
-    ReturnType<AccountService['getAccount']>
-  >();
-
-  saveAccount = vi.fn<
-    Parameters<AccountService['saveAccount']>,
-    ReturnType<AccountService['saveAccount']>
-  >();
-
-  removeAccount = vi.fn<
-    Parameters<AccountService['removeAccount']>,
-    ReturnType<AccountService['removeAccount']>
-  >();
-
-  listCharacters = vi.fn<
-    Parameters<AccountService['listCharacters']>,
-    ReturnType<AccountService['listCharacters']>
-  >();
-
-  getCharacter = vi.fn<
-    Parameters<AccountService['getCharacter']>,
-    ReturnType<AccountService['getCharacter']>
-  >();
-
-  saveCharacter = vi.fn<
-    Parameters<AccountService['saveCharacter']>,
-    ReturnType<AccountService['saveCharacter']>
-  >();
-
-  removeCharacter = vi.fn<
-    Parameters<AccountService['removeCharacter']>,
-    ReturnType<AccountService['removeCharacter']>
-  >();
+  listAccounts = vi.fn<AccountService['listAccounts']>();
+  getAccount = vi.fn<AccountService['getAccount']>();
+  saveAccount = vi.fn<AccountService['saveAccount']>();
+  removeAccount = vi.fn<AccountService['removeAccount']>();
+  listCharacters = vi.fn<AccountService['listCharacters']>();
+  getCharacter = vi.fn<AccountService['getCharacter']>();
+  saveCharacter = vi.fn<AccountService['saveCharacter']>();
+  removeCharacter = vi.fn<AccountService['removeCharacter']>();
 }

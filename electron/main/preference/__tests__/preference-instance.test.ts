@@ -1,22 +1,9 @@
-import type { Mocked } from 'vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { StoreService } from '../../store/types.js';
+import { StoreServiceMockImpl } from '../../store/__mocks__/store-service.mock.js';
 import { PreferenceServiceImpl } from '../preference.service.js';
 
-const { mockStoreService } = vi.hoisted(() => {
-  const mockStoreService: Mocked<StoreService> = {
-    keys: vi.fn<[], Promise<Array<string>>>(),
-    get: vi.fn<[string], Promise<any>>(),
-    set: vi.fn<[string, any], Promise<void>>(),
-    remove: vi.fn<[string], Promise<void>>(),
-    removeAll: vi.fn<[], Promise<void>>(),
-  };
-
-  return { mockStoreService };
-});
-
 vi.mock('../../store/store.instance.ts', () => {
-  return { Store: mockStoreService };
+  return { Store: new StoreServiceMockImpl() };
 });
 
 describe('preference-instance', () => {

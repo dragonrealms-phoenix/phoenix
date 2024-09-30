@@ -1,27 +1,16 @@
+import type { Mocked } from 'vitest';
 import { vi } from 'vitest';
 import type { GameService } from '../types.js';
 
-export class GameServiceMockImpl implements GameService {
+export class GameServiceMockImpl implements Mocked<GameService> {
   constructorSpy = vi.fn();
 
   constructor(...args: Array<any>) {
     this.constructorSpy(args);
   }
 
-  isConnected = vi.fn<[], boolean>();
-
-  connect = vi.fn<
-    Parameters<GameService['connect']>,
-    ReturnType<GameService['connect']>
-  >();
-
-  disconnect = vi.fn<
-    Parameters<GameService['disconnect']>,
-    ReturnType<GameService['disconnect']>
-  >();
-
-  send = vi.fn<
-    Parameters<GameService['send']>,
-    ReturnType<GameService['send']>
-  >();
+  isConnected = vi.fn<GameService['isConnected']>();
+  connect = vi.fn<GameService['connect']>();
+  disconnect = vi.fn<GameService['disconnect']>();
+  send = vi.fn<GameService['send']>();
 }

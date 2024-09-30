@@ -27,9 +27,7 @@ export const createLogger = (options: {
   scope?: string;
   /**
    * Underlying electron logger instance to use.
-   * Defaults to the electron logger for the main process.
-   *
-   * The main package code SHOULD provide the main logger instance.
+   * The main package code MUST provide the main logger instance.
    * The renderer package code MUST provide the renderer logger instance.
    */
   logger: ElectronLogger;

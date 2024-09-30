@@ -21,7 +21,7 @@ vi.mock('node:net', () => {
   const netMock: Partial<NetModule> = {
     // Each test spies on `net.connect` to specify their own socket to test.
     // Mocking the method here so that it can be spied upon as a mocked module.
-    connect: vi.fn<[], net.Socket>(),
+    connect: vi.fn<() => net.Socket>(),
   };
 
   return {

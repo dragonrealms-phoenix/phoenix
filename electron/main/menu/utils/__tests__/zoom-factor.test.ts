@@ -17,17 +17,9 @@ import {
 const { mockPreferenceService, mockBrowserWindow, mockWebContents } =
   vi.hoisted(() => {
     const mockPreferenceService: Mocked<PreferenceService> = {
-      get: vi.fn<[PreferenceKey], Promise<Maybe<any>>>(),
-
-      set: vi.fn<
-        Parameters<PreferenceService['set']>,
-        ReturnType<PreferenceService['set']>
-      >(),
-
-      remove: vi.fn<
-        Parameters<PreferenceService['remove']>,
-        ReturnType<PreferenceService['remove']>
-      >(),
+      get: vi.fn<(key: PreferenceKey) => Promise<Maybe<any>>>(),
+      set: vi.fn<PreferenceService['set']>(),
+      remove: vi.fn<PreferenceService['remove']>(),
     };
 
     const mockWebContents = {
