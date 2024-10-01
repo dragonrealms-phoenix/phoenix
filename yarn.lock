@@ -1621,11 +1621,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@elastic/eui@npm:^93.6.0":
-  version: 93.6.0
-  resolution: "@elastic/eui@npm:93.6.0"
+"@elastic/eui@npm:^95.12.0":
+  version: 95.12.0
+  resolution: "@elastic/eui@npm:95.12.0"
   dependencies:
-    "@hello-pangea/dnd": "npm:^16.3.0"
+    "@hello-pangea/dnd": "npm:^16.6.0"
     "@types/lodash": "npm:^4.14.202"
     "@types/numeral": "npm:^2.0.5"
     "@types/react-window": "npm:^1.8.8"
@@ -1650,7 +1650,7 @@ __metadata:
     remark-breaks: "npm:^2.0.2"
     remark-emoji: "npm:^2.1.0"
     remark-parse-no-trim: "npm:^8.0.4"
-    remark-rehype: "npm:^8.0.0"
+    remark-rehype: "npm:^8.1.0"
     tabbable: "npm:^5.3.3"
     text-diff: "npm:^1.0.1"
     unified: "npm:^9.2.2"
@@ -1667,8 +1667,8 @@ __metadata:
     moment: ^2.13.0
     react: ^16.12 || ^17.0 || ^18.0
     react-dom: ^16.12 || ^17.0 || ^18.0
-    typescript: ~4.5.3
-  checksum: 10c0/af09f7fed43b7bcc66fe174b49ed61add38a6de8086ffdea63f3548c8c854028c489ece8768eb8df94a91233b7cc68c423864ba9cdd84cac282d87901f9a05f9
+    typescript: ~4.5.3 || ^5
+  checksum: 10c0/72a76fd1ee2b0b639ee0ed66aa3e9c9c428f3821f873232787b56735ae6db8e910e60fe9606f1bb3c6ed37d9829f4c6ede8e893905419b552c44de9e24ad48ff
   languageName: node
   linkType: hard
 
@@ -2126,7 +2126,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hello-pangea/dnd@npm:^16.3.0":
+"@hello-pangea/dnd@npm:^16.6.0":
   version: 16.6.0
   resolution: "@hello-pangea/dnd@npm:16.6.0"
   dependencies:
@@ -12924,7 +12924,7 @@ __metadata:
     "@commitlint/cli": "npm:^19.5.0"
     "@commitlint/config-conventional": "npm:^19.5.0"
     "@elastic/datemath": "npm:^5.0.3"
-    "@elastic/eui": "npm:^93.6.0"
+    "@elastic/eui": "npm:^95.12.0"
     "@emotion/cache": "npm:^11.13.1"
     "@emotion/css": "npm:^11.13.0"
     "@emotion/react": "npm:^11.13.3"
@@ -13915,7 +13915,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-rehype@npm:^8.0.0":
+"remark-rehype@npm:^8.1.0":
   version: 8.1.0
   resolution: "remark-rehype@npm:8.1.0"
   dependencies:
