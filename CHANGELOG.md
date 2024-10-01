@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.9.0...v1.9.1) (2024-10-01)
+
+
+### Performance Improvements
+
+* eslint ([2c648e3](https://github.com/dragonrealms-phoenix/phoenix/commit/2c648e306addea278ce9246b2dfef99f9f665d89))
+
 # [1.9.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.8.0...v1.9.0) (2024-09-24)
 
 
