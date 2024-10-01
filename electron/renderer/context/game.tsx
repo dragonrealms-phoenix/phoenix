@@ -18,6 +18,7 @@ import { runInBackground } from '../lib/async/run-in-background.js';
  */
 export interface GameContextValue {
   //
+  todo?: true;
 }
 
 export const GameContext = createContext<GameContextValue>({});
