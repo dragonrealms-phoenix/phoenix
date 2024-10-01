@@ -1,0 +1,9 @@
+// https://github.com/typescript-eslint/typescript-eslint/issues/1192
+{
+  "include": [
+    "electron/common/**/*",
+    "electron/main/**/*",
+    "electron/preload/**/*",
+    "electron/renderer/**/*"
+  ]
+}
