@@ -19,7 +19,6 @@ import type {
 import { GameEventType } from '../../common/game/types.js';
 import { GameStream } from '../components/game/game-stream.jsx';
 import { Grid } from '../components/grid/grid.jsx';
-import { NoSSR } from '../components/no-ssr/no-ssr.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
 import { useWindowSize } from '../hooks/window-size.js';
@@ -31,11 +30,6 @@ import type {
   GridItemContent,
   GridItemInfo,
 } from '../types/grid.types.js';
-
-// The grid dynamically modifies the DOM, so we can't use SSR
-// because the server and client DOMs will be out of sync.
-// https://nextjs.org/docs/messages/react-hydration-error
-const GridNoSSR = NoSSR(Grid);
 
 const GridPage: React.FC = (): ReactNode => {
   const logger = useLogger('page:grid');
@@ -527,7 +521,7 @@ const GridPage: React.FC = (): ReactNode => {
     >
       <EuiPageTemplate.Section grow={true} paddingSize="none">
         <div ref={gridWidthRef}>
-          <GridNoSSR
+          <Grid
             boundary={{
               height: gridHeight,
               width: gridWidth,
