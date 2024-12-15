@@ -7223,9 +7223,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "concurrently@npm:9.0.1"
+"concurrently@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "concurrently@npm:9.1.0"
   dependencies:
     chalk: "npm:^4.1.2"
     lodash: "npm:^4.17.21"
@@ -7237,7 +7237,7 @@ __metadata:
   bin:
     conc: dist/bin/concurrently.js
     concurrently: dist/bin/concurrently.js
-  checksum: 10c0/e2c3d3f3d1b1457ccd27e69f0d840ba4915d571fae4e1088498234ec1174fd547c127de0df6dbe5eb71b2df973b26a6fdc931a9e7e3658f25287ef2106bdb413
+  checksum: 10c0/f2f42f94dde508bfbaf47b5ac654db9e8a4bf07d3d7b6267dd058ae6f362eec677ae7c8ede398d081e5fd0d1de5811dc9a53e57d3f1f68e72ac6459db9e0896b
   languageName: node
   linkType: hard
 
@@ -7832,6 +7832,13 @@ __metadata:
   version: 16.4.5
   resolution: "dotenv@npm:16.4.5"
   checksum: 10c0/48d92870076832af0418b13acd6e5a5a3e83bb00df690d9812e94b24aff62b88ade955ac99a05501305b8dc8f1b0ee7638b18493deb6fe93d680e5220936292f
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.4.7":
+  version: 16.4.7
+  resolution: "dotenv@npm:16.4.7"
+  checksum: 10c0/be9f597e36a8daf834452daa1f4cc30e5375a5968f98f46d89b16b983c567398a330580c88395069a77473943c06b877d1ca25b4afafcdd6d4adb549e8293462
   languageName: node
   linkType: hard
 
@@ -13408,9 +13415,9 @@ __metadata:
     "@use-gesture/react": "npm:^10.3.1"
     "@vitest/coverage-v8": "npm:^2.1.8"
     babel-loader: "npm:^9.2.1"
-    concurrently: "npm:^9.0.1"
+    concurrently: "npm:^9.1.0"
     copy-webpack-plugin: "npm:^12.0.2"
-    dotenv: "npm:^16.4.5"
+    dotenv: "npm:^16.4.7"
     dotenv-flow: "npm:^4.1.0"
     electron: "npm:^32.1.2"
     electron-builder: "npm:^25.0.5"
@@ -13440,8 +13447,8 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-hook-form: "npm:^7.53.0"
     rxjs: "npm:^7.8.1"
-    semantic-release: "npm:^24.1.2"
-    snyk: "npm:^1.1293.1"
+    semantic-release: "npm:^24.2.0"
+    snyk: "npm:^1.1294.3"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.7.2"
     uuid: "npm:^10.0.0"
@@ -14883,9 +14890,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semantic-release@npm:^24.1.2":
-  version: 24.1.2
-  resolution: "semantic-release@npm:24.1.2"
+"semantic-release@npm:^24.2.0":
+  version: 24.2.0
+  resolution: "semantic-release@npm:24.2.0"
   dependencies:
     "@semantic-release/commit-analyzer": "npm:^13.0.0-beta.1"
     "@semantic-release/error": "npm:^4.0.0"
@@ -14918,7 +14925,7 @@ __metadata:
     yargs: "npm:^17.5.1"
   bin:
     semantic-release: bin/semantic-release.js
-  checksum: 10c0/ff277e3fab5368f699e43132c25a198d54e5101e8c850705d856fb2353dc43d41bc56b2b78f5add8811ab59025880a424382e1859262fc017d9f88fdd9ca9a75
+  checksum: 10c0/c4594d862366c372a78700f1bde5791abb15c5348da4427295661ab87989d53e071d956d8cac44b84e7720d8775d0eead686941699056c4d8346458e964c7eb8
   languageName: node
   linkType: hard
 
@@ -15186,15 +15193,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snyk@npm:^1.1293.1":
-  version: 1.1293.1
-  resolution: "snyk@npm:1.1293.1"
+"snyk@npm:^1.1294.3":
+  version: 1.1294.3
+  resolution: "snyk@npm:1.1294.3"
   dependencies:
     "@sentry/node": "npm:^7.36.0"
     global-agent: "npm:^3.0.0"
   bin:
     snyk: bin/snyk
-  checksum: 10c0/c1006ddf4b538d58cf0c5d392215876abf471e4e33828a79431b13ae775f6c829a7fbc5e9e46f5bf35879fc4aff52d0eebc8aab5ebd3837d8b7110e67d3e4d76
+  checksum: 10c0/eb12d909bc67011d113df7cf6bb41863b53c33810fb4015d3b7f355138ca7af64293eb052c1b39ad001f18eee0f1ee812dd471a5a72cb287c6f6c3fef5948967
   languageName: node
   linkType: hard
 
