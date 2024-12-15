@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.9.1...v1.10.0) (2024-10-14)
+
+
+### Features
+
+* disable ssr app-wide ([4cfb03a](https://github.com/dragonrealms-phoenix/phoenix/commit/4cfb03a352a680a92e1d43ab0d8c54a4db419490))
+
 ## [1.9.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.9.0...v1.9.1) (2024-10-01)
 
 
