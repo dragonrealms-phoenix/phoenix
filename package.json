@@ -43,7 +43,7 @@
     "clean": "concurrently \"yarn clean:dist\" \"yarn clean:build\" \"yarn clean:nextjs\" \"yarn clean:themes\" \"yarn clean:coverage\" && yarn clean:tsbuildinfo",
     "prettier": "prettier --check .",
     "prettier:fix": "yarn prettier --write",
-    "lint": "NODE_OPTIONS='--max_old_space_size=8192' eslint --ext .js,.ts,.tsx .",
+    "lint": "NODE_OPTIONS='--max_old_space_size=8192' eslint .",
     "lint:fix": "yarn lint --fix",
     "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
@@ -98,8 +98,9 @@
     "@commitlint/cli": "^19.6.1",
     "@commitlint/config-conventional": "^19.6.0",
     "@elastic/datemath": "^5.0.3",
+    "@eslint/compat": "^1.2.4",
     "@faker-js/faker": "^9.0.3",
-    "@next/eslint-plugin-next": "^14.2.13",
+    "@next/eslint-plugin-next": "^14.2.20",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/git": "^10.0.1",
@@ -107,7 +108,7 @@
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^14.0.1",
     "@sentry/cli": "^2.36.3",
-    "@types/eslint": "^8.56.12",
+    "@types/eslint": "^9.6.1",
     "@types/eslint-config-prettier": "^6.11.3",
     "@types/lint-staged": "^13.3.0",
     "@types/lodash-es": "^4.17.12",
@@ -115,25 +116,26 @@
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.8.0",
-    "@typescript-eslint/parser": "^8.8.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
     "@vitest/coverage-v8": "^2.1.1",
     "babel-loader": "^9.2.1",
     "concurrently": "^9.0.1",
     "copy-webpack-plugin": "^12.0.2",
     "electron": "^32.1.2",
     "electron-builder": "^25.0.5",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.13",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.3",
-    "eslint-plugin-import": "^2.30.0",
+    "eslint-import-resolver-typescript": "^3.7.0",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-react": "^7.37.0",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-rxjs": "^5.0.3",
     "eslint-plugin-unused-imports": "^4.1.4",
     "glob": "^11.0.0",
+    "globals": "^15.13.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
@@ -190,263 +192,5 @@
     "singleQuote": true,
     "endOfLine": "auto",
     "quoteProps": "consistent"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "browser": true,
-      "es6": true,
-      "node": true
-    },
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module"
-    },
-    "settings": {
-      "react": {
-        "version": "detect"
-      },
-      "next": {
-        "rootDir": "electron/renderer/"
-      },
-      "import/ignore": [
-        "fs-extra"
-      ],
-      "comments:import/ignore": {
-        "fs-extra": [
-          "The 'fs-extra' module redefines the 'fs' namespace",
-          "something that the 'import' plugin does not support yet.",
-          "Therefore, we need to ignore it to avoid false positives.",
-          "https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/namespace.md#rule-details"
-        ]
-      }
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@next/next/recommended",
-      "plugin:import/recommended",
-      "plugin:prettier/recommended"
-    ],
-    "plugins": [
-      "import",
-      "prettier",
-      "unused-imports"
-    ],
-    "rules": {
-      "no-else-return": "warn",
-      "no-plusplus": "warn",
-      "curly": "error",
-      "prefer-arrow-callback": "error",
-      "sort-imports": [
-        "error",
-        {
-          "ignoreCase": false,
-          "ignoreDeclarationSort": true,
-          "ignoreMemberSort": false,
-          "memberSyntaxSortOrder": [
-            "none",
-            "all",
-            "multiple",
-            "single"
-          ],
-          "allowSeparatedGroups": true
-        }
-      ],
-      "import/default": "off",
-      "import/no-commonjs": "error",
-      "import/no-unresolved": "error",
-      "import/order": [
-        "error",
-        {
-          "newlines-between": "never",
-          "alphabetize": {
-            "order": "asc",
-            "caseInsensitive": true
-          }
-        }
-      ],
-      "unused-imports/no-unused-imports": "error"
-    },
-    "overrides": [
-      {
-        "files": [
-          "electron/**/*.ts",
-          "electron/**/*.tsx"
-        ],
-        "parser": "@typescript-eslint/parser",
-        "parserOptions": {
-          "project": "tsconfig.eslint.json",
-          "ecmaVersion": "latest",
-          "sourceType": "module"
-        },
-        "settings": {
-          "react": {
-            "version": "detect"
-          },
-          "next": {
-            "rootDir": "electron/renderer/"
-          },
-          "import/resolver": {
-            "typescript": {
-              "alwaysTryTypes": true,
-              "project": "electron/*/tsconfig.json"
-            }
-          }
-        },
-        "extends": [
-          "eslint:recommended",
-          "plugin:@next/next/recommended",
-          "plugin:@typescript-eslint/eslint-recommended",
-          "plugin:@typescript-eslint/recommended",
-          "plugin:import/recommended",
-          "plugin:import/electron",
-          "plugin:import/typescript",
-          "plugin:prettier/recommended",
-          "plugin:react/recommended",
-          "plugin:react/jsx-runtime",
-          "plugin:react-hooks/recommended",
-          "plugin:rxjs/recommended"
-        ],
-        "plugins": [
-          "@typescript-eslint",
-          "import",
-          "prettier",
-          "react",
-          "react-hooks",
-          "rxjs",
-          "unused-imports"
-        ],
-        "rules": {
-          "@typescript-eslint/array-type": [
-            "warn",
-            {
-              "default": "generic"
-            }
-          ],
-          "@typescript-eslint/explicit-function-return-type": [
-            "off",
-            {
-              "allowTypedFunctionExpressions": false
-            }
-          ],
-          "@typescript-eslint/explicit-module-boundary-types": [
-            "error",
-            {
-              "allowArgumentsExplicitlyTypedAsAny": true
-            }
-          ],
-          "@typescript-eslint/consistent-type-imports": "error",
-          "@typescript-eslint/await-thenable": "error",
-          "@typescript-eslint/no-misused-promises": "error",
-          "@typescript-eslint/no-floating-promises": "error",
-          "@typescript-eslint/require-await": "off",
-          "@typescript-eslint/ban-ts-comment": "off",
-          "@typescript-eslint/no-empty-interface": "off",
-          "@typescript-eslint/no-explicit-any": "off",
-          "@typescript-eslint/no-namespace": "off",
-          "@typescript-eslint/no-unused-vars": [
-            "warn",
-            {
-              "vars": "all",
-              "args": "after-used",
-              "argsIgnorePattern": "^_",
-              "varsIgnorePattern": "^_",
-              "ignoreRestSiblings": true
-            }
-          ],
-          "import/default": "off",
-          "react/no-unknown-property": [
-            "error",
-            {
-              "ignore": [
-                "css"
-              ]
-            }
-          ],
-          "react/display-name": [
-            "error",
-            {
-              "ignoreTranspilerName": false,
-              "checkContextObjects": true
-            }
-          ],
-          "rxjs/no-implicit-any-catch": "off"
-        },
-        "overrides": [
-          {
-            "files": [
-              "electron/common/**/*.ts"
-            ],
-            "excludedFiles": [
-              "electron/common/**/__tests__/*.ts",
-              "electron/common/**/__mocks__/*.ts"
-            ],
-            "rules": {
-              "no-restricted-imports": [
-                "error",
-                {
-                  "patterns": [
-                    {
-                      "group": [
-                        "node:*",
-                        "buffer",
-                        "console",
-                        "crypto",
-                        "events",
-                        "fs",
-                        "http",
-                        "https",
-                        "net",
-                        "os",
-                        "path",
-                        "process",
-                        "stream",
-                        "tls",
-                        "url",
-                        "util"
-                      ],
-                      "message": "common package is used in non-node environments"
-                    }
-                  ]
-                }
-              ],
-              "no-restricted-globals": [
-                "error",
-                {
-                  "name": "__dirname",
-                  "message": "common package is used in non-node environments"
-                },
-                {
-                  "name": "__filename",
-                  "message": "common package is used in non-node environments"
-                },
-                {
-                  "name": "Buffer",
-                  "message": "common package is used in non-node environments"
-                },
-                {
-                  "name": "process",
-                  "message": "common package is used in non-node environments, only process.env is allowed"
-                }
-              ]
-            }
-          },
-          {
-            "files": [
-              "electron/**/__tests__/*.ts",
-              "electron/**/__mocks__/*.ts"
-            ],
-            "rules": {
-              "@typescript-eslint/consistent-type-imports": [
-                "error",
-                {
-                  "disallowTypeAnnotations": false
-                }
-              ]
-            }
-          }
-        ]
-      }
-    ]
   }
 }
