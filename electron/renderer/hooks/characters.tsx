@@ -108,7 +108,7 @@ export const usePlayCharacter = (): PlayCharacterFn => {
     async (character): Promise<void> => {
       publish('character:play:starting', character);
       await quitCharacter(); // quit any currently playing character, if any
-      await window.api.playCharacter(character);
+      await window.api.playCharacter(character); // TODO handle ipc error, e.g. character not found
       setPlayingCharacter(character);
       publish('character:play:started', character);
       publish('characters:reload');
