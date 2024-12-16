@@ -1,3 +1,14 @@
+# [1.11.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.10.0...v1.11.0) (2024-12-16)
+
+
+### Features
+
+* **build:** update sentry version ([7e98db2](https://github.com/dragonrealms-phoenix/phoenix/commit/7e98db2fbf5c4d1296562fd9c714eaa782eec27d))
+* reduce client bundle size by removing source maps ([9f08801](https://github.com/dragonrealms-phoenix/phoenix/commit/9f0880198a4c8745e81c688f20b9bbad9c451b96))
+* update elastic/emotion ui version ([7f6b36f](https://github.com/dragonrealms-phoenix/phoenix/commit/7f6b36f9734c2b30911be5f459fa77112dcfb06d))
+* update sentry nextjs error handler ([b34957c](https://github.com/dragonrealms-phoenix/phoenix/commit/b34957c7d48698c4c985a8ef52a5b9ca2033ea7e))
+* update to node 22 ([74a4950](https://github.com/dragonrealms-phoenix/phoenix/commit/74a495043884bcbc20d3c706a4a4a23e3f7d931c))
+
 # [1.10.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.9.1...v1.10.0) (2024-10-14)
 
 
