@@ -5195,12 +5195,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.3.0":
-  version: 18.3.0
-  resolution: "@types/react-dom@npm:18.3.0"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10c0/6c90d2ed72c5a0e440d2c75d99287e4b5df3e7b011838cdc03ae5cd518ab52164d86990e73246b9d812eaf02ec351d74e3b4f5bd325bf341e13bf980392fd53b
+"@types/react-dom@npm:^18.3.5":
+  version: 18.3.5
+  resolution: "@types/react-dom@npm:18.3.5"
+  peerDependencies:
+    "@types/react": ^18.0.0
+  checksum: 10c0/b163d35a6b32a79f5782574a7aeb12a31a647e248792bf437e6d596e2676961c394c5e3c6e91d1ce44ae90441dbaf93158efb4f051c0d61e2612f1cb04ce4faa
   languageName: node
   linkType: hard
 
@@ -5223,13 +5223,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.3.10":
-  version: 18.3.10
-  resolution: "@types/react@npm:18.3.10"
+"@types/react@npm:^18.3.16":
+  version: 18.3.16
+  resolution: "@types/react@npm:18.3.16"
   dependencies:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10c0/f5be1de1b0331c1fdb33d577f4cf7f1b949d4bded5347b2351a537f03c51dade5be115e21b161dcf1b37061954d320f6a0bdf8d7b70e24eda51071fdd614383d
+  checksum: 10c0/9113d3003865eda07be0fb596f5bd8d7784b8900675090c56e75bdee45499f0b0de2481cbbeb5980c3b4ad18f234a49f39c9e62fd7b89a4e8530c74789f739bd
   languageName: node
   linkType: hard
 
@@ -13586,8 +13586,8 @@ __metadata:
     "@types/lint-staged": "npm:^13.3.0"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/node": "npm:^20.16.10"
-    "@types/react": "npm:^18.3.10"
-    "@types/react-dom": "npm:^18.3.0"
+    "@types/react": "npm:^18.3.16"
+    "@types/react-dom": "npm:^18.3.5"
     "@types/uuid": "npm:^10.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.18.0"
     "@typescript-eslint/parser": "npm:^8.18.0"
@@ -13624,7 +13624,7 @@ __metadata:
     prettier: "npm:^3.4.2"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
-    react-hook-form: "npm:^7.53.0"
+    react-hook-form: "npm:^7.54.1"
     rxjs: "npm:^7.8.1"
     semantic-release: "npm:^24.2.0"
     snyk: "npm:^1.1294.3"
@@ -14137,12 +14137,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hook-form@npm:^7.53.0":
-  version: 7.53.0
-  resolution: "react-hook-form@npm:7.53.0"
+"react-hook-form@npm:^7.54.1":
+  version: 7.54.1
+  resolution: "react-hook-form@npm:7.54.1"
   peerDependencies:
     react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10c0/6d62b150618a833c17d59e669b707661499e2bb516a8d340ca37699f99eb448bbba7b5b78324938c8948014e21efaa32e3510c2ba246fd5e97a96fca0cfa7c98
+  checksum: 10c0/2d960ddf8aa654f34e36f5d995f0ec067a4c01340d650eca44f22aa4421e278dcc449c8522e66c5c66b1c61d62fbdf914b9e0a8de9deb4c6346cc3b37ef4eb82
   languageName: node
   linkType: hard
 
