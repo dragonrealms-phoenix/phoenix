@@ -2,34 +2,8 @@
 // https://github.com/elastic/next-eui-starter/blob/master/src/pages/_document.tsx
 
 import { Head, Html, Main, NextScript } from 'next/document';
-import { useMemo } from 'react';
 import type { LinkHTMLAttributes, ReactElement } from 'react';
 import type React from 'react';
-import type { Theme } from '../lib/theme.js';
-import { getThemeName, themeConfig } from '../lib/theme.js';
-
-function createThemeLink(theme: Theme): ReactElement {
-  let disabledProps = {};
-
-  if (theme.id !== getThemeName()) {
-    disabledProps = {
-      'disabled': true,
-      'aria-disabled': true,
-    };
-  }
-
-  return (
-    <link
-      rel="stylesheet"
-      href={`/${theme.publicPath}`}
-      data-name="eui-theme"
-      data-theme-name={theme.name}
-      data-theme={theme.id}
-      key={theme.id}
-      {...disabledProps}
-    />
-  );
-}
 
 /**
  * Nextjs wants you to import CSS stylesheets in the `pages/_app.tsx` file.
@@ -41,7 +15,7 @@ function createThemeLink(theme: Theme): ReactElement {
  * the `<link>` element in the `Head` element directly.
  * So instead we use functions.
  */
-function createStyleLink(
+function _createStyleLink(
   props: LinkHTMLAttributes<HTMLLinkElement>
 ): ReactElement {
   return <link rel="stylesheet" {...props} />;
@@ -55,10 +29,6 @@ function createStyleLink(
  * @see https://nextjs.org/docs/advanced-features/custom-document
  */
 const Document: React.FC = () => {
-  const euiThemeLinks = useMemo(() => {
-    return themeConfig.availableThemes.map((theme) => createThemeLink(theme));
-  }, []);
-
   // const yourCustomStyleLink = useMemo(() => {
   //   return createStyleLink({ href: '/your/custom.min.css' });
   // }, []);
@@ -67,7 +37,6 @@ const Document: React.FC = () => {
     <Html lang="en">
       <Head>
         <meta name="eui-styles" />
-        {euiThemeLinks}
         <meta name="eui-styles-utility" />
         {/* {yourCustomStyleLink} */}
         <meta

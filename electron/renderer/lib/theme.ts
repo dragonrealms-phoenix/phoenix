@@ -106,15 +106,3 @@ export interface Theme {
   name: string;
   publicPath: string;
 }
-
-// This is supplied to the app as JSON by Webpack - see next.config.js
-export interface ThemeConfig {
-  availableThemes: Array<Theme>;
-  copyConfig: Array<{
-    from: string;
-    to: string;
-  }>;
-}
-
-// The config is generated during the build and made available in a JSON string.
-export const themeConfig: ThemeConfig = JSON.parse(process.env.THEME_CONFIG!);

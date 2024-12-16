@@ -4,25 +4,13 @@
  * Config based on https://github.com/elastic/next-eui-starter
  */
 
-import crypto from 'node:crypto';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { withSentryConfig } from '@sentry/nextjs';
-import CopyWebpackPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
-import { glob } from 'glob';
-import capitalize from 'lodash-es/capitalize.js';
 import webpack from 'webpack';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
 const pathPrefix = '';
-
-const themeConfig = buildThemeConfig();
 
 const { EnvironmentPlugin, IgnorePlugin } = webpack;
 
@@ -106,7 +94,6 @@ const nextConfig = {
    */
   env: {
     PATH_PREFIX: pathPrefix,
-    THEME_CONFIG: JSON.stringify(themeConfig),
   },
 
   /**
@@ -199,11 +186,6 @@ const nextConfig = {
         // It fixes something, maybe with the env name sent to Sentry?
         NEXT_PUBLIC_VERCEL_ENV: '',
         VERCEL_ENV: '',
-      }),
-
-      // Copy @elastic/eui theme files
-      new CopyWebpackPlugin({
-        patterns: buildElasticThemeFileCopyPatterns(),
       }),
 
       // Moment ships with a large number of locales. Exclude them, leaving
@@ -318,93 +300,3 @@ export default withSentryConfig(nextConfig, {
     deleteSourcemapsAfterUpload: true,
   },
 });
-
-/**
- * Find all EUI themes and construct a theme configuration object.
- *
- * The `copyConfig` key is used to configure CopyWebpackPlugin, which
- * copies the default EUI themes into the `public` directory, injecting a
- * hash into the filename so that when EUI is updated, new copies of the
- * themes will be fetched.
- *
- * The `availableThemes` key is used in the app to includes the themes in
- * the app's `<head>` element, and for theme switching.
- */
-function buildThemeConfig() {
-  const themeFiles = glob.sync(
-    path.join(
-      __dirname,
-      'node_modules',
-      '@elastic',
-      'eui',
-      'dist',
-      'eui_theme_*.min.css'
-    ),
-    {
-      // Only / characters are used by this glob implementation.
-      // Since Windows uses \ as a path separator then we enable this option
-      // in order for us to use glob patterns created from `path.join`.
-      // https://github.com/isaacs/node-glob#windows
-      windowsPathsNoEscape: true,
-    }
-  );
-
-  /** @type {import('./electron/renderer/lib/theme').ThemeConfig} */
-  const themeConfig = {
-    availableThemes: [],
-    copyConfig: [],
-  };
-
-  for (const themeFile of themeFiles) {
-    const basename = path.basename(themeFile, '.min.css');
-    const themeId = basename.replace(/^eui_theme_/, '');
-    const themeName = capitalize(themeId).replace(/_/g, ' ');
-    const publicPath = `themes/${basename}.${hashFile(themeFile)}.min.css`;
-
-    const toPath = path.join(
-      __dirname,
-      'electron',
-      'renderer',
-      `public`,
-      `themes`,
-      `${basename}.${hashFile(themeFile)}.min.css`
-    );
-
-    themeConfig.availableThemes.push({
-      id: themeId,
-      name: themeName,
-      publicPath,
-    });
-
-    themeConfig.copyConfig.push({
-      from: themeFile,
-      to: toPath,
-    });
-  }
-
-  return themeConfig;
-}
-
-/**
- * @returns {import('copy-webpack-plugin').ObjectPattern[]}
- */
-function buildElasticThemeFileCopyPatterns() {
-  return themeConfig.copyConfig;
-}
-
-/**
- * Given a file, calculate a hash and return the first portion. The number
- * of characters is truncated to match how Webpack generates hashes.
- *
- * @param {string} filePath the absolute path to the file to hash.
- * @return {string}
- */
-function hashFile(filePath) {
-  const hash = crypto.createHash(`sha256`);
-  const fileData = fs.readFileSync(filePath);
-  hash.update(fileData);
-  const fullHash = hash.digest(`hex`);
-
-  // Use a hash length that matches what Webpack does
-  return fullHash.substring(0, 20);
-}
