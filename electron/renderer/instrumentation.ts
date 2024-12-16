@@ -1,4 +1,5 @@
 import * as SentryNextjs from '@sentry/nextjs';
+import type { Instrumentation } from 'next';
 import { initializeLogging } from './lib/logger/initialize-logging.js';
 
 /**
@@ -16,7 +17,7 @@ const registerLogger = (): void => {
 
 /**
  * Sentry Config for Next.js
- * https://docs.sentry.io/platforms/javascript/guides/nextjs/
+ * https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/
  */
 const registerSentry = (): void => {
   SentryNextjs.init({
@@ -44,4 +45,16 @@ const registerSentry = (): void => {
      */
     debug: false,
   });
+};
+
+/**
+ * Sentry Request Error Handler for Next.js
+ * https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#errors-from-nested-react-server-components
+ */
+export const onRequestError: Instrumentation.onRequestError = (
+  error,
+  request,
+  context
+) => {
+  SentryNextjs.captureRequestError(error, request, context);
 };

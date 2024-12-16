@@ -28,7 +28,7 @@
   "homepage": "https://github.com/dragonrealms-phoenix/phoenix#readme",
   "license": "BSD-3-Clause",
   "main": "./electron/build/main/index.js",
-  "packageManager": "yarn@4.4.1",
+  "packageManager": "yarn@4.5.3",
   "scripts": {
     "clean:tsbuildinfo": "find electron -name '*.tsbuildinfo' -delete",
     "clean:coverage": "rm -rf coverage",
@@ -43,7 +43,7 @@
     "clean": "concurrently \"yarn clean:dist\" \"yarn clean:build\" \"yarn clean:nextjs\" \"yarn clean:themes\" \"yarn clean:coverage\" && yarn clean:tsbuildinfo",
     "prettier": "prettier --check .",
     "prettier:fix": "yarn prettier --write",
-    "lint": "NODE_OPTIONS='--max_old_space_size=8192' eslint --ext .js,.ts,.tsx .",
+    "lint": "NODE_OPTIONS='--max_old_space_size=8192' eslint .",
     "lint:fix": "yarn lint --fix",
     "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
@@ -66,83 +66,85 @@
     "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh"
   },
   "dependencies": {
-    "@elastic/eui": "^95.12.0",
-    "@emotion/cache": "^11.13.1",
-    "@emotion/css": "^11.13.0",
-    "@emotion/react": "^11.13.3",
-    "@react-spring/web": "^9.7.4",
-    "@sentry/electron": "^5.4.0",
-    "@sentry/nextjs": "^8.32.0",
-    "@sentry/node": "^8.32.0",
+    "@elastic/eui": "^98.1.0",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/css": "^11.13.5",
+    "@emotion/react": "^11.14.0",
+    "@react-spring/web": "^9.7.5",
+    "@sentry/electron": "^5.8.0",
+    "@sentry/nextjs": "^8.45.0",
+    "@sentry/node": "^8.45.0",
     "@use-gesture/react": "^10.3.1",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "dotenv-flow": "^4.1.0",
     "electron-extension-installer": "^1.2.0",
-    "electron-log": "^5.2.0",
+    "electron-log": "^5.2.4",
     "fs-extra": "^11.2.0",
     "lodash-es": "^4.17.21",
     "moment": "^2.30.1",
-    "next": "^14.2.13",
+    "next": "^15.1.0",
     "observable-hooks": "^4.2.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-hook-form": "^7.53.0",
+    "react-hook-form": "^7.54.1",
     "rxjs": "^7.8.1",
-    "uuid": "^10.0.0",
-    "zustand": "^4.5.5"
+    "uuid": "^11.0.3",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^7.25.4",
-    "@babel/preset-typescript": "^7.24.7",
-    "@commitlint/cli": "^19.5.0",
-    "@commitlint/config-conventional": "^19.5.0",
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
     "@elastic/datemath": "^5.0.3",
-    "@faker-js/faker": "^9.0.3",
-    "@next/eslint-plugin-next": "^14.2.13",
+    "@eslint/compat": "^1.2.4",
+    "@faker-js/faker": "^9.3.0",
+    "@next/eslint-plugin-next": "^15.1.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.0",
+    "@semantic-release/github": "^11.0.1",
     "@semantic-release/npm": "^12.0.1",
     "@semantic-release/release-notes-generator": "^14.0.1",
-    "@sentry/cli": "^2.36.3",
-    "@types/eslint": "^8.56.12",
+    "@sentry/cli": "^2.39.1",
+    "@types/eslint": "^9.6.1",
     "@types/eslint-config-prettier": "^6.11.3",
     "@types/lint-staged": "^13.3.0",
     "@types/lodash-es": "^4.17.12",
-    "@types/node": "^20.16.10",
-    "@types/react": "^18.3.10",
-    "@types/react-dom": "^18.3.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.16",
+    "@types/react-dom": "^18.3.5",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.8.0",
-    "@typescript-eslint/parser": "^8.8.0",
-    "@vitest/coverage-v8": "^2.1.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/coverage-v8": "^2.1.8",
     "babel-loader": "^9.2.1",
-    "concurrently": "^9.0.1",
+    "concurrently": "^9.1.0",
     "copy-webpack-plugin": "^12.0.2",
-    "electron": "^32.1.2",
-    "electron-builder": "^25.0.5",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.13",
+    "electron": "^33.3.0",
+    "electron-builder": "^25.1.8",
+    "eslint": "^9.17.0",
+    "eslint-config-next": "^15.1.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-import-resolver-typescript": "^3.6.3",
-    "eslint-plugin-import": "^2.30.0",
+    "eslint-import-resolver-typescript": "^3.7.0",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-react": "^7.37.0",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-rxjs": "^5.0.3",
     "eslint-plugin-unused-imports": "^4.1.4",
     "glob": "^11.0.0",
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
-    "semantic-release": "^24.1.2",
-    "snyk": "^1.1293.1",
+    "globals": "^15.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.4.2",
+    "semantic-release": "^24.2.0",
+    "snyk": "^1.1294.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.2",
-    "vitest": "^2.1.1",
-    "webpack": "^5.95.0"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "webpack": "^5.97.1"
   },
   "release": {
     "branches": [
@@ -190,263 +192,5 @@
     "singleQuote": true,
     "endOfLine": "auto",
     "quoteProps": "consistent"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "browser": true,
-      "es6": true,
-      "node": true
-    },
-    "parserOptions": {
-      "ecmaVersion": "latest",
-      "sourceType": "module"
-    },
-    "settings": {
-      "react": {
-        "version": "detect"
-      },
-      "next": {
-        "rootDir": "electron/renderer/"
-      },
-      "import/ignore": [
-        "fs-extra"
-      ],
-      "comments:import/ignore": {
-        "fs-extra": [
-          "The 'fs-extra' module redefines the 'fs' namespace",
-          "something that the 'import' plugin does not support yet.",
-          "Therefore, we need to ignore it to avoid false positives.",
-          "https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/namespace.md#rule-details"
-        ]
-      }
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:@next/next/recommended",
-      "plugin:import/recommended",
-      "plugin:prettier/recommended"
-    ],
-    "plugins": [
-      "import",
-      "prettier",
-      "unused-imports"
-    ],
-    "rules": {
-      "no-else-return": "warn",
-      "no-plusplus": "warn",
-      "curly": "error",
-      "prefer-arrow-callback": "error",
-      "sort-imports": [
-        "error",
-        {
-          "ignoreCase": false,
-          "ignoreDeclarationSort": true,
-          "ignoreMemberSort": false,
-          "memberSyntaxSortOrder": [
-            "none",
-            "all",
-            "multiple",
-            "single"
-          ],
-          "allowSeparatedGroups": true
-        }
-      ],
-      "import/default": "off",
-      "import/no-commonjs": "error",
-      "import/no-unresolved": "error",
-      "import/order": [
-        "error",
-        {
-          "newlines-between": "never",
-          "alphabetize": {
-            "order": "asc",
-            "caseInsensitive": true
-          }
-        }
-      ],
-      "unused-imports/no-unused-imports": "error"
-    },
-    "overrides": [
-      {
-        "files": [
-          "electron/**/*.ts",
-          "electron/**/*.tsx"
-        ],
-        "parser": "@typescript-eslint/parser",
-        "parserOptions": {
-          "project": "tsconfig.eslint.json",
-          "ecmaVersion": "latest",
-          "sourceType": "module"
-        },
-        "settings": {
-          "react": {
-            "version": "detect"
-          },
-          "next": {
-            "rootDir": "electron/renderer/"
-          },
-          "import/resolver": {
-            "typescript": {
-              "alwaysTryTypes": true,
-              "project": "electron/*/tsconfig.json"
-            }
-          }
-        },
-        "extends": [
-          "eslint:recommended",
-          "plugin:@next/next/recommended",
-          "plugin:@typescript-eslint/eslint-recommended",
-          "plugin:@typescript-eslint/recommended",
-          "plugin:import/recommended",
-          "plugin:import/electron",
-          "plugin:import/typescript",
-          "plugin:prettier/recommended",
-          "plugin:react/recommended",
-          "plugin:react/jsx-runtime",
-          "plugin:react-hooks/recommended",
-          "plugin:rxjs/recommended"
-        ],
-        "plugins": [
-          "@typescript-eslint",
-          "import",
-          "prettier",
-          "react",
-          "react-hooks",
-          "rxjs",
-          "unused-imports"
-        ],
-        "rules": {
-          "@typescript-eslint/array-type": [
-            "warn",
-            {
-              "default": "generic"
-            }
-          ],
-          "@typescript-eslint/explicit-function-return-type": [
-            "off",
-            {
-              "allowTypedFunctionExpressions": false
-            }
-          ],
-          "@typescript-eslint/explicit-module-boundary-types": [
-            "error",
-            {
-              "allowArgumentsExplicitlyTypedAsAny": true
-            }
-          ],
-          "@typescript-eslint/consistent-type-imports": "error",
-          "@typescript-eslint/await-thenable": "error",
-          "@typescript-eslint/no-misused-promises": "error",
-          "@typescript-eslint/no-floating-promises": "error",
-          "@typescript-eslint/require-await": "off",
-          "@typescript-eslint/ban-ts-comment": "off",
-          "@typescript-eslint/no-empty-interface": "off",
-          "@typescript-eslint/no-explicit-any": "off",
-          "@typescript-eslint/no-namespace": "off",
-          "@typescript-eslint/no-unused-vars": [
-            "warn",
-            {
-              "vars": "all",
-              "args": "after-used",
-              "argsIgnorePattern": "^_",
-              "varsIgnorePattern": "^_",
-              "ignoreRestSiblings": true
-            }
-          ],
-          "import/default": "off",
-          "react/no-unknown-property": [
-            "error",
-            {
-              "ignore": [
-                "css"
-              ]
-            }
-          ],
-          "react/display-name": [
-            "error",
-            {
-              "ignoreTranspilerName": false,
-              "checkContextObjects": true
-            }
-          ],
-          "rxjs/no-implicit-any-catch": "off"
-        },
-        "overrides": [
-          {
-            "files": [
-              "electron/common/**/*.ts"
-            ],
-            "excludedFiles": [
-              "electron/common/**/__tests__/*.ts",
-              "electron/common/**/__mocks__/*.ts"
-            ],
-            "rules": {
-              "no-restricted-imports": [
-                "error",
-                {
-                  "patterns": [
-                    {
-                      "group": [
-                        "node:*",
-                        "buffer",
-                        "console",
-                        "crypto",
-                        "events",
-                        "fs",
-                        "http",
-                        "https",
-                        "net",
-                        "os",
-                        "path",
-                        "process",
-                        "stream",
-                        "tls",
-                        "url",
-                        "util"
-                      ],
-                      "message": "common package is used in non-node environments"
-                    }
-                  ]
-                }
-              ],
-              "no-restricted-globals": [
-                "error",
-                {
-                  "name": "__dirname",
-                  "message": "common package is used in non-node environments"
-                },
-                {
-                  "name": "__filename",
-                  "message": "common package is used in non-node environments"
-                },
-                {
-                  "name": "Buffer",
-                  "message": "common package is used in non-node environments"
-                },
-                {
-                  "name": "process",
-                  "message": "common package is used in non-node environments, only process.env is allowed"
-                }
-              ]
-            }
-          },
-          {
-            "files": [
-              "electron/**/__tests__/*.ts",
-              "electron/**/__mocks__/*.ts"
-            ],
-            "rules": {
-              "@typescript-eslint/consistent-type-imports": [
-                "error",
-                {
-                  "disallowTypeAnnotations": false
-                }
-              ]
-            }
-          }
-        ]
-      }
-    ]
   }
 }
