@@ -70,7 +70,7 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/css": "^11.13.5",
     "@emotion/react": "^11.14.0",
-    "@react-spring/web": "^9.7.4",
+    "@react-spring/web": "^9.7.5",
     "@sentry/electron": "^5.8.0",
     "@sentry/nextjs": "^8.45.0",
     "@sentry/node": "^8.45.0",
