@@ -10,7 +10,7 @@ import type {
 } from '../../common/game/types.js';
 import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
-import { useSubscribe } from '../hooks/pubsub.jsx';
+import { usePubSub, useSubscribe } from '../hooks/pubsub.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
 
 /**
@@ -39,6 +39,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
 
   const logger = useLogger('context:game');
   const router = useRouter();
+  const pubsub = usePubSub();
 
   const quitCharacter = useQuitCharacter();
 
@@ -62,6 +63,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
 
   useSubscribe(['character:play:started'], async () => {
     setShowPlayStartingOverlay(false);
+    pubsub.publish('sidebar:hide');
     await router.push('/grid');
   });
 

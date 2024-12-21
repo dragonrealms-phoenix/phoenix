@@ -78,7 +78,6 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
         closeModals();
         setCharacter(character);
         await playCharacter(character);
-        // TODO navigate to game grid so user can play the character
       });
     },
     [closeModals, playCharacter]
