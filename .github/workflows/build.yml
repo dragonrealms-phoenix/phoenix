@@ -11,6 +11,10 @@ on:
       - opened
       - reopened
       - synchronize
+  # Validate pull request when added to a merge queue.
+  merge_group:
+    types:
+      - checks_requested
 
 # Allow at most one instance of this workflow to run at a time.
 concurrency:

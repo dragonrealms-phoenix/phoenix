@@ -8,6 +8,11 @@ on:
     branches:
       - main
 
+# Allow at most one instance of this workflow to run at a time.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 permissions:
   contents: read # for checkout
 
