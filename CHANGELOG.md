@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.11.0...v1.12.0) (2024-12-21)
+
+
+### Features
+
+* close sidebar when start playing character ([f95cb8a](https://github.com/dragonrealms-phoenix/phoenix/commit/f95cb8aa65299760890f1f4a74a291f4c70a9069))
+
 # [1.11.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.10.0...v1.11.0) (2024-12-16)
 
 
