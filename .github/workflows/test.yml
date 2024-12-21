@@ -1,7 +1,12 @@
 name: Test
 
 on:
+  # Validate pull request when new commits are pushed.
   push:
+  # Validate pull request when added to a merge queue.
+  merge_group:
+    types:
+      - checks_requested
 
 env:
   # Don't install husky hooks

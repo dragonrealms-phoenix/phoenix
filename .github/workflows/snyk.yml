@@ -17,6 +17,12 @@ on:
   pull_request:
     branches:
       - main
+  # Validate pull request when added to a merge queue.
+  merge_group:
+    branches:
+      - main
+    types:
+      - checks_requested
 
 permissions:
   contents: read
