@@ -7,13 +7,11 @@ import { logger } from './logger.js';
 export const runInBackground = (fn: () => Promise<unknown>): void => {
   try {
     Promise.resolve(fn()).catch((error: Error) => {
-      // TODO emit to pubsub
       logger.error(`unhandled promise exception: ${error.message}`, {
         error,
       });
     });
   } catch (error) {
-    // TODO emit to pubsub
     logger.error(`unhandled promise exception: ${error.message}`, {
       error,
     });
