@@ -42,10 +42,11 @@ export const initializeLogging = (
   }
 
   // Set the log level for each transport.
+  const logLevel = getLogLevel() as ElectronLogLevel;
   Object.keys(logger.transports).forEach((transportKey) => {
     const transport = logger.transports[transportKey];
     if (transport) {
-      transport.level = getLogLevel() as ElectronLogLevel;
+      transport.level = logLevel;
     }
   });
 
