@@ -1,3 +1,22 @@
+# [1.13.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.12.0...v1.13.0) (2024-12-24)
+
+
+### Bug Fixes
+
+* changing log id this way is not supported ([0e6e839](https://github.com/dragonrealms-phoenix/phoenix/commit/0e6e83998f72c4f91d6c7f9ca8dfc1d8196ed4e9))
+* move app init into fn, dynamic load app after logger is ready ([6c275e8](https://github.com/dragonrealms-phoenix/phoenix/commit/6c275e8330399e48a6aef0f601c61df71401e988))
+
+
+### Features
+
+* log more app paths ([e336663](https://github.com/dragonrealms-phoenix/phoenix/commit/e336663279640cfefe4b3b27f2250fdacc42d231))
+* parse url game event ([29a0daa](https://github.com/dragonrealms-phoenix/phoenix/commit/29a0daaf5a7312ef1faec7bb34817080d70ef88d))
+
+
+### Performance Improvements
+
+* get log level once ([c1199c8](https://github.com/dragonrealms-phoenix/phoenix/commit/c1199c8d11ec16fb20a7e9e697473cda4a42a7f4))
+
 # [1.12.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.11.0...v1.12.0) (2024-12-21)
 
 
