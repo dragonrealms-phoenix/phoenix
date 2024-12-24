@@ -57,6 +57,10 @@ logger.debug('app paths', {
   appPreloadPath,
   prodRendererPath,
   devRendererPath,
+  appDataPath: app.getPath('appData'),
+  userDataPath: app.getPath('userData'),
+  tempPath: app.getPath('temp'),
+  logsPath: app.getPath('logs'),
 });
 
 // Register custom protocol 'app://' to serve our app.
