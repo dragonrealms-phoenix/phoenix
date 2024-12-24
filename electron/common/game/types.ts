@@ -77,7 +77,8 @@ export type GameEvent =
   | RoomGameEvent
   | ServerTimeGameEvent
   | RoundTimeGameEvent
-  | CastTimeGameEvent;
+  | CastTimeGameEvent
+  | URLGameEvent;
 
 export interface GameEventBase {
   /**
@@ -257,6 +258,15 @@ export interface CastTimeGameEvent extends GameEventBase {
   time: number;
 }
 
+/**
+ * <a href='https://elanthipedia.play.net/'>Elanthipedia</a>
+ */
+export interface URLGameEvent extends GameEventBase {
+  type: GameEventType.URL;
+  url: string; // e.g. 'https://elanthipedia.play.net/'
+  text: string; // e.g. 'Elanthipedia'
+}
+
 export enum GameEventType {
   /**
    * Text to display to the player.
@@ -348,6 +358,10 @@ export enum GameEventType {
    * the number of seconds to wait.
    */
   CAST_TIME = 'CAST_TIME',
+  /**
+   * URL link to display to the player.
+   */
+  URL = 'URL',
 }
 
 export enum IndicatorType {

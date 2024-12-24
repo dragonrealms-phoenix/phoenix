@@ -485,15 +485,27 @@ export class GameParserImpl implements GameParser {
       case 'castTime': // <castTime value='1703617016'/>
         this.emitCastTimeGameEvent(parseInt(attributes.value));
         break;
+      case 'a': // <a href='https://elanthipedia.play.net/'>Elanthipedia</a>
+        // Links are often found within a line of text.
+        // Emit any game text up to this point.
+        if (this.gameText.length > 0) {
+          this.emitTextGameEvent(this.consumeGameText());
+        }
+        break;
     }
   }
 
   protected processTagEnd(): void {
-    const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
+    const {
+      id: tagId = '',
+      name: tagName = '',
+      attributes = {},
+    } = this.getActiveTag() ?? {};
 
     logger.trace('processing tag end', {
       tagId,
       tagName,
+      attributes,
       gameText: this.gameText,
       activeTags: this.activeTags,
     });
@@ -545,6 +557,14 @@ export class GameParserImpl implements GameParser {
         // Emit the right hand item because we are at the end of the tag.
         // Example: `<right>Empty</right>`
         this.emitRightHandGameEvent(this.consumeGameText());
+        break;
+      case 'a':
+        // Emit the hyperlink because we are at the end of the tag.
+        // Example: `<a href='https://elanthipedia.play.net/'>Elanthipedia</a>`
+        this.emitUrlGameEvent({
+          url: attributes.href,
+          text: this.consumeGameText(),
+        });
         break;
     }
 
@@ -801,6 +821,16 @@ export class GameParserImpl implements GameParser {
       type: GameEventType.CAST_TIME,
       eventId: uuid(),
       time,
+    });
+  }
+
+  protected emitUrlGameEvent(options: { url: string; text: string }): void {
+    const { url, text } = options;
+    this.emitGameEvent({
+      type: GameEventType.URL,
+      eventId: uuid(),
+      url,
+      text: unescapeEntities(text),
     });
   }
 

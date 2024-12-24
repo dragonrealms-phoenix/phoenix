@@ -117,7 +117,18 @@ describe('game-parser', () => {
 
       expectGameEvent({
         type: GameEventType.TEXT,
-        text: `Visit the play.net website.\n`,
+        text: `Visit the `,
+      });
+
+      expectGameEvent({
+        type: GameEventType.URL,
+        text: `play.net`,
+        url: '#',
+      });
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: ` website.\n`,
       });
     });
 

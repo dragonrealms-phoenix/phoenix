@@ -2,8 +2,6 @@ import electronMainLogger from 'electron-log/main.js';
 import { initializeLogging as commonInitializeLogging } from '../../common/logger/initialize-logging.js';
 
 export const initializeLogging = (): void => {
-  electronMainLogger.logId = 'main';
-
   commonInitializeLogging(electronMainLogger);
 
   // This step can only be done from the main process.
