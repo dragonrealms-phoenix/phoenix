@@ -1,6 +1,7 @@
 import { EuiPageTemplate } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { Sidebar } from './sidebar/sidebar.jsx';
+import { ToastList } from './toast/toast-list.jsx';
 
 export interface LayoutProps {
   /**
@@ -34,6 +35,7 @@ export const Layout: React.FC<LayoutProps> = (
       </EuiPageTemplate.Sidebar>
       <EuiPageTemplate.Section paddingSize="none" grow={true}>
         {children}
+        <ToastList />
       </EuiPageTemplate.Section>
     </EuiPageTemplate>
   );
