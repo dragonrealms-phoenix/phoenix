@@ -92,3 +92,5 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     </div>
   );
 };
+
+Grid.displayName = 'Grid';
