@@ -106,12 +106,20 @@ export const usePlayCharacter = (): PlayCharacterFn => {
 
   const fn = useCallback<PlayCharacterFn>(
     async (character): Promise<void> => {
-      publish('character:play:starting', character);
-      await quitCharacter(); // quit any currently playing character, if any
-      await window.api.playCharacter(character); // TODO handle ipc error, e.g. character not found
-      setPlayingCharacter(character);
-      publish('character:play:started', character);
-      publish('characters:reload');
+      try {
+        publish('character:play:starting', character);
+        await quitCharacter(); // quit any currently playing character, if any
+        await window.api.playCharacter(character);
+        setPlayingCharacter(character);
+        publish('character:play:started', character);
+        publish('characters:reload');
+      } catch (error) {
+        publish('character:play:error', {
+          title: 'Error playing character',
+          error,
+          character,
+        });
+      }
     },
     [setPlayingCharacter, quitCharacter, publish]
   );
@@ -132,11 +140,19 @@ export const useQuitCharacter = (): QuitCharacterFn => {
 
   const fn = useCallback<QuitCharacterFn>(async (): Promise<void> => {
     if (playingCharacter) {
-      publish('character:play:stopping', playingCharacter);
-      await window.api.quitCharacter();
-      setPlayingCharacter(undefined);
-      publish('character:play:stopped', playingCharacter);
-      publish('characters:reload');
+      try {
+        publish('character:play:stopping', playingCharacter);
+        await window.api.quitCharacter();
+        setPlayingCharacter(undefined);
+        publish('character:play:stopped', playingCharacter);
+        publish('characters:reload');
+      } catch (error) {
+        publish('character:play:error', {
+          title: 'Error quitting character',
+          error,
+          character: playingCharacter,
+        });
+      }
     }
   }, [playingCharacter, setPlayingCharacter, publish]);
 
