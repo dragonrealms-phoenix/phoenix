@@ -1,5 +1,4 @@
 import { EuiGlobalToastList } from '@elastic/eui';
-import type { EuiIconType } from '@elastic/eui/src/components/icon/icon';
 import type { Toast } from '@elastic/eui/src/components/toast/global_toast_list';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -33,20 +32,20 @@ export const ToastList: React.FC<ToastListProps> = (
   useSubscribe(['toast:add'], (toastAddProps: ToastAddProps) => {
     const { title, text, type } = toastAddProps;
 
-    let iconType: EuiIconType | undefined;
+    // let iconType: EuiIconType | undefined;
     let color: Toast['color'] | undefined;
 
     switch (type) {
       case 'success':
-        iconType = 'check';
+        // iconType = 'check';
         color = 'success';
         break;
       case 'warning':
-        iconType = 'warning';
+        // iconType = 'warning';
         color = 'warning';
         break;
       case 'danger':
-        iconType = 'error';
+        // iconType = 'error';
         color = 'danger';
         break;
       case 'info':
@@ -59,7 +58,7 @@ export const ToastList: React.FC<ToastListProps> = (
       id: uuid(),
       title,
       text,
-      iconType,
+      // iconType,
       color,
     };
 
