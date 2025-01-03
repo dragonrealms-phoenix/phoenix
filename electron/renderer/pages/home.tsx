@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { useLogger } from '../hooks/logger.jsx';
 
 const HomePage: React.FC = (): ReactNode => {
