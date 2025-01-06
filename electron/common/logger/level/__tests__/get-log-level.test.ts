@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { LogLevel } from '../../types.js';
 import { getLogLevel } from '../get-log-level.js';
-import { LogLevel } from '../types.js';
 
 describe('get-log-level', () => {
   afterEach(() => {

@@ -75,6 +75,7 @@
     "@sentry/nextjs": "^8.47.0",
     "@sentry/node": "^8.47.0",
     "@use-gesture/react": "^10.3.1",
+    "chalk": "^5.4.1",
     "dotenv": "^16.4.7",
     "dotenv-flow": "^4.1.0",
     "electron-extension-installer": "^1.2.0",

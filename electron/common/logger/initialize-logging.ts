@@ -4,9 +4,10 @@ import type {
   Logger as ElectronLogger,
 } from 'electron-log';
 import { includesIgnoreCase } from '../string/includes-ignore-case.js';
-import { formatLogData } from './format-log-data.js';
-import { getLogLevel } from './get-log-level.js';
-import type { LogFunction } from './types.js';
+import { formatLogData } from './format/format-log-data.js';
+import { maskLogData } from './format/mask-log-data.js';
+import { getLogLevel } from './level/get-log-level.js';
+import type { LogLevelFunction } from './types.js';
 import { LogLevel } from './types.js';
 
 interface InitializableElectronLogger extends ElectronLogger {
@@ -29,9 +30,9 @@ export const initializeLogging = (
 
   // Add our custom log formatter.
   logger.hooks.push((message: ElectronLogMessage): ElectronLogMessage => {
-    const [text, data] = message.data as Parameters<LogFunction>;
+    const [text, data] = message.data as Parameters<LogLevelFunction>;
     if (data) {
-      message.data = [text, formatLogData(data)];
+      message.data = [text, maskLogData(formatLogData(data))];
     }
     return message;
   });

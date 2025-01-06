@@ -6,7 +6,7 @@ import type {
   Logger as ElectronLogger,
 } from 'electron-log';
 import { initializeLogging } from './initialize-logging.js';
-import type { LogFunction, Logger } from './types.js';
+import type { LogLevelFunction, Logger } from './types.js';
 
 // Cache loggers for the same scope.
 const scopedLoggers: Record<string, ElectronLogFunctions> = {};
@@ -15,7 +15,7 @@ interface ElectronLogFunctionsExtended extends ElectronLogFunctions {
   /**
    * Alternative to electron logger's 'silly' level.
    */
-  trace: LogFunction;
+  trace: LogLevelFunction;
 }
 
 export const createLogger = (options: {

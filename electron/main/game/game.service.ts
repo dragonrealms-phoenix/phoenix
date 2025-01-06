@@ -4,7 +4,7 @@ import fs from 'fs-extra';
 import type * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/wait-until.js';
 import type { GameEvent } from '../../common/game/types.js';
-import { isLogLevelEnabled } from '../../common/logger/is-log-level-enabled.js';
+import { isLogLevelEnabled } from '../../common/logger/level/is-log-level-enabled.js';
 import { LogLevel } from '../../common/logger/types.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { GameParserImpl } from './game.parser.js';

@@ -92,18 +92,4 @@ describe('format-log-data', () => {
       },
     });
   });
-
-  it('masks sensitive values', () => {
-    const data = {
-      password: 'secret',
-      apiKey: 'secret',
-    };
-
-    const result = formatLogData(data);
-
-    expect(result).toEqual({
-      password: '***REDACTED***',
-      apiKey: '***REDACTED***',
-    });
-  });
 });

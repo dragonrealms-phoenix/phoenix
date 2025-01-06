@@ -1,7 +1,43 @@
 import { describe, expect, it } from 'vitest';
-import { isNotMaskable, maskSensitiveValues } from '../mask-log-data.js';
+import {
+  isNotMaskable,
+  maskLogData,
+  maskSensitiveValues,
+} from '../mask-log-data.js';
 
 describe('mask-log-data', () => {
+  describe('#maskLogData', () => {
+    const data: Record<string, any> = {
+      accessToken: 'accessToken1',
+      password: 'password1',
+      apiKey: 'apiKey1',
+      credential: 'credential1',
+      nested: {
+        accessToken: 'accessToken2',
+        password: 'password2',
+        apiKey: 'apiKey2',
+        credential: 'credential2',
+      },
+    };
+
+    it('masks password, accessToken, and apiKey properties by default', () => {
+      const result = maskLogData(data);
+
+      expect(result).toEqual({
+        accessToken: '***REDACTED***',
+        password: '***REDACTED***',
+        apiKey: '***REDACTED***',
+        credential: 'credential1',
+        nested: {
+          accessToken: '***REDACTED***',
+          password: '***REDACTED***',
+          apiKey: '***REDACTED***',
+          credential: 'credential2',
+        },
+      });
+    });
+  });
+
   describe('#maskSensitiveValues', () => {
     const data: Record<string, any> = {
       accessToken: 'accessToken1',
@@ -18,7 +54,7 @@ describe('mask-log-data', () => {
 
     it('masks password, accessToken, and apiKey properties by default', () => {
       const result = maskSensitiveValues({
-        json: data,
+        object: data,
       });
 
       expect(result).toEqual({
@@ -37,7 +73,7 @@ describe('mask-log-data', () => {
 
     it('masks specified properties', () => {
       const result = maskSensitiveValues({
-        json: data,
+        object: data,
         keys: ['apiKey', 'credential'],
       });
 
@@ -57,7 +93,7 @@ describe('mask-log-data', () => {
 
     it('masks specified properties with custom mask', () => {
       const result = maskSensitiveValues({
-        json: data,
+        object: data,
         keys: ['apiKey', 'credential'],
         mask: '***MASKED***',
       });
