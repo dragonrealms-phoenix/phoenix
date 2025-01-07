@@ -1,4 +1,4 @@
-import { toUpperSnakeCase } from '../string/to-upper-snake-case.js';
+import { toUpperSnakeCase } from '../string/string.utils.js';
 import type { Maybe } from '../types.js';
 import { ExperienceMindState } from './types.js';
 

@@ -1,7 +1,5 @@
 import { nextTick } from 'node:process';
-import { compareLogLevels } from './level/compare-log-levels.js';
-import { getLogLevel } from './level/get-log-level.js';
-import { isLogLevelEnabled } from './level/is-log-level-enabled.js';
+import { isLogLevelEnabled } from './logger.utils.js';
 import type {
   LogData,
   LogFormatter,
@@ -180,7 +178,7 @@ export class LoggerImpl implements Logger {
   }
 
   protected isTransportLogLevelSupported(level?: LogLevel): boolean {
-    return !level || compareLogLevels(getLogLevel(), level) < 0;
+    return !level || isLogLevelEnabled(level);
   }
 
   protected addTransportErrorListener(transport: LogTransport): void {

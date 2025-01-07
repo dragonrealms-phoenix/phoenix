@@ -1,6 +1,14 @@
 import * as rxjs from 'rxjs';
 
 /**
+ * Resolves after the given number of milliseconds.
+ * Promisified version of `setTimeout`.
+ */
+export const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+/**
  * Resolves true if the condition returns true before the timeout, else false.
  */
 export const waitUntil = async (options: {
