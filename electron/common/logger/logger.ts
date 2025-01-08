@@ -58,43 +58,23 @@ export class LoggerImpl implements Logger {
   }
 
   public error(message: string, data?: LogData): void {
-    this.log({
-      level: LogLevel.ERROR,
-      message,
-      data,
-    });
+    this.log({ level: LogLevel.ERROR, message, data });
   }
 
   public warn(message: string, data?: LogData): void {
-    this.log({
-      level: LogLevel.WARN,
-      message,
-      data,
-    });
+    this.log({ level: LogLevel.WARN, message, data });
   }
 
   public info(message: string, data?: LogData): void {
-    this.log({
-      level: LogLevel.INFO,
-      message,
-      data,
-    });
+    this.log({ level: LogLevel.INFO, message, data });
   }
 
   public debug(message: string, data?: LogData): void {
-    this.log({
-      level: LogLevel.DEBUG,
-      message,
-      data,
-    });
+    this.log({ level: LogLevel.DEBUG, message, data });
   }
 
   public trace(message: string, data?: LogData): void {
-    this.log({
-      level: LogLevel.TRACE,
-      message,
-      data,
-    });
+    this.log({ level: LogLevel.TRACE, message, data });
   }
 
   public log(options: {
