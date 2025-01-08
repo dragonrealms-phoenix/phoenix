@@ -1,17 +1,15 @@
-import moment from 'moment';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { LogFormatter, LogMessage } from '../../types.js';
 import { LogLevel } from '../../types.js';
-import { prettyLogFormatter } from '../pretty-log-formatter.js';
+import { jsonLogFormatterFactory } from '../json.formatter.js';
 
-describe('pretty-log-formatter', () => {
+describe('json-formatter', () => {
   const logDate = new Date('2022-01-02T00:00:00Z');
-  const logDateStr = moment(logDate).format('YYYY-MM-DD HH:mm:ss.SSSZ');
 
   let formatter: LogFormatter;
 
   beforeEach(() => {
-    formatter = prettyLogFormatter({ colors: false });
+    formatter = jsonLogFormatterFactory({ colors: false });
   });
 
   it('formats log message', () => {
@@ -25,7 +23,7 @@ describe('pretty-log-formatter', () => {
     const result = formatter([message]);
 
     expect(result).toEqual(
-      `[${logDateStr}] [INFO]   (test)               hello world ‣ {}\n`
+      `{ level: 'info', scope: 'test', message: 'hello world', timestamp: ${logDate.toISOString()} }\n`
     );
   });
 
@@ -42,7 +40,7 @@ describe('pretty-log-formatter', () => {
     const result = formatter([message]);
 
     expect(result).toEqual(
-      `[${logDateStr}] [INFO]   (test)               hello world ‣ { foo: 'bar' }\n`
+      `{ level: 'info', scope: 'test', message: 'hello world', timestamp: ${logDate.toISOString()}, foo: 'bar' }\n`
     );
   });
 
@@ -68,7 +66,7 @@ describe('pretty-log-formatter', () => {
     const result = formatter([message]);
 
     expect(result).toEqual(
-      `[${logDateStr}] [INFO]   (test)               hello world ‣ { boolean: false,\n  number: 42,\n  array: [ 1, 2, 3 ],\n  date: ${logDate.toISOString()},\n  set: [ 'A', 'B', 'C' ],\n  map: { A: 1, B: '${logDate.toISOString()}', C: { foo: 'bar' } } }\n`
+      `{ level: 'info', scope: 'test', message: 'hello world', timestamp: ${logDate.toISOString()}, boolean: false, number: 42, array: [ 1, 2, 3 ], date: ${logDate.toISOString()}, set: [ 'A', 'B', 'C' ], map: { A: 1, B: '${logDate.toISOString()}', C: { foo: 'bar' } } }\n`
     );
   });
 
@@ -87,12 +85,12 @@ describe('pretty-log-formatter', () => {
     const result = formatter([message]);
 
     expect(result).toEqual(
-      `[${logDateStr}] [INFO]   (test)               hello world ‣ { password: '***REDACTED***',\n  accessToken: '***REDACTED***',\n  apiKey: '***REDACTED***' }\n`
+      `{ level: 'info', scope: 'test', message: 'hello world', timestamp: ${logDate.toISOString()}, password: '***REDACTED***', accessToken: '***REDACTED***', apiKey: '***REDACTED***' }\n`
     );
   });
 
   it('formats log messages with colors', () => {
-    formatter = prettyLogFormatter({ colors: true });
+    formatter = jsonLogFormatterFactory({ colors: true });
 
     const messages: Array<LogMessage> = [
       {
@@ -132,28 +130,28 @@ describe('pretty-log-formatter', () => {
 
     expect(lines).toHaveLength(messages.length);
 
-    // Note, the pretty formatter colorizes the values based on criteria.
-    // Each piece of data is colorized based on what it represents.
-    // This behavior differs from the json formatter.
+    // Note, the json formatter colorizes the values based on data type.
+    // The log levels are strings and so all have the same color.
+    // This behavior differs from the pretty formatter.
 
     expect(lines[0]).toEqual(
-      `\u001b[90m[${logDateStr}]\u001b[39m \u001b[31m[ERROR] \u001b[39m \u001b[34m(test)              \u001b[39m \u001b[0mhello world\u001b[0m ‣ {}`
+      `{ level: \u001b[32m'error'\u001b[39m, scope: \u001b[32m'test'\u001b[39m, message: \u001b[32m'hello world'\u001b[39m, timestamp: \u001b[35m2022-01-02T00:00:00.000Z\u001b[39m }`
     );
 
     expect(lines[1]).toEqual(
-      `\u001b[90m[${logDateStr}]\u001b[39m \u001b[33m[WARN]  \u001b[39m \u001b[34m(test)              \u001b[39m \u001b[0mhello world\u001b[0m ‣ {}`
+      `{ level: \u001b[32m'warn'\u001b[39m, scope: \u001b[32m'test'\u001b[39m, message: \u001b[32m'hello world'\u001b[39m, timestamp: \u001b[35m2022-01-02T00:00:00.000Z\u001b[39m }`
     );
 
     expect(lines[2]).toEqual(
-      `\u001b[90m[${logDateStr}]\u001b[39m \u001b[36m[INFO]  \u001b[39m \u001b[34m(test)              \u001b[39m \u001b[0mhello world\u001b[0m ‣ {}`
+      `{ level: \u001b[32m'info'\u001b[39m, scope: \u001b[32m'test'\u001b[39m, message: \u001b[32m'hello world'\u001b[39m, timestamp: \u001b[35m2022-01-02T00:00:00.000Z\u001b[39m }`
     );
 
     expect(lines[3]).toEqual(
-      `\u001b[90m[${logDateStr}]\u001b[39m \u001b[0m[DEBUG] \u001b[0m \u001b[34m(test)              \u001b[39m \u001b[0mhello world\u001b[0m ‣ {}`
+      `{ level: \u001b[32m'debug'\u001b[39m, scope: \u001b[32m'test'\u001b[39m, message: \u001b[32m'hello world'\u001b[39m, timestamp: \u001b[35m2022-01-02T00:00:00.000Z\u001b[39m }`
     );
 
     expect(lines[4]).toEqual(
-      `\u001b[90m[${logDateStr}]\u001b[39m \u001b[0m[TRACE] \u001b[0m \u001b[34m(test)              \u001b[39m \u001b[0mhello world\u001b[0m ‣ {}`
+      `{ level: \u001b[32m'trace'\u001b[39m, scope: \u001b[32m'test'\u001b[39m, message: \u001b[32m'hello world'\u001b[39m, timestamp: \u001b[35m2022-01-02T00:00:00.000Z\u001b[39m }`
     );
   });
 });

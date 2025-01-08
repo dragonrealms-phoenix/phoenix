@@ -1,6 +1,16 @@
 import camelCase from 'lodash-es/camelCase.js';
 import get from 'lodash-es/get.js';
+import { maskSensitiveValues } from '../../sanitize/sanitize.utils.js';
 import type { LogData } from '../types.js';
+
+/**
+ * Although we make an effort to not log sensitive data, it's possible
+ * we may accidentally log something we shouldn't. This method attempts
+ * to mask any sensitive data that may have been logged.
+ */
+export const maskLogData = (data: LogData): LogData => {
+  return maskSensitiveValues({ object: data });
+};
 
 /**
  * Formats the log data such that values of non-serializable objects
@@ -40,20 +50,15 @@ const formatError = (data: LogData, key: string, error: Error): void => {
 };
 
 const formatSet = (data: LogData, key: string, set: Set<any>): void => {
-  // data[key] = Array.from(set.keys());
-  data[key] = Array.from(set.values()).map((value) => {
-    return formatSingleValue(value);
-  });
+  data[key] = Array.from(set, formatSingleValue);
 };
 
 const formatMap = (data: LogData, key: string, map: Map<any, any>): void => {
-  data[key] = Array.from(map.entries()).reduce(
-    (map, [key, value]) => {
-      map[key] = formatSingleValue(value);
-      return map;
-    },
-    {} as Record<string, unknown>
-  );
+  const formattedData: Record<string, any> = {};
+  map.forEach((mapValue, mapKey) => {
+    formattedData[mapKey] = formatSingleValue(mapValue);
+  });
+  data[key] = formattedData;
 };
 
 const formatSingleValue = (value: any): any => {

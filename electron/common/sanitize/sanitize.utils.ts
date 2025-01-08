@@ -1,14 +1,5 @@
-import { includesIgnoreCase } from '../../string/includes-ignore-case.js';
-import type { LogData } from '../types.js';
-
-/**
- * Although we make an effort to not log sensitive data, it's possible
- * we may accidentally log something we shouldn't. This method attempts
- * to mask any sensitive data that may have been logged.
- */
-export const maskLogData = (data: LogData): LogData => {
-  return maskSensitiveValues({ object: data });
-};
+import isPlainObject from 'lodash-es/isPlainObject.js';
+import { includesIgnoreCase } from '../string/string.utils.js';
 
 /**
  * Replaces specified keys in an object with a mask value.
@@ -18,7 +9,7 @@ export const maskSensitiveValues = (options: {
   /**
    * The object to sanitize.
    */
-  object: any;
+  object: Record<string, any>;
   /**
    * List of keys to replace with a mask.
    * Default is ["password", "accessToken", "apiKey"]
@@ -36,7 +27,7 @@ export const maskSensitiveValues = (options: {
     mask = '***REDACTED***',
   } = options;
 
-  if (isNotMaskable(object)) {
+  if (!isPlainObject(object)) {
     return object;
   }
 
@@ -58,14 +49,4 @@ export const maskSensitiveValues = (options: {
   });
 
   return masked;
-};
-
-export const isNotMaskable = (value: any): boolean => {
-  const typeofValue = typeof value;
-  return (
-    value === null ||
-    value === undefined ||
-    value instanceof Date ||
-    typeofValue !== 'object'
-  );
 };
