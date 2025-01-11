@@ -1,13 +1,13 @@
 import { nextTick } from 'node:process';
+import { AbstractLogger } from './abstract-logger.js';
 import { isLogLevelEnabled } from './logger.utils.js';
 import type {
   LogData,
   LogFormatter,
+  LogLevel,
   LogMessage,
   LogTransport,
-  Logger,
 } from './types.js';
-import { LogLevel } from './types.js';
 
 const DEFAULT_SCOPE = 'default';
 const DEFAULT_TRANSPORT: LogTransport = process.stdout;
@@ -19,7 +19,7 @@ const DEFAULT_FORMATTER: LogFormatter = (data) => JSON.stringify(data);
  * Possibly related to https://github.com/megahertz/electron-log/issues/441.
  * After multiple attempts to fix it, I decided to implement my own logger.
  */
-export class LoggerImpl implements Logger {
+export class LoggerImpl extends AbstractLogger {
   // To allow for asynchronous writing of logs without the use of promises
   // we use a recursive-like queue draining algorithm. This provides an
   // ergonomic API while still allowing for asynchronous writing.
@@ -43,6 +43,8 @@ export class LoggerImpl implements Logger {
       level?: LogLevel;
     }>;
   }) {
+    super();
+
     this.scope = options.scope ?? DEFAULT_SCOPE;
 
     this.transports = options.transports ?? [
@@ -57,27 +59,7 @@ export class LoggerImpl implements Logger {
     });
   }
 
-  public error(message: string, data?: LogData): void {
-    this.log({ level: LogLevel.ERROR, message, data });
-  }
-
-  public warn(message: string, data?: LogData): void {
-    this.log({ level: LogLevel.WARN, message, data });
-  }
-
-  public info(message: string, data?: LogData): void {
-    this.log({ level: LogLevel.INFO, message, data });
-  }
-
-  public debug(message: string, data?: LogData): void {
-    this.log({ level: LogLevel.DEBUG, message, data });
-  }
-
-  public trace(message: string, data?: LogData): void {
-    this.log({ level: LogLevel.TRACE, message, data });
-  }
-
-  public log(options: {
+  public override log(options: {
     level: LogLevel;
     message: string;
     data?: LogData;

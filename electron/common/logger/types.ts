@@ -8,7 +8,7 @@ export enum LogLevel {
   TRACE = 'trace',
 }
 
-export type LogData = Record<string, unknown> & { scope?: string };
+export type LogData = Record<string, any> & { scope?: string };
 
 export type LogMessage = LogData & {
   scope: string;
