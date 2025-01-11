@@ -2,7 +2,8 @@ import type { MockInstance, Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LogFormatterMock } from '../__mocks__/log-formatter.mock.js';
 import { mockLogFormatterFactory } from '../__mocks__/log-formatter.mock.js';
-import { LogTransportMock } from '../__mocks__/log-transport.mock.js';
+import type { LogTransportMock } from '../__mocks__/log-transport.mock.js';
+import { LogTransportMockImpl } from '../__mocks__/log-transport.mock.js';
 import { LoggerImpl } from '../logger.js';
 import type { LogFormatter, LogMessage, LogTransport } from '../types.js';
 import { LogLevel } from '../types.js';
@@ -67,7 +68,7 @@ describe('logger', () => {
     };
     delete mockFlatLogMessage['data'];
 
-    mockTransport = new LogTransportMock();
+    mockTransport = new LogTransportMockImpl();
     mockFormatter = mockLogFormatterFactory();
 
     mockTransportConfig = {
@@ -296,7 +297,7 @@ describe('logger', () => {
 
       const consoleErrorSpy = vi.spyOn(console, 'error');
 
-      const mockTransport2 = new LogTransportMock();
+      const mockTransport2 = new LogTransportMockImpl();
       const mockFormatter2 = mockLogFormatterFactory();
 
       const mockTransportConfig2 = {

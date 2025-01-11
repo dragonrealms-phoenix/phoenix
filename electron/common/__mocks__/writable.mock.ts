@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 type Callback = (...args: Array<unknown>) => void;
 
-export class WritableMock extends Writable {
+export class WritableMockImpl extends Writable {
   private onCallbacksMap: Record<string, Array<Callback>> = {};
   private onceCallbacksMap: Record<string, Array<Callback>> = {};
 
