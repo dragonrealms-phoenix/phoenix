@@ -39,11 +39,19 @@ export const maskSensitiveValues = (options: {
       masked[key] = mask;
     } else if (value !== null && value !== undefined) {
       if (Array.isArray(value)) {
-        masked[key] = value.map((item) =>
-          maskSensitiveValues({ object: item, keys, mask })
-        );
+        masked[key] = value.map((item) => {
+          return maskSensitiveValues({
+            object: item,
+            keys,
+            mask,
+          });
+        });
       } else {
-        masked[key] = maskSensitiveValues({ object: value, keys, mask });
+        masked[key] = maskSensitiveValues({
+          object: value,
+          keys,
+          mask,
+        });
       }
     }
   });
