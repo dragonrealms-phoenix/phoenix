@@ -37,3 +37,10 @@ export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 export type DeepWriteable<T> = {
   -readonly [P in keyof T]: DeepWriteable<T[P]>;
 };
+
+export type Callback = (...args: Array<unknown>) => void;
+
+export type ErrorValueCallback<T = void> = (
+  error: Maybe<Error>,
+  value: Maybe<T>
+) => void;

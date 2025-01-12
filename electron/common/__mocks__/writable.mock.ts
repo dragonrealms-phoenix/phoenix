@@ -1,7 +1,6 @@
 import { Writable } from 'node:stream';
 import { vi } from 'vitest';
-
-type Callback = (...args: Array<unknown>) => void;
+import type { Callback } from '../types.js';
 
 export class WritableMockImpl extends Writable {
   private onCallbacksMap: Record<string, Array<Callback>> = {};
