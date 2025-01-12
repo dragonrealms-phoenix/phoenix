@@ -12,6 +12,18 @@ const appAPI = {
     return ipcRenderer.invoke('ping');
   },
   /**
+   * Logs a message to the main process.
+   */
+  log: (options: {
+    scope: string;
+    level: 'error' | 'warn' | 'info' | 'debug' | 'trace';
+    message: string;
+    timestamp: Date;
+    data?: Record<string, any>;
+  }): void => {
+    ipcRenderer.send('log', options);
+  },
+  /**
    * Add or update credentials for a play.net account.
    */
   saveAccount: async (options: {
