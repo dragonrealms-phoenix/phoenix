@@ -88,6 +88,11 @@ export class LoggerImpl extends AbstractLogger {
     });
   }
 
+  /**
+   * If the logger is currently writing to transports, then this does nothing.
+   * Otherwise, it writes the queued messages to each transport.
+   * It rechecks the queue once all transports have been written to.
+   */
   protected writeLogAsync(): void {
     if (this.asyncWriteInProgress || this.asyncWriteQueue.length === 0) {
       return;
@@ -120,6 +125,7 @@ export class LoggerImpl extends AbstractLogger {
 
         // If the write operation returns false then its internal buffer
         // is nearing capacity and we should wait for the 'drain' event.
+        // The write occurred but this signals we should slow down.
         const doDrain = !transport.write(textToWrite, 'utf8');
 
         if (doDrain) {
