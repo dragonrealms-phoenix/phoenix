@@ -1,5 +1,3 @@
-import type { Maybe } from '../types.js';
-
 /**
  * Originally, I used the `electron-log` module (https://github.com/megahertz/electron-log)
  * but at some point it stopped writing logs from renderer to a file.
@@ -25,32 +23,19 @@ export type LogMessage = LogData & {
 };
 
 /**
- * Formats log messages into strings to be written to transporters.
- * Return `undefined` to skip logging the message.
- */
-export interface LogFormatter {
-  format(message: LogMessage): Maybe<string>;
-}
-
-/**
- * Transporters write formatted messages somewhere.
- * For example, to the console, a file, an api, or nowhere.
- * What the string looks like is up to the formatter.
+ * Transporters write log messages somewhere.
+ * For example, to a console, a file, an api, or nowhere.
  */
 export interface LogTransporter {
-  transport(message: string): void;
+  transport(message: LogMessage): void;
 }
 
 export interface LogTransportConfig {
   /**
-   * Transports formatted log lines somewhere.
-   * Could write them to a console, to a file, or ship to a remote system.
+   * Transports log messages somewhere.
+   * For example, to the console, a file, an api, or nowhere.
    */
   transporter: LogTransporter;
-  /**
-   * Formats log data objects into strings to write to the transporter.
-   */
-  formatter: LogFormatter;
   /**
    * By default, all messages are logged to every transporter for levels
    * that satisify the runtime log level. You can further restrict which
