@@ -32,6 +32,8 @@ describe('console-log-transporter', () => {
 
   describe('#transport', () => {
     it('should log the message to the console', () => {
+      mockFormatter.format = vi.fn(); // noop formatter
+
       const consoleInfoSpy = vi.spyOn(console, 'info');
 
       transporter.transport(mockLogMessage);
