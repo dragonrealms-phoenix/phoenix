@@ -81,8 +81,8 @@ describe('index', () => {
       it('sends log', async () => {
         type LogMessage = Parameters<AppAPI['log']>[0];
         const logMessage: LogMessage = {
-          scope: 'test-scope',
           level: 'info',
+          scope: 'test-scope',
           message: 'test-message',
           timestamp: new Date(),
           data: { test: 'data' },
