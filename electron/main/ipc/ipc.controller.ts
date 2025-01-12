@@ -1,11 +1,12 @@
 import { ipcMain } from 'electron';
-import { toUpperSnakeCase } from '../../common/string/to-upper-snake-case.js';
+import { toUpperSnakeCase } from '../../common/string/string.utils.js';
 import { AccountServiceImpl } from '../account/account.service.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
 import { Store } from '../store/store.instance.js';
 import { listAccountsHandler } from './handlers/list-accounts.js';
 import { listCharactersHandler } from './handlers/list-characters.js';
+import { logHandler } from './handlers/log.js';
 import { pingHandler } from './handlers/ping.js';
 import { playCharacterHandler } from './handlers/play-character.js';
 import { quitCharacterHandler } from './handlers/quit-character.js';
@@ -75,6 +76,10 @@ export class IpcController {
     return {
       ping: pingHandler({
         dispatch: this.dispatch,
+      }),
+
+      log: logHandler({
+        logger,
       }),
 
       saveAccount: saveAccountHandler({
