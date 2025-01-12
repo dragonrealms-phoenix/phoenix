@@ -7,6 +7,7 @@ import type {
   LogLevel,
   LogMessage,
   LogTransport,
+  LoggerTransportConfig,
 } from './types.js';
 
 const DEFAULT_SCOPE = 'default';
@@ -37,11 +38,7 @@ export class LoggerImpl extends AbstractLogger {
 
   constructor(options: {
     scope?: string;
-    transports?: Array<{
-      transport: LogTransport;
-      formatter: LogFormatter;
-      level?: LogLevel;
-    }>;
+    transports?: Array<LoggerTransportConfig>;
   }) {
     super();
 

@@ -31,6 +31,27 @@ export type LogFormatter = (messages: Array<LogMessage>) => string;
  */
 export type LogTransport = Writable;
 
+export interface LoggerTransportConfig {
+  /**
+   * Where to write log messages.
+   * Could be to the console, a file, or a remote system.
+   */
+  transport: LogTransport;
+  /**
+   * Transforms log data objects into a string to write to the transport.
+   */
+  formatter: LogFormatter;
+  /**
+   * By default, all messages are logged to every transport for levels
+   * that satisify the runtime log level. You can further restrict which
+   * levels are logged to a specific transport by setting this property.
+   *
+   * For example, if the runtime log level is 'INFO' but you only want to send
+   * errors to this transport, then set the transport's level to 'ERROR'.
+   */
+  level?: LogLevel;
+}
+
 /**
  * Shape of a logger function that always logs to a specific level.
  */
