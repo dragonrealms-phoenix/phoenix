@@ -1,4 +1,11 @@
-import type { Writable } from 'node:stream';
+import type { Maybe } from '../types.js';
+
+/**
+ * Originally, I used the `electron-log` module (https://github.com/megahertz/electron-log)
+ * but at some point it stopped writing logs from renderer to a file.
+ * Possibly related to https://github.com/megahertz/electron-log/issues/441.
+ * After multiple attempts to fix it, I decided to implement my own logger.
+ */
 
 export enum LogLevel {
   ERROR = 'error',
@@ -18,36 +25,39 @@ export type LogMessage = LogData & {
 };
 
 /**
- * Because log messages are asynchronously written to the transports,
- * your formatter may receive one or more log data objects at a time.
- * Format one or more log data objects into a single string to write.
- * Typically, you want to append a newline between each log entry.
+ * Formats log messages into strings to be written to transporters.
+ * Return `undefined` to skip logging the message.
  */
-export type LogFormatter = (messages: Array<LogMessage>) => string;
+export interface LogFormatter {
+  format(message: LogMessage): Maybe<string>;
+}
 
 /**
- * Transports are writable streams. They write messages somewhere,
- * whether that's to the console, to a file, or other system.
+ * Transporters write formatted messages somewhere.
+ * For example, to the console, a file, an api, or nowhere.
+ * What the string looks like is up to the formatter.
  */
-export type LogTransport = Writable;
+export interface LogTransporter {
+  transport(message: string): void;
+}
 
-export interface LoggerTransportConfig {
+export interface LogTransportConfig {
   /**
-   * Where to write log messages.
-   * Could be to the console, a file, or a remote system.
+   * Transports formatted log lines somewhere.
+   * Could write them to a console, to a file, or ship to a remote system.
    */
-  transport: LogTransport;
+  transporter: LogTransporter;
   /**
-   * Transforms log data objects into a string to write to the transport.
+   * Formats log data objects into strings to write to the transporter.
    */
   formatter: LogFormatter;
   /**
-   * By default, all messages are logged to every transport for levels
+   * By default, all messages are logged to every transporter for levels
    * that satisify the runtime log level. You can further restrict which
-   * levels are logged to a specific transport by setting this property.
+   * levels are logged to a specific transporter by setting this property.
    *
    * For example, if the runtime log level is 'INFO' but you only want to send
-   * errors to this transport, then set the transport's level to 'ERROR'.
+   * errors to this transporter, then set this config's level to 'ERROR'.
    */
   level?: LogLevel;
 }

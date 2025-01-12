@@ -2,8 +2,10 @@ import type { MockedFunction } from 'vitest';
 import { vi } from 'vitest';
 import type { LogFormatter } from '../types.js';
 
-export type LogFormatterMock = MockedFunction<LogFormatter>;
+export interface LogFormatterMock extends LogFormatter {
+  format: MockedFunction<LogFormatter['format']>;
+}
 
-export const mockLogFormatterFactory = (): LogFormatterMock => {
-  return vi.fn<LogFormatter>();
-};
+export class LogFormatterMockImpl implements LogFormatterMock {
+  format = vi.fn<LogFormatter['format']>();
+}
