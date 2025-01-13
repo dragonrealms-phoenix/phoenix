@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LogLevel, type LogMessage } from '../../../../common/logger/types.js';
 import { WritableMockImpl } from '../../../__mocks__/writable.mock.js';
-import type { LogFormatterMock } from '../../__mocks__/log-formatter.mock.js';
-import { LogFormatterMockImpl } from '../../__mocks__/log-formatter.mock.js';
+import type { LogFormatterMock } from '../../__mocks__/formatter.mock.js';
+import { LogFormatterMockImpl } from '../../__mocks__/formatter.mock.js';
 import { WritableLogTransporterImpl } from '../writable.transporter.js';
 
 describe('writable-log-transporter', () => {

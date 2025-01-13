@@ -1,13 +1,11 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { LogTransporterMock } from '../../../common/logger/__mocks__/transporter.mock.js';
-import { LogTransporterMockImpl } from '../../../common/logger/__mocks__/transporter.mock.js';
-import type {
-  LogMessage,
-  LogTransportConfig,
-} from '../../../common/logger/types.js';
+import type { LogMessage } from '../../../common/logger/types.js';
 import { LogLevel } from '../../../common/logger/types.js';
+import type { LogTransporterMock } from '../__mocks__/transporter.mock.js';
+import { LogTransporterMockImpl } from '../__mocks__/transporter.mock.js';
 import { LoggerImpl } from '../logger.js';
+import type { LogTransportConfig } from '../types.js';
 
 type LoggerUtilsModule = typeof import('../logger.utils.js');
 

@@ -1,10 +1,7 @@
 import { nextTick } from 'node:process';
 import type { Writable } from 'node:stream';
-import type {
-  LogMessage,
-  LogTransporter,
-} from '../../../common/logger/types.js';
-import type { LogFormatter } from '../types.js';
+import type { LogMessage } from '../../../common/logger/types.js';
+import type { LogFormatter, LogTransporter } from '../types.js';
 
 /**
  * Transports logs via a {@link Writable} stream.

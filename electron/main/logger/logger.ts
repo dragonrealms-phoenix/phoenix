@@ -3,10 +3,9 @@ import type {
   LogData,
   LogLevel,
   LogMessage,
-  LogTransportConfig,
-  LogTransporter,
 } from '../../common/logger/types.js';
 import { isLogLevelEnabled } from './logger.utils.js';
+import type { LogTransportConfig, LogTransporter } from './types.js';
 
 const DEFAULT_SCOPE = 'default';
 

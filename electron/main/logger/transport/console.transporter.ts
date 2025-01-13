@@ -1,9 +1,6 @@
-import type {
-  LogMessage,
-  LogTransporter,
-} from '../../../common/logger/types.js';
+import type { LogMessage } from '../../../common/logger/types.js';
 import { LogLevel } from '../../../common/logger/types.js';
-import type { LogFormatter } from '../types.js';
+import type { LogFormatter, LogTransporter } from '../types.js';
 
 /**
  * Transports logs to the console.

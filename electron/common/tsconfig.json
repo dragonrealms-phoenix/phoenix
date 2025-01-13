@@ -28,5 +28,9 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
   "exclude": ["node_modules", "**/__tests__/**", "**/__mocks__/**"],
-  "include": ["**/types.ts", "**/*.ts"]
+  "include": [
+    "**/types.ts",
+    "**/*.ts",
+    "../main/logger/__mocks__/transporter.mock.ts"
+  ]
 }
