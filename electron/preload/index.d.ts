@@ -13,7 +13,7 @@ declare const appAPI: {
     message: string;
     timestamp: Date;
     data?: Record<string, any>;
-  }) => void;
+  }) => Promise<void>;
   /**
    * Add or update credentials for a play.net account.
    */

@@ -6,7 +6,7 @@ export const logHandler = (options: {
 }): IpcInvokeHandler<'log'> => {
   const { logger } = options;
 
-  return (args): void => {
+  return async (args): Promise<void> => {
     const logMessage = args[0] as LogMessage;
     logger.log(logMessage);
   };
