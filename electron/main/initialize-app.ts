@@ -6,13 +6,13 @@ import { runInBackground } from './async/run-in-background.js';
 import type { IpcController } from './ipc/ipc.controller.js';
 import { newIpcController } from './ipc/ipc.controller.js';
 import type { IpcDispatcher } from './ipc/types.js';
-import { createLogger } from './logger/create-logger.js';
+import { getScopedLogger } from './logger/logger.factory.js';
 import { initializeMenu } from './menu/menu.js';
 import { Preferences } from './preference/preference.instance.js';
 import { PreferenceKey } from './preference/types.js';
 
 export const initializeApp = async (): Promise<void> => {
-  const logger = createLogger('main:app');
+  const logger = getScopedLogger('main:app');
   logger.info('welcome, brave adventurer!');
   logger.info('one moment while we prepare for your journey...');
 

@@ -1,4 +1,3 @@
-import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { logger } from '../logger.js';
 import { runInBackground } from '../run-in-background.js';
@@ -6,11 +5,7 @@ import { runInBackground } from '../run-in-background.js';
 vi.mock('../../logger/logger.factory.ts');
 
 describe('run-in-background', () => {
-  let logErrorSpy: MockInstance;
-
   beforeEach(() => {
-    logErrorSpy = vi.spyOn(logger, 'error');
-
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
@@ -25,7 +20,7 @@ describe('run-in-background', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(logErrorSpy).not.toHaveBeenCalled();
+    expect(logger.error).not.toHaveBeenCalled();
   });
 
   it('logs error when async callback rejects', async () => {
@@ -35,7 +30,7 @@ describe('run-in-background', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(logErrorSpy).toHaveBeenCalledWith(
+    expect(logger.error).toHaveBeenCalledWith(
       'unhandled promise exception: test',
       {
         error: new Error('test'),
@@ -50,7 +45,7 @@ describe('run-in-background', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(logErrorSpy).toHaveBeenCalledWith(
+    expect(logger.error).toHaveBeenCalledWith(
       'unhandled promise exception: test',
       {
         error: new Error('test'),

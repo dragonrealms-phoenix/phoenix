@@ -67,6 +67,8 @@ vi.mock('../socket/list-available-characters.js', () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('sge-service', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 

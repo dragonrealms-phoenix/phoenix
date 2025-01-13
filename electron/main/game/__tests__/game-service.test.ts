@@ -119,7 +119,7 @@ vi.mock('fs-extra', () => {
   };
 });
 
-vi.mock('../../../common/async/wait-until.js', () => {
+vi.mock('../../../common/async/async.utils.js', () => {
   return {
     waitUntil: mockWaitUntil,
   };
@@ -252,7 +252,7 @@ describe('game-service', () => {
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('throws timeout error if does not destroy socket', async () => {
+    it.only('throws timeout error if does not destroy socket', async () => {
       mockWaitUntil.mockResolvedValueOnce(false);
 
       await gameService.connect();

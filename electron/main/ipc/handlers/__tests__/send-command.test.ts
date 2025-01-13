@@ -65,8 +65,6 @@ describe('send-command', () => {
     });
 
     it('skips sending command if game instance is disconnected', async () => {
-      const logInfoSpy = vi.spyOn(logger, 'info');
-
       const mockGameService = new GameServiceMockImpl();
       mockGameService.isConnected.mockReturnValueOnce(false);
 
@@ -80,7 +78,7 @@ describe('send-command', () => {
 
       await handler(['test-command']);
 
-      expect(logInfoSpy).toHaveBeenCalledWith(
+      expect(logger.info).toHaveBeenCalledWith(
         'game instance not connected, skipping send command',
         {
           command: 'test-command',

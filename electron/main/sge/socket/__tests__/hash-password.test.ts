@@ -23,6 +23,8 @@ vi.mock('../../../tls/send-and-receive.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('hash-password', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 

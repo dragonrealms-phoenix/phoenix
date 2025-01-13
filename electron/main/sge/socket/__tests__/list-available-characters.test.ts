@@ -18,6 +18,8 @@ vi.mock('../../../tls/send-and-receive.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('list-available-characters', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 

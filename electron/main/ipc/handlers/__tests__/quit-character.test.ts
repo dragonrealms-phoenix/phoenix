@@ -69,8 +69,6 @@ describe('quit-character', () => {
     });
 
     it('skips sending quit command if game instance is disconnected', async () => {
-      const logInfoSpy = vi.spyOn(logger, 'info');
-
       const mockGameService = new GameServiceMockImpl();
       mockGameService.isConnected.mockReturnValueOnce(false);
 
@@ -84,7 +82,7 @@ describe('quit-character', () => {
 
       await handler([]);
 
-      expect(logInfoSpy).toHaveBeenCalledWith(
+      expect(logger.info).toHaveBeenCalledWith(
         'game instance not connected, skipping send command',
         {
           command: 'quit',

@@ -1,5 +1,5 @@
-import { createLogger } from '../logger/create-logger.js';
+import { getScopedLogger } from '../logger/logger.factory.js';
 
-const logger = createLogger('main:sge');
+const logger = getScopedLogger('main:sge');
 
 export { logger };

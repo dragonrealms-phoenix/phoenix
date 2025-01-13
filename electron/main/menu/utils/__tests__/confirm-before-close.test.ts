@@ -31,6 +31,8 @@ vi.mock('../get-menu-item-by-id.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('confirm-before-close', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

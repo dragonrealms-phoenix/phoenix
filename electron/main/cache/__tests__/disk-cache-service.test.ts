@@ -124,14 +124,12 @@ describe('disk-cache-service', () => {
           throw new Error('test');
         });
 
-      const logErrorSpy = vi.spyOn(logger, 'error');
-
       const cacheService = new DiskCacheServiceImpl({
         filepath,
       });
 
       expect(readJsonSpy).toHaveBeenCalledWith(filepath);
-      expect(logErrorSpy).toHaveBeenCalledWith(
+      expect(logger.error).toHaveBeenCalledWith(
         'error initializing disk cache',
         {
           filepath,
@@ -342,8 +340,6 @@ describe('disk-cache-service', () => {
         writeCache: vi.fn(),
       };
 
-      const logErrorSpy = vi.spyOn(logger, 'error');
-
       const cacheService = new DiskCacheServiceImpl({
         filepath,
         createInMemoryCache: () => mockCacheService,
@@ -353,7 +349,7 @@ describe('disk-cache-service', () => {
 
       await vi.runAllTimersAsync();
 
-      expect(logErrorSpy).toHaveBeenCalledWith('error writing cache to disk', {
+      expect(logger.error).toHaveBeenCalledWith('error writing cache to disk', {
         filepath,
         error: new Error('test'),
       });

@@ -1,5 +1,5 @@
 import tls from 'node:tls';
-import { toUpperSnakeCase } from '../../common/string/to-upper-snake-case.js';
+import { toUpperSnakeCase } from '../../common/string/string.utils.js';
 import { logger } from './logger.js';
 
 /**
