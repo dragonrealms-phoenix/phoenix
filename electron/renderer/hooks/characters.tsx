@@ -3,7 +3,7 @@ import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
-import { isBlank } from '../../common/string/is-blank.js';
+import { isBlank } from '../../common/string/string.utils.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import type { Character } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';

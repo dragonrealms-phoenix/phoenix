@@ -8,7 +8,7 @@ import type { KeyboardEventHandler, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { getExperienceMindState } from '../../common/game/get-experience-mindstate.js';
+import { getExperienceMindState } from '../../common/game/game.utils.js';
 import type {
   ExperienceGameEvent,
   GameCommandMessage,
