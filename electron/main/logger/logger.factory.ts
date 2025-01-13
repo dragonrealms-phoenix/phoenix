@@ -1,4 +1,5 @@
 import { app } from 'electron';
+import path from 'node:path';
 import { ScopedLoggerImpl } from '../../common/logger/scoped.logger.js';
 import type { Logger } from '../../common/logger/types.js';
 import { JsonLogFormatterImpl } from './format/json.formatter.js';
@@ -53,14 +54,19 @@ const createConsoleTransportConfig = (): LogTransportConfig => {
 };
 
 const createFileTransportConfig = (): LogTransportConfig => {
-  const logsPath = app.getPath('logs');
-
   return {
     transporter: new FileLogTransporterImpl({
-      filePath: logsPath,
+      filePath: getLogFilePath(),
       append: true,
       encoding: 'utf8',
       formatter: new JsonLogFormatterImpl(),
     }),
   };
+};
+
+const getLogFilePath = (): string => {
+  const appName = app.getName().toLowerCase();
+  const logsDir = app.getPath('logs');
+
+  return path.join(logsDir, appName + '.log');
 };
