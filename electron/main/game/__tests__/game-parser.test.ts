@@ -9,6 +9,8 @@ import {
 import { GameParserImpl } from '../game.parser.js';
 import type { GameParser } from '../types.js';
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('game-parser', () => {
   let gameSocketSubject$: rxjs.Subject<string>;
   let gameSocketStream$: rxjs.Observable<string>;

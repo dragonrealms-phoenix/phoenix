@@ -8,7 +8,7 @@ import type { AccountService } from '../types.js';
 type ElectronModule = typeof import('electron');
 
 const { mockSafeStorageEncryptString, mockSafeStorageDecryptString } =
-  vi.hoisted(() => {
+  await vi.hoisted(async () => {
     const mockSafeStorageEncryptString = vi.fn();
     const mockSafeStorageDecryptString = vi.fn();
 
@@ -28,6 +28,8 @@ vi.mock('electron', async (importOriginal) => {
     },
   };
 });
+
+vi.mock('../../logger/logger.factory.ts');
 
 describe('account-service', () => {
   let storeService: Mocked<StoreService>;

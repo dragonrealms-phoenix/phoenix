@@ -2,7 +2,7 @@ import { safeStorage } from 'electron';
 import isEmpty from 'lodash-es/isEmpty.js';
 import omit from 'lodash-es/omit.js';
 import type { Account, Character } from '../../common/account/types.js';
-import { equalsIgnoreCase } from '../../common/string/equals-ignore-case.js';
+import { equalsIgnoreCase } from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
 import type { StoreService } from '../store/types.js';
 import { logger } from './logger.js';

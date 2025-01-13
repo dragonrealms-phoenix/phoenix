@@ -10,6 +10,8 @@ vi.mock('../game.service.js', () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('game-instance', () => {
   let credentials: SGEGameCredentials;
 

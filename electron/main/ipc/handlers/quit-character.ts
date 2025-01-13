@@ -1,4 +1,4 @@
-import { sleep } from '../../../common/async/sleep.js';
+import { sleep } from '../../../common/async/async.utils.js';
 import { Game } from '../../game/game.instance.js';
 import { logger } from '../logger.js';
 import type { IpcDispatcher, IpcInvokeHandler } from '../types.js';

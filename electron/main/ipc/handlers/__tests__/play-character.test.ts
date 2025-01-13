@@ -63,6 +63,8 @@ vi.mock('../../../sge/sge.service.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('play-character', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

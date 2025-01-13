@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AccountServiceMockImpl } from '../../../account/__mocks__/account-service.mock.js';
 import { saveAccountHandler } from '../save-account.js';
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('save-account', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

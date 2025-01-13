@@ -1,6 +1,6 @@
 import net from 'node:net';
 import * as rxjs from 'rxjs';
-import { waitUntil } from '../../common/async/wait-until.js';
+import { waitUntil } from '../../common/async/async.utils.js';
 import { ReplayFirstSubscriberOnlySubject } from '../../common/observable/replay-first-subscriber-only.subject.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { gameSocketLogger as logger } from './logger.js';

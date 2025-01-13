@@ -211,6 +211,8 @@ vi.mock('electron', () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('ipc-controller', () => {
   let mockIpcDispatcher: Mock;
 

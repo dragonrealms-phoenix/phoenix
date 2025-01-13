@@ -29,6 +29,8 @@ vi.mock('node:net', () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('game-socket', () => {
   let credentials: SGEGameCredentials;
   let mockSocket: NetSocketMock & net.Socket;

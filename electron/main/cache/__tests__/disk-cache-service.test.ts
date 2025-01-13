@@ -1,18 +1,8 @@
 import fs from 'fs-extra';
 import cloneDeep from 'lodash-es/cloneDeep.js';
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-import { mockCreateLogger } from '../../../common/__mocks__/create-logger.mock.js';
-import { mockElectronLogMain } from '../../../common/__mocks__/electron-log.mock.js';
-import type { Logger } from '../../../common/logger/types.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
+import { logger } from '../logger.js';
 import type { CacheService } from '../types.js';
 
 type FsExtraModule = typeof import('fs-extra');
@@ -81,17 +71,10 @@ vi.mock('fs-extra', async () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('disk-cache-service', () => {
   const filepath = '/tmp/dsa2d';
-
-  let logger: Logger;
-
-  beforeAll(() => {
-    logger = mockCreateLogger({
-      scope: 'test',
-      logger: mockElectronLogMain,
-    });
-  });
 
   beforeEach(() => {
     fs.writeJsonSync(filepath, {});

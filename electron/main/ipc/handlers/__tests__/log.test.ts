@@ -5,6 +5,8 @@ import type { LogMessage } from '../../../../common/logger/types.js';
 import { LogLevel } from '../../../../common/logger/types.js';
 import { logHandler } from '../log.js';
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('log', () => {
   let mockLogMessage: LogMessage;
   let mockLogger: LoggerMock;
