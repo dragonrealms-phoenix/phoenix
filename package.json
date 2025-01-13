@@ -60,10 +60,10 @@
     "build:mac": "yarn build && electron-builder --mac --config",
     "build:linux": "yarn build && electron-builder --linux --config",
     "test": "yarn clean && vitest",
-    "ts-node": "node --loader ts-node/esm --no-warnings=ExperimentalWarning -e \"import('${0}')\"",
     "prepare": "npx husky && electron-builder install-app-deps",
     "semantic-release": "npx semantic-release",
-    "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh"
+    "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh",
+    "update:versionfile": "./scripts/update-version-file.sh"
   },
   "dependencies": {
     "@elastic/eui": "^98.2.1",
@@ -141,7 +141,6 @@
     "prettier": "^3.4.2",
     "semantic-release": "^24.2.0",
     "snyk": "^1.1294.3",
-    "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "webpack": "^5.97.1"
@@ -173,6 +172,12 @@
               "path": "dist/**/phoenix-*-mac-x64.dmg"
             }
           ]
+        }
+      ],
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "yarn update:versionfile --version '${nextRelease.version}'"
         }
       ]
     ]
