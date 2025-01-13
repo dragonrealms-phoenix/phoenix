@@ -45,6 +45,12 @@ export class WritableLogTransporterImpl implements LogTransporter {
     // And to buffer when we need to wait for the writer to drain.
     this.asyncWriteQueue.push(message);
 
+    // If we're already writing, no need to queue up more 'tick' callbacks
+    // because at the end of the write we'll check for more messages anyways.
+    if (this.asyncWriteInProgress) {
+      return;
+    }
+
     // Ensure the log is written asynchronously, but soonish.
     nextTick(() => {
       this.writeNextMessageAsync();
