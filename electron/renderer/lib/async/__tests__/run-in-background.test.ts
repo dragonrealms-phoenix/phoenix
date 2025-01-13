@@ -1,35 +1,10 @@
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-import { mockCreateLogger } from '../../../../common/__mocks__/create-logger.mock.js';
-import { mockElectronLogRenderer } from '../../../../common/__mocks__/electron-log.mock.js';
-import type { Logger } from '../../../../common/logger/types.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from '../logger.js';
 import { runInBackground } from '../run-in-background.js';
 
-// I don't know why this extra mock is necessary, but test hangs without it.
-// The `common` and `main` packages don't need it, but `renderer` does.
-vi.mock('../../logger/create-logger.js', async () => {
-  return {
-    createLogger: mockCreateLogger,
-  };
-});
+vi.mock('../../logger/logger.factory.ts');
 
 describe('run-in-background', () => {
-  let logger: Logger;
-
-  beforeAll(() => {
-    logger = mockCreateLogger({
-      scope: 'test',
-      logger: mockElectronLogRenderer,
-    });
-  });
-
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
