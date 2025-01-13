@@ -79,7 +79,6 @@
     "dotenv": "^16.4.7",
     "dotenv-flow": "^4.1.0",
     "electron-extension-installer": "^1.2.0",
-    "electron-log": "^5.2.4",
     "fs-extra": "^11.2.0",
     "lodash-es": "^4.17.21",
     "moment": "^2.30.1",
