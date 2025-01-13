@@ -1,4 +1,4 @@
-import { AbstractLogger } from './abstract-logger.js';
+import { AbstractLogger } from './abstract.logger.js';
 import type { LogData, LogLevel, Logger } from './types.js';
 
 /**

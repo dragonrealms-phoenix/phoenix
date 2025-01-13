@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { LoggerMock } from '../__mocks__/logger.mock.js';
 import { LoggerMockImpl } from '../__mocks__/logger.mock.js';
-import { ScopedLoggerImpl } from '../scoped-logger.js';
+import { ScopedLoggerImpl } from '../scoped.logger.js';
 import { LogLevel } from '../types.js';
 
 describe('scoped-logger', () => {

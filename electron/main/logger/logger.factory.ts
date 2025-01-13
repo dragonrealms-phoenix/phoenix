@@ -1,5 +1,5 @@
 import { app } from 'electron';
-import { ScopedLoggerImpl } from '../../common/logger/scoped-logger.js';
+import { ScopedLoggerImpl } from '../../common/logger/scoped.logger.js';
 import type { Logger } from '../../common/logger/types.js';
 import { JsonLogFormatterImpl } from './format/json.formatter.js';
 import { PrettyLogFormatterImpl } from './format/pretty.formatter.js';

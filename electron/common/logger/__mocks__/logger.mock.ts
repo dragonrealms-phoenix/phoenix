@@ -1,6 +1,6 @@
 import type { MockedFunction } from 'vitest';
 import { vi } from 'vitest';
-import { AbstractLogger } from '../abstract-logger.js';
+import { AbstractLogger } from '../abstract.logger.js';
 import { type Logger } from '../types.js';
 
 export interface LoggerMock extends Logger {
