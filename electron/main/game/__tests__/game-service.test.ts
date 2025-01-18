@@ -252,7 +252,7 @@ describe('game-service', () => {
       expect(mockSocket.disconnect).toHaveBeenCalledTimes(1);
     });
 
-    it.only('throws timeout error if does not destroy socket', async () => {
+    it('throws timeout error if does not destroy socket', async () => {
       mockWaitUntil.mockResolvedValueOnce(false);
 
       await gameService.connect();
