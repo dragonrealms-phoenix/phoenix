@@ -8,6 +8,15 @@ export const logHandler = (options: {
 
   return async (args): Promise<void> => {
     const logMessage = args[0] as LogMessage;
-    logger.log(logMessage);
+    const { level, message, data, ...rest } = logMessage;
+
+    logger.log({
+      level,
+      message,
+      data: {
+        ...rest,
+        ...data,
+      },
+    });
   };
 };
