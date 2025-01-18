@@ -87,8 +87,8 @@ describe('index', () => {
           timestamp: new Date(),
           data: { test: 'data' },
         };
-        api.log(logMessage);
-        expect(mockIpcRenderer.send).toHaveBeenCalledWith('log', logMessage);
+        await api.log(logMessage);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('log', logMessage);
       });
     });
 

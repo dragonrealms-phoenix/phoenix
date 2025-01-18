@@ -37,10 +37,20 @@ describe('log', () => {
         logger: mockLogger,
       });
 
-      handler([mockLogMessage]);
+      await handler([mockLogMessage]);
 
       expect(mockLogger.log).toHaveBeenCalledTimes(1);
-      expect(mockLogger.log).toHaveBeenCalledWith(mockLogMessage);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: mockLogMessage.level,
+          message: mockLogMessage.message,
+          data: {
+            ...mockLogMessage.data,
+            timestamp: mockLogMessage.timestamp,
+            scope: mockLogMessage.scope,
+          },
+        })
+      );
     });
   });
 });
