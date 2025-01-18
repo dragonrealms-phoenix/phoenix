@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.14.0...v1.15.0) (2025-01-18)
+
+
+### Features
+
+* update embedded version ([941de43](https://github.com/dragonrealms-phoenix/phoenix/commit/941de43c44eedf579a2d26ea81139c7be97f4c42))
+
 # [1.14.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.13.0...v1.14.0) (2025-01-18)
 
 
