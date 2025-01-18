@@ -83,6 +83,8 @@ vi.mock('electron', () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 const getSubMenuItemByLabel = (options: {
   menu: Electron.MenuItemConstructorOptions;
   label: string;

@@ -1,5 +1,5 @@
 import type tls from 'node:tls';
-import { toUpperSnakeCase } from '../../common/string/to-upper-snake-case.js';
+import { toUpperSnakeCase } from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
 
 /**

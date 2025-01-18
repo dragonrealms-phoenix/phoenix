@@ -1,8 +1,9 @@
-import { type ReactNode, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { useLogger } from '../hooks/logger.jsx';
 
 const HomePage: React.FC = (): ReactNode => {
-  const logger = useLogger('page:home');
+  const logger = useLogger('renderer:page:home');
 
   // TODO make the home page useful
   //      - display list of favorite characters?

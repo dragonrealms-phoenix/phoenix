@@ -1,5 +1,5 @@
-import { createLogger } from '../logger/create-logger.js';
+import { getScopedLogger } from '../logger/logger.factory.js';
 
-const logger = createLogger('renderer:async');
+const logger = getScopedLogger('renderer:async');
 
 export { logger };

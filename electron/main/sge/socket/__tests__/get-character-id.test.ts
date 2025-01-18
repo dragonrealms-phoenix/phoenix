@@ -19,6 +19,8 @@ vi.mock('../list-available-characters.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('get-character-id', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 

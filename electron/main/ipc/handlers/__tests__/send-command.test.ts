@@ -1,10 +1,8 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockCreateLogger } from '../../../../common/__mocks__/create-logger.mock.js';
-import { mockElectronLogMain } from '../../../../common/__mocks__/electron-log.mock.js';
-import type { Logger } from '../../../../common/logger/types.js';
 import { runInBackground } from '../../../async/run-in-background.js';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
+import { logger } from '../../logger.js';
 import { sendCommandHandler } from '../send-command.js';
 
 type GameInstanceModule = typeof import('../../../game/game.instance.js');
@@ -26,15 +24,9 @@ vi.mock('../../../game/game.instance.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('send-command', () => {
-  let logger: Logger;
-
-  beforeEach(() => {
-    logger = mockCreateLogger({
-      logger: mockElectronLogMain,
-    });
-  });
-
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
@@ -73,8 +65,6 @@ describe('send-command', () => {
     });
 
     it('skips sending command if game instance is disconnected', async () => {
-      const logInfoSpy = vi.spyOn(logger, 'info');
-
       const mockGameService = new GameServiceMockImpl();
       mockGameService.isConnected.mockReturnValueOnce(false);
 
@@ -88,7 +78,7 @@ describe('send-command', () => {
 
       await handler(['test-command']);
 
-      expect(logInfoSpy).toHaveBeenCalledWith(
+      expect(logger.info).toHaveBeenCalledWith(
         'game instance not connected, skipping send command',
         {
           command: 'test-command',

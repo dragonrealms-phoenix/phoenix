@@ -2,23 +2,31 @@ import type { Event } from 'electron';
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
 import trimEnd from 'lodash-es/trimEnd.js';
+import { VERSION } from '../common/version.js';
 import { runInBackground } from './async/run-in-background.js';
 import type { IpcController } from './ipc/ipc.controller.js';
 import { newIpcController } from './ipc/ipc.controller.js';
 import type { IpcDispatcher } from './ipc/types.js';
-import { createLogger } from './logger/create-logger.js';
+import { getScopedLogger } from './logger/logger.factory.js';
+import { getLogLevel } from './logger/logger.utils.js';
 import { initializeMenu } from './menu/menu.js';
 import { Preferences } from './preference/preference.instance.js';
 import { PreferenceKey } from './preference/types.js';
 
 export const initializeApp = async (): Promise<void> => {
-  const logger = createLogger('main:app');
+  const logger = getScopedLogger('main:app');
   logger.info('welcome, brave adventurer!');
   logger.info('one moment while we prepare for your journey...');
 
   const appEnv = process.env.APP_ENV ?? 'production';
   const appEnvIsProd = appEnv === 'production';
   const appEnvIsDev = appEnv === 'development';
+
+  logger.debug('app env', {
+    appEnv,
+    version: VERSION,
+    logLevel: getLogLevel(),
+  });
 
   // Only load dev tools when running in development.
   const appEnableDevTools = appEnvIsDev && !app.isPackaged;

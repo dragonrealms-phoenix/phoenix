@@ -1,27 +1,10 @@
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
-import { mockCreateLogger } from '../../../common/__mocks__/create-logger.mock.js';
-import { mockElectronLogMain } from '../../../common/__mocks__/electron-log.mock.js';
-import type { Logger } from '../../../common/logger/types.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { logger } from '../logger.js';
 import { runInBackground } from '../run-in-background.js';
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('run-in-background', () => {
-  let logger: Logger;
-
-  beforeAll(() => {
-    logger = mockCreateLogger({
-      scope: 'test',
-      logger: mockElectronLogMain,
-    });
-  });
-
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });

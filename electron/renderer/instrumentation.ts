@@ -1,18 +1,12 @@
 import * as SentryNextjs from '@sentry/nextjs';
 import type { Instrumentation } from 'next';
-import { initializeLogging } from './lib/logger/initialize-logging.js';
 
 /**
  * Nextjs Instrumentation for monitoring and logging.
  * https://nextjs.org/docs/pages/building-your-application/optimizing/instrumentation
  */
 export const register = async (): Promise<void> => {
-  registerLogger();
   registerSentry();
-};
-
-const registerLogger = (): void => {
-  initializeLogging();
 };
 
 /**

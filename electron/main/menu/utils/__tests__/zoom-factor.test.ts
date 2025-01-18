@@ -44,6 +44,8 @@ vi.mock('../../../preference/preference.instance.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('zoom-factor', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

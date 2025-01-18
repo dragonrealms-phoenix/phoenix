@@ -19,6 +19,8 @@ vi.mock('../../../tls/send-and-receive.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('get-game-subscription', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 

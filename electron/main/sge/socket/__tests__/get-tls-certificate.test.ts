@@ -15,6 +15,8 @@ vi.mock('../../../tls/download-certificate.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('get-tls-certificate', () => {
   const connectOptions: tls.ConnectionOptions = {
     host: 'test-host',

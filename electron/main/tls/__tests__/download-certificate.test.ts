@@ -30,6 +30,8 @@ vi.mock('node:tls', () => {
   };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('download-certificate', () => {
   const mockPeerCert: DeepPartial<tls.PeerCertificate> = {
     subject: {

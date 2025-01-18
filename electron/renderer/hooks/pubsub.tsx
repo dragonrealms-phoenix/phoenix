@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import type { Logger } from '../../common/logger/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import { createLogger } from '../lib/logger/create-logger.js';
+import { getScopedLogger } from '../lib/logger/logger.factory.js';
 
 export type PubSubSubscriber = (data?: any) => Promise<void> | void;
 
@@ -143,7 +143,7 @@ interface PubSubStoreData {
  * An implementation of the PubSub pattern.
  */
 const usePubSubStore = create<PubSubStoreData>((set, get) => ({
-  logger: createLogger('hooks:pubsub'),
+  logger: getScopedLogger('hooks:pubsub'),
 
   subscribers: {},
 

@@ -20,6 +20,8 @@ vi.mock('electron', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('get-menu-item-by-id', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

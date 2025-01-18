@@ -10,14 +10,13 @@ import {
   it,
   vi,
 } from 'vitest';
-import { mockCreateLogger } from '../../../../common/__mocks__/create-logger.mock.js';
-import type { Logger } from '../../../../common/logger/types.js';
 import type { DeepPartial } from '../../../../common/types.js';
 import {
   type TLSSocketMock,
   mockTLSConnect,
 } from '../../../__mocks__/tls-socket.mock.js';
 import type { SelfSignedConnectOptions } from '../../../tls/types.js';
+import { logger } from '../../logger.js';
 import { connect } from '../connect.js';
 
 const { mockGetTrustedTlsCertificate, mockCreateSelfSignedConnectOptions } =
@@ -49,13 +48,15 @@ vi.mock('node:tls', () => {
   const tlsMock: Partial<TLSModule> = {
     // Each test spies on `tls.connect` to specify their own socket to test.
     // Mocking the method here so that it can be spied upon as a mocked module.
-    connect: vi.fn<[], tls.TLSSocket>(),
+    connect: vi.fn(),
   };
 
   return {
     default: tlsMock,
   };
 });
+
+vi.mock('../../../logger/logger.factory.ts');
 
 describe('connect', () => {
   const defaultConnectOptions: tls.ConnectionOptions = {
@@ -77,10 +78,7 @@ describe('connect', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
   let tlsConnectSpy: MockInstance;
 
-  let logger: Logger;
-
   beforeAll(() => {
-    logger = mockCreateLogger({ scope: 'test' });
     tlsConnectSpy = vi.spyOn(tls, 'connect');
   });
 

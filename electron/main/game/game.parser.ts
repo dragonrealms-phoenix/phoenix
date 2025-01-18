@@ -9,8 +9,10 @@ import type {
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType, IndicatorType } from '../../common/game/types.js';
-import { sliceStart } from '../../common/string/slice-start.js';
-import { unescapeEntities } from '../../common/string/unescape-entities.js';
+import {
+  sliceStart,
+  unescapeEntities,
+} from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
 import { gameParserLogger as logger } from './logger.js';
 import type { GameParser } from './types.js';

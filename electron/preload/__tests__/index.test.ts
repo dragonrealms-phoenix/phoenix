@@ -7,6 +7,7 @@ const { mockContextBridge, mockIpcRenderer } = vi.hoisted(() => {
   };
 
   const mockIpcRenderer = {
+    send: vi.fn<IpcRenderer['send']>(),
     invoke: vi.fn<IpcRenderer['invoke']>(),
     on: vi.fn<IpcRenderer['on']>(),
     off: vi.fn<IpcRenderer['off']>(),
@@ -51,6 +52,7 @@ describe('index', () => {
         'api',
         expect.objectContaining({
           ping: expect.any(Function),
+          log: expect.any(Function),
           saveAccount: expect.any(Function),
           removeAccount: expect.any(Function),
           saveCharacter: expect.any(Function),
@@ -71,6 +73,22 @@ describe('index', () => {
         mockIpcRenderer.invoke.mockResolvedValueOnce('pong');
         const result = await api.ping();
         expect(result).toBe('pong');
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('ping');
+      });
+    });
+
+    describe('#log', async () => {
+      it('sends log', async () => {
+        type LogMessage = Parameters<AppAPI['log']>[0];
+        const logMessage: LogMessage = {
+          level: 'info',
+          scope: 'test-scope',
+          message: 'test-message',
+          timestamp: new Date(),
+          data: { test: 'data' },
+        };
+        await api.log(logMessage);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('log', logMessage);
       });
     });
 

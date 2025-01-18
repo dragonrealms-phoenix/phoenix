@@ -3,6 +3,8 @@ import type { Character } from '../../../../common/account/types.js';
 import { AccountServiceMockImpl } from '../../../account/__mocks__/account-service.mock.js';
 import { listCharactersHandler } from '../list-characters.js';
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('list-characters', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });

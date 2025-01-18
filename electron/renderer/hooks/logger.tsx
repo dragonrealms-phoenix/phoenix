@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import type { Logger } from '../../common/logger/types.js';
 import { LoggerContext } from '../context/logger.jsx';
-import { createLogger } from '../lib/logger/create-logger.js';
+import { getScopedLogger } from '../lib/logger/logger.factory.js';
 
 /**
  * To use this hook, the component must be inside a `LoggerProvider` hierarchy.
@@ -18,7 +18,7 @@ export const useLogger = (scope?: string): Logger => {
 
   useEffect(() => {
     if (scope) {
-      setLogger(createLogger(scope));
+      setLogger(getScopedLogger(scope));
     } else {
       setLogger(context.logger);
     }

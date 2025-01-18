@@ -6,6 +6,8 @@ vi.mock('../../store/store.instance.ts', () => {
   return { Store: new StoreServiceMockImpl() };
 });
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('preference-instance', () => {
   afterEach(() => {
     vi.clearAllMocks();

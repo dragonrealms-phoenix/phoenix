@@ -4,6 +4,8 @@ import { createSelfSignedConnectOptions } from '../create-self-signed-connect-op
 import { getPEM } from '../get-pem.js';
 import type { SelfSignedConnectOptions } from '../types.js';
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('create-self-signed-connect-options', () => {
   let trustedCert: tls.PeerCertificate;
   let untrustedCert: tls.PeerCertificate;

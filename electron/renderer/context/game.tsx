@@ -12,6 +12,7 @@ import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { usePubSub, useSubscribe } from '../hooks/pubsub.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
+import type { Character } from '../types/game.types.js';
 
 /**
  * React context for storing Game-related data and callbacks.
@@ -37,7 +38,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
 ) => {
   const { children } = props;
 
-  const logger = useLogger('context:game');
+  const logger = useLogger('renderer:context:game');
   const router = useRouter();
   const pubsub = usePubSub();
 
@@ -57,23 +58,43 @@ export const GameProvider: React.FC<GameProviderProps> = (
   // a second character and one is already playing. What you see
   // is a quick flicker of the overlay then no overlay at all.
   // Instead, use two variables to drive the overlay.
-  useSubscribe(['character:play:starting'], async () => {
+  useSubscribe(['character:play:starting'], async (character: Character) => {
+    logger.debug('character:play:starting', { character });
     setShowPlayStartingOverlay(true);
   });
 
-  useSubscribe(['character:play:started'], async () => {
+  useSubscribe(['character:play:started'], async (character: Character) => {
+    logger.debug('character:play:started', { character });
     setShowPlayStartingOverlay(false);
     pubsub.publish('sidebar:hide');
     await router.push('/grid');
   });
 
-  useSubscribe(['character:play:stopping'], async () => {
+  useSubscribe(['character:play:stopping'], async (character: Character) => {
+    logger.debug('character:play:stopping', { character });
     setShowPlayStoppingOverlay(true);
   });
 
-  useSubscribe(['character:play:stopped'], async () => {
+  useSubscribe(['character:play:stopped'], async (character: Character) => {
+    logger.debug('character:play:stopped', { character });
     setShowPlayStoppingOverlay(false);
   });
+
+  useSubscribe(
+    ['character:play:error'],
+    async (event: { title: string; error: Error }) => {
+      const { title, error } = event;
+
+      setShowPlayStartingOverlay(false);
+      setShowPlayStoppingOverlay(false);
+
+      pubsub.publish('toast:add', {
+        title,
+        type: 'danger',
+        text: error.message,
+      });
+    }
+  );
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -121,13 +142,17 @@ export const GameProvider: React.FC<GameProviderProps> = (
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
         logger.error('game:error', { error });
-        // TODO surface error to user
+        pubsub.publish('toast:add', {
+          title: 'Game Error',
+          type: 'danger',
+          text: error.message,
+        });
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [logger]);
+  }, [logger, pubsub]);
 
   return (
     <GameContext.Provider value={{}}>

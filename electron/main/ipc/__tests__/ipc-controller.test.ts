@@ -96,7 +96,6 @@ vi.mock('../../game/game.instance.js', () => {
 vi.mock('../../account/account.service.js', () => {
   class AccountServiceMockImpl implements AccountService {
     constructor(...args: Array<any>) {
-      console.log('**** mock account service impl', { args });
       mockAccountService.constructorSpy(args);
     }
 
@@ -211,6 +210,8 @@ vi.mock('electron', () => {
     ipcMain: mockIpcMain,
   };
 });
+
+vi.mock('../../logger/logger.factory.ts');
 
 describe('ipc-controller', () => {
   let mockIpcDispatcher: Mock;

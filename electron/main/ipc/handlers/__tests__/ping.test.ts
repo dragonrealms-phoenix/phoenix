@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { pingHandler } from '../ping.js';
 
-describe('list-characters', () => {
+vi.mock('../../../logger/logger.factory.ts');
+
+describe('ping', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });

@@ -26,6 +26,8 @@ vi.mock('../../../tls/send-and-receive.js', () => {
   };
 });
 
+vi.mock('../../../logger/logger.factory.ts');
+
 describe('authenticate', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 

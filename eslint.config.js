@@ -22,6 +22,9 @@ const compat = new FlatCompat({
   allConfig: pluginJavaScript.configs.all,
 });
 
+/**
+ * @type {Array<import('eslint').Linter.Config>}
+ */
 export default [
   {
     ignores: [
@@ -218,6 +221,74 @@ export default [
         },
       ],
       'rxjs/no-implicit-any-catch': 'off',
+    },
+  },
+  {
+    files: ['electron/common/**/*.ts'],
+    ignores: [
+      'electron/common/**/__tests__/*.ts',
+      'electron/common/**/__mocks__/*.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                'node:*',
+                'buffer',
+                'console',
+                'crypto',
+                'events',
+                'fs',
+                'http',
+                'https',
+                'net',
+                'os',
+                'path',
+                'process',
+                'stream',
+                'tls',
+                'url',
+                'util',
+              ],
+              message: 'common package is used in non-node environments',
+            },
+          ],
+        },
+      ],
+      'no-restricted-globals': [
+        'error',
+        {
+          name: '__dirname',
+          message: 'common package is used in non-node environments',
+        },
+        {
+          name: '__filename',
+          message: 'common package is used in non-node environments',
+        },
+        {
+          name: 'Buffer',
+          message: 'common package is used in non-node environments',
+        },
+        {
+          name: 'process',
+          message:
+            'common package is used in non-node environments, only process.env is allowed',
+        },
+      ],
+    },
+  },
+  {
+    files: ['electron/**/__tests__/*.ts', 'electron/**/__mocks__/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          disallowTypeAnnotations: false,
+        },
+      ],
     },
   },
 ];

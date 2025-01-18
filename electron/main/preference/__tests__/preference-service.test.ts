@@ -5,6 +5,8 @@ import type { StoreService } from '../../store/types.js';
 import { PreferenceServiceImpl } from '../preference.service.js';
 import type { PreferenceKey, PreferenceService } from '../types.js';
 
+vi.mock('../../logger/logger.factory.ts');
+
 describe('preference-service', () => {
   let storeService: Mocked<StoreService>;
   let preferenceService: PreferenceService;

@@ -3,6 +3,7 @@ import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameEventType } from '../../../common/game/types.js';
 import type { GameEvent } from '../../../common/game/types.js';
+import { clearLogLevelCache } from '../../logger/logger.utils.js';
 import { GameServiceImpl } from '../game.service.js';
 import type { GameParser, GameSocket } from '../types.js';
 
@@ -118,11 +119,13 @@ vi.mock('fs-extra', () => {
   };
 });
 
-vi.mock('../../../common/async/wait-until.js', () => {
+vi.mock('../../../common/async/async.utils.js', () => {
   return {
     waitUntil: mockWaitUntil,
   };
 });
+
+vi.mock('../../logger/logger.factory.ts');
 
 describe('game-service', () => {
   let gameService: GameServiceImpl;
@@ -140,6 +143,7 @@ describe('game-service', () => {
   });
 
   afterEach(() => {
+    clearLogLevelCache();
     vi.unstubAllEnvs();
     vi.clearAllMocks();
     vi.clearAllTimers();

@@ -1,6 +1,5 @@
 import { app } from 'electron';
 import { config as initializeDotenv } from 'dotenv-flow';
-import { initializeLogging } from './logger/initialize-logging.js';
 import { initializeSentry } from './sentry/initialize-sentry.js';
 
 // Unfortunately in development mode, the app name is 'Electron'.
@@ -11,7 +10,6 @@ app.setName('Phoenix');
 app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 
 initializeDotenv();
-initializeLogging();
 initializeSentry();
 
 // Once electron-log is initialized then it's safe for us to

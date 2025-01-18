@@ -1,9 +1,9 @@
-import { createLogger } from '../logger/create-logger.js';
+import { getScopedLogger } from '../logger/logger.factory.js';
 
-const gameInstanceLogger = createLogger('main:game:instance');
-const gameParserLogger = createLogger('main:game:parser');
-const gameServiceLogger = createLogger('main:game:service');
-const gameSocketLogger = createLogger('main:game:socket');
+const gameInstanceLogger = getScopedLogger('main:game:instance');
+const gameParserLogger = getScopedLogger('main:game:parser');
+const gameServiceLogger = getScopedLogger('main:game:service');
+const gameSocketLogger = getScopedLogger('main:game:socket');
 
 export {
   gameInstanceLogger,

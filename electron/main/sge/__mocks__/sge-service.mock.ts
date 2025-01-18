@@ -8,13 +8,6 @@ export class SGEServiceMockImpl implements SGEService {
     this.constructorSpy(args);
   }
 
-  loginCharacter = vi.fn<
-    Parameters<SGEService['loginCharacter']>,
-    ReturnType<SGEService['loginCharacter']>
-  >();
-
-  listCharacters = vi.fn<
-    Parameters<SGEService['listCharacters']>,
-    ReturnType<SGEService['listCharacters']>
-  >();
+  loginCharacter = vi.fn<SGEService['loginCharacter']>();
+  listCharacters = vi.fn<SGEService['listCharacters']>();
 }
