@@ -152,7 +152,52 @@
     ],
     "plugins": [
       "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "angular",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": ":sparkles: Features",
+                "hidden": false
+              },
+              {
+                "type": "fix",
+                "section": ":hammer: Fixes",
+                "hidden": false
+              },
+              {
+                "type": "perf",
+                "section": ":racehorse: Performance",
+                "hidden": false
+              },
+              {
+                "type": "docs",
+                "section": ":books: Documentation",
+                "hidden": false
+              },
+              {
+                "type": "test",
+                "section": ":test_tube: Tests",
+                "hidden": false
+              },
+              {
+                "type": "chore",
+                "scope": "deps",
+                "section": ":package: Dependencies",
+                "hidden": false
+              },
+              {
+                "type": "chore",
+                "section": ":broom: Miscellaneous",
+                "hidden": false
+              }
+            ]
+          }
+        }
+      ],
       "@semantic-release/changelog",
       "@semantic-release/npm",
       [
