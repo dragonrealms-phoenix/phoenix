@@ -32,7 +32,7 @@ import type {
 } from '../types/grid.types.js';
 
 const GridPage: React.FC = (): ReactNode => {
-  const logger = useLogger('page:grid');
+  const logger = useLogger('renderer:page:grid');
 
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
@@ -281,7 +281,7 @@ const GridPage: React.FC = (): ReactNode => {
     return () => {
       unsubscribe();
     };
-  }, [logger, gameEventsSubject$]);
+  }, [gameEventsSubject$]);
 
   // When the user sends a command, echo it to the main game stream so that
   // the user sees what they sent and can correlate to the game response.
@@ -311,7 +311,7 @@ const GridPage: React.FC = (): ReactNode => {
     return () => {
       unsubscribe();
     };
-  }, [logger, gameLogLineSubject$, euiTheme]);
+  }, [gameLogLineSubject$, euiTheme]);
 
   // TODO move to a new GameCommandInput component
   const onKeyDownCommandInput = useCallback<

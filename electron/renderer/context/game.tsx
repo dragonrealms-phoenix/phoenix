@@ -38,7 +38,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
 ) => {
   const { children } = props;
 
-  const logger = useLogger('context:game');
+  const logger = useLogger('renderer:context:game');
   const router = useRouter();
   const pubsub = usePubSub();
 

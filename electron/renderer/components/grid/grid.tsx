@@ -20,7 +20,7 @@ export interface GridProps {
 export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { boundary, contentItems } = props;
 
-  const logger = useLogger('cmp:grid');
+  const logger = useLogger('renderer:cmp:grid');
 
   const [focusedItemId, setFocusedItemId] = useState<string>(() => {
     const focusedItem = contentItems.find((contentItem) => {

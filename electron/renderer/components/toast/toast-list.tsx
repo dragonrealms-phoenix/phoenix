@@ -25,7 +25,7 @@ export const ToastList: React.FC<ToastListProps> = (
 ): ReactNode => {
   const { toastLifeTimeMs = 5000 } = props;
 
-  const logger = useLogger('cmp:toast-list');
+  const logger = useLogger('renderer:cmp:toast-list');
 
   const [toasts, setToasts] = useState<Array<Toast>>([]);
 
