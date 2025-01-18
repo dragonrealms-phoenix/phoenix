@@ -161,7 +161,16 @@
           "prepareCmd": "yarn update:versionfile --version '${nextRelease.version}'"
         }
       ],
-      "@semantic-release/git",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md",
+            "package.json",
+            "electron/common/version.ts"
+          ]
+        }
+      ],
       [
         "@semantic-release/github",
         {
