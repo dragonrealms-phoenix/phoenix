@@ -1,3 +1,44 @@
+# [1.14.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.13.0...v1.14.0) (2025-01-18)
+
+
+### Bug Fixes
+
+* log extra data correctly so it has precedence downstream ([1f073a6](https://github.com/dragonrealms-phoenix/phoenix/commit/1f073a6ab637b510d55552c02dc8b7eccb63f564))
+
+
+### Features
+
+* add log method to ipc api ([83f37b4](https://github.com/dragonrealms-phoenix/phoenix/commit/83f37b4c6ae24258cf22198f54a83644d4482b0f))
+* add log method to ipc api ([67a9b5a](https://github.com/dragonrealms-phoenix/phoenix/commit/67a9b5a97d0c32a7ca43e51bae319fcb9ec12e4f))
+* consolidated files; add log level cache ([322bb5e](https://github.com/dragonrealms-phoenix/phoenix/commit/322bb5e6246cb89fc69b6823b5d762ff5ed4f1ca))
+* display toasts ([150f3ee](https://github.com/dragonrealms-phoenix/phoenix/commit/150f3ee708a3475bf68af8eb966e0457d81017ac))
+* don't display icons in toast titles ([d324b69](https://github.com/dragonrealms-phoenix/phoenix/commit/d324b698340a3dc4588d655c815ce9d9598b9bac))
+* format helper methods ([42c4f42](https://github.com/dragonrealms-phoenix/phoenix/commit/42c4f4269181abd63a43957a9475284db2cda55b))
+* ipc log handler ([228fc9e](https://github.com/dragonrealms-phoenix/phoenix/commit/228fc9e721c4af7d5b49da43e38af392343d72c6))
+* ipc logger ([3b9d628](https://github.com/dragonrealms-phoenix/phoenix/commit/3b9d628b45e5b897ca5a3bfe00ff2050dd724354))
+* log async ([fd8e91b](https://github.com/dragonrealms-phoenix/phoenix/commit/fd8e91bf068b12fee26592a8006a54bf3c429bf7))
+* log formatters ([c462d8e](https://github.com/dragonrealms-phoenix/phoenix/commit/c462d8e63d97710fb1f68ce7872c9ea8a3c44e9a))
+* logger tests ([b9f313f](https://github.com/dragonrealms-phoenix/phoenix/commit/b9f313f3f694bec7b57aac223063d98288d591f6))
+* logger transport config ([4766d03](https://github.com/dragonrealms-phoenix/phoenix/commit/4766d033e1d9a335bf4fe6314266ae6edbace677))
+* logger transporters ([9808e60](https://github.com/dragonrealms-phoenix/phoenix/commit/9808e60c5995cfd24cda5c3c8f5e022c87c9e423))
+* move formatters to main package; consolidate format and writing to transport ([986ecf0](https://github.com/dragonrealms-phoenix/phoenix/commit/986ecf098a362660d329ccd583f7745725c8c73a))
+* move node-dependent code to main package ([1afa14a](https://github.com/dragonrealms-phoenix/phoenix/commit/1afa14a9b069827b0e7111dc469110d029d043ea))
+* moved log transport to main package ([02a2d71](https://github.com/dragonrealms-phoenix/phoenix/commit/02a2d719f9284ae4f2e341dd43213fb7c0ecdf17))
+* moved logger utils to main package ([8b9125d](https://github.com/dragonrealms-phoenix/phoenix/commit/8b9125d4248e13b58027c5a8dd829563c74cb9f5))
+* prefix log scope with 'renderer' ([822e121](https://github.com/dragonrealms-phoenix/phoenix/commit/822e121924a2722dd3000383407d43c45f8d25c1))
+* refactor main logger to use new transporter types ([4e54a8f](https://github.com/dragonrealms-phoenix/phoenix/commit/4e54a8f2bfe19e95c10c08ff31277a433c31758f))
+* remove electron-log code ([525fdb2](https://github.com/dragonrealms-phoenix/phoenix/commit/525fdb21091d16c60b414f70fb19e4ecbb838949))
+* remove electron-log dependency ([15e61a5](https://github.com/dragonrealms-phoenix/phoenix/commit/15e61a5976403297f14a1b4f8f5777e5c6d6c7d0))
+* reorganize the logger formatters, code optimizations ([f638974](https://github.com/dragonrealms-phoenix/phoenix/commit/f638974180498752ead14099885f4820e6e1e386))
+* replacing electron-log with custom logger ([a31d8c3](https://github.com/dragonrealms-phoenix/phoenix/commit/a31d8c321f1d9c50a9e203fb43b77df26d888031))
+* scoped and mocked loggers ([0a18596](https://github.com/dragonrealms-phoenix/phoenix/commit/0a18596d31848d651d934b935e60ceab219ec3e6))
+* scoped logger factory ([667f806](https://github.com/dragonrealms-phoenix/phoenix/commit/667f8062bf1ba8f84d61797c0c3b1872c14b4fce))
+* set grid cmp display name ([4e17279](https://github.com/dragonrealms-phoenix/phoenix/commit/4e17279a0954b99338a4ede72acee3c713fd2e88))
+* specify path to log file ([61a1805](https://github.com/dragonrealms-phoenix/phoenix/commit/61a1805573ea8caa0de0bf55b9b3930e3d352148))
+* switch renderer to use new ipc logger ([3918009](https://github.com/dragonrealms-phoenix/phoenix/commit/3918009a5df488f634122ab4589c49d411040d0b))
+* toast error when play/quit character ([81a6395](https://github.com/dragonrealms-phoenix/phoenix/commit/81a6395bdf7be2f1cb1a20093222c570c80371f8))
+* use consistent ipc req/res flow ([b69ab6a](https://github.com/dragonrealms-phoenix/phoenix/commit/b69ab6a60fe636446448ba1a37fe5bf0ab5cea2f))
+
 # [1.13.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.12.0...v1.13.0) (2024-12-24)
 
 
