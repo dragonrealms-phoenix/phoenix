@@ -48,8 +48,7 @@ export interface GridItemProps {
    */
   itemTitle: string;
   /**
-   * Handler when the user clicks the close button in the title bar.
-   * Passes the `itemId` of the grid item being closed.
+   * When the grid item is closed then notify the parent component.
    */
   onClose?: (item: GridItemInfo) => void;
   /**
@@ -277,30 +276,28 @@ export const GridItem: React.FC<GridItemProps> = memo(
     const getMouseGestureDragBindings = useDrag(dragHandler, dragOptions);
 
     // Styles for our drag and resize handle elements.
-    const handleStyles = useMemo(
-      () =>
-        css({
-          '.drag-handle': {
-            cursor: 'grab',
-          },
-          '.drag-handle:active': {
-            cursor: 'grabbing',
-            touchAction: 'none',
-          },
-          '.resize-handle': {
-            position: 'absolute',
-            bottom: -4,
-            right: -4,
-            width: 10,
-            height: 10,
-            cursor: 'nwse-resize',
-            touchAction: 'none',
-            backgroundColor: euiTheme.colors.mediumShade,
-            borderRadius: 5,
-          },
-        }),
-      [euiTheme]
-    );
+    const handleStyles = useMemo(() => {
+      return css({
+        '.drag-handle': {
+          cursor: 'grab',
+        },
+        '.drag-handle:active': {
+          cursor: 'grabbing',
+          touchAction: 'none',
+        },
+        '.resize-handle': {
+          position: 'absolute',
+          bottom: -4,
+          right: -4,
+          width: 10,
+          height: 10,
+          cursor: 'nwse-resize',
+          touchAction: 'none',
+          backgroundColor: euiTheme.colors.mediumShade,
+          borderRadius: 5,
+        },
+      });
+    }, [euiTheme]);
 
     return (
       <animated.div // react-spring element, works with the `useSpring` values
@@ -390,7 +387,7 @@ export const GridItem: React.FC<GridItemProps> = memo(
                   ref={resizeHandleRef}
                   className="resize-handle"
                   {...getMouseGestureDragBindings()}
-                ></div>
+                />
               </EuiFlexItem>
             </EuiFlexGroup>
           </EuiSplitPanel.Inner>
