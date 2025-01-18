@@ -155,6 +155,12 @@
       "@semantic-release/release-notes-generator",
       "@semantic-release/changelog",
       "@semantic-release/npm",
+      [
+        "@semantic-release/exec",
+        {
+          "prepareCmd": "yarn update:versionfile --version '${nextRelease.version}'"
+        }
+      ],
       "@semantic-release/git",
       [
         "@semantic-release/github",
@@ -173,12 +179,6 @@
               "path": "dist/**/phoenix-*-mac-x64.dmg"
             }
           ]
-        }
-      ],
-      [
-        "@semantic-release/exec",
-        {
-          "prepareCmd": "yarn update:versionfile --version '${nextRelease.version}'"
         }
       ]
     ]
