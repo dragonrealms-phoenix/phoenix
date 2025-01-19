@@ -22,12 +22,18 @@ export interface GameStreamProps {
    * Most components will only display a single stream id.
    */
   gameStreamIds: Array<string>;
+  /**
+   * The maximum number of lines to keep in the game log.
+   * The oldest lines will be dropped to stay within this limit.
+   * Default is 500.
+   */
+  maxLines?: number;
 }
 
 export const GameStream: React.FC<GameStreamProps> = (
   props: GameStreamProps
 ): ReactNode => {
-  const { stream$, gameStreamIds } = props;
+  const { stream$, gameStreamIds, maxLines = 500 } = props;
 
   const filteredStream$ = useObservable(() => {
     return stream$.pipe(
@@ -39,17 +45,18 @@ export const GameStream: React.FC<GameStreamProps> = (
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const appendGameLogLines = useCallback((newLogLines: Array<GameLogLine>) => {
-    // Max number of most recent lines to keep.
-    const scrollbackBufferSize = 500;
-    setGameLogLines((oldLogLines) => {
+  const appendGameLogLines = useCallback(
+    (newLogLines: Array<GameLogLine>) => {
+      setGameLogLines((oldLogLines: Array<GameLogLine>): Array<GameLogLine> => {
       // Append new log line to the list.
       newLogLines = oldLogLines.concat(newLogLines);
       // Trim the back of the list to keep it within the scrollback buffer.
-      newLogLines = newLogLines.slice(scrollbackBufferSize * -1);
+        newLogLines = newLogLines.slice(maxLines * -1);
       return newLogLines;
     });
-  }, []);
+    },
+    [maxLines]
+  );
 
   // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
@@ -58,7 +65,7 @@ export const GameStream: React.FC<GameStreamProps> = (
     };
   }, []);
 
-  useSubscription(filteredStream$, (logLine) => {
+  useSubscription(filteredStream$, (logLine: GameLogLine) => {
     // Decouple state updates from the stream subscription to mitigate
     // "Cannot update a component while rendering a different component".
     // This gives some control of the event loop back to react
