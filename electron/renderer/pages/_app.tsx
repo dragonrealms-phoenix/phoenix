@@ -6,7 +6,6 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { Layout } from '../components/layout.jsx';
 import { NoSSRBoundary } from '../components/no-ssr/no-ssr.jsx';
-import { ChromeProvider } from '../context/chrome.jsx';
 import { GameProvider } from '../context/game.jsx';
 import { LoggerProvider } from '../context/logger.jsx';
 import { ThemeProvider } from '../context/theme.jsx';
@@ -28,17 +27,15 @@ const App: React.FC<AppProps> = ({ Component, pageProps }: AppProps) => (
      */}
     <NoSSRBoundary>
       <ThemeProvider>
-        <ChromeProvider>
-          <LoggerProvider>
-            <EuiErrorBoundary>
-              <GameProvider>
-                <Layout>
-                  <Component {...pageProps} />
-                </Layout>
-              </GameProvider>
-            </EuiErrorBoundary>
-          </LoggerProvider>
-        </ChromeProvider>
+        <LoggerProvider>
+          <EuiErrorBoundary>
+            <GameProvider>
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </GameProvider>
+          </EuiErrorBoundary>
+        </LoggerProvider>
       </ThemeProvider>
     </NoSSRBoundary>
   </>
