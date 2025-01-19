@@ -22,12 +22,18 @@ export interface GameStreamProps {
    * Most components will only display a single stream id.
    */
   gameStreamIds: Array<string>;
+  /**
+   * The maximum number of lines to keep in the game log.
+   * The oldest lines will be dropped to stay within this limit.
+   * Default is 500.
+   */
+  maxLines?: number;
 }
 
 export const GameStream: React.FC<GameStreamProps> = (
   props: GameStreamProps
 ): ReactNode => {
-  const { stream$, gameStreamIds } = props;
+  const { stream$, gameStreamIds, maxLines = 500 } = props;
 
   const filteredStream$ = useObservable(() => {
     return stream$.pipe(
@@ -39,17 +45,18 @@ export const GameStream: React.FC<GameStreamProps> = (
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const appendGameLogLines = useCallback((newLogLines: Array<GameLogLine>) => {
-    // Max number of most recent lines to keep.
-    const scrollbackBufferSize = 500;
-    setGameLogLines((oldLogLines) => {
-      // Append new log line to the list.
-      newLogLines = oldLogLines.concat(newLogLines);
-      // Trim the back of the list to keep it within the scrollback buffer.
-      newLogLines = newLogLines.slice(scrollbackBufferSize * -1);
-      return newLogLines;
-    });
-  }, []);
+  const appendGameLogLines = useCallback(
+    (newLogLines: Array<GameLogLine>) => {
+      setGameLogLines((oldLogLines: Array<GameLogLine>): Array<GameLogLine> => {
+        // Append new log line to the list.
+        newLogLines = oldLogLines.concat(newLogLines);
+        // Trim the back of the list to keep it within the scrollback buffer.
+        newLogLines = newLogLines.slice(maxLines * -1);
+        return newLogLines;
+      });
+    },
+    [maxLines]
+  );
 
   // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
@@ -58,7 +65,7 @@ export const GameStream: React.FC<GameStreamProps> = (
     };
   }, []);
 
-  useSubscription(filteredStream$, (logLine) => {
+  useSubscription(filteredStream$, (logLine: GameLogLine) => {
     // Decouple state updates from the stream subscription to mitigate
     // "Cannot update a component while rendering a different component".
     // This gives some control of the event loop back to react
@@ -89,31 +96,59 @@ export const GameStream: React.FC<GameStreamProps> = (
   // https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/
   const scrollableRef = useRef<HTMLDivElement>(null);
   const scrollTargetRef = useRef<HTMLDivElement>(null);
-  const didInitialScrollRef = useRef<boolean>(false);
+  const observedTargetCountRef = useRef<number>(0);
 
   // The scroll behavior of `overflowAnchor: auto` doesn't take effect
   // to pin the content to the bottom until after an initial scroll event.
-  // Therefore, on each render we check if sufficient content has been
+  // Therefore, we observe the target to know if sufficient content has been
   // added to the scrollable element to warrant an initial scroll.
   // After that, the browser handles it automatically.
   useEffect(() => {
-    if (
-      // We haven't done an initial scroll yet.
-      !didInitialScrollRef.current &&
-      // There's something to scroll to.
-      scrollTargetRef.current &&
-      scrollableRef.current &&
-      // The scrollable element is scrollable.
-      scrollableRef.current.scrollHeight > scrollableRef.current.clientHeight
-    ) {
-      didInitialScrollRef.current = true;
-      scrollTargetRef.current.scrollIntoView({
-        behavior: 'instant',
-        block: 'end',
-        inline: 'nearest',
+    const callback: IntersectionObserverCallback = (
+      entries: Array<IntersectionObserverEntry>
+    ) => {
+      // The callback receives an entry for each observed target.
+      // In practice, we are only observing one target so we loop once.
+      entries.forEach((entry) => {
+        // When the component is first rendering, there is a period where
+        // there is no content and the scroll target is not visible.
+        // The observer invokes the callback that initial time, but we
+        // don't actually want to scroll to the bottom then, it's too soon.
+        // So we ignore the first invocation and only scroll on the second.
+        observedTargetCountRef.current += 1;
+        if (observedTargetCountRef.current <= 1) {
+          return;
+        }
+        // If the scroll target is visible, nothing to do yet.
+        if (entry.isIntersecting) {
+          return;
+        }
+        // The scroll target is now not visible, meaning that there's
+        // enough content on screen to cause the window to scroll.
+        // Perform our initial scroll to bottom and disconnect the observer.
+        // From now on, if the user scrolls away that's fine, we won't keep
+        // it pinned to bottom until they scroll back to bottom.
+        observer.disconnect();
+        scrollTargetRef.current?.scrollIntoView({
+          behavior: 'instant',
+          block: 'end',
+          inline: 'nearest',
+        });
       });
+    };
+
+    const observer = new IntersectionObserver(callback, {
+      threshold: 1.0,
+    });
+
+    if (scrollTargetRef.current) {
+      observer.observe(scrollTargetRef.current);
     }
-  });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <EuiPanel
