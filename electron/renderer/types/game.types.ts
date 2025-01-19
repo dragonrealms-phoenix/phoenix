@@ -29,7 +29,7 @@ export interface GameLogLine {
   /**
    * The text formatting to apply to the entire line.
    */
-  styles: {
+  styles?: {
     /**
      * The theme color mode to use (e.g. 'light' or 'dark').
      */

@@ -26,21 +26,21 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
       let fontWeight = euiTheme.font.weight.regular;
       let fontColor = euiTheme.colors.text;
 
-      if (logLine.styles.outputClass === 'mono') {
+      if (logLine.styles?.outputClass === 'mono') {
         fontFamily = euiTheme.font.familyCode;
         fontSize = euiTheme.size.m;
       }
 
-      if (logLine.styles.stylePreset === 'roomName') {
+      if (logLine.styles?.stylePreset === 'roomName') {
         fontColor = euiTheme.colors.title;
         fontWeight = euiTheme.font.weight.bold;
       }
 
-      if (logLine.styles.bold === true) {
+      if (logLine.styles?.bold === true) {
         fontWeight = euiTheme.font.weight.bold;
       }
 
-      if (logLine.styles.subdued === true) {
+      if (logLine.styles?.subdued === true) {
         fontColor = euiTheme.colors.subduedText;
       }
 
