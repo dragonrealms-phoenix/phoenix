@@ -1,3 +1,14 @@
+## [1.17.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.16.0...v1.17.0) (2025-01-19)
+
+### :sparkles: Features
+
+* **game-stream-text:** make text style optional ([3eb8ae0](https://github.com/dragonrealms-phoenix/phoenix/commit/3eb8ae0dfaaef71053148d9218a47526fff35e03))
+* **game-stream-text:** support theme color changes for existing text ([dc389a6](https://github.com/dragonrealms-phoenix/phoenix/commit/dc389a6baf82fca4b1171845371af9bd27b409f6))
+
+### :broom: Miscellaneous
+
+* **build:** use conventionalcommits preset to customize release notes ([287c56d](https://github.com/dragonrealms-phoenix/phoenix/commit/287c56d74481e9c272ab4805ef042a9abe786e71))
+
 # [1.16.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.15.0...v1.16.0) (2025-01-19)
 
 
