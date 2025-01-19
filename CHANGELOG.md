@@ -1,3 +1,15 @@
+# [1.16.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.15.0...v1.16.0) (2025-01-19)
+
+
+### Bug Fixes
+
+* **game-stream:** correctly scroll to bottom of content first time it's needed ([7308cd9](https://github.com/dragonrealms-phoenix/phoenix/commit/7308cd9294dd6b9d53ffb0129224dd8403dd2c63))
+
+
+### Features
+
+* **game-steam:** make scrollback buffer a cmp prop ([dd2b3a1](https://github.com/dragonrealms-phoenix/phoenix/commit/dd2b3a1ffd69b79af9de106e2dac2e5ffa5e3383))
+
 # [1.15.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.14.0...v1.15.0) (2025-01-18)
 
 
