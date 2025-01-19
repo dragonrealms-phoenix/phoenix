@@ -1,4 +1,3 @@
-import { css } from '@emotion/react';
 import * as rxjs from 'rxjs';
 import type { GameLogLine } from '../../types/game.types.jsx';
 
@@ -9,7 +8,6 @@ const emptyLogLine: GameLogLine = {
   eventId: '',
   streamId: '',
   text: '',
-  styles: css(),
 };
 
 /**

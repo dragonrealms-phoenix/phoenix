@@ -1,7 +1,5 @@
 import type { IpcRendererEvent } from 'electron';
 import { EuiFieldText, EuiPageTemplate, useEuiTheme } from '@elastic/eui';
-import type { SerializedStyles } from '@emotion/react';
-import { css } from '@emotion/react';
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { KeyboardEventHandler, ReactNode } from 'react';
@@ -21,6 +19,7 @@ import { GameStream } from '../components/game/game-stream.jsx';
 import { Grid } from '../components/grid/grid.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
+import { useTheme } from '../hooks/theme.jsx';
 import { useWindowSize } from '../hooks/window-size.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import { getGameItemInfo } from '../lib/game/game-item-info.js';
@@ -60,46 +59,7 @@ const GridPage: React.FC = (): ReactNode => {
   // TODO load the grid layout items
 
   const { euiTheme } = useEuiTheme();
-
-  const computeTextStyles = useCallback((): SerializedStyles => {
-    // TODO user pref for 'mono' or 'serif' font family
-    let fontFamily = euiTheme.font.familySerif;
-    // TODO user pref for font size
-    let fontSize = '14px';
-    let fontWeight = euiTheme.font.weight.regular;
-    let fontColor = euiTheme.colors.text;
-
-    if (textOutputClassRef.current === 'mono') {
-      fontFamily = euiTheme.font.familyCode;
-      fontSize = euiTheme.size.m;
-    }
-
-    if (textStyleBoldRef.current) {
-      fontWeight = euiTheme.font.weight.bold;
-    }
-
-    if (textStylePresetRef.current === 'roomName') {
-      fontColor = euiTheme.colors.title;
-      fontWeight = euiTheme.font.weight.bold;
-    }
-
-    // TODO rather than return the calculated CSS styles,
-    //      return an object that indicates with keys from the euiTheme to use
-    //      For example, { fontFamily: 'code', fontSize: 'm', fontWeight: 'bold', color: 'title' }
-    //      This will allow the GameStreamText component to apply the correct styles
-    //      when the user swaps the theme from light to dark mode
-    const textStyles = css({
-      fontFamily,
-      fontSize,
-      fontWeight,
-      color: fontColor,
-      lineHeight: 'initial',
-      paddingLeft: euiTheme.size.s,
-      paddingRight: euiTheme.size.s,
-    });
-
-    return textStyles;
-  }, [euiTheme]);
+  const { colorMode = 'dark' } = useTheme();
 
   // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
@@ -156,7 +116,12 @@ const GridPage: React.FC = (): ReactNode => {
   // Track high level game events such as stream ids and formatting.
   // Re-emit text events to the game stream subject to get to grid items.
   useSubscription(gameEventsSubject$, (gameEvent: GameEvent) => {
-    const textStyles = computeTextStyles();
+    const textStyles: GameLogLine['styles'] = {
+      colorMode,
+      outputClass: textOutputClassRef.current,
+      stylePreset: textStylePresetRef.current,
+      bold: textStyleBoldRef.current,
+    };
 
     switch (gameEvent.type) {
       case GameEventType.CLEAR_STREAM:
@@ -200,7 +165,10 @@ const GridPage: React.FC = (): ReactNode => {
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
           streamId: 'experience',
-          styles: css(textStyles, { fontFamily: euiTheme.font.familyCode }),
+          styles: {
+            ...textStyles,
+            outputClass: 'mono',
+          },
           text: formatExperienceText(gameEvent),
         });
         break;
@@ -294,16 +262,10 @@ const GridPage: React.FC = (): ReactNode => {
           eventId: uuid(),
           // TODO create some constants for known stream ids, '' = main window
           streamId: '',
-          // TODO clean up this mess
-          styles: css({
-            fontFamily: `Verdana, ${euiTheme.font.familySerif}`,
-            fontSize: '14px',
-            fontWeight: euiTheme.font.weight.regular,
-            color: euiTheme.colors.subduedText,
-            lineHeight: 'initial',
-            paddingLeft: euiTheme.size.s,
-            paddingRight: euiTheme.size.s,
-          }),
+          styles: {
+            colorMode,
+            subdued: true,
+          },
           text: `> ${command}`,
         });
       }
@@ -311,7 +273,7 @@ const GridPage: React.FC = (): ReactNode => {
     return () => {
       unsubscribe();
     };
-  }, [gameLogLineSubject$, euiTheme]);
+  }, [gameLogLineSubject$, euiTheme, colorMode]);
 
   // TODO move to a new GameCommandInput component
   const onKeyDownCommandInput = useCallback<
