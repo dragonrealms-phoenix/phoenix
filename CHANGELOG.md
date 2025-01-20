@@ -1,3 +1,15 @@
+## [1.18.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.17.0...v1.18.0) (2025-01-20)
+
+### :sparkles: Features
+
+* **theme:** memoize context value ([7d3036e](https://github.com/dragonrealms-phoenix/phoenix/commit/7d3036e4aaab8294746fda7a14218ff99454898e))
+
+### :broom: Miscellaneous
+
+* **docs:** explain purpose of createContext argument ([911ba99](https://github.com/dragonrealms-phoenix/phoenix/commit/911ba9938e8f50ae164318d563e3a034ad60677a))
+* **grid:** removed unused logger for now ([46d173a](https://github.com/dragonrealms-phoenix/phoenix/commit/46d173aa1db1729bbceaca7ae8674d9e335fa555))
+* **theme:** simplify theme management with <EuiProvider> ([eadce10](https://github.com/dragonrealms-phoenix/phoenix/commit/eadce106f55691bba055f150f93dd00e12bb2901))
+
 ## [1.17.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.16.0...v1.17.0) (2025-01-19)
 
 ### :sparkles: Features
