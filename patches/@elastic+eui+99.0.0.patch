@@ -1,0 +1,53 @@
+diff --git a/node_modules/@elastic/eui/es/components/bottom_bar/bottom_bar.js b/node_modules/@elastic/eui/es/components/bottom_bar/bottom_bar.js
+index 9e85c21..f2be992 100644
+--- a/node_modules/@elastic/eui/es/components/bottom_bar/bottom_bar.js
++++ b/node_modules/@elastic/eui/es/components/bottom_bar/bottom_bar.js
+@@ -195,17 +195,39 @@ _EuiBottomBar.propTypes = {
+        */
+   left: PropTypes.any
+ };
+-export var EuiBottomBar = /*#__PURE__*/forwardRef(function (props, ref) {
++//-- START PATCH ------------------------------------------------------------
++// Katoak's Patch Notes: 2025-01-19
++//   The EuiBottomBar component is wrapped in a EuiThemeProvider
++//   that hardcodes the colorMode to "dark". I don't agree with
++//   this design, and for Phoenix, I want the bottom bar to follow
++//   the user's color mode theme preference.
++//   Therefore, I'm removing the EuiThemeProvider wrapper.
++//---------------------------------------------------------------------------
++// export var EuiBottomBar = /*#__PURE__*/forwardRef(function (props, ref) {
++//   var BottomBar = _EuiBottomBar;
++//   return ___EmotionJSX(EuiThemeProvider, {
++//     colorMode: "dark",
++//     wrapperProps: {
++//       cloneElement: true
++//     }
++//   }, ___EmotionJSX(BottomBar, _extends({
++//     ref: ref
++//   }, props)));
++// });
++//---------------------------------------------------------------------------
++export var EuiBottomBar = /*#__PURE__*/ forwardRef(function (props, ref) {
+   var BottomBar = _EuiBottomBar;
+-  return ___EmotionJSX(EuiThemeProvider, {
+-    colorMode: "dark",
+-    wrapperProps: {
+-      cloneElement: true
+-    }
+-  }, ___EmotionJSX(BottomBar, _extends({
+-    ref: ref
+-  }, props)));
++  return ___EmotionJSX(
++    BottomBar,
++    _extends(
++      {
++        ref: ref
++      },
++      props
++    )
++  );
+ });
++//-- END PATCH --------------------------------------------------------------
+ EuiBottomBar.propTypes = {
+   className: PropTypes.string,
+   "aria-label": PropTypes.string,
