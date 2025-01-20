@@ -17,7 +17,6 @@ import type {
 import { GameEventType } from '../../common/game/types.js';
 import { GameStream } from '../components/game/game-stream.jsx';
 import { Grid } from '../components/grid/grid.jsx';
-import { useLogger } from '../hooks/logger.jsx';
 import { useMeasure } from '../hooks/measure.js';
 import { useTheme } from '../hooks/theme.jsx';
 import { useWindowSize } from '../hooks/window-size.js';
@@ -31,8 +30,6 @@ import type {
 } from '../types/grid.types.js';
 
 const GridPage: React.FC = (): ReactNode => {
-  const logger = useLogger('renderer:page:grid');
-
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
   // was received, resulting in text routing to the wrong stream window
@@ -59,7 +56,7 @@ const GridPage: React.FC = (): ReactNode => {
   // TODO load the grid layout items
 
   const { euiTheme } = useEuiTheme();
-  const { colorMode = 'dark' } = useTheme();
+  const { colorMode } = useTheme();
 
   // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
