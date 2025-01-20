@@ -1,3 +1,9 @@
+## [1.18.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.18.0...v1.18.1) (2025-01-20)
+
+### :hammer: Fixes
+
+* patch eui package so bottom bar does not hard code color mode ([7c7c338](https://github.com/dragonrealms-phoenix/phoenix/commit/7c7c338f596fdf2cae9fa5d3a4f93aec19d4efc4))
+
 ## [1.18.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.17.0...v1.18.0) (2025-01-20)
 
 ### :sparkles: Features
