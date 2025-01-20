@@ -16,6 +16,10 @@ export interface LoggerContextValue {
   logger: Logger;
 }
 
+/**
+ * Defines shape and behavior of the context value
+ * when no provider is found in the component hierarchy.
+ */
 export const LoggerContext = createContext<LoggerContextValue>({
   logger: defaultLogger,
 });

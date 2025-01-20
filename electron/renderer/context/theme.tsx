@@ -4,7 +4,7 @@
 import type { EuiThemeColorMode } from '@elastic/eui';
 import { EuiProvider } from '@elastic/eui';
 import type { ReactNode } from 'react';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 import { getThemeName, setThemeName } from '../lib/theme.js';
 
 /**
@@ -12,11 +12,18 @@ import { getThemeName, setThemeName } from '../lib/theme.js';
  * Color mode is usually either 'light' or 'dark'.
  */
 export interface ThemeContextValue {
-  colorMode?: EuiThemeColorMode;
-  setColorMode?: (colorMode: EuiThemeColorMode) => void;
+  colorMode: EuiThemeColorMode;
+  setColorMode: (colorMode: EuiThemeColorMode) => void;
 }
 
-export const ThemeContext = createContext<ThemeContextValue>({});
+/**
+ * Defines shape and behavior of the context value
+ * when no provider is found in the component hierarchy.
+ */
+export const ThemeContext = createContext<ThemeContextValue>({
+  colorMode: getThemeName(),
+  setColorMode: setThemeName,
+});
 
 ThemeContext.displayName = 'ThemeContext';
 
@@ -44,8 +51,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = (
     setThemeName(colorMode);
   }, [colorMode]);
 
+  const contextValue = useMemo((): ThemeContextValue => {
+    return { colorMode, setColorMode };
+  }, [colorMode]);
+
   return (
-    <ThemeContext.Provider value={{ colorMode, setColorMode }}>
+    <ThemeContext.Provider value={contextValue}>
       <EuiProvider colorMode={colorMode}>{children}</EuiProvider>
     </ThemeContext.Provider>
   );
