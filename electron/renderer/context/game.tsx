@@ -22,6 +22,10 @@ export interface GameContextValue {
   todo?: true;
 }
 
+/**
+ * Defines shape and behavior of the context value
+ * when no provider is found in the component hierarchy.
+ */
 export const GameContext = createContext<GameContextValue>({});
 
 GameContext.displayName = 'GameContext';

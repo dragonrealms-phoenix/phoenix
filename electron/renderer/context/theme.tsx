@@ -16,7 +16,14 @@ export interface ThemeContextValue {
   setColorMode?: (colorMode: EuiThemeColorMode) => void;
 }
 
-export const ThemeContext = createContext<ThemeContextValue>({});
+/**
+ * Defines shape and behavior of the context value
+ * when no provider is found in the component hierarchy.
+ */
+export const ThemeContext = createContext<ThemeContextValue>({
+  colorMode: getThemeName(),
+  setColorMode: setThemeName,
+});
 
 ThemeContext.displayName = 'ThemeContext';
 
