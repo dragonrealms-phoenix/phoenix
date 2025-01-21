@@ -28,9 +28,14 @@ export const Layout: React.FC<LayoutProps> = (
       grow={true}
       restrictWidth={false}
       responsive={[]}
-      css={{ height: '100%', maxWidth: 'unset' }}
+      css={{ height: '100%', maxWidth: 'unset', display: 'flex' }}
     >
-      <EuiPageTemplate.Sidebar minWidth={50} paddingSize="xs" responsive={[]}>
+      <EuiPageTemplate.Sidebar
+        minWidth={50}
+        paddingSize="xs"
+        responsive={[]}
+        css={{ height: '100vh', position: 'sticky', top: 0 }}
+      >
         <Sidebar />
       </EuiPageTemplate.Sidebar>
       <EuiPageTemplate.Section paddingSize="none" grow={true}>
