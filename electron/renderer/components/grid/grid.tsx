@@ -82,7 +82,8 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   return (
     <div
       style={{
-        overflow: 'hidden',
+        overflowY: 'auto',
+        overflowX: 'hidden',
         position: 'relative',
         height: boundary.height,
         width: boundary.width,

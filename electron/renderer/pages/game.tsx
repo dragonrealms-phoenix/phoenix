@@ -1,8 +1,8 @@
 import type { IpcRendererEvent } from 'electron';
-import { EuiFieldText, EuiPageTemplate, useEuiTheme } from '@elastic/eui';
+import { useEuiTheme } from '@elastic/eui';
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable, useSubscription } from 'observable-hooks';
-import type { KeyboardEventHandler, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -15,12 +15,9 @@ import type {
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType } from '../../common/game/types.js';
+import { GameContainer } from '../components/game/game-container.jsx';
 import { GameStream } from '../components/game/game-stream.jsx';
-import { Grid } from '../components/grid/grid.jsx';
-import { useMeasure } from '../hooks/measure.js';
 import { useTheme } from '../hooks/theme.jsx';
-import { useWindowSize } from '../hooks/window-size.js';
-import { runInBackground } from '../lib/async/run-in-background.js';
 import { getGameItemInfo } from '../lib/game/game-item-info.js';
 import { GameItemId, type GameLogLine } from '../types/game.types.js';
 import type {
@@ -29,7 +26,7 @@ import type {
   GridItemInfo,
 } from '../types/grid.types.js';
 
-const GridPage: React.FC = (): ReactNode => {
+const GamePage: React.FC = (): ReactNode => {
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
   // was received, resulting in text routing to the wrong stream window
@@ -235,6 +232,7 @@ const GridPage: React.FC = (): ReactNode => {
     }
   });
 
+  // Pipe game events from ipc api.
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:event',
@@ -272,35 +270,7 @@ const GridPage: React.FC = (): ReactNode => {
     };
   }, [gameLogLineSubject$, euiTheme, colorMode]);
 
-  // TODO move to a new GameCommandInput component
-  const onKeyDownCommandInput = useCallback<
-    KeyboardEventHandler<HTMLInputElement>
-  >((event) => {
-    const command = event.currentTarget.value;
-    // TODO implement command history to track last N commands
-    //      pressing up/down arrow keys should cycle through history
-    //      pressing down arrow key when at the end of history should clear input
-    //      pressing up arrow key when at the beginning of history should do nothing
-    if (event.code === 'Enter' && !isEmpty(command)) {
-      event.currentTarget.value = '';
-      runInBackground(async () => {
-        await window.api.sendCommand(command);
-      });
-    }
-  }, []);
-
-  // Calculating the height for the grid is tricky.
-  // Something about how `EuiPageTemplate.Section` is styled, the height
-  // is not able to be observed or measured. It's always zero.
-  // The width, however, does calculate correctly as the page resizes.
-  // As a workaround, I take the window height minus other elements in the
-  // same column as the grid to approximate the allowed grid height.
-  const windowSize = useWindowSize();
-  const [bottomBarRef, bottomBarSize] = useMeasure<HTMLInputElement>();
-  const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
-  const gridHeight = windowSize.height - bottomBarSize.height - 1;
-
-  const contentGridItems = useMemo<Array<GridItemContent>>(() => {
+  const contentItems = useMemo<Array<GridItemContent>>(() => {
     // TODO define a default config set
     // TODO allow users to customize the set and add/remove items
     // TODO IPC handler to get/save the user's config set
@@ -468,41 +438,8 @@ const GridPage: React.FC = (): ReactNode => {
     return contentGridItems;
   }, [gameLogLineSubject$]);
 
-  return (
-    <EuiPageTemplate
-      direction="column"
-      paddingSize="s"
-      panelled={false}
-      grow={true}
-      restrictWidth={false}
-      responsive={[]}
-      css={{ height: '100%', maxWidth: 'unset' }}
-    >
-      <EuiPageTemplate.Section grow={true} paddingSize="none">
-        <div ref={gridWidthRef}>
-          <Grid
-            boundary={{
-              height: gridHeight,
-              width: gridWidth,
-            }}
-            contentItems={contentGridItems}
-          />
-        </div>
-      </EuiPageTemplate.Section>
-      <EuiPageTemplate.BottomBar paddingSize="none">
-        <div ref={bottomBarRef}>
-          <EuiFieldText
-            compressed={true}
-            fullWidth={true}
-            prepend={'RT'}
-            tabIndex={0}
-            onKeyDown={onKeyDownCommandInput}
-          />
-        </div>
-      </EuiPageTemplate.BottomBar>
-    </EuiPageTemplate>
-  );
+  return <GameContainer contentItems={contentItems} />;
 };
 
 // nextjs pages must be default exports
-export default GridPage;
+export default GamePage;
