@@ -1,3 +1,9 @@
+## [1.19.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.18.1...v1.19.0) (2025-01-21)
+
+### :sparkles: Features
+
+* **ui:** prevent left sidebar from scrolling ([e740af2](https://github.com/dragonrealms-phoenix/phoenix/commit/e740af28d518440d59b1938b93182d4aca6f2eb9))
+
 ## [1.18.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.18.0...v1.18.1) (2025-01-20)
 
 ### :hammer: Fixes
