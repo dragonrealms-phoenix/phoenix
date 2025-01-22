@@ -79,7 +79,7 @@ export const usePubSub = (): PubSub => {
       return {
         // We exclude other properties like `subscribers`
         // so that we don't re-render when they change.
-        // Who is subscribed or not is now relevant to this API shape.
+        // Who is subscribed or not is not relevant to this API shape.
         subscribe: state.subscribe,
         unsubscribe: state.unsubscribe,
         publish: state.publish,
