@@ -1,3 +1,13 @@
+## [1.20.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.19.0...v1.20.0) (2025-01-22)
+
+### :sparkles: Features
+
+* **game:** implement command history ([9811030](https://github.com/dragonrealms-phoenix/phoenix/commit/98110309179f68a070ed9588668d156093d8f79b))
+
+### :broom: Miscellaneous
+
+* fix typo in comments ([d94983b](https://github.com/dragonrealms-phoenix/phoenix/commit/d94983b72a7e76ddc2499e03be7f4058a9999b24))
+
 ## [1.19.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.18.1...v1.19.0) (2025-01-21)
 
 ### :sparkles: Features
