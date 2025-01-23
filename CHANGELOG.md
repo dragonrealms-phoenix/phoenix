@@ -1,3 +1,14 @@
+## [1.20.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.20.0...v1.20.1) (2025-01-23)
+
+### :package: Dependencies
+
+* **deps:** dedupe and patch vite ([e83d34f](https://github.com/dragonrealms-phoenix/phoenix/commit/e83d34fdfeb69c41da7afc52a15a0732ea987ef3))
+* **deps:** update dependencies ([14b985e](https://github.com/dragonrealms-phoenix/phoenix/commit/14b985eb1c901d03e859f4cbefe7d48df5fa4a87))
+
+### :broom: Miscellaneous
+
+* **build:** create release for 'chore' and 'refactor' commits ([96c1b5d](https://github.com/dragonrealms-phoenix/phoenix/commit/96c1b5d7ef422f199b7a93806741c2e15d65a17c))
+
 ## [1.20.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.19.0...v1.20.0) (2025-01-22)
 
 ### :sparkles: Features
