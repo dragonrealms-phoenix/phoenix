@@ -152,6 +152,14 @@ const GamePage: React.FC = (): ReactNode => {
           text: gameEvent.text,
         });
         break;
+      case GameEventType.URL:
+        gameLogLineSubject$.next({
+          eventId: gameEvent.eventId,
+          streamId: gameStreamIdRef.current,
+          styles: textStyles,
+          text: `<a href="${gameEvent.url}" target="_blank">${gameEvent.text}</a>`,
+        });
+        break;
       case GameEventType.EXPERIENCE:
         // TODO need to track a map of skill names to their latest event
         //      so that when we receive a new event we can update that skill
