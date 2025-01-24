@@ -1,3 +1,9 @@
+## [1.20.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.20.1...v1.20.2) (2025-01-24)
+
+### :broom: Miscellaneous
+
+* **build:** rename dist files with new version ([7522bae](https://github.com/dragonrealms-phoenix/phoenix/commit/7522bae3f7a8bfc49848e7c1d583063ca97c31e1))
+
 ## [1.20.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.20.0...v1.20.1) (2025-01-23)
 
 ### :package: Dependencies
