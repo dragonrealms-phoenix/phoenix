@@ -115,22 +115,13 @@ describe('game-parser', () => {
     });
 
     it('emits TextGameEvent (anchor link text)', () => {
-      gameSocketSubject$.next('Visit the <a href="#">play.net</a> website.\n');
+      gameSocketSubject$.next(
+        'Visit the <a href="https://play.net/dr">DragonRealms</a> website.\n'
+      );
 
       expectGameEvent({
         type: GameEventType.TEXT,
-        text: `Visit the `,
-      });
-
-      expectGameEvent({
-        type: GameEventType.URL,
-        text: `play.net`,
-        url: '#',
-      });
-
-      expectGameEvent({
-        type: GameEventType.TEXT,
-        text: ` website.\n`,
+        text: `Visit the <a href="https://play.net/dr" target="_blank">DragonRealms</a> website.\n`,
       });
     });
 
