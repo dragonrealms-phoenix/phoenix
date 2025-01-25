@@ -25,7 +25,7 @@ VERSION="${VERSION:-"${npm_package_version}"}"
 echo "export const VERSION = '${VERSION}';" > electron/common/version.ts
 
 # Rename dist files since they were built before the version was ticked
-for file in "$ROOT_DIR/dist"/*; do
+find "$ROOT_DIR/dist" -type f | while read -r file; do
   if [[ $file =~ (.*)-v[0-9]+\.[0-9]+\.[0-9]+-(.*) ]]; then
     new_file="${BASH_REMATCH[1]}-v${VERSION}-${BASH_REMATCH[2]}"
     mv "$file" "$new_file"
