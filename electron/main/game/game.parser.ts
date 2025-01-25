@@ -364,7 +364,7 @@ export class GameParserImpl implements GameParser {
         break;
       case 'a':
         // This is a hyperlink, we only need the text.
-        // Example: `<a href='https://drwiki.play.net'>Elanthipedia</a>`.
+        // Example: `<a href='https://elanthipedia.play.net'>Elanthipedia</a>`
         // In this example, the text would be 'Elanthipedia'.
         this.gameText += text;
         break;
@@ -414,6 +414,9 @@ export class GameParserImpl implements GameParser {
     });
 
     switch (tagName) {
+      case 'a': // <a href='https://elanthipedia.play.net'>Elanthipedia</a>
+        this.gameText += `<a href="${attributes.href}" target="_blank">`;
+        break;
       case 'pushBold': // <pushBold/>
         // If this is nested inside text then it is an inline text style.
         // For example, emphasizing a person's name.
@@ -487,13 +490,6 @@ export class GameParserImpl implements GameParser {
       case 'castTime': // <castTime value='1703617016'/>
         this.emitCastTimeGameEvent(parseInt(attributes.value));
         break;
-      case 'a': // <a href='https://elanthipedia.play.net/'>Elanthipedia</a>
-        // Links are often found within a line of text.
-        // Emit any game text up to this point.
-        if (this.gameText.length > 0) {
-          this.emitTextGameEvent(this.consumeGameText());
-        }
-        break;
     }
   }
 
@@ -513,6 +509,11 @@ export class GameParserImpl implements GameParser {
     });
 
     switch (tagName) {
+      case 'a':
+        // Close the hyperlink because we are at the end of the tag.
+        // Example: `<a href='https://elanthipedia.play.net'>Elanthipedia</a>`
+        this.gameText += `</a>`;
+        break;
       case 'component':
         // Emit the room info because we are at the end of the tag.
         // Example: `<component id='room desc'>The hustle...</component>`
@@ -559,14 +560,6 @@ export class GameParserImpl implements GameParser {
         // Emit the right hand item because we are at the end of the tag.
         // Example: `<right>Empty</right>`
         this.emitRightHandGameEvent(this.consumeGameText());
-        break;
-      case 'a':
-        // Emit the hyperlink because we are at the end of the tag.
-        // Example: `<a href='https://elanthipedia.play.net/'>Elanthipedia</a>`
-        this.emitUrlGameEvent({
-          url: attributes.href,
-          text: this.consumeGameText(),
-        });
         break;
     }
 
@@ -823,16 +816,6 @@ export class GameParserImpl implements GameParser {
       type: GameEventType.CAST_TIME,
       eventId: uuid(),
       time,
-    });
-  }
-
-  protected emitUrlGameEvent(options: { url: string; text: string }): void {
-    const { url, text } = options;
-    this.emitGameEvent({
-      type: GameEventType.URL,
-      eventId: uuid(),
-      url,
-      text: unescapeEntities(text),
     });
   }
 

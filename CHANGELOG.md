@@ -1,3 +1,23 @@
+## [1.21.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.20.2...v1.21.0) (2025-01-25)
+
+### :sparkles: Features
+
+* add urls to game text ([90dde85](https://github.com/dragonrealms-phoenix/phoenix/commit/90dde850501230285de70e458cfac0869963451f))
+* **game:** improve display of inline links in text ([4edaeaf](https://github.com/dragonrealms-phoenix/phoenix/commit/4edaeaf619c0dcb19cefa0fdf1186206029b6f82))
+* **security:** warn for non-github, non-play.net urls ([2562a9c](https://github.com/dragonrealms-phoenix/phoenix/commit/2562a9c27d4aac257e93b1ec5396a7b5906a4132))
+
+### :books: Documentation
+
+* add GitHub Copilot instructions for code, commits, and tests ([3246681](https://github.com/dragonrealms-phoenix/phoenix/commit/32466810d40bc3096c5c9d9490f05b415f8c958c))
+
+### :test_tube: Tests
+
+* game text with url ([3f3954a](https://github.com/dragonrealms-phoenix/phoenix/commit/3f3954ade4276aa5760cd9d13b05729d8a5ff337))
+
+### :broom: Miscellaneous
+
+* add GitHub Copilot and Copilot Chat extensions to VSCode configuration ([29b4b43](https://github.com/dragonrealms-phoenix/phoenix/commit/29b4b436012d92172b4bf594fa735ee5478b9c0d))
+
 ## [1.20.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.20.1...v1.20.2) (2025-01-24)
 
 ### :broom: Miscellaneous

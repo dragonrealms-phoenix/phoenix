@@ -167,9 +167,9 @@ export const initializeApp = async (): Promise<void> => {
   // https://www.electronjs.org/docs/latest/tutorial/security
   app.on('web-contents-created', (_, contents) => {
     const allowedDomains = [
-      /^(www\.)?github\.com$/i,
-      /^(www\.)?play\.net$/i,
-      /^elanthipedia\.play\.net$/i,
+      // https://regex101.com/r/pUmfMR/1
+      /^(.*\.)?github\.com$/i,
+      /^(.*\.)?play\.net$/i,
     ];
 
     const isAllowedDomain = (domain: string): boolean => {
