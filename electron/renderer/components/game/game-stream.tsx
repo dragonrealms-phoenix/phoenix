@@ -18,8 +18,18 @@ export interface GameStreamProps {
    */
   stream$: rxjs.Observable<GameLogLine>;
   /**
+   * The primary stream id that this component should display.
+   * If other streams are redirected to this stream, only the "clear stream"
+   * events for the primary stream will be honored, otherwise the stream
+   * may be cleared too often.
+   */
+  primaryStreamId: string;
+  /**
    * The list of game stream ids that this component should display.
-   * Most components will only display a single stream id.
+   * Most components will only display their primary stream id,
+   * but players may redirect streams to another to reduce the number
+   * of stream windows they need open. For example, to redirect the
+   * 'assess' and 'combat' streams to the 'main' primary stream.
    */
   gameStreamIds: Array<string>;
   /**
@@ -33,7 +43,7 @@ export interface GameStreamProps {
 export const GameStream: React.FC<GameStreamProps> = (
   props: GameStreamProps
 ): ReactNode => {
-  const { stream$, gameStreamIds, maxLines = 500 } = props;
+  const { stream$, primaryStreamId, gameStreamIds, maxLines = 500 } = props;
 
   const filteredStream$ = useObservable(() => {
     return stream$.pipe(
@@ -73,11 +83,13 @@ export const GameStream: React.FC<GameStreamProps> = (
     // We use `setTimeout` because browser doesn't have `setImmediate`.
     setTimeout(() => {
       if (logLine.text === '__CLEAR_STREAM__') {
-        // Clear the stream after a short delay to prevent flickering
-        // caused by a flash of empty content then the new content.
-        clearStreamTimeoutRef.current = setTimeout(() => {
-          setGameLogLines([]);
-        }, 1000);
+        if (logLine.streamId === primaryStreamId) {
+          // Clear the stream after a short delay to prevent flickering
+          // caused by a flash of empty content then the new content.
+          clearStreamTimeoutRef.current = setTimeout(() => {
+            setGameLogLines([]);
+          }, 1000);
+        }
       } else {
         // If we receieved a new log line, cancel any pending clear stream.
         // Set the game log lines to the new log line to prevent flickering.
