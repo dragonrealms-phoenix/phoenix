@@ -3,7 +3,7 @@
   "type": "module",
   "name": "phoenix",
   "productName": "Phoenix",
-  "version": "1.21.1",
+  "version": "1.22.0",
   "description": "Ignite your DragonRealms journey with Phoenix, a cross-platform game client",
   "keywords": [
     "dragonrealms",

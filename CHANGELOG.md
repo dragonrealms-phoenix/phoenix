@@ -1,3 +1,17 @@
+## [1.22.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.21.1...v1.22.0) (2025-01-25)
+
+### :sparkles: Features
+
+* trying out more stream configs ([dd5253e](https://github.com/dragonrealms-phoenix/phoenix/commit/dd5253e973bf0a60dc8c869ca640ac0d223cca9a))
+
+### :hammer: Fixes
+
+* **game-stream:** ignore clear stream events except for the primary stream ([49c6645](https://github.com/dragonrealms-phoenix/phoenix/commit/49c6645bee7dfab5475db6538908ad345a0b3a50))
+
+### :broom: Miscellaneous
+
+* **build:** locate artifacts in nested folders under 'dist' ([458617b](https://github.com/dragonrealms-phoenix/phoenix/commit/458617b13e6d4de0a355105a804772349e4f5cdc))
+
 ## [1.21.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.21.0...v1.21.1) (2025-01-25)
 
 ### :package: Dependencies
