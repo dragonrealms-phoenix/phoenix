@@ -277,6 +277,12 @@ const GamePage: React.FC = (): ReactNode => {
     const configGridItems: Array<GridItemConfig> = [];
 
     configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.MAIN),
+      whenVisibleStreamToItemIds: [GameItemId.MAIN],
+      whenHiddenStreamToItemIds: [],
+    });
+
+    configGridItems.push({
       gameItemInfo: getGameItemInfo(GameItemId.ROOM),
       whenVisibleStreamToItemIds: [GameItemId.ROOM],
       whenHiddenStreamToItemIds: [],
@@ -289,15 +295,27 @@ const GamePage: React.FC = (): ReactNode => {
     });
 
     configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.MAIN),
-      whenVisibleStreamToItemIds: [GameItemId.MAIN],
+      gameItemInfo: getGameItemInfo(GameItemId.SPELLS),
+      whenVisibleStreamToItemIds: [GameItemId.SPELLS],
       whenHiddenStreamToItemIds: [],
     });
 
     configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.SPELLS),
-      whenVisibleStreamToItemIds: [GameItemId.SPELLS],
-      whenHiddenStreamToItemIds: [],
+      gameItemInfo: getGameItemInfo(GameItemId.ATMOSPHERICS),
+      whenVisibleStreamToItemIds: [GameItemId.ATMOSPHERICS],
+      whenHiddenStreamToItemIds: [GameItemId.MAIN],
+    });
+
+    configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.COMBAT),
+      whenVisibleStreamToItemIds: [GameItemId.COMBAT],
+      whenHiddenStreamToItemIds: [GameItemId.MAIN],
+    });
+
+    configGridItems.push({
+      gameItemInfo: getGameItemInfo(GameItemId.ASSESS),
+      whenVisibleStreamToItemIds: [GameItemId.ASSESS],
+      whenHiddenStreamToItemIds: [GameItemId.COMBAT],
     });
 
     const configItemsMap: Record<string, GridItemConfig> = {};
@@ -424,6 +442,7 @@ const GamePage: React.FC = (): ReactNode => {
         layout: layoutItem.layout,
         content: (
           <GameStream
+            primaryStreamId={configItem.gameItemInfo.streamId}
             gameStreamIds={itemStreamMapping[layoutItem.itemId].map(
               (itemId) => {
                 return configItemsMap[itemId].gameItemInfo.streamId;
