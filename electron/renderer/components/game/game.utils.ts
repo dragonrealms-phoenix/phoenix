@@ -42,18 +42,19 @@ export const excludeDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<
   GameLogLine
 > = (observable: rxjs.Observable<GameLogLine>) => {
   return observable.pipe(
-    // Compare the current and next log lines to decide whether to emit or not.
+    // Compare the previous and next log lines to decide whether to emit or not.
     // https://www.learnrxjs.io/learn-rxjs/operators/transformation/buffercount
     rxjs.bufferCount(2, 1),
     // Inspect buffer to identify if there are duplicate empty lines.
-    // If yes, emit only one and standardize on the prompt format.
-    rxjs.map(([curr, next]) => {
-      if (isEmptyLogLine(curr) && isEmptyLogLine(next)) {
+    // If yes, standardize on the prompt format, else emit the line as-is.
+    rxjs.map(([prev, curr]) => {
+      if (isEmptyLogLine(prev) && isEmptyLogLine(curr)) {
         return { ...curr, text: '>\n' };
       }
       return curr;
     }),
-    // Emit only unique log lines.
+    // Exclude duplicate empty lines.
+    // But if the game repeats anything else, let it through.
     rxjs.distinctUntilChanged((prev, curr) => {
       return isEmptyLogLine(prev) && isEmptyLogLine(curr);
     })
