@@ -1,3 +1,9 @@
+## [1.22.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.22.0...v1.22.1) (2025-01-26)
+
+### :package: Dependencies
+
+* **deps:** update package manager to yarn@4.6.0 ([bf75806](https://github.com/dragonrealms-phoenix/phoenix/commit/bf75806accb84c5db9c8cb3986bb63d49b419d00))
+
 ## [1.22.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.21.1...v1.22.0) (2025-01-25)
 
 ### :sparkles: Features
