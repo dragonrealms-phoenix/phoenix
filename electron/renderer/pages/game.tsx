@@ -55,6 +55,8 @@ const GamePage: React.FC = (): ReactNode => {
   const { euiTheme } = useEuiTheme();
   const { colorMode } = useTheme();
 
+  const mainStreamId = getGameItemInfo(GameItemId.MAIN).streamId;
+
   // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
   //      ones that pulse, toggle between mind state and mind state rate, etc
@@ -255,8 +257,7 @@ const GamePage: React.FC = (): ReactNode => {
         const { command } = message;
         gameLogLineSubject$.next({
           eventId: uuid(),
-          // TODO create some constants for known stream ids, '' = main window
-          streamId: '',
+          streamId: mainStreamId,
           styles: {
             colorMode,
             subdued: true,
@@ -268,7 +269,7 @@ const GamePage: React.FC = (): ReactNode => {
     return () => {
       unsubscribe();
     };
-  }, [gameLogLineSubject$, euiTheme, colorMode]);
+  }, [gameLogLineSubject$, euiTheme, colorMode, mainStreamId]);
 
   const contentItems = useMemo<Array<GridItemContent>>(() => {
     // TODO define a default config set
