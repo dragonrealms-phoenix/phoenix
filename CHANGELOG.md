@@ -1,3 +1,13 @@
+## [1.23.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.23.1...v1.23.2) (2025-01-26)
+
+### :hammer: Fixes
+
+* **theme:** remove EuiThemeProvider wrapper from EuiBottomBar to respect user color mode preference ([059021f](https://github.com/dragonrealms-phoenix/phoenix/commit/059021f4bd131bf50d37f00881293971331d10d0))
+
+### :package: Dependencies
+
+* **deps:** update lint-staged to version 15.4.3 ([2ad6ddc](https://github.com/dragonrealms-phoenix/phoenix/commit/2ad6ddc70461ebd4e42b7153bba759340796e698))
+
 ## [1.23.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.23.0...v1.23.1) (2025-01-26)
 
 ### :hammer: Fixes
