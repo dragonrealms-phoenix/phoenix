@@ -2,20 +2,15 @@ import * as rxjs from 'rxjs';
 import type { GameLogLine } from '../../types/game.types.jsx';
 
 /**
- * To help filter out duplicate empty log lines.
- */
-const emptyLogLine: GameLogLine = {
-  eventId: '',
-  streamId: '',
-  text: '',
-};
-
-/**
  * Matches a log line that is either a newline or a prompt.
  * Effectively, an "empty" log line to the player.
  * https://regex101.com/r/TbkDIb/1
  */
 const emptyLogLineRegex = /^(>?)(\n+)$/;
+
+const isEmptyLogLine = (logLine: GameLogLine): boolean => {
+  return emptyLogLineRegex.test(logLine.text);
+};
 
 /**
  * After an empty log line is emitted, it will discard any subsequent
@@ -47,25 +42,20 @@ export const excludeDuplicateEmptyLines: rxjs.MonoTypeOperatorFunction<
   GameLogLine
 > = (observable: rxjs.Observable<GameLogLine>) => {
   return observable.pipe(
-    // To do this, we need to compare the previous and current log lines.
-    // We start with a blank log line so that the first real one is emitted.
-    rxjs.startWith(emptyLogLine),
-    rxjs.pairwise(),
-    rxjs.filter(([prev, curr]) => {
-      const previousText = prev.text;
-      const currentText = curr.text;
-
-      const previousWasNewline = emptyLogLineRegex.test(previousText);
-      const currentIsNewline = emptyLogLineRegex.test(currentText);
-
-      if (!currentIsNewline || (currentIsNewline && !previousWasNewline)) {
-        return true;
+    // Compare the current and next log lines to decide whether to emit or not.
+    // https://www.learnrxjs.io/learn-rxjs/operators/transformation/buffercount
+    rxjs.bufferCount(2, 1),
+    // Inspect buffer to identify if there are duplicate empty lines.
+    // If yes, emit only one and standardize on the prompt format.
+    rxjs.map(([curr, next]) => {
+      if (isEmptyLogLine(curr) && isEmptyLogLine(next)) {
+        return { ...curr, text: '>\n' };
       }
-      return false;
-    }),
-    // Unwind the pairwise to emit the current log line.
-    rxjs.map(([_prev, curr]) => {
       return curr;
+    }),
+    // Emit only unique log lines.
+    rxjs.distinctUntilChanged((prev, curr) => {
+      return isEmptyLogLine(prev) && isEmptyLogLine(curr);
     })
   );
 };
