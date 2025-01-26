@@ -4,9 +4,11 @@ import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
 import type {
+  GameCommandMessage,
   GameConnectMessage,
   GameDisconnectMessage,
   GameErrorMessage,
+  GameEventMessage,
 } from '../../common/game/types.js';
 import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
@@ -157,6 +159,32 @@ export const GameProvider: React.FC<GameProviderProps> = (
       unsubscribe();
     };
   }, [logger, pubsub]);
+
+  useEffect(() => {
+    const unsubscribe = window.api.onMessage(
+      'game:event',
+      (_event: IpcRendererEvent, message: GameEventMessage) => {
+        const { gameEvent } = message;
+        pubsub.publish('game:event', gameEvent);
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [pubsub]);
+
+  useEffect(() => {
+    const unsubscribe = window.api.onMessage(
+      'game:command',
+      (_event: IpcRendererEvent, message: GameCommandMessage) => {
+        const { command } = message;
+        pubsub.publish('game:command', command);
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [pubsub]);
 
   return (
     <GameContext.Provider value={{}}>
