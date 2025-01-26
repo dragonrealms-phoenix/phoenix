@@ -1,7 +1,7 @@
 import type { IpcRendererEvent } from 'electron';
 import { useEuiTheme } from '@elastic/eui';
 import isEmpty from 'lodash-es/isEmpty.js';
-import { useObservable, useSubscription } from 'observable-hooks';
+import { useObservable } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
@@ -11,12 +11,12 @@ import type {
   ExperienceGameEvent,
   GameCommandMessage,
   GameEvent,
-  GameEventMessage,
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType } from '../../common/game/types.js';
 import { GameContainer } from '../components/game/game-container.jsx';
 import { GameStream } from '../components/game/game-stream.jsx';
+import { useSubscribe } from '../hooks/pubsub.jsx';
 import { useTheme } from '../hooks/theme.jsx';
 import { getGameItemInfo } from '../lib/game/game-item-info.js';
 import { GameItemId, type GameLogLine } from '../types/game.types.js';
@@ -26,6 +26,10 @@ import type {
   GridItemInfo,
 } from '../types/grid.types.js';
 
+/**
+ * Game events will be emitted from the IPC `game:event` channel.
+ * This page subscribes and routes them to the correct grid item.
+ */
 const GamePage: React.FC = (): ReactNode => {
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
@@ -35,12 +39,6 @@ const GamePage: React.FC = (): ReactNode => {
   const textOutputClassRef = useRef<string>('');
   const textStylePresetRef = useRef<string>('');
   const textStyleBoldRef = useRef<boolean>(false);
-
-  // Game events will be emitted from the IPC `game:event` channel.
-  // This page subscribes and routes them to the correct grid item.
-  const gameEventsSubject$ = useObservable(() => {
-    return new rxjs.Subject<GameEvent>();
-  });
 
   // Content destined for a specific game stream window (aka grid item).
   // These include any applicable styling and formatting.
@@ -111,7 +109,7 @@ const GamePage: React.FC = (): ReactNode => {
 
   // Track high level game events such as stream ids and formatting.
   // Re-emit text events to the game stream subject to get to grid items.
-  useSubscription(gameEventsSubject$, (gameEvent: GameEvent) => {
+  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
     const textStyles: GameLogLine['styles'] = {
       colorMode,
       outputClass: textOutputClassRef.current,
@@ -233,20 +231,6 @@ const GamePage: React.FC = (): ReactNode => {
         break;
     }
   });
-
-  // Pipe game events from ipc api.
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
-      'game:event',
-      (_event: IpcRendererEvent, message: GameEventMessage) => {
-        const { gameEvent } = message;
-        gameEventsSubject$.next(gameEvent);
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [gameEventsSubject$]);
 
   // When the user sends a command, echo it to the main game stream so that
   // the user sees what they sent and can correlate to the game response.

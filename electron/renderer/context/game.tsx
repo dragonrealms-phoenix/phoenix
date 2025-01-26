@@ -7,6 +7,7 @@ import type {
   GameConnectMessage,
   GameDisconnectMessage,
   GameErrorMessage,
+  GameEventMessage,
 } from '../../common/game/types.js';
 import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
@@ -157,6 +158,19 @@ export const GameProvider: React.FC<GameProviderProps> = (
       unsubscribe();
     };
   }, [logger, pubsub]);
+
+  useEffect(() => {
+    const unsubscribe = window.api.onMessage(
+      'game:event',
+      (_event: IpcRendererEvent, message: GameEventMessage) => {
+        const { gameEvent } = message;
+        pubsub.publish('game:event', gameEvent);
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [pubsub]);
 
   return (
     <GameContext.Provider value={{}}>
