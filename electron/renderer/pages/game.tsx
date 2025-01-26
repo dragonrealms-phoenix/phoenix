@@ -1,15 +1,13 @@
-import type { IpcRendererEvent } from 'electron';
 import { useEuiTheme } from '@elastic/eui';
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable } from 'observable-hooks';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { getExperienceMindState } from '../../common/game/game.utils.js';
 import type {
   ExperienceGameEvent,
-  GameCommandMessage,
   GameEvent,
   RoomGameEvent,
 } from '../../common/game/types.js';
@@ -26,10 +24,6 @@ import type {
   GridItemInfo,
 } from '../types/grid.types.js';
 
-/**
- * Game events will be emitted from the IPC `game:event` channel.
- * This page subscribes and routes them to the correct grid item.
- */
 const GamePage: React.FC = (): ReactNode => {
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
@@ -234,31 +228,22 @@ const GamePage: React.FC = (): ReactNode => {
 
   // When the user sends a command, echo it to the main game stream so that
   // the user sees what they sent and can correlate to the game response.
-  useEffect(() => {
-    const unsubscribe = window.api.onMessage(
-      'game:command',
-      (_event: IpcRendererEvent, message: GameCommandMessage) => {
-        const { command } = message;
-        gameLogLineSubject$.next({
-          eventId: uuid(),
-          streamId: mainStreamId,
-          styles: {
-            colorMode,
-            subdued: true,
-          },
-          text: `> ${command}`,
-        });
-      }
-    );
-    return () => {
-      unsubscribe();
-    };
-  }, [gameLogLineSubject$, euiTheme, colorMode, mainStreamId]);
+  useSubscribe(['game:command'], (command: string) => {
+    gameLogLineSubject$.next({
+      eventId: uuid(),
+      streamId: mainStreamId,
+      styles: {
+        colorMode,
+        subdued: true,
+      },
+      text: `> ${command}`,
+    });
+  });
 
   const contentItems = useMemo<Array<GridItemContent>>(() => {
     // TODO define a default config set
-    // TODO allow users to customize the set and add/remove items
-    // TODO IPC handler to get/save the user's config set
+    // TODO allow users to customize the config, and add/remove items
+    // TODO api to get/save the user's config set
     const configGridItems: Array<GridItemConfig> = [];
 
     configGridItems.push({
@@ -312,8 +297,8 @@ const GamePage: React.FC = (): ReactNode => {
     });
 
     // TODO define a default layout
-    // TODO IPC handler to get/save a layout
-    // TODO allow user to assign layouts to characters
+    // TODO api to get/save a layout
+    // TODO api to allow user to assign layouts to characters
     let layoutGridItems = new Array<GridItemInfo>();
 
     layoutGridItems.push({

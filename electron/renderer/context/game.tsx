@@ -4,6 +4,7 @@ import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
 import type {
+  GameCommandMessage,
   GameConnectMessage,
   GameDisconnectMessage,
   GameErrorMessage,
@@ -165,6 +166,19 @@ export const GameProvider: React.FC<GameProviderProps> = (
       (_event: IpcRendererEvent, message: GameEventMessage) => {
         const { gameEvent } = message;
         pubsub.publish('game:event', gameEvent);
+      }
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [pubsub]);
+
+  useEffect(() => {
+    const unsubscribe = window.api.onMessage(
+      'game:command',
+      (_event: IpcRendererEvent, message: GameCommandMessage) => {
+        const { command } = message;
+        pubsub.publish('game:command', command);
       }
     );
     return () => {
