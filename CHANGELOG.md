@@ -1,3 +1,5 @@
+## [1.22.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.22.1...v1.22.2) (2025-01-26)
+
 ## [1.22.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.22.0...v1.22.1) (2025-01-26)
 
 ### :package: Dependencies
