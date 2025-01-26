@@ -1,3 +1,9 @@
+## [1.23.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.22.2...v1.23.0) (2025-01-26)
+
+### :sparkles: Features
+
+* avoid duplicate empty lines in game stream ([95b6235](https://github.com/dragonrealms-phoenix/phoenix/commit/95b62352558d6ce74ed0b686ae3bb2b8525f56b0))
+
 ## [1.22.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.22.1...v1.22.2) (2025-01-26)
 
 ## [1.22.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.22.0...v1.22.1) (2025-01-26)
