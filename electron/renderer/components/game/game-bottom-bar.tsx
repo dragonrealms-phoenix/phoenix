@@ -4,14 +4,14 @@ import { useCallback } from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
 import { useCommandHistory } from '../../hooks/command-history.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
+import { GameRoundTime } from './game-roundtime.jsx';
 
 export interface GameBottomBarProps {
-  // TODO
   todo?: true;
 }
 
 export const GameBottomBar: React.FC<GameBottomBarProps> = (
-  props: GameBottomBarProps
+  _props: GameBottomBarProps
 ): ReactNode => {
   const { input, handleKeyDown, handleOnChange } = useCommandHistory();
 
@@ -35,12 +35,10 @@ export const GameBottomBar: React.FC<GameBottomBarProps> = (
       value={input}
       compressed={true}
       fullWidth={true}
-      prepend={'RT'}
+      prepend={<GameRoundTime />}
       tabIndex={0}
       onKeyDown={onKeyDown}
       onChange={handleOnChange}
     />
   );
 };
-
-GameBottomBar.displayName = 'GameBottomBar';
