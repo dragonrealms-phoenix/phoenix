@@ -1,3 +1,10 @@
+## [1.24.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.23.2...v1.24.0) (2025-01-27)
+
+### :sparkles: Features
+
+* **game-bottom-bar:** add round time and cast time countdown animations ([b875262](https://github.com/dragonrealms-phoenix/phoenix/commit/b8752626076cf27cee1611a8a1c419b312a07a38))
+* **game-round-time:** implement round time and cast time display components ([90c9dc0](https://github.com/dragonrealms-phoenix/phoenix/commit/90c9dc0a6a2212ef323af90295dac2b7a6914b44))
+
 ## [1.23.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.23.1...v1.23.2) (2025-01-26)
 
 ### :hammer: Fixes
