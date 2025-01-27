@@ -1,5 +1,4 @@
 import { useEuiTheme } from '@elastic/eui';
-import { animated, useSpring } from '@react-spring/web';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
@@ -27,11 +26,6 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
 
   const fillWidth = (currentTime / initialTime) * 100 || 0;
 
-  const fillSpringProps = useSpring({
-    width: `${fillWidth}%`,
-    immediate: true,
-  });
-
   return (
     <div
       style={{
@@ -46,11 +40,11 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
         borderColor: fillColor,
       }}
     >
-      <animated.div
+      <div
         style={{
           position: 'absolute',
           left: 0,
-          width: fillSpringProps.width,
+          width: `${fillWidth}%`,
           height: '100%',
           backgroundColor: fillColor,
         }}
