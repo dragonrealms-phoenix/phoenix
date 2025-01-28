@@ -1,3 +1,9 @@
+## [1.24.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.24.0...v1.24.1) (2025-01-28)
+
+### :package: Dependencies
+
+* **deps:** update node ([fdd15f6](https://github.com/dragonrealms-phoenix/phoenix/commit/fdd15f692800409a4faae2158382795000442dae))
+
 ## [1.24.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.23.2...v1.24.0) (2025-01-27)
 
 ### :sparkles: Features
