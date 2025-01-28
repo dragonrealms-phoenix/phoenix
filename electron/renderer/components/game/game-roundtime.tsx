@@ -123,7 +123,6 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
     switch (gameEvent.type) {
       case GameEventType.SERVER_TIME:
         serverTimeRef.current = gameEvent.time;
-        calculateRoundTimes();
         break;
       case GameEventType.ROUND_TIME:
         roundTimeRef.current = gameEvent.time;
