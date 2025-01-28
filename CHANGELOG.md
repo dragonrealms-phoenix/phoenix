@@ -1,3 +1,18 @@
+## [1.25.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.24.1...v1.25.0) (2025-01-28)
+
+### :sparkles: Features
+
+* **bottom-bar:** add compass component, update styling ([7050a53](https://github.com/dragonrealms-phoenix/phoenix/commit/7050a53c4c6fdccdf14299ce321de8e4e97134cb))
+* **compass:** display cardinal directions available to character, click to move ([cf80ae0](https://github.com/dragonrealms-phoenix/phoenix/commit/cf80ae018ea4108288744af048bc1a638194ac7f))
+* **game:** clear streams on game connect ([eef4e12](https://github.com/dragonrealms-phoenix/phoenix/commit/eef4e121cb1aadecd7a1f2852ae2fb77d2c0dc3b))
+* **pubsub:** emit game connect, disconnect, and error messages ([87440aa](https://github.com/dragonrealms-phoenix/phoenix/commit/87440aa592676b206cc1debee2cf4a5542aeeb1a))
+* **roundtime:** avoid variable countdown by not refreshing for server prompt events ([9596210](https://github.com/dragonrealms-phoenix/phoenix/commit/95962102d4ab2d853fd13d867f9785e51aa64083))
+* **roundtime:** format RT and CT squares top/bottom instead of left/right ([61d33c5](https://github.com/dragonrealms-phoenix/phoenix/commit/61d33c56aa0fabd292ae57eb573b18e9f1be2a71))
+
+### :hammer: Fixes
+
+* **parser:** output speech, whisper, and thought text from game ([c1aeac8](https://github.com/dragonrealms-phoenix/phoenix/commit/c1aeac8e3a995d5e540d4c4d7394b7ecb3b8a171))
+
 ## [1.24.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.24.0...v1.24.1) (2025-01-28)
 
 ### :package: Dependencies
