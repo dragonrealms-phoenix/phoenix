@@ -337,6 +337,11 @@ export class GameParserImpl implements GameParser {
         // In this example, the text would be 'The hustle...'.
         if (tagId === 'roomDesc') {
           this.gameText += text;
+        }
+        // This is a style information tag about talking or thinking.
+        // Example: `<preset id='speech'>You say</preset>, "Hello."`
+        else if (['speech', 'whisper', 'thought'].includes(tagId)) {
+          this.gameText += text;
         } else {
           const componentTag = this.getAncestorTag('component');
           // This is updated information about the character's experience.

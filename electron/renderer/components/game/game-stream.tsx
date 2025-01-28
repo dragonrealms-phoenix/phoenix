@@ -3,6 +3,7 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
+import { useSubscribe } from '../../hooks/pubsub.jsx';
 import type { GameLogLine } from '../../types/game.types.jsx';
 import { GameStreamText } from './game-stream-text.jsx';
 import {
@@ -45,15 +46,20 @@ export const GameStream: React.FC<GameStreamProps> = (
 ): ReactNode => {
   const { stream$, primaryStreamId, gameStreamIds, maxLines = 500 } = props;
 
+  const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
+  const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Clear streams on new connections.
+  useSubscribe(['game:connect'], () => {
+    setGameLogLines([]);
+  });
+
   const filteredStream$ = useObservable(() => {
     return stream$.pipe(
       filterLinesForGameStreams({ gameStreamIds }),
       excludeDuplicateEmptyLines
     );
   });
-
-  const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
-  const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
   const appendGameLogLines = useCallback(
     (newLogLines: Array<GameLogLine>) => {

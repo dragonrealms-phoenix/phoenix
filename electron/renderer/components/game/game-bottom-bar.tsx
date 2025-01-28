@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
 import { useCommandHistory } from '../../hooks/command-history.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
+import { GameCompass } from './game-compass.jsx';
 import { GameRoundTime } from './game-roundtime.jsx';
 
 export interface GameBottomBarProps {
@@ -31,14 +32,30 @@ export const GameBottomBar: React.FC<GameBottomBarProps> = (
   );
 
   return (
-    <EuiFieldText
-      value={input}
-      compressed={true}
-      fullWidth={true}
-      prepend={<GameRoundTime />}
-      tabIndex={0}
-      onKeyDown={onKeyDown}
-      onChange={handleOnChange}
-    />
+    <div
+      css={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+        paddingTop: '5px',
+        paddingBottom: '5px',
+        paddingLeft: '5px',
+        paddingRight: '10px',
+      }}
+    >
+      <GameRoundTime />
+      {/* TODO move to GameCommandInput */}
+      <div css={{ paddingRight: '5px', width: '100%' }}>
+        <EuiFieldText
+          value={input}
+          compressed={true}
+          fullWidth={true}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+          onChange={handleOnChange}
+        />
+      </div>
+      <GameCompass />
+    </div>
   );
 };

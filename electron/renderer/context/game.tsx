@@ -112,12 +112,17 @@ export const GameProvider: React.FC<GameProviderProps> = (
           characterName,
           gameCode,
         });
+        pubsub.publish('game:connect', {
+          accountName,
+          characterName,
+          gameCode,
+        });
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [logger]);
+  }, [logger, pubsub]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -125,6 +130,11 @@ export const GameProvider: React.FC<GameProviderProps> = (
       (_event: IpcRendererEvent, message: GameDisconnectMessage) => {
         const { accountName, characterName, gameCode } = message;
         logger.debug('game:disconnect', {
+          accountName,
+          characterName,
+          gameCode,
+        });
+        pubsub.publish('game:disconnect', {
           accountName,
           characterName,
           gameCode,
@@ -140,7 +150,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
     return () => {
       unsubscribe();
     };
-  }, [logger, quitCharacter]);
+  }, [logger, pubsub, quitCharacter]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -148,6 +158,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
         logger.error('game:error', { error });
+        pubsub.publish('game:error', error);
         pubsub.publish('toast:add', {
           title: 'Game Error',
           type: 'danger',

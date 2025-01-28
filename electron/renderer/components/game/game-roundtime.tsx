@@ -29,15 +29,14 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
   return (
     <div
       style={{
-        display: 'inline-block',
+        position: 'relative',
         width: '30px',
         height: '25px',
-        position: 'relative',
         margin: 0,
         padding: 0,
         border: '1px solid',
         borderRadius: '5px',
-        borderColor: fillColor,
+        borderColor: euiTheme.border.color,
       }}
     >
       <div
@@ -86,10 +85,14 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
   // Example: '1737941270'.
   const serverTimeRef = useRef<number>(0); // current time on game server
   const roundTimeRef = useRef<number>(0); // future time when can take action
-  const castTimeRef = useRef<number>(0); // future time when spell prepared
+  const castTimeRef = useRef<number>(0); // future time when spell is prepared
 
   // User-friendly remaining durations (in seconds).
   // Example: '6' (for 6 seconds remaining).
+  // The 'current' values are decremented every second.
+  // It's how many seconds are left until the action can be taken.
+  // The 'initial' values are how many seconds to wait in total.
+  // Together, they allow us to proportionally style the progress bars.
   const [currentRT, setCurrentRT] = useState<number>(0);
   const [initialRT, setInitialRT] = useState<number>(0);
   const [currentCT, setCurrentCT] = useState<number>(0);
@@ -123,7 +126,6 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
     switch (gameEvent.type) {
       case GameEventType.SERVER_TIME:
         serverTimeRef.current = gameEvent.time;
-        calculateRoundTimes();
         break;
       case GameEventType.ROUND_TIME:
         roundTimeRef.current = gameEvent.time;
@@ -139,7 +141,13 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
   });
 
   return (
-    <>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+      }}
+    >
       <GameTimeDisplay
         type="RoundTime"
         currentTime={currentRT}
@@ -154,7 +162,7 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
         textColor={euiTheme.colors.fullShade}
         fillColor={euiTheme.colors.primary}
       />
-    </>
+    </div>
   );
 };
 
