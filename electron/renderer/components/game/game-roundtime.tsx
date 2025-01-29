@@ -31,7 +31,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
     <div
       style={{
         position: 'relative',
-        width: '30px',
+        width: '100%',
         height: '25px',
         margin: 0,
         padding: 0,
@@ -69,13 +69,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
 
 GameTimeDisplay.displayName = 'GameTimeDisplay';
 
-export interface GameRoundTimeProps {
-  todo?: true;
-}
-
-export const GameRoundTime: React.FC<GameRoundTimeProps> = (
-  _props: GameRoundTimeProps
-) => {
+export const GameRoundTime: React.FC = () => {
   const { euiTheme } = useEuiTheme();
 
   const nowInSeconds = useCallback(() => {
@@ -147,6 +141,7 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
         display: 'flex',
         flexDirection: 'column',
         gap: '5px',
+        width: '50px',
       }}
     >
       <GameTimeDisplay
