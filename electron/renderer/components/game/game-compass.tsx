@@ -26,8 +26,8 @@ const centerStyle = css({
   height: '12px',
 });
 
-const directionStyle = (direction: CompassDirection) => {
-  const { rotation } = direction;
+const compassPointStyle = (compassPoint: CompassPoint) => {
+  const { rotation } = compassPoint;
   return css({
     position: 'absolute',
     transform: `rotate(${rotation}deg) translate(20px) scale(1.2)`,
@@ -40,12 +40,14 @@ const directionStyle = (direction: CompassDirection) => {
   });
 };
 
-// The arrow icon points east (-->), so rotations are relative to that.
-interface CompassDirection {
+interface CompassPoint {
   name: 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'nw';
   rotation: number;
 }
-const compassDirections: Array<CompassDirection> = [
+
+// All possible compass points a room might have.
+// The compass point icon points east (-->), so rotations are relative to that.
+const compassPoints: Array<CompassPoint> = [
   { name: 'n', rotation: -90 },
   { name: 'ne', rotation: -45 },
   { name: 'e', rotation: 0 },
@@ -57,16 +59,18 @@ const compassDirections: Array<CompassDirection> = [
 ];
 
 export const GameCompass: React.FC = () => {
-  const [directions, setDirections] = useState<Array<string>>([]);
+  const [obviousPaths, setObviousPaths] = useState<Array<string>>([]);
 
+  // Every time the character changes rooms, the game sends a compass event
+  // with the new set of obvious paths the character may move.
   useSubscribe(['game:event'], (gameEvent: GameEvent) => {
     if (gameEvent.type === GameEventType.COMPASS) {
-      setDirections(gameEvent.directions);
+      setObviousPaths(gameEvent.directions);
     }
   });
 
   const centerIcon = useMemo(() => {
-    if (directions.includes('out')) {
+    if (obviousPaths.includes('out')) {
       return (
         <EuiIcon
           type="dot"
@@ -80,21 +84,21 @@ export const GameCompass: React.FC = () => {
         />
       );
     }
-    return <EuiIcon title="out" type="dot" color="subdued" />;
-  }, [directions]);
+    return <EuiIcon type="dot" color="subdued" />;
+  }, [obviousPaths]);
 
   const compassIcons = useMemo(() => {
-    return compassDirections.map((direction) => {
-      if (directions.includes(direction.name)) {
+    return compassPoints.map((compassPoint) => {
+      if (obviousPaths.includes(compassPoint.name)) {
         return (
-          <div key={direction.name} css={directionStyle(direction)}>
+          <div key={compassPoint.name} css={compassPointStyle(compassPoint)}>
             <EuiIcon
               type="sortRight"
               color="danger"
               cursor="pointer"
               onClick={() => {
                 runInBackground(async () => {
-                  await window.api.sendCommand(direction.name);
+                  await window.api.sendCommand(compassPoint.name);
                 });
               }}
             />
@@ -102,12 +106,12 @@ export const GameCompass: React.FC = () => {
         );
       }
       return (
-        <div key={direction.name} css={directionStyle(direction)}>
+        <div key={compassPoint.name} css={compassPointStyle(compassPoint)}>
           <EuiIcon type="sortRight" color="subdued" />
         </div>
       );
     });
-  }, [directions]);
+  }, [obviousPaths]);
 
   return (
     <div css={compassStyle}>
