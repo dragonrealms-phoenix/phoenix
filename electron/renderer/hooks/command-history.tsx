@@ -50,7 +50,16 @@ export interface CommandHistory {
   handleOnChange: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const useCommandHistory = (): CommandHistory => {
+export const useCommandHistory = (options?: {
+  /**
+   * The minimum number of characters in a command to add it to the history.
+   * Anything less is not added.
+   * Default is 3.
+   */
+  minChars?: number;
+}): CommandHistory => {
+  const minChars = options?.minChars ?? 3;
+
   const store = useCommandHistoryStore(
     // Technically, our state reducer is returning a new object
     // each time although the properties are the same.
@@ -89,7 +98,9 @@ export const useCommandHistory = (): CommandHistory => {
           store.navigateHistory('down');
         } else if (event.code === 'Enter') {
           if (!isBlank(command)) {
-            store.addCommand(command);
+            if (command.length >= minChars) {
+              store.addCommand(command);
+            }
             store.setInput('');
             store.setIndex(-1);
           }
@@ -99,7 +110,7 @@ export const useCommandHistory = (): CommandHistory => {
         store.setInput(event.currentTarget.value);
       },
     };
-  }, [store]);
+  }, [store, minChars]);
 
   return api;
 };
