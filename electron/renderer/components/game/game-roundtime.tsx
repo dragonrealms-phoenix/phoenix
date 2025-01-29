@@ -20,6 +20,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
   const { euiTheme } = useEuiTheme();
 
   const typeAbbrev = type === 'RoundTime' ? 'RT' : 'CT';
+  const typeLabel = type === 'RoundTime' ? 'Round Time' : 'Cast Time';
 
   const fillColor = currentTime > 0 ? options.fillColor : 'inherit';
   const textColor = currentTime > 0 ? options.textColor : 'inherit';
@@ -60,7 +61,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
         }}
       >
         {currentTime > 0 && currentTime}
-        {currentTime <= 0 && <span title={type}>{typeAbbrev}</span>}
+        {currentTime <= 0 && <span title={typeLabel}>{typeAbbrev}</span>}
       </div>
     </div>
   );
