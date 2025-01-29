@@ -7,13 +7,7 @@ import { runInBackground } from '../../lib/async/run-in-background.js';
 import { GameCompass } from './game-compass.jsx';
 import { GameRoundTime } from './game-roundtime.jsx';
 
-export interface GameBottomBarProps {
-  todo?: true;
-}
-
-export const GameBottomBar: React.FC<GameBottomBarProps> = (
-  _props: GameBottomBarProps
-): ReactNode => {
+export const GameBottomBar: React.FC = (): ReactNode => {
   const { input, handleKeyDown, handleOnChange } = useCommandHistory();
 
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLInputElement>>(
@@ -59,3 +53,5 @@ export const GameBottomBar: React.FC<GameBottomBarProps> = (
     </div>
   );
 };
+
+GameBottomBar.displayName = 'GameBottomBar';
