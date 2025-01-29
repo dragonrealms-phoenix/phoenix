@@ -106,6 +106,7 @@ export const GameRoundTime: React.FC = () => {
 
   // Periodically recalculate the round time UI for the user.
   useEffect(() => {
+    calculateRoundTimes();
     intervalRef.current = setInterval(() => {
       calculateRoundTimes();
     }, 1000);
