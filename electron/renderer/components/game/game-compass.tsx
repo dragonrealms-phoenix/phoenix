@@ -8,11 +8,10 @@ import { useSubscribe } from '../../hooks/pubsub.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
 
 const compassStyle = css({
+  position: 'relative',
   display: 'flex',
-  flexWrap: 'wrap',
   justifyContent: 'center',
   alignItems: 'center',
-  position: 'relative',
   width: '50px',
   height: '50px',
 });
@@ -30,13 +29,13 @@ const compassPointStyle = (compassPoint: CompassPoint) => {
   const { rotation } = compassPoint;
   return css({
     position: 'absolute',
-    transform: `rotate(${rotation}deg) translate(20px) scale(1.2)`,
-    transformOrigin: 'center',
-    width: '12px',
-    height: '12px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '10px',
+    height: '10px',
+    transform: `rotate(${rotation}deg) translate(15px) scale(.8)`,
+    transformOrigin: 'center',
   });
 };
 
@@ -93,7 +92,7 @@ export const GameCompass: React.FC = () => {
         return (
           <div key={compassPoint.name} css={compassPointStyle(compassPoint)}>
             <EuiIcon
-              type="sortRight"
+              type="frameNext"
               color="danger"
               cursor="pointer"
               onClick={() => {
@@ -107,7 +106,7 @@ export const GameCompass: React.FC = () => {
       }
       return (
         <div key={compassPoint.name} css={compassPointStyle(compassPoint)}>
-          <EuiIcon type="sortRight" color="subdued" />
+          <EuiIcon type="frameNext" color="subdued" />
         </div>
       );
     });

@@ -1,4 +1,4 @@
-import { EuiFieldText } from '@elastic/eui';
+import { EuiFieldText, EuiIcon } from '@elastic/eui';
 import type {
   ChangeEvent,
   KeyboardEvent,
@@ -42,6 +42,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         value={input}
         compressed={true}
         fullWidth={true}
+        prepend={<EuiIcon type="arrowRight" size="s" color="primary" />}
         tabIndex={0}
         onKeyDown={onKeyDown}
         onChange={onChange}
