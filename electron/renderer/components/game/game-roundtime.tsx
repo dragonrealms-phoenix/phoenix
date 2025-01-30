@@ -20,6 +20,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
   const { euiTheme } = useEuiTheme();
 
   const typeAbbrev = type === 'RoundTime' ? 'RT' : 'CT';
+  const typeLabel = type === 'RoundTime' ? 'Round Time' : 'Cast Time';
 
   const fillColor = currentTime > 0 ? options.fillColor : 'inherit';
   const textColor = currentTime > 0 ? options.textColor : 'inherit';
@@ -30,7 +31,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
     <div
       style={{
         position: 'relative',
-        width: '30px',
+        width: '100%',
         height: '25px',
         margin: 0,
         padding: 0,
@@ -60,7 +61,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
         }}
       >
         {currentTime > 0 && currentTime}
-        {currentTime <= 0 && <span title={type}>{typeAbbrev}</span>}
+        {currentTime <= 0 && <span title={typeLabel}>{typeAbbrev}</span>}
       </div>
     </div>
   );
@@ -68,13 +69,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
 
 GameTimeDisplay.displayName = 'GameTimeDisplay';
 
-export interface GameRoundTimeProps {
-  todo?: true;
-}
-
-export const GameRoundTime: React.FC<GameRoundTimeProps> = (
-  _props: GameRoundTimeProps
-) => {
+export const GameRoundTime: React.FC = () => {
   const { euiTheme } = useEuiTheme();
 
   const nowInSeconds = useCallback(() => {
@@ -111,6 +106,7 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
 
   // Periodically recalculate the round time UI for the user.
   useEffect(() => {
+    calculateRoundTimes();
     intervalRef.current = setInterval(() => {
       calculateRoundTimes();
     }, 1000);
@@ -146,6 +142,7 @@ export const GameRoundTime: React.FC<GameRoundTimeProps> = (
         display: 'flex',
         flexDirection: 'column',
         gap: '5px',
+        width: '50px',
       }}
     >
       <GameTimeDisplay
