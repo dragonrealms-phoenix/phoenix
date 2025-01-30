@@ -1,3 +1,17 @@
+## [1.26.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.25.0...v1.26.0) (2025-01-30)
+
+### :sparkles: Features
+
+* **bottom-bar:** styling bottom bar components ([585ed39](https://github.com/dragonrealms-phoenix/phoenix/commit/585ed39c779ec172418617386287db567dd90791))
+* **command-history:** add option for min chars to save to history else ignore ([cf4b018](https://github.com/dragonrealms-phoenix/phoenix/commit/cf4b018991d30b3366604eaa329a3026018c6f5a))
+* **roundtime:** calculate time on first render to reduce delay ([76b6463](https://github.com/dragonrealms-phoenix/phoenix/commit/76b64636df665c242fc7e72a9f99e3686105f2e4))
+* **roundtime:** format hover titles ([4df54d5](https://github.com/dragonrealms-phoenix/phoenix/commit/4df54d5d8a75cf10ea690f93e744c9d9ba4c2472))
+* **roundtime:** increase width ([a0a0301](https://github.com/dragonrealms-phoenix/phoenix/commit/a0a03015eea55e8573bb9d90a2dc7a76125bf30b))
+
+### :broom: Miscellaneous
+
+* **bottom-bar:** remove unused props ([7fea534](https://github.com/dragonrealms-phoenix/phoenix/commit/7fea534ce55e458f1869e617498201b143e2c140))
+
 ## [1.25.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.24.1...v1.25.0) (2025-01-28)
 
 ### :sparkles: Features
