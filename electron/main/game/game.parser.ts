@@ -196,7 +196,15 @@ export class GameParserImpl implements GameParser {
 
   protected convertSocketDataToLines(socketData: string): Array<string> {
     // Standardize on one way of representing newlines.
-    socketData = socketData.replace(/\r\n/g, '\n');
+    socketData = socketData.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Standardize on one way of representing whitespace.
+    socketData = socketData.replace(/\t/g, ' ');
+
+    // Remove non-printable characters.
+    // https://en.wikipedia.org/wiki/ASCII#Control_code_table
+    // eslint-disable-next-line no-control-regex
+    socketData = socketData.replace(/[\x00-\x09]|[\x0B-\x1F]|[\x7F]/g, '');
 
     // Before we split the data into lines, remove the trailing newline
     // otherwise we'll end up with an extra empty line at the end of the array,
