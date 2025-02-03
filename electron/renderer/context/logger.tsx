@@ -39,7 +39,7 @@ export interface LoggerProviderProps {
 
 export const LoggerProvider: React.FC<LoggerProviderProps> = (
   props: LoggerProviderProps
-) => {
+): ReactNode => {
   const { children, logger = defaultLogger } = props;
 
   useEffect(() => {

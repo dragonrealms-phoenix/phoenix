@@ -41,7 +41,7 @@ export interface GameProviderProps {
 
 export const GameProvider: React.FC<GameProviderProps> = (
   props: GameProviderProps
-) => {
+): ReactNode => {
   const { children } = props;
 
   const logger = useLogger('renderer:context:game');

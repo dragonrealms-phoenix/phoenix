@@ -1,6 +1,7 @@
 import { EuiIcon } from '@elastic/eui';
 import { css } from '@emotion/react';
 import type React from 'react';
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
@@ -57,7 +58,7 @@ const compassPoints: Array<CompassPoint> = [
   { name: 'nw', rotation: 225 },
 ];
 
-export const GameCompass: React.FC = () => {
+export const GameCompass: React.FC = (): ReactNode => {
   const [obviousPaths, setObviousPaths] = useState<Array<string>>([]);
 
   // Every time the character changes rooms, the game sends a compass event

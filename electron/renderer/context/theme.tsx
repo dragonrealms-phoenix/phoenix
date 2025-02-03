@@ -36,7 +36,7 @@ export interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = (
   props: ThemeProviderProps
-) => {
+): ReactNode => {
   const { children } = props;
 
   const [colorMode, setColorMode] = useState<EuiThemeColorMode>(getThemeName());

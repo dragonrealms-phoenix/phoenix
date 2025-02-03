@@ -3,6 +3,7 @@
 
 import { Head, Html, Main, NextScript } from 'next/document';
 import type React from 'react';
+import type { ReactNode } from 'react';
 
 /**
  * A custom `Document` is commonly used to augment your application's
@@ -11,7 +12,7 @@ import type React from 'react';
  *
  * @see https://nextjs.org/docs/advanced-features/custom-document
  */
-const Document: React.FC = () => {
+const Document: React.FC = (): ReactNode => {
   return (
     <Html lang="en">
       <Head>

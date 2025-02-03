@@ -1,4 +1,3 @@
-import { useEuiTheme } from '@elastic/eui';
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable } from 'observable-hooks';
 import type { ReactNode } from 'react';
@@ -44,7 +43,6 @@ const GamePage: React.FC = (): ReactNode => {
   // TODO load the grid config items
   // TODO load the grid layout items
 
-  const { euiTheme } = useEuiTheme();
   const { colorMode } = useTheme();
 
   const mainStreamId = getGameItemInfo(GameItemId.MAIN).streamId;
@@ -237,6 +235,18 @@ const GamePage: React.FC = (): ReactNode => {
         subdued: true,
       },
       text: `> ${command}`,
+    });
+  });
+
+  useSubscribe(['game:disconnect'], () => {
+    gameLogLineSubject$.next({
+      eventId: uuid(),
+      streamId: mainStreamId,
+      styles: {
+        colorMode,
+        subdued: true,
+      },
+      text: `> GAME DISCONNECTED`,
     });
   });
 
