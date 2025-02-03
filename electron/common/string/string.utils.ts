@@ -1,4 +1,5 @@
 import snakeCase from 'lodash-es/snakeCase.js';
+import startCase from 'lodash-es/startCase.js';
 import type { Maybe } from '../types.js';
 
 /**
@@ -101,6 +102,13 @@ export const isEmpty = (
  */
 export const toUpperSnakeCase = (value: string): string => {
   return snakeCase(value).toUpperCase();
+};
+
+/**
+ * Returns the text, uppercasing the first letter of each word.
+ */
+export const toTitleCase = (value: string): string => {
+  return startCase(value.toLowerCase());
 };
 
 /**
