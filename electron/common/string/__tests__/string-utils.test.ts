@@ -5,6 +5,7 @@ import {
   isBlank,
   isEmpty,
   sliceStart,
+  toTitleCase,
   toUpperSnakeCase,
   unescapeEntities,
 } from '../string.utils.js';
@@ -180,6 +181,16 @@ describe('string-utils', () => {
       const result = toUpperSnakeCase(value);
 
       expect(result).toEqual('FOO_BAR_BAZ');
+    });
+  });
+
+  describe('#toTitleCase', () => {
+    it('returns the value in title case', () => {
+      const value = 'foo bar baz';
+
+      const result = toTitleCase(value);
+
+      expect(result).toEqual('Foo Bar Baz');
     });
   });
 
