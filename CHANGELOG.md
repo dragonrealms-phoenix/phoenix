@@ -1,3 +1,23 @@
+## [1.27.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.26.1...v1.27.0) (2025-02-03)
+
+### :sparkles: Features
+
+* **bottom-bar:** organize status icons layout ([243f81b](https://github.com/dragonrealms-phoenix/phoenix/commit/243f81b3046f22a491c5be09d677f7f1dc8520b1))
+* **bottom-bar:** posture icons ([2df4edd](https://github.com/dragonrealms-phoenix/phoenix/commit/2df4edd5781340df3600e5c082fd3cba6e8b85fc))
+* **bottom-bar:** posture icons ([10ffd0c](https://github.com/dragonrealms-phoenix/phoenix/commit/10ffd0c30571c6a3b7d76c24168547faa284a1f8))
+* **bottom-bar:** show what is in your hands and preparing spell ([5d690b3](https://github.com/dragonrealms-phoenix/phoenix/commit/5d690b300a61dd858b8c595e9bb5f763b54a807f))
+* **bottom-bar:** status icons ([b55e167](https://github.com/dragonrealms-phoenix/phoenix/commit/b55e1675333c920bc11da85f8d5f4ab30015b3b5))
+* **bottom-bar:** styling for round time and cast time counters ([58a0488](https://github.com/dragonrealms-phoenix/phoenix/commit/58a0488f4e1af42a14e857c872ec90841c8c14cf))
+* **command:** cmd+enter runs previous command again ([b00ddfb](https://github.com/dragonrealms-phoenix/phoenix/commit/b00ddfba24a78ed3deae7639cedbb40cd83f4b09))
+* **game-stream:** tell user when game is disconnected ([0168fc2](https://github.com/dragonrealms-phoenix/phoenix/commit/0168fc252a6d7c9bfc5904bc7bfd2b86b793c2af))
+* **game-stream:** use Verdana font by default ([50cf199](https://github.com/dragonrealms-phoenix/phoenix/commit/50cf199dc09d4d12f0f31d8e01ff566ba47844ab))
+* **parser:** remove non-printable control characters ([fd7335a](https://github.com/dragonrealms-phoenix/phoenix/commit/fd7335a64f12de7039022f5cc9f3c975578ec00b))
+* **utils:** add toTitleCase string util ([a3a7d76](https://github.com/dragonrealms-phoenix/phoenix/commit/a3a7d763a8f896726c1eae216db235557022e55f))
+
+### :broom: Miscellaneous
+
+* types ([dce7ead](https://github.com/dragonrealms-phoenix/phoenix/commit/dce7ead9fbc71db958511302325bc0283d854e0c))
+
 ## [1.26.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.26.0...v1.26.1) (2025-01-30)
 
 ### :package: Dependencies
