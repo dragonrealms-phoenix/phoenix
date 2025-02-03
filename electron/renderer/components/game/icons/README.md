@@ -1,7 +1,5 @@
-Posture icons by <a href="https://www.flaticon.com/uicons">Flaticon</a>
+Icons by <a href="https://www.flaticon.com">Flaticon</a> and <a href="https://www.freepik.com">Freepik</a>.
 
-Obtained on February 2, 2025.
-
-https://www.flaticon.com/free-icon-font/square-person-confined_18557044
-https://www.flaticon.com/free-icon-font/person-praying_18650607
-https://www.flaticon.com/free-icon-font/walking_12617139
+https://www.flaticon.com/free-icon/loyalty_9925143
+https://www.freepik.com/icon/skull_7860402
+https://www.freepik.com/icon/man_10056842
