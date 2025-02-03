@@ -1,5 +1,6 @@
 import { EuiText, useEuiTheme } from '@elastic/eui';
 import { type SerializedStyles, css } from '@emotion/react';
+import type { ReactNode } from 'react';
 import { memo, useMemo } from 'react';
 import type { GameLogLine } from '../../types/game.types.jsx';
 
@@ -15,7 +16,7 @@ export interface GameStreamTextProps {
  * we do rerender all the log lines to apply the new styling effects.
  */
 export const GameStreamText: React.FC<GameStreamTextProps> = memo(
-  (props: GameStreamTextProps) => {
+  (props: GameStreamTextProps): ReactNode => {
     const { logLine } = props;
 
     const { euiTheme } = useEuiTheme();

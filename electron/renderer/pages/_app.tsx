@@ -4,6 +4,7 @@
 import { EuiErrorBoundary } from '@elastic/eui';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import type { ReactNode } from 'react';
 import { Layout } from '../components/layout.jsx';
 import { NoSSRBoundary } from '../components/no-ssr/no-ssr.jsx';
 import { GameProvider } from '../context/game.jsx';
@@ -16,7 +17,10 @@ import { ThemeProvider } from '../context/theme.jsx';
  *
  * @see https://nextjs.org/docs/advanced-features/custom-app
  */
-const App: React.FC<AppProps> = ({ Component, pageProps }: AppProps) => (
+const App: React.FC<AppProps> = ({
+  Component,
+  pageProps,
+}: AppProps): ReactNode => (
   <>
     <Head>
       <title>DragonRealms Phoenix</title>
