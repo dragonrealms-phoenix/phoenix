@@ -1,75 +1,11 @@
-import { useEuiTheme } from '@elastic/eui';
+import { EuiToolTip, useEuiTheme } from '@elastic/eui';
+import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
 
-interface GameTimeDisplayProps {
-  currentTime: number;
-  initialTime: number;
-  fillColor: string;
-  textColor: string;
-  type: 'RoundTime' | 'CastTime';
-}
-
-const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
-  options: GameTimeDisplayProps
-) => {
-  const { currentTime, initialTime, type } = options;
-
-  const { euiTheme } = useEuiTheme();
-
-  const typeAbbrev = type === 'RoundTime' ? 'RT' : 'CT';
-  const typeLabel = type === 'RoundTime' ? 'Round Time' : 'Cast Time';
-
-  const fillColor = currentTime > 0 ? options.fillColor : 'inherit';
-  const textColor = currentTime > 0 ? options.textColor : 'inherit';
-
-  const fillWidth = (currentTime / initialTime) * 100 || 0;
-
-  return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '25px',
-        margin: 0,
-        padding: 0,
-        border: '1px solid',
-        borderRadius: '5px',
-        borderColor: euiTheme.border.color,
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          width: `${fillWidth}%`,
-          height: '100%',
-          backgroundColor: fillColor,
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          textAlign: 'center',
-          lineHeight: euiTheme.size.l,
-          fontSize: euiTheme.size.m,
-          color: textColor,
-        }}
-      >
-        {currentTime > 0 && currentTime}
-        {currentTime <= 0 && <span title={typeLabel}>{typeAbbrev}</span>}
-      </div>
-    </div>
-  );
-};
-
-GameTimeDisplay.displayName = 'GameTimeDisplay';
-
-export const GameRoundTime: React.FC = () => {
+export const GameRoundTime: React.FC = (): ReactNode => {
   const { euiTheme } = useEuiTheme();
 
   const nowInSeconds = useCallback(() => {
@@ -141,8 +77,11 @@ export const GameRoundTime: React.FC = () => {
       style={{
         display: 'flex',
         flexDirection: 'column',
+        alignContent: 'center',
+        justifyContent: 'center',
         gap: '5px',
         width: '50px',
+        margin: '5px',
       }}
     >
       <GameTimeDisplay
@@ -164,3 +103,69 @@ export const GameRoundTime: React.FC = () => {
 };
 
 GameRoundTime.displayName = 'GameRoundTime';
+
+interface GameTimeDisplayProps {
+  currentTime: number;
+  initialTime: number;
+  fillColor: string;
+  textColor: string;
+  type: 'RoundTime' | 'CastTime';
+}
+
+const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
+  options: GameTimeDisplayProps
+): ReactNode => {
+  const { currentTime, initialTime, type } = options;
+
+  const { euiTheme } = useEuiTheme();
+
+  const typeAbbrev = type === 'RoundTime' ? 'RT' : 'CT';
+  const typeTooltip = type === 'RoundTime' ? 'Round Time' : 'Cast Time';
+
+  const fillColor = currentTime > 0 ? options.fillColor : 'inherit';
+  const textColor = currentTime > 0 ? options.textColor : 'inherit';
+
+  const fillWidth = (currentTime / initialTime) * 100 || 0;
+
+  return (
+    <EuiToolTip content={typeTooltip} position="top">
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '25px',
+          border: '1px solid',
+          borderColor: euiTheme.border.color,
+          borderRadius: '5px',
+          userSelect: 'none',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            width: `${fillWidth}%`,
+            height: '100%',
+            backgroundColor: fillColor,
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            textAlign: 'center',
+            lineHeight: euiTheme.size.l,
+            fontSize: euiTheme.size.m,
+            color: textColor,
+          }}
+        >
+          {currentTime > 0 && currentTime}
+          {currentTime <= 0 && typeAbbrev}
+        </div>
+      </div>
+    </EuiToolTip>
+  );
+};
+
+GameTimeDisplay.displayName = 'GameTimeDisplay';
