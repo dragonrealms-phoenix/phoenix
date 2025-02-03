@@ -12,6 +12,12 @@ export interface TextTruncateProps {
   maxWidth?: number;
 }
 
+/**
+ * I wanted to use `<EuiTextTruncate>` from Elastic UI, but despite the
+ * `width` property being optional, the text value would not show unless
+ * a numerical width was provided. What I wanted was a component that would
+ * truncate text based on the width of the parent container. So I wrote one.
+ */
 export const TextTruncate: React.FC<TextTruncateProps> = (
   props: TextTruncateProps
 ): ReactNode => {

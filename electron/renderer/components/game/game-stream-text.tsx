@@ -22,8 +22,8 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
     const { euiTheme } = useEuiTheme();
 
     const textStyles = useMemo((): SerializedStyles => {
-      let fontSize = '14px';
-      let fontFamily = euiTheme.font.familySerif;
+      let fontSize = euiTheme.size.m;
+      let fontFamily: string | undefined = 'Verdana'; //euiTheme.font.familySerif;
       let fontWeight = euiTheme.font.weight.regular;
       let fontColor = euiTheme.colors.text;
 
