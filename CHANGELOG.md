@@ -1,3 +1,9 @@
+## [1.27.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.27.0...v1.27.1) (2025-02-04)
+
+### :package: Dependencies
+
+* **deps:** update dependencies ([cdad313](https://github.com/dragonrealms-phoenix/phoenix/commit/cdad313d928049a3543c1d649d64eb12c7f54011))
+
 ## [1.27.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.26.1...v1.27.0) (2025-02-03)
 
 ### :sparkles: Features
