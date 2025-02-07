@@ -1,6 +1,7 @@
 import type { Event } from 'electron';
 import { BrowserWindow, app, dialog, shell } from 'electron';
 import path from 'node:path';
+import fs from 'fs-extra';
 import trimEnd from 'lodash-es/trimEnd.js';
 import { VERSION } from '../common/version.js';
 import { runInBackground } from './async/run-in-background.js';
@@ -43,6 +44,13 @@ export const initializeApp = async (): Promise<void> => {
   const appBuildPath = path.join(appElectronPath, 'build');
   const appPreloadPath = path.join(appBuildPath, 'preload');
 
+  // Web pages' cookies and caches are stored in the `sessionData` directory.
+  // Chromium writes lots of files here, so to not pollute the user's app data
+  // we put all of this in a separate directory.
+  const appSessionDataPath = path.join(app.getPath('userData'), 'chromium');
+  fs.ensureDirSync(appSessionDataPath);
+  app.setPath('sessionData', appSessionDataPath);
+
   // When running in production, serve the app from these paths.
   const prodRendererPath = path.join(appBuildPath, 'renderer');
   const prodAppScheme = 'app';
@@ -65,6 +73,7 @@ export const initializeApp = async (): Promise<void> => {
     devRendererPath,
     appDataPath: app.getPath('appData'),
     userDataPath: app.getPath('userData'),
+    sessionDataPath: app.getPath('sessionData'),
     tempPath: app.getPath('temp'),
     logsPath: app.getPath('logs'),
   });
