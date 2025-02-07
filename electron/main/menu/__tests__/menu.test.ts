@@ -189,6 +189,9 @@ describe('menu', () => {
                 expect.objectContaining({
                   label: 'Open Logs Folder',
                 }),
+                expect.objectContaining({
+                  label: 'Open Config Folder',
+                }),
               ]),
             }),
 

@@ -112,6 +112,14 @@ const buildDarwinTemplate = (
           });
         },
       },
+      {
+        label: 'Open Config Folder',
+        click() {
+          runInBackground(async () => {
+            await shell.openPath(app.getPath('userData'));
+          });
+        },
+      },
     ],
   };
 
