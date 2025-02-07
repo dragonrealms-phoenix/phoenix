@@ -1,3 +1,13 @@
+## [1.28.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.27.1...v1.28.0) (2025-02-07)
+
+### :sparkles: Features
+
+* **menu:** add option to open config folder ([b3e4c77](https://github.com/dragonrealms-phoenix/phoenix/commit/b3e4c778a3ad729d9b292cf463a4e05206064ac9))
+
+### :broom: Miscellaneous
+
+* move chromium session data to subfolder to declutter config dir ([5187c8d](https://github.com/dragonrealms-phoenix/phoenix/commit/5187c8d712998fa81df59e396c684aa0b52260ab))
+
 ## [1.27.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.27.0...v1.27.1) (2025-02-04)
 
 ### :package: Dependencies
