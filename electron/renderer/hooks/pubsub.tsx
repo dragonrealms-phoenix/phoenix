@@ -87,7 +87,7 @@ export const usePubSub = (): PubSub => {
     })
   );
 
-  const pubsub = useMemo(() => {
+  const pubsub = useMemo((): PubSub => {
     return {
       subscribe: (event: string, subscriber: PubSubSubscriber) => {
         return store.subscribe({ event, subscriber });
