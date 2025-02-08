@@ -61,6 +61,7 @@
     "build:linux": "yarn build && electron-builder --linux --config",
     "test": "yarn clean && vitest",
     "prepare": "npx husky && electron-builder install-app-deps",
+    "postinstall": "npx patch-package --use-yarn",
     "semantic-release": "npx semantic-release",
     "sentry:sourcemaps": "./scripts/sentry-sourcemaps.sh",
     "update:versionfile": "./scripts/update-version-file.sh"
