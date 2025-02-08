@@ -1,3 +1,9 @@
+## [1.30.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.30.0...v1.30.1) (2025-02-08)
+
+### :package: Dependencies
+
+* **deps:** apply patch to elastic ui 99.2.0 ([61557d7](https://github.com/dragonrealms-phoenix/phoenix/commit/61557d751fec418bbfebb20f067fa37d5b3429c9))
+
 ## [1.30.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.29.0...v1.30.0) (2025-02-08)
 
 ### :sparkles: Features
