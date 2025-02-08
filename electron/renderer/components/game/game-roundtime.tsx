@@ -1,6 +1,6 @@
 import { EuiToolTip, useEuiTheme } from '@elastic/eui';
-import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
@@ -72,18 +72,8 @@ export const GameRoundTime: React.FC = (): ReactNode => {
     }
   });
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignContent: 'center',
-        justifyContent: 'center',
-        gap: '5px',
-        width: '50px',
-        margin: '5px',
-      }}
-    >
+  const roundTimeCmp = useMemo((): ReactElement => {
+    return (
       <GameTimeDisplay
         type="RoundTime"
         currentTime={currentRT}
@@ -91,6 +81,11 @@ export const GameRoundTime: React.FC = (): ReactNode => {
         textColor={euiTheme.colors.fullShade}
         fillColor="#FF8C00"
       />
+    );
+  }, [currentRT, initialRT, euiTheme]);
+
+  const castTimeCmp = useMemo((): ReactElement => {
+    return (
       <GameTimeDisplay
         type="CastTime"
         currentTime={currentCT}
@@ -98,8 +93,29 @@ export const GameRoundTime: React.FC = (): ReactNode => {
         textColor={euiTheme.colors.fullShade}
         fillColor={euiTheme.colors.primary}
       />
-    </div>
-  );
+    );
+  }, [currentCT, initialCT, euiTheme]);
+
+  const timerCmps = useMemo((): ReactElement => {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignContent: 'center',
+          justifyContent: 'center',
+          gap: '5px',
+          width: '50px',
+          margin: '5px',
+        }}
+      >
+        {roundTimeCmp}
+        {castTimeCmp}
+      </div>
+    );
+  }, [roundTimeCmp, castTimeCmp]);
+
+  return timerCmps;
 };
 
 GameRoundTime.displayName = 'GameRoundTime';
@@ -113,17 +129,17 @@ interface GameTimeDisplayProps {
 }
 
 const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
-  options: GameTimeDisplayProps
+  props: GameTimeDisplayProps
 ): ReactNode => {
-  const { currentTime, initialTime, type } = options;
+  const { currentTime, initialTime, type } = props;
 
   const { euiTheme } = useEuiTheme();
 
   const typeAbbrev = type === 'RoundTime' ? 'RT' : 'CT';
   const typeTooltip = type === 'RoundTime' ? 'Round Time' : 'Cast Time';
 
-  const fillColor = currentTime > 0 ? options.fillColor : 'inherit';
-  const textColor = currentTime > 0 ? options.textColor : 'inherit';
+  const fillColor = currentTime > 0 ? props.fillColor : 'inherit';
+  const textColor = currentTime > 0 ? props.textColor : 'inherit';
 
   const fillWidth = (currentTime / initialTime) * 100 || 0;
 

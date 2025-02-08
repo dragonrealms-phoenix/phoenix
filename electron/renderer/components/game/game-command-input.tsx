@@ -3,9 +3,10 @@ import type {
   ChangeEvent,
   KeyboardEvent,
   KeyboardEventHandler,
+  ReactElement,
   ReactNode,
 } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
 import { useCommandHistory } from '../../hooks/command-history.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
@@ -48,23 +49,41 @@ export const GameCommandInput: React.FC = (): ReactNode => {
     [handleOnChange]
   );
 
-  return (
-    <div css={{ width: '100%' }}>
-      <EuiFieldText
-        value={input}
-        compressed={true}
-        fullWidth={true}
-        autoFocus={true}
-        autoCorrect="off"
-        autoCapitalize="off"
-        autoComplete="off"
-        prepend={<EuiIcon type="arrowRight" size="s" color="primary" />}
-        tabIndex={0}
-        onKeyDown={onKeyDown}
-        onChange={onChange}
-      />
-    </div>
-  );
+  const commandIcon = useMemo((): ReactElement => {
+    return <EuiIcon type="arrowRight" size="s" color="primary" />;
+  }, []);
+
+  const commandInput = useMemo((): ReactElement => {
+    return (
+      <div
+        css={{
+          width: '100%',
+          paddingInline: '5px',
+        }}
+      >
+        <EuiFieldText
+          css={{
+            // Removes the bottom blue border when user focuses the field.
+            // I found it distracting.
+            backgroundImage: 'unset',
+          }}
+          value={input}
+          compressed={true}
+          fullWidth={true}
+          autoFocus={true}
+          autoCorrect="off"
+          autoCapitalize="off"
+          autoComplete="off"
+          prepend={commandIcon}
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+          onChange={onChange}
+        />
+      </div>
+    );
+  }, [input, commandIcon, onKeyDown, onChange]);
+
+  return commandInput;
 };
 
 GameCommandInput.displayName = 'GameCommandInput';
