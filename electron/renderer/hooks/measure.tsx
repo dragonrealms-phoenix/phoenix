@@ -49,7 +49,7 @@ export const useMeasure = <E extends Element = Element>(
   const [element, ref] = useState<E | null>(null);
   const [size, setSize] = useState<ElementSize>(defaultSize);
 
-  const observer = useMemo(() => {
+  const observer = useMemo((): ResizeObserver => {
     const onResize = debounce<ResizeObserverCallback>((entries) => {
       // We are observing at most one element,
       // but the API supports observing multiple elements.

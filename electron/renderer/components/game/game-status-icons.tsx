@@ -1,7 +1,7 @@
 import { EuiIcon, EuiImage, EuiToolTip } from '@elastic/eui';
 import type { StaticImageData } from 'next/image.js';
 import type React from 'react';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import type {
   GameEvent,
@@ -126,8 +126,8 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
       <GameStatusIcon
         active={isWebbed}
         tooltipText="Webbed"
-        iconType="bug"
-        iconColor=""
+        iconType="web"
+        iconColor="warning"
       />
 
       <GameStatusIcon
@@ -186,7 +186,7 @@ const GameStatusIcon: React.FC<GameStatusIconProps> = (
 ): ReactNode => {
   const { active, tooltipText, iconType, iconColor } = props;
 
-  const activeIcon = useMemo(() => {
+  const activeIcon = useMemo((): ReactElement => {
     return (
       <EuiToolTip content={tooltipText} position="top">
         <EuiIcon type={iconType} color={iconColor} size="l" />
@@ -194,7 +194,7 @@ const GameStatusIcon: React.FC<GameStatusIconProps> = (
     );
   }, [iconType, iconColor, tooltipText]);
 
-  const inactiveIcon = useMemo(() => {
+  const inactiveIcon = useMemo((): ReactElement => {
     return (
       <EuiToolTip content={`Not ${tooltipText}`} position="top">
         <EuiIcon type={iconType} color="subdued" size="l" />
@@ -202,7 +202,7 @@ const GameStatusIcon: React.FC<GameStatusIconProps> = (
     );
   }, [iconType, tooltipText]);
 
-  const icon = useMemo(() => {
+  const icon = useMemo((): ReactElement => {
     return active ? activeIcon : inactiveIcon;
   }, [active, activeIcon, inactiveIcon]);
 
@@ -221,7 +221,7 @@ const GamePostureIcon: React.FC<GamePostureIconProps> = (
 ): ReactNode => {
   const { isDead, posture } = props;
 
-  const deadIcon = useMemo(() => {
+  const deadIcon = useMemo((): ReactElement => {
     return (
       <EuiToolTip content="Dead" position="top">
         <EuiImage src={ImageDead.src} alt="Dead" />
@@ -229,7 +229,7 @@ const GamePostureIcon: React.FC<GamePostureIconProps> = (
     );
   }, []);
 
-  const postureIcon = useMemo(() => {
+  const postureIcon = useMemo((): ReactElement => {
     return (
       <EuiToolTip content={toTitleCase(posture)} position="top">
         <EuiImage src={POSTURE_IMAGES[posture].src} alt={posture} />
@@ -237,7 +237,7 @@ const GamePostureIcon: React.FC<GamePostureIconProps> = (
     );
   }, [posture]);
 
-  const icon = useMemo(() => {
+  const icon = useMemo((): ReactElement => {
     return isDead ? deadIcon : postureIcon;
   }, [isDead, deadIcon, postureIcon]);
 

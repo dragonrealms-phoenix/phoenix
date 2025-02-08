@@ -1,5 +1,5 @@
 import { useEuiTheme } from '@elastic/eui';
-import type { ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
@@ -27,35 +27,39 @@ export const GameHands: React.FC = (): ReactNode => {
     }
   });
 
-  const leftHandCmp = useMemo((): ReactNode => {
+  const leftHandCmp = useMemo((): ReactElement => {
     return <GameHand label="Left" value={leftHand} />;
   }, [leftHand]);
 
-  const rightHandCmp = useMemo((): ReactNode => {
+  const rightHandCmp = useMemo((): ReactElement => {
     return <GameHand label="Right" value={rightHand} />;
   }, [rightHand]);
 
-  const spellCmp = useMemo((): ReactNode => {
+  const spellCmp = useMemo((): ReactElement => {
     return <GameHand label="Spell" value={spell} />;
   }, [spell]);
 
-  return (
-    <div
-      css={{
-        display: 'flex',
-        alignItems: 'center',
-        alignContent: 'center',
-        gap: '5px',
-        width: '100%',
-        height: '25px',
-        fontSize: euiTheme.size.m,
-      }}
-    >
-      {leftHandCmp}
-      {rightHandCmp}
-      {spellCmp}
-    </div>
-  );
+  const handsCmp = useMemo((): ReactElement => {
+    return (
+      <div
+        css={{
+          display: 'flex',
+          alignItems: 'center',
+          alignContent: 'center',
+          gap: '5px',
+          width: '100%',
+          height: '25px',
+          fontSize: euiTheme.size.m,
+        }}
+      >
+        {leftHandCmp}
+        {rightHandCmp}
+        {spellCmp}
+      </div>
+    );
+  }, [leftHandCmp, rightHandCmp, spellCmp, euiTheme]);
+
+  return handsCmp;
 };
 
 GameHands.displayName = 'GameHands';
@@ -78,9 +82,8 @@ const GameHand: React.FC<GameHandProps> = (props: GameHandProps): ReactNode => {
         width: '250px',
         height: '100%',
         padding: '5px',
-        border: '1px solid',
-        borderColor: euiTheme.border.color,
-        borderRadius: '5px',
+        border: euiTheme.border.thin,
+        borderRadius: euiTheme.border.radius.small,
       }}
     >
       <div css={{ userSelect: 'none' }}>

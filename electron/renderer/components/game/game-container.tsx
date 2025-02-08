@@ -1,5 +1,5 @@
 import { EuiPageTemplate } from '@elastic/eui';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { useMeasure } from '../../hooks/measure.jsx';
 import { useWindowSize } from '../../hooks/window-size.jsx';
 import type { GridItemContent } from '../../types/grid.types.js';
@@ -29,39 +29,50 @@ export const GameContainer: React.FC<GameContainerProps> = (
   const gridHeight =
     windowSize.height - topBarSize.height - bottomBarSize.height - 1;
 
-  return (
-    <EuiPageTemplate
-      direction="column"
-      paddingSize="s"
-      panelled={false}
-      grow={true}
-      restrictWidth={false}
-      responsive={[]}
-      css={{ height: '100%', maxWidth: 'unset' }}
-    >
-      <EuiPageTemplate.Section grow={true} paddingSize="none">
-        <div ref={topBarRef}>
-          <GameTopBar />
-        </div>
-      </EuiPageTemplate.Section>
-      <EuiPageTemplate.Section grow={true} paddingSize="none">
-        <div ref={gridWidthRef}>
-          <GameGrid
-            boundary={{
-              height: gridHeight,
-              width: gridWidth,
-            }}
-            contentItems={contentItems}
-          />
-        </div>
-      </EuiPageTemplate.Section>
-      <EuiPageTemplate.BottomBar paddingSize="none">
-        <div ref={bottomBarRef}>
-          <GameBottomBar />
-        </div>
-      </EuiPageTemplate.BottomBar>
-    </EuiPageTemplate>
-  );
+  const container = useMemo((): ReactNode => {
+    return (
+      <EuiPageTemplate
+        direction="column"
+        paddingSize="s"
+        panelled={false}
+        grow={true}
+        restrictWidth={false}
+        responsive={[]}
+        css={{ height: '100%', maxWidth: 'unset' }}
+      >
+        <EuiPageTemplate.Section grow={true} paddingSize="none">
+          <div ref={topBarRef}>
+            <GameTopBar />
+          </div>
+        </EuiPageTemplate.Section>
+        <EuiPageTemplate.Section grow={true} paddingSize="none">
+          <div ref={gridWidthRef}>
+            <GameGrid
+              boundary={{
+                height: gridHeight,
+                width: gridWidth,
+              }}
+              contentItems={contentItems}
+            />
+          </div>
+        </EuiPageTemplate.Section>
+        <EuiPageTemplate.BottomBar paddingSize="none">
+          <div ref={bottomBarRef}>
+            <GameBottomBar />
+          </div>
+        </EuiPageTemplate.BottomBar>
+      </EuiPageTemplate>
+    );
+  }, [
+    contentItems,
+    topBarRef,
+    bottomBarRef,
+    gridWidthRef,
+    gridHeight,
+    gridWidth,
+  ]);
+
+  return container;
 };
 
 GameContainer.displayName = 'GameContainer';

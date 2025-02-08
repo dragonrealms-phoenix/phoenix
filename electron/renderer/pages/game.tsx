@@ -118,24 +118,31 @@ const GamePage: React.FC = (): ReactNode => {
           text: '__CLEAR_STREAM__',
         });
         break;
+
       case GameEventType.PUSH_STREAM:
         gameStreamIdRef.current = gameEvent.streamId;
         break;
+
       case GameEventType.POP_STREAM:
         gameStreamIdRef.current = '';
         break;
+
       case GameEventType.PUSH_BOLD:
         textStyleBoldRef.current = true;
         break;
+
       case GameEventType.POP_BOLD:
         textStyleBoldRef.current = false;
         break;
+
       case GameEventType.TEXT_OUTPUT_CLASS:
         textOutputClassRef.current = gameEvent.textOutputClass;
         break;
+
       case GameEventType.TEXT_STYLE_PRESET:
         textStylePresetRef.current = gameEvent.textStylePreset;
         break;
+
       case GameEventType.TEXT:
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
@@ -144,6 +151,7 @@ const GamePage: React.FC = (): ReactNode => {
           text: gameEvent.text,
         });
         break;
+
       case GameEventType.EXPERIENCE:
         // TODO need to track a map of skill names to their latest event
         //      so that when we receive a new event we can update that skill
@@ -158,6 +166,7 @@ const GamePage: React.FC = (): ReactNode => {
           text: formatExperienceText(gameEvent),
         });
         break;
+
       case GameEventType.ROOM:
         setRoomGameEvent((oldRoom: RoomGameEvent) => {
           let newRoom: RoomGameEvent;
@@ -193,33 +202,6 @@ const GamePage: React.FC = (): ReactNode => {
 
           return newRoom;
         });
-        break;
-      case GameEventType.COMPASS:
-        // TODO
-        break;
-      case GameEventType.VITALS:
-        // TODO
-        break;
-      case GameEventType.INDICATOR:
-        // TODO
-        break;
-      case GameEventType.SPELL:
-        // TODO
-        break;
-      case GameEventType.LEFT_HAND:
-        // TODO
-        break;
-      case GameEventType.RIGHT_HAND:
-        // TODO
-        break;
-      case GameEventType.SERVER_TIME:
-        // TODO
-        break;
-      case GameEventType.ROUND_TIME:
-        // TODO
-        break;
-      case GameEventType.CAST_TIME:
-        // TODO
         break;
     }
   });
