@@ -1,3 +1,9 @@
+## [1.30.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.29.0...v1.30.0) (2025-02-08)
+
+### :sparkles: Features
+
+* **game-command:** allow multiple commands separated by semicolon (;) ([073a985](https://github.com/dragonrealms-phoenix/phoenix/commit/073a9857496c010c93de92a061344d5150fbb1b8))
+
 ## [1.29.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.28.0...v1.29.0) (2025-02-08)
 
 ### :sparkles: Features
