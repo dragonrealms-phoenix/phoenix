@@ -294,7 +294,7 @@ export const GridItem: React.FC<GridItemProps> = memo(
           cursor: 'nwse-resize',
           touchAction: 'none',
           backgroundColor: euiTheme.colors.mediumShade,
-          borderRadius: 5,
+          borderRadius: euiTheme.border.radius.medium,
         },
       });
     }, [euiTheme]);

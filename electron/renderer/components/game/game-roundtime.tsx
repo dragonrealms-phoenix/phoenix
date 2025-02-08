@@ -134,9 +134,8 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
           position: 'relative',
           width: '100%',
           height: '25px',
-          border: '1px solid',
-          borderColor: euiTheme.border.color,
-          borderRadius: '5px',
+          border: euiTheme.border.thin,
+          borderRadius: euiTheme.border.radius.small,
           userSelect: 'none',
         }}
       >

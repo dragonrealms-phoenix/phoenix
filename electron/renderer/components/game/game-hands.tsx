@@ -78,9 +78,8 @@ const GameHand: React.FC<GameHandProps> = (props: GameHandProps): ReactNode => {
         width: '250px',
         height: '100%',
         padding: '5px',
-        border: '1px solid',
-        borderColor: euiTheme.border.color,
-        borderRadius: '5px',
+        border: euiTheme.border.thin,
+        borderRadius: euiTheme.border.radius.small,
       }}
     >
       <div css={{ userSelect: 'none' }}>
