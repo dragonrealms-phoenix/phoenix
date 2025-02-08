@@ -31,8 +31,12 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         // <Enter> = perform new command
         else if (!isEmpty(command)) {
           setLastCommand(command);
+          // TODO customize the command separator, and whether to use it or not
+          const cmds = command.split(';');
           runInBackground(async () => {
-            await window.api.sendCommand(command);
+            for (const cmd of cmds) {
+              await window.api.sendCommand(cmd);
+            }
           });
         }
       }
