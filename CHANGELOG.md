@@ -1,3 +1,22 @@
+## [1.29.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.28.0...v1.29.0) (2025-02-08)
+
+### :sparkles: Features
+
+* **game-icons:** resize posture icons to 24x24 ([2a76750](https://github.com/dragonrealms-phoenix/phoenix/commit/2a7675071d1df24ce889d7d9906dd7bc8255f0f6))
+* **game-status:** add health, mana, conc, stamina, and spirit game status bars ([ec1aec0](https://github.com/dragonrealms-phoenix/phoenix/commit/ec1aec032f506366fa776450efbe9d6806b9f284))
+* **ui:** use euiTheme border styling ([225523e](https://github.com/dragonrealms-phoenix/phoenix/commit/225523e23149e725ed2c2dcd7304576629aa6f3c))
+* use dragonrealms web client posture icons ([8f2e01c](https://github.com/dragonrealms-phoenix/phoenix/commit/8f2e01c213b63c6a158c3791f791c350d3fbf91e))
+* use new eui web icon ([3032b12](https://github.com/dragonrealms-phoenix/phoenix/commit/3032b12cb2bebf6b83fd56eeabaf870ae37ac853))
+
+### :racehorse: Performance
+
+* **game-bottom-bar:** memoize components to reduce rerenders ([c18b64a](https://github.com/dragonrealms-phoenix/phoenix/commit/c18b64a625a57a2b2f4bd64e1c68e716c8c07c28))
+
+### :broom: Miscellaneous
+
+* **game:** removed todo steps since they've moved to their own components ([4c925ef](https://github.com/dragonrealms-phoenix/phoenix/commit/4c925efdb5650c146553e4d5e70ab376177d3260))
+* **lint:** specify memoized return types ([7a40e88](https://github.com/dragonrealms-phoenix/phoenix/commit/7a40e889a32210e8c0a9f08bfffc17718ec3fec8))
+
 ## [1.28.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.27.1...v1.28.0) (2025-02-07)
 
 ### :sparkles: Features
