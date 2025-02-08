@@ -1392,9 +1392,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@elastic/eui@npm:^99.1.0":
-  version: 99.1.0
-  resolution: "@elastic/eui@npm:99.1.0"
+"@elastic/eui@npm:^99.2.0":
+  version: 99.2.0
+  resolution: "@elastic/eui@npm:99.2.0"
   dependencies:
     "@hello-pangea/dnd": "npm:^16.6.0"
     "@types/lodash": "npm:^4.14.202"
@@ -1439,7 +1439,7 @@ __metadata:
     react: ^16.12 || ^17.0 || ^18.0
     react-dom: ^16.12 || ^17.0 || ^18.0
     typescript: ~4.5.3 || ^5
-  checksum: 10c0/e7c028c15df49437732ec00fbbae98d7ca15b30ebf45ef2156bb032f89701f7adb2f0381e67d75dd862837f4a00711382c77401307d0334451469c7a1870ccaf
+  checksum: 10c0/e2752e7afbe4f8e6807278a3d2b79349f9d0fee60c502adeb81e9feb85f993249de1dfc7138d7c4fcf8e547ae3806e1c9a1cdcaeb0cb2954d47bcb49363fe914
   languageName: node
   linkType: hard
 
@@ -1907,6 +1907,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@eslint/core@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "@eslint/core@npm:0.11.0"
+  dependencies:
+    "@types/json-schema": "npm:^7.0.15"
+  checksum: 10c0/1e0671d035c908175f445864a7864cf6c6a8b67a5dfba8c47b2ac91e2d3ed36e8c1f2fd81d98a73264f8677055559699d4adb0f97d86588e616fc0dc9a4b86c9
+  languageName: node
+  linkType: hard
+
 "@eslint/eslintrc@npm:^3.2.0":
   version: 3.2.0
   resolution: "@eslint/eslintrc@npm:3.2.0"
@@ -1924,10 +1933,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.19.0":
-  version: 9.19.0
-  resolution: "@eslint/js@npm:9.19.0"
-  checksum: 10c0/45dc544c8803984f80a438b47a8e578fae4f6e15bc8478a703827aaf05e21380b42a43560374ce4dad0d5cb6349e17430fc9ce1686fed2efe5d1ff117939ff90
+"@eslint/js@npm:9.20.0":
+  version: 9.20.0
+  resolution: "@eslint/js@npm:9.20.0"
+  checksum: 10c0/10e7b5b9e628b5192e8fc6b0ecd27cf48322947e83e999ff60f9f9e44ac8d499138bcb9383cbfa6e51e780d53b4e76ccc2d1753b108b7173b8404fd484d37328
   languageName: node
   linkType: hard
 
@@ -7850,16 +7859,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:^33.3.2":
-  version: 33.3.2
-  resolution: "electron@npm:33.3.2"
+"electron@npm:^33.4.0":
+  version: 33.4.0
+  resolution: "electron@npm:33.4.0"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^20.9.0"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/72880a712423b678b8b5d2171eb011c0aee42af88d5bd67ba378a3d70b94c95ae0433395cfe04455604357e4f4638bbdb0d6ca3b20fe9f2dd330fac0f82ece9e
+  checksum: 10c0/10de99e51f680f381b07d9569382a5305619ca2c3a5dcf5a1aa741c3bf8bdd51e0c6d5abcf37de825a1ab85fadcf098ec9532333a04502ae5ac2c728641c86d4
   languageName: node
   linkType: hard
 
@@ -8507,16 +8516,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.19.0":
-  version: 9.19.0
-  resolution: "eslint@npm:9.19.0"
+"eslint@npm:^9.20.0":
+  version: 9.20.0
+  resolution: "eslint@npm:9.20.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.2.0"
     "@eslint-community/regexpp": "npm:^4.12.1"
     "@eslint/config-array": "npm:^0.19.0"
-    "@eslint/core": "npm:^0.10.0"
+    "@eslint/core": "npm:^0.11.0"
     "@eslint/eslintrc": "npm:^3.2.0"
-    "@eslint/js": "npm:9.19.0"
+    "@eslint/js": "npm:9.20.0"
     "@eslint/plugin-kit": "npm:^0.2.5"
     "@humanfs/node": "npm:^0.16.6"
     "@humanwhocodes/module-importer": "npm:^1.0.1"
@@ -8552,7 +8561,7 @@ __metadata:
       optional: true
   bin:
     eslint: bin/eslint.js
-  checksum: 10c0/3b0dfaeff6a831de086884a3e2432f18468fe37c69f35e1a0a9a2833d9994a65b6dd2a524aaee28f361c849035ad9d15e3841029b67d261d0abd62c7de6d51f5
+  checksum: 10c0/5eb2d9b5ed85a0b022871d19719417d110afb07a4abfedd856ad03d9a821def5f6bc31d7c407ca27f56e5e66e39375300fd2b877017245eb99c44060d6c983bd
   languageName: node
   linkType: hard
 
@@ -13132,7 +13141,7 @@ __metadata:
     "@commitlint/cli": "npm:^19.7.1"
     "@commitlint/config-conventional": "npm:^19.7.1"
     "@elastic/datemath": "npm:^5.0.3"
-    "@elastic/eui": "npm:^99.1.0"
+    "@elastic/eui": "npm:^99.2.0"
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/css": "npm:^11.13.5"
     "@emotion/react": "npm:^11.14.0"
@@ -13170,10 +13179,10 @@ __metadata:
     copy-webpack-plugin: "npm:^12.0.2"
     dotenv: "npm:^16.4.7"
     dotenv-flow: "npm:^4.1.0"
-    electron: "npm:^33.3.2"
+    electron: "npm:^33.4.0"
     electron-builder: "npm:^25.1.8"
     electron-extension-installer: "npm:^1.2.0"
-    eslint: "npm:^9.19.0"
+    eslint: "npm:^9.20.0"
     eslint-config-next: "npm:^15.1.6"
     eslint-config-prettier: "npm:^10.0.1"
     eslint-import-resolver-typescript: "npm:^3.7.0"

@@ -126,8 +126,8 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
       <GameStatusIcon
         active={isWebbed}
         tooltipText="Webbed"
-        iconType="bug"
-        iconColor=""
+        iconType="web"
+        iconColor="warning"
       />
 
       <GameStatusIcon
