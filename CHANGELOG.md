@@ -1,3 +1,13 @@
+## [1.31.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.30.1...v1.31.0) (2025-02-09)
+
+### :sparkles: Features
+
+* **game-stream:** use eui theme font family ([f7b393c](https://github.com/dragonrealms-phoenix/phoenix/commit/f7b393c4a96dab245efcdeef830e95a8aa929e8f))
+
+### :hammer: Fixes
+
+* **game-stream:** when reconnect, reregister autoscroll observer ([ce5000e](https://github.com/dragonrealms-phoenix/phoenix/commit/ce5000e12673c73436948b68e757970464f7b034))
+
 ## [1.30.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.30.0...v1.30.1) (2025-02-08)
 
 ### :package: Dependencies
