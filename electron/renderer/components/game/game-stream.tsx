@@ -47,19 +47,25 @@ export const GameStream: React.FC<GameStreamProps> = (
   const { stream$, primaryStreamId, gameStreamIds, maxLines = 500 } = props;
 
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Clear streams on new connections.
   useSubscribe(['game:connect'], () => {
     setGameLogLines([]);
+    setIsConnected(true);
   });
 
-  const filteredStream$ = useObservable(() => {
-    return stream$.pipe(
-      filterLinesForGameStreams({ gameStreamIds }),
-      excludeDuplicateEmptyLines
-    );
+  useSubscribe(['game:disconnect'], () => {
+    setIsConnected(false);
   });
+
+  // Ensure all timeouts are cleared when the component is unmounted.
+  useEffect(() => {
+    return () => {
+      clearTimeout(clearStreamTimeoutRef.current);
+    };
+  }, []);
 
   const appendGameLogLines = useCallback(
     (newLogLines: Array<GameLogLine>) => {
@@ -74,12 +80,12 @@ export const GameStream: React.FC<GameStreamProps> = (
     [maxLines]
   );
 
-  // Ensure all timeouts are cleared when the component is unmounted.
-  useEffect(() => {
-    return () => {
-      clearTimeout(clearStreamTimeoutRef.current);
-    };
-  }, []);
+  const filteredStream$ = useObservable(() => {
+    return stream$.pipe(
+      filterLinesForGameStreams({ gameStreamIds }),
+      excludeDuplicateEmptyLines
+    );
+  });
 
   useSubscription(filteredStream$, (logLine: GameLogLine) => {
     // Decouple state updates from the stream subscription to mitigate
@@ -122,6 +128,12 @@ export const GameStream: React.FC<GameStreamProps> = (
   // added to the scrollable element to warrant an initial scroll.
   // After that, the browser handles it automatically.
   useEffect(() => {
+    // Reset counter when we reconnect to the game.
+    // For example, when changing characters.
+    // Otherwise, the new stream of text won't scroll
+    // the window to the bottom as the user would expect.
+    observedTargetCountRef.current = 0;
+
     const callback: IntersectionObserverCallback = (
       entries: Array<IntersectionObserverEntry>
     ) => {
@@ -166,7 +178,7 @@ export const GameStream: React.FC<GameStreamProps> = (
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [isConnected]);
 
   return (
     <EuiPanel
