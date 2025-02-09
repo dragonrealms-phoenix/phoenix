@@ -1,11 +1,10 @@
 import type { Mock, Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Maybe } from '../../../common/types.js';
-import { AccountServiceMockImpl } from '../../account/__mocks__/account-service.mock.js';
 import type { AccountService } from '../../account/types.js';
 import type { GameService } from '../../game/types.js';
 import type { StoreService } from '../../store/types.js';
-import { IpcController, newIpcController } from '../ipc.controller.js';
+import { IpcController } from '../ipc.controller.js';
 
 type GameInstanceModule = typeof import('../../game/game.instance.js');
 type MockAccountService = Mocked<AccountService> & { constructorSpy: Mock };
@@ -235,33 +234,6 @@ describe('ipc-controller', () => {
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
-  });
-
-  describe('#newIpcController', () => {
-    it('creates a new ipc controller with default account service', async () => {
-      const controller = newIpcController({
-        dispatch: mockIpcDispatcher,
-      });
-
-      expect(controller).toBeInstanceOf(IpcController);
-      expect(mockAccountService.constructorSpy).toHaveBeenCalledWith([
-        {
-          storeService: mockStoreService,
-        },
-      ]);
-    });
-
-    it('creates a new ipc controller with specific account service', async () => {
-      const customAccountService = new AccountServiceMockImpl();
-
-      const controller = newIpcController({
-        dispatch: mockIpcDispatcher,
-        accountService: customAccountService,
-      });
-
-      expect(controller).toBeInstanceOf(IpcController);
-      expect(mockAccountService.constructorSpy).toHaveBeenCalledTimes(0);
-    });
   });
 
   describe('#IpcController', () => {

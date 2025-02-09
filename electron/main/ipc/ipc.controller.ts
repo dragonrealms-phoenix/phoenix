@@ -1,9 +1,7 @@
 import { ipcMain } from 'electron';
 import { toUpperSnakeCase } from '../../common/string/string.utils.js';
-import { AccountServiceImpl } from '../account/account.service.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
-import { Store } from '../store/store.instance.js';
 import { listAccountsHandler } from './handlers/list-accounts.js';
 import { listCharactersHandler } from './handlers/list-characters.js';
 import { logHandler } from './handlers/log.js';
@@ -21,30 +19,6 @@ import type {
   IpcHandlerRegistry,
   IpcInvokableEvent,
 } from './types.js';
-
-/**
- * I didn't like the app nor controller needing to know about
- * the account service implementation so I created this util
- * to abstract that concern. For testing, or if we ever need to
- * specify the account service implementation, we can still
- * use this method or use the IpController constructor directly.
- */
-export const newIpcController = (options: {
-  dispatch: IpcDispatcher;
-  accountService?: AccountService;
-}): IpcController => {
-  const {
-    dispatch,
-    accountService = new AccountServiceImpl({
-      storeService: Store,
-    }),
-  } = options;
-
-  return new IpcController({
-    dispatch,
-    accountService,
-  });
-};
 
 export class IpcController {
   private dispatch: IpcDispatcher;
