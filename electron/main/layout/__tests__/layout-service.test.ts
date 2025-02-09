@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Layout } from '../../../common/layout/types.js';
 import { LayoutServiceImpl } from '../layout.service.js';
-import type { Layout, LayoutService } from '../types.js';
+import type { LayoutService } from '../types.js';
 
 type FsExtraModule = typeof import('fs-extra');
 type ElectronModule = typeof import('electron');

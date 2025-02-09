@@ -1,9 +1,10 @@
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
+import type { Layout } from '../../common/layout/types.js';
 import type { Maybe } from '../../common/types.js';
 import { logger } from './logger.js';
-import type { Layout, LayoutService } from './types.js';
+import type { LayoutService } from './types.js';
 
 export class LayoutServiceImpl implements LayoutService {
   public async get(name: string): Promise<Maybe<Layout>> {
