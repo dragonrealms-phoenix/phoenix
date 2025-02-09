@@ -1,3 +1,9 @@
+## [1.31.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.31.0...v1.31.1) (2025-02-09)
+
+### :package: Dependencies
+
+* **deps:** upgrade dependencies ([f5fac20](https://github.com/dragonrealms-phoenix/phoenix/commit/f5fac205d5046e5e0afc651673d6a09f62f8d98b))
+
 ## [1.31.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.30.1...v1.31.0) (2025-02-09)
 
 ### :sparkles: Features
