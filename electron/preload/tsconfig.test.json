@@ -5,7 +5,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "noEmit": true,
-    "rootDir": "." // to find index.ts at root of package
+    "rootDir": ".." // to find index.ts at root of package
   },
   "exclude": ["node_modules"]
 }
