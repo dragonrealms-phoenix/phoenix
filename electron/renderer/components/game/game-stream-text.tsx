@@ -23,12 +23,12 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
 
     const textStyles = useMemo((): SerializedStyles => {
       let fontSize = euiTheme.size.m;
-      let fontFamily: string | undefined = 'Verdana'; //euiTheme.font.familySerif;
+      let fontFamily = euiTheme.font.family;
       let fontWeight = euiTheme.font.weight.regular;
       let fontColor = euiTheme.colors.text;
 
       if (logLine.styles?.outputClass === 'mono') {
-        fontFamily = euiTheme.font.familyCode;
+        fontFamily = euiTheme.font.familyCode ?? fontFamily;
         fontSize = euiTheme.size.m;
       }
 
