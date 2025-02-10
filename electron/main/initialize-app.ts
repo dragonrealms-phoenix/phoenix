@@ -8,6 +8,7 @@ import { Accounts } from './account/account.instance.js';
 import { runInBackground } from './async/run-in-background.js';
 import { IpcController } from './ipc/ipc.controller.js';
 import type { IpcDispatcher } from './ipc/types.js';
+import { Layouts } from './layout/layout.instance.js';
 import { getScopedLogger } from './logger/logger.factory.js';
 import { getLogLevel } from './logger/logger.utils.js';
 import { initializeMenu } from './menu/menu.js';
@@ -152,6 +153,7 @@ export const initializeApp = async (): Promise<void> => {
     ipcController = new IpcController({
       dispatch,
       accountService: Accounts,
+      layoutService: Layouts,
     });
 
     logger.debug('loading main window', { appUrl });

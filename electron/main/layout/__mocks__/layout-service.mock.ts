@@ -9,8 +9,8 @@ export class LayoutServiceMockImpl implements Mocked<LayoutService> {
     this.constructorSpy(args);
   }
 
-  get = vi.fn<LayoutService['get']>();
-  list = vi.fn<LayoutService['list']>();
-  save = vi.fn<LayoutService['save']>();
-  delete = vi.fn<LayoutService['delete']>();
+  getLayout = vi.fn<LayoutService['getLayout']>();
+  listLayoutNames = vi.fn<LayoutService['listLayoutNames']>();
+  saveLayout = vi.fn<LayoutService['saveLayout']>();
+  deleteLayout = vi.fn<LayoutService['deleteLayout']>();
 }

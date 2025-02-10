@@ -1,5 +1,6 @@
 import type { ContextBridge, IpcRenderer } from 'electron';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { Layout } from '../../common/layout/types.js';
 
 const { mockContextBridge, mockIpcRenderer } = vi.hoisted(() => {
   const mockContextBridge = {
@@ -156,6 +157,7 @@ describe('index', () => {
           },
         ]);
         const result = await api.listCharacters();
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('listCharacters');
         expect(result).toEqual([
           {
             accountName: 'test-account-name',
@@ -177,6 +179,100 @@ describe('index', () => {
           accountName: 'test-account-name',
           characterName: 'test-character-name',
           gameCode: 'DR',
+        });
+      });
+    });
+
+    describe('#getLayout', async () => {
+      const mockLayout: Layout = {
+        window: {
+          x: 1,
+          y: 2,
+          width: 3,
+          height: 4,
+        },
+        streams: [
+          {
+            id: 'test-stream-id',
+            title: 'test-stream-title',
+            visible: true,
+            x: 1,
+            y: 2,
+            width: 3,
+            height: 4,
+            textFont: 'test-text-font',
+            textSize: 5,
+            backgroundColor: 'test-background-color',
+            foregroundColor: 'test-foreground-color',
+          },
+        ],
+      };
+
+      it('invokes getLayout', async () => {
+        mockIpcRenderer.invoke.mockResolvedValueOnce(mockLayout);
+        const result = await api.getLayout({
+          layoutName: 'test-layout-name',
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('getLayout', {
+          layoutName: 'test-layout-name',
+        });
+        expect(result).toEqual(mockLayout);
+      });
+    });
+
+    describe('#listLayoutNames', async () => {
+      it('invokes listLayoutNames', async () => {
+        mockIpcRenderer.invoke.mockResolvedValueOnce(['test-layout-name']);
+        const result = await api.listLayoutNames();
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('listLayoutNames');
+        expect(result).toEqual(['test-layout-name']);
+      });
+    });
+
+    describe('#saveLayout', async () => {
+      const mockLayout: Layout = {
+        window: {
+          x: 1,
+          y: 2,
+          width: 3,
+          height: 4,
+        },
+        streams: [
+          {
+            id: 'test-stream-id',
+            title: 'test-stream-title',
+            visible: true,
+            x: 1,
+            y: 2,
+            width: 3,
+            height: 4,
+            textFont: 'test-text-font',
+            textSize: 5,
+            backgroundColor: 'test-background-color',
+            foregroundColor: 'test-foreground-color',
+          },
+        ],
+      };
+
+      it('invokes saveLayout', async () => {
+        await api.saveLayout({
+          layoutName: 'test-layout-name',
+          layout: mockLayout,
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('saveLayout', {
+          layoutName: 'test-layout-name',
+          layout: mockLayout,
+        });
+      });
+    });
+
+    describe('#deleteLayout', async () => {
+      it('invokes deleteLayout', async () => {
+        await api.deleteLayout({
+          layoutName: 'test-layout-name',
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('deleteLayout', {
+          layoutName: 'test-layout-name',
         });
       });
     });

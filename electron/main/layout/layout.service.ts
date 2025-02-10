@@ -7,12 +7,16 @@ import { logger } from './logger.js';
 import type { LayoutService } from './types.js';
 
 export class LayoutServiceImpl implements LayoutService {
-  public async get(name: string): Promise<Maybe<Layout>> {
-    const filePath = this.getLayoutPath(name);
+  public async getLayout(options: {
+    layoutName: string;
+  }): Promise<Maybe<Layout>> {
+    const { layoutName } = options;
+
+    const filePath = this.getLayoutPath(layoutName);
     const fileExists = await fs.pathExists(filePath);
 
     logger.info('getting layout', {
-      name,
+      layoutName,
       filePath,
       fileExists,
     });
@@ -30,7 +34,7 @@ export class LayoutServiceImpl implements LayoutService {
     return layout;
   }
 
-  public async list(): Promise<Array<string>> {
+  public async listLayoutNames(): Promise<Array<string>> {
     const fileNames = await fs.readdir(this.getLayoutsBaseDir());
 
     const layoutNames = fileNames
@@ -41,13 +45,16 @@ export class LayoutServiceImpl implements LayoutService {
     return layoutNames;
   }
 
-  public async save(options: { name: string; layout: Layout }): Promise<void> {
-    const { name, layout } = options;
+  public async saveLayout(options: {
+    layoutName: string;
+    layout: Layout;
+  }): Promise<void> {
+    const { layoutName, layout } = options;
 
-    const filePath = this.getLayoutPath(name);
+    const filePath = this.getLayoutPath(layoutName);
 
     logger.info('saving layout', {
-      name,
+      layoutName,
       filePath,
     });
 
@@ -60,12 +67,14 @@ export class LayoutServiceImpl implements LayoutService {
     });
   }
 
-  public async delete(name: string): Promise<void> {
-    const filePath = this.getLayoutPath(name);
+  public async deleteLayout(options: { layoutName: string }): Promise<void> {
+    const { layoutName } = options;
+
+    const filePath = this.getLayoutPath(layoutName);
     const fileExists = await fs.pathExists(filePath);
 
     logger.info('deleting layout', {
-      name,
+      layoutName,
       filePath,
       fileExists,
     });

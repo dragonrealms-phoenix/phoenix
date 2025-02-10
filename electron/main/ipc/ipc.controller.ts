@@ -2,8 +2,12 @@ import { ipcMain } from 'electron';
 import { toUpperSnakeCase } from '../../common/string/string.utils.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
+import type { LayoutService } from '../layout/types.js';
+import { deleteLayoutHandler } from './handlers/delete-layout.js';
+import { getLayoutHandler } from './handlers/get-layout.js';
 import { listAccountsHandler } from './handlers/list-accounts.js';
 import { listCharactersHandler } from './handlers/list-characters.js';
+import { listLayoutNamesHandler } from './handlers/list-layout-names.js';
 import { logHandler } from './handlers/log.js';
 import { pingHandler } from './handlers/ping.js';
 import { playCharacterHandler } from './handlers/play-character.js';
@@ -12,6 +16,7 @@ import { removeAccountHandler } from './handlers/remove-account.js';
 import { removeCharacterHandler } from './handlers/remove-character.js';
 import { saveAccountHandler } from './handlers/save-account.js';
 import { saveCharacterHandler } from './handlers/save-character.js';
+import { saveLayoutHandler } from './handlers/save-layout.js';
 import { sendCommandHandler } from './handlers/send-command.js';
 import { logger } from './logger.js';
 import type {
@@ -23,14 +28,17 @@ import type {
 export class IpcController {
   private dispatch: IpcDispatcher;
   private accountService: AccountService;
+  private layoutService: LayoutService;
   private handlerRegistry: IpcHandlerRegistry;
 
   constructor(options: {
     dispatch: IpcDispatcher;
     accountService: AccountService;
+    layoutService: LayoutService;
   }) {
     this.dispatch = options.dispatch;
     this.accountService = options.accountService;
+    this.layoutService = options.layoutService;
     this.handlerRegistry = this.createHandlerRegistry();
     this.registerHandlers(this.handlerRegistry);
   }
@@ -87,6 +95,22 @@ export class IpcController {
 
       quitCharacter: quitCharacterHandler({
         dispatch: this.dispatch,
+      }),
+
+      getLayout: getLayoutHandler({
+        layoutService: this.layoutService,
+      }),
+
+      listLayoutNames: listLayoutNamesHandler({
+        layoutService: this.layoutService,
+      }),
+
+      saveLayout: saveLayoutHandler({
+        layoutService: this.layoutService,
+      }),
+
+      deleteLayout: deleteLayoutHandler({
+        layoutService: this.layoutService,
       }),
 
       sendCommand: sendCommandHandler({

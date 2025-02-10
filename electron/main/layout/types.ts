@@ -6,22 +6,22 @@ export interface LayoutService {
    * Gets a layout by name.
    * Example: 'default' to get 'path/to/layouts/default.json'.
    */
-  get(name: string): Promise<Maybe<Layout>>;
+  getLayout(options: { layoutName: string }): Promise<Maybe<Layout>>;
 
   /**
    * Lists all layout names.
    */
-  list(): Promise<Array<string>>;
+  listLayoutNames(): Promise<Array<string>>;
 
   /**
    * Saves a layout by name.
    * Example: 'default' to save 'path/to/layouts/default.json'.
    */
-  save(options: {
+  saveLayout(options: {
     /**
      * Name to associate to this layout configuration.
      */
-    name: string;
+    layoutName: string;
     /**
      * Layout configuration to save.
      */
@@ -32,5 +32,5 @@ export interface LayoutService {
    * Deletes a layout by name.
    * Example: 'default' to delete 'path/to/layouts/default.json'.
    */
-  delete(name: string): Promise<void>;
+  deleteLayout(options: { layoutName: string }): Promise<void>;
 }

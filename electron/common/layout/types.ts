@@ -85,5 +85,5 @@ export interface StreamLayout {
    * When StreamB is also hidden, both StreamA and StreamB redirect to StreamC.
    * When StreamC is also hidden, no content is displayed.
    */
-  whenHiddenStreamToId: string;
+  whenHiddenStreamToId?: string;
 }
