@@ -1,6 +1,10 @@
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Account, Character } from '../common/account/types.js';
+import type {
+  Account,
+  AccountWithPassword,
+  Character,
+} from '../common/account/types.js';
 import type { Layout } from '../common/layout/types.js';
 import type { LogMessage } from '../common/logger/types.js';
 import type { Maybe } from '../common/types.js';
@@ -24,7 +28,7 @@ const appAPI = {
   /**
    * Add or update credentials for a play.net account.
    */
-  saveAccount: async (account: Account): Promise<void> => {
+  saveAccount: async (account: AccountWithPassword): Promise<void> => {
     return ipcRenderer.invoke('saveAccount', account);
   },
   /**
@@ -36,7 +40,7 @@ const appAPI = {
   /**
    * List added accounts.
    */
-  listAccounts: async (): Promise<Array<Omit<Account, 'accountPassword'>>> => {
+  listAccounts: async (): Promise<Array<Account>> => {
     return ipcRenderer.invoke('listAccounts');
   },
   /**

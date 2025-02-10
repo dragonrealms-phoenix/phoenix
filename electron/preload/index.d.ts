@@ -1,6 +1,8 @@
 declare module 'common/account/types' {
   export interface Account {
     accountName: string;
+  }
+  export interface AccountWithPassword extends Account {
     accountPassword: string;
   }
   export interface Character {
@@ -188,7 +190,11 @@ declare module 'common/types' {
 }
 declare module 'preload/index' {
   import type { IpcRendererEvent } from 'electron';
-  import type { Account, Character } from 'common/account/types';
+  import type {
+    Account,
+    AccountWithPassword,
+    Character,
+  } from 'common/account/types';
   import type { Layout } from 'common/layout/types';
   import type { LogMessage } from 'common/logger/types';
   import type { Maybe } from 'common/types';
@@ -204,7 +210,7 @@ declare module 'preload/index' {
     /**
      * Add or update credentials for a play.net account.
      */
-    saveAccount: (account: Account) => Promise<void>;
+    saveAccount: (account: AccountWithPassword) => Promise<void>;
     /**
      * Remove credentials for a play.net account.
      */
@@ -212,7 +218,7 @@ declare module 'preload/index' {
     /**
      * List added accounts.
      */
-    listAccounts: () => Promise<Array<Omit<Account, 'accountPassword'>>>;
+    listAccounts: () => Promise<Array<Account>>;
     /**
      * Add or update a character for a given play.net account and game instance.
      */

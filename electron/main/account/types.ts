@@ -19,7 +19,9 @@ export interface AccountService {
    * Gets an account by name.
    * The password will be decrypted.
    */
-  getAccount(options: { accountName: string }): Promise<Maybe<Account>>;
+  getAccount(options: {
+    accountName: string;
+  }): Promise<Maybe<AccountWithPassword>>;
 
   /**
    * Adds or updates an account.

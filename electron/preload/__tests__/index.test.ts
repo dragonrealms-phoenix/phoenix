@@ -1,6 +1,9 @@
 import type { ContextBridge, IpcRenderer } from 'electron';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import type { Account, Character } from '../../common/account/types.js';
+import type {
+  AccountWithPassword,
+  Character,
+} from '../../common/account/types.js';
 import type { Layout } from '../../common/layout/types.js';
 import type { LogMessage } from '../../common/logger/types.js';
 import { LogLevel } from '../../common/logger/types.js';
@@ -100,7 +103,7 @@ describe('index', () => {
     });
 
     describe('#saveAccount', async () => {
-      const mockAccount: Account = {
+      const mockAccount: AccountWithPassword = {
         accountName: 'test-account-name',
         accountPassword: 'test-account-password',
       };
