@@ -66,6 +66,11 @@ export const useSaveAccount = (): SaveAccountFn => {
       await window.api.saveAccount({ accountName, accountPassword });
       publish('account:saved', { accountName });
       publish('accounts:reload');
+      publish('toast:add', {
+        title: 'Account Saved',
+        type: 'success',
+        text: accountName,
+      });
     },
     [publish]
   );
@@ -88,6 +93,11 @@ export const useRemoveAccount = (): RemoveAccountFn => {
       await window.api.removeAccount({ accountName });
       publish('account:removed', { accountName });
       publish('accounts:reload');
+      publish('toast:add', {
+        title: 'Account Removed',
+        type: 'success',
+        text: accountName,
+      });
     },
     [publish]
   );

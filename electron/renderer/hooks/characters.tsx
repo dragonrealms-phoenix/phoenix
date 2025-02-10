@@ -57,6 +57,11 @@ export const useSaveCharacter = (): SaveCharacterFn => {
       await window.api.saveCharacter(character);
       publish('character:saved', character);
       publish('characters:reload');
+      publish('toast:add', {
+        title: 'Character Saved',
+        type: 'success',
+        text: character.characterName,
+      });
     },
     [publish]
   );
@@ -85,6 +90,11 @@ export const useRemoveCharacter = (): RemoveCharacterFn => {
       await window.api.removeCharacter(character);
       publish('character:removed', character);
       publish('characters:reload');
+      publish('toast:add', {
+        title: 'Character Removed',
+        type: 'success',
+        text: character.characterName,
+      });
     },
     [playingCharacter, quitCharacter, publish]
   );
