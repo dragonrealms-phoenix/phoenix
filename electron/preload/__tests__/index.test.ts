@@ -1,6 +1,9 @@
 import type { ContextBridge, IpcRenderer } from 'electron';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { Account, Character } from '../../common/account/types.js';
 import type { Layout } from '../../common/layout/types.js';
+import type { LogMessage } from '../../common/logger/types.js';
+import { LogLevel } from '../../common/logger/types.js';
 
 const { mockContextBridge, mockIpcRenderer } = vi.hoisted(() => {
   const mockContextBridge = {
@@ -60,6 +63,10 @@ describe('index', () => {
           removeCharacter: expect.any(Function),
           listCharacters: expect.any(Function),
           playCharacter: expect.any(Function),
+          getLayout: expect.any(Function),
+          listLayoutNames: expect.any(Function),
+          saveLayout: expect.any(Function),
+          deleteLayout: expect.any(Function),
           sendCommand: expect.any(Function),
           onMessage: expect.any(Function),
           removeAllListeners: expect.any(Function),
@@ -80,9 +87,8 @@ describe('index', () => {
 
     describe('#log', async () => {
       it('sends log', async () => {
-        type LogMessage = Parameters<AppAPI['log']>[0];
         const logMessage: LogMessage = {
-          level: 'info',
+          level: LogLevel.INFO,
           scope: 'test-scope',
           message: 'test-message',
           timestamp: new Date(),
@@ -94,15 +100,17 @@ describe('index', () => {
     });
 
     describe('#saveAccount', async () => {
+      const mockAccount: Account = {
+        accountName: 'test-account-name',
+        accountPassword: 'test-account-password',
+      };
+
       it('invokes saveAccount', async () => {
-        await api.saveAccount({
-          accountName: 'test-account-name',
-          accountPassword: 'test-account-password',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('saveAccount', {
-          accountName: 'test-account-name',
-          accountPassword: 'test-account-password',
-        });
+        await api.saveAccount(mockAccount);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'saveAccount',
+          mockAccount
+        );
       });
     });
 
@@ -118,68 +126,65 @@ describe('index', () => {
     });
 
     describe('#saveCharacter', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes saveCharacter', async () => {
-        await api.saveCharacter({
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('saveCharacter', {
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
+        await api.saveCharacter(mockCharacter);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'saveCharacter',
+          mockCharacter
+        );
       });
     });
 
     describe('#removeCharacter', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes removeCharacter', async () => {
-        await api.removeCharacter({
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('removeCharacter', {
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
+        await api.removeCharacter(mockCharacter);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'removeCharacter',
+          mockCharacter
+        );
       });
     });
 
     describe('#listCharacters', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes listCharacters', async () => {
-        mockIpcRenderer.invoke.mockResolvedValueOnce([
-          {
-            accountName: 'test-account-name',
-            characterName: 'test-character-name',
-            gameCode: 'DR',
-          },
-        ]);
+        mockIpcRenderer.invoke.mockResolvedValueOnce([mockCharacter]);
         const result = await api.listCharacters();
         expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('listCharacters');
-        expect(result).toEqual([
-          {
-            accountName: 'test-account-name',
-            characterName: 'test-character-name',
-            gameCode: 'DR',
-          },
-        ]);
+        expect(result).toEqual([mockCharacter]);
       });
     });
 
     describe('#playCharacter', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes playCharacter', async () => {
-        await api.playCharacter({
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('playCharacter', {
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
+        await api.playCharacter(mockCharacter);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'playCharacter',
+          mockCharacter
+        );
       });
     });
 

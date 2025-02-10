@@ -1,6 +1,8 @@
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
+import type { Account, Character } from '../common/account/types.js';
 import type { Layout } from '../common/layout/types.js';
+import type { LogMessage } from '../common/logger/types.js';
 import type { Maybe } from '../common/types.js';
 
 /**
@@ -16,23 +18,14 @@ const appAPI = {
   /**
    * Logs a message to the main process.
    */
-  log: async (options: {
-    scope: string;
-    level: 'error' | 'warn' | 'info' | 'debug' | 'trace';
-    message: string;
-    timestamp: Date;
-    data?: Record<string, any>;
-  }): Promise<void> => {
-    return ipcRenderer.invoke('log', options);
+  log: async (message: LogMessage): Promise<void> => {
+    return ipcRenderer.invoke('log', message);
   },
   /**
    * Add or update credentials for a play.net account.
    */
-  saveAccount: async (options: {
-    accountName: string;
-    accountPassword: string;
-  }): Promise<void> => {
-    return ipcRenderer.invoke('saveAccount', options);
+  saveAccount: async (account: Account): Promise<void> => {
+    return ipcRenderer.invoke('saveAccount', account);
   },
   /**
    * Remove credentials for a play.net account.
@@ -43,43 +36,25 @@ const appAPI = {
   /**
    * List added accounts.
    */
-  listAccounts: async (): Promise<
-    Array<{
-      accountName: string;
-    }>
-  > => {
+  listAccounts: async (): Promise<Array<Omit<Account, 'accountPassword'>>> => {
     return ipcRenderer.invoke('listAccounts');
   },
   /**
    * Add or update a character for a given play.net account and game instance.
    */
-  saveCharacter: async (options: {
-    accountName: string;
-    characterName: string;
-    gameCode: string;
-  }): Promise<void> => {
-    return ipcRenderer.invoke('saveCharacter', options);
+  saveCharacter: async (character: Character): Promise<void> => {
+    return ipcRenderer.invoke('saveCharacter', character);
   },
   /**
    * Remove a character for a given play.net account and game instance.
    */
-  removeCharacter: async (options: {
-    accountName: string;
-    characterName: string;
-    gameCode: string;
-  }): Promise<void> => {
-    return ipcRenderer.invoke('removeCharacter', options);
+  removeCharacter: async (character: Character): Promise<void> => {
+    return ipcRenderer.invoke('removeCharacter', character);
   },
   /**
    * List added characters.
    */
-  listCharacters: async (): Promise<
-    Array<{
-      accountName: string;
-      characterName: string;
-      gameCode: string;
-    }>
-  > => {
+  listCharacters: async (): Promise<Array<Character>> => {
     return ipcRenderer.invoke('listCharacters');
   },
   /**
@@ -88,12 +63,8 @@ const appAPI = {
    * Use the `onMessage` API to receive game data.
    * Use the `sendCommand` API to send game commands.
    */
-  playCharacter: async (options: {
-    accountName: string;
-    characterName: string;
-    gameCode: string;
-  }): Promise<void> => {
-    return ipcRenderer.invoke('playCharacter', options);
+  playCharacter: async (character: Character): Promise<void> => {
+    return ipcRenderer.invoke('playCharacter', character);
   },
   /**
    * Quit the game with the currently playing character, if any.
