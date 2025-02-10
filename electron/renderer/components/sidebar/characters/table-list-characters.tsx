@@ -13,12 +13,12 @@ import isEqual from 'lodash-es/isEqual.js';
 import isNil from 'lodash-es/isNil.js';
 import type { ReactElement, ReactNode } from 'react';
 import { Fragment, memo, useMemo } from 'react';
+import type { Character } from '../../../../common/account/types.js';
 import {
   useListCharacters,
   usePlayingCharacter,
 } from '../../../hooks/characters.jsx';
 import { GameCodeLabels } from '../../../lib/game/game-code-labels.js';
-import type { Character } from '../../../types/game.types.js';
 
 interface TableByGameCode {
   gameCode: string; // e.g. 'DR'

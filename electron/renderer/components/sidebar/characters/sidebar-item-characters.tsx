@@ -8,6 +8,7 @@ import {
 import isEqual from 'lodash-es/isEqual.js';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
+import type { Character } from '../../../../common/account/types.js';
 import {
   usePlayCharacter,
   useQuitCharacter,
@@ -16,7 +17,6 @@ import {
 } from '../../../hooks/characters.jsx';
 import { useShowSidebarAccounts } from '../../../hooks/sidebar.jsx';
 import { runInBackground } from '../../../lib/async/run-in-background.js';
-import type { Character } from '../../../types/game.types.js';
 import { TableListCharacters } from '../characters/table-list-characters.jsx';
 import type { ModalAddCharacterConfirmData } from './modal-add-character.jsx';
 import { ModalAddCharacter } from './modal-add-character.jsx';

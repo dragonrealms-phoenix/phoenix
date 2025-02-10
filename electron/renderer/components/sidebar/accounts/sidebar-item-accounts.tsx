@@ -8,10 +8,10 @@ import {
 import type { ReactNode } from 'react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
+import type { Account } from '../../../../common/account/types.js';
 import { useRemoveAccount, useSaveAccount } from '../../../hooks/accounts.jsx';
 import { useShowSidebarCharacters } from '../../../hooks/sidebar.jsx';
 import { runInBackground } from '../../../lib/async/run-in-background.js';
-import type { Account } from '../../../types/game.types.js';
 import type { ModalAddAccountConfirmData } from './modal-add-account.jsx';
 import { ModalAddAccount } from './modal-add-account.jsx';
 import { ModalEditAccount } from './modal-edit-account.jsx';
