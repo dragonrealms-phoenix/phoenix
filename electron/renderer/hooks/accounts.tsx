@@ -1,7 +1,7 @@
 import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
+import type { Account } from '../../common/account/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { Account } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
 /**

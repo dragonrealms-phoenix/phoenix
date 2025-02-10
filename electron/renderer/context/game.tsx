@@ -3,6 +3,7 @@ import { EuiLoadingSpinner, EuiOverlayMask } from '@elastic/eui';
 import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useState } from 'react';
+import type { Character } from '../../common/account/types.js';
 import type {
   GameCommandMessage,
   GameConnectMessage,
@@ -14,7 +15,6 @@ import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { usePubSub, useSubscribe } from '../hooks/pubsub.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { Character } from '../types/game.types.js';
 
 /**
  * React context for storing Game-related data and callbacks.

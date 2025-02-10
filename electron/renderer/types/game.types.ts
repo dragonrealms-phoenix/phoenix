@@ -1,15 +1,5 @@
 import type { EuiThemeColorMode } from '@elastic/eui';
 
-export interface Account {
-  accountName: string;
-}
-
-export interface Character {
-  accountName: string;
-  characterName: string;
-  gameCode: string;
-}
-
 export interface GameLogLine {
   /**
    * A unique id for this log line.
