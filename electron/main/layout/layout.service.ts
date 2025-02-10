@@ -15,7 +15,7 @@ export class LayoutServiceImpl implements LayoutService {
     const filePath = this.getLayoutPath(layoutName);
     const fileExists = await fs.pathExists(filePath);
 
-    logger.info('getting layout', {
+    logger.debug('getting layout', {
       layoutName,
       filePath,
       fileExists,
@@ -53,7 +53,7 @@ export class LayoutServiceImpl implements LayoutService {
 
     const filePath = this.getLayoutPath(layoutName);
 
-    logger.info('saving layout', {
+    logger.debug('saving layout', {
       layoutName,
       filePath,
     });
@@ -73,7 +73,7 @@ export class LayoutServiceImpl implements LayoutService {
     const filePath = this.getLayoutPath(layoutName);
     const fileExists = await fs.pathExists(filePath);
 
-    logger.info('deleting layout', {
+    logger.debug('deleting layout', {
       layoutName,
       filePath,
       fileExists,
@@ -84,6 +84,10 @@ export class LayoutServiceImpl implements LayoutService {
     }
 
     await fs.remove(filePath);
+
+    logger.debug('deleted layout', {
+      layoutName,
+    });
   }
 
   protected getLayoutPath(name: string): string {
