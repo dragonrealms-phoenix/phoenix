@@ -27,7 +27,7 @@ export const useGetHasAccounts = (): boolean => {
 export const useListAccounts = (): Array<Account> => {
   const [accounts, setAccounts] = useState<Array<Account>>([]);
 
-  const loadAccounts = useCallback(async () => {
+  const listAccounts = useCallback(async () => {
     const allAccounts = await window.api.listAccounts();
     const sortedAccounts = sortBy(allAccounts, 'accountName');
     setAccounts(sortedAccounts);
@@ -35,15 +35,15 @@ export const useListAccounts = (): Array<Account> => {
 
   // Reload when told to.
   useSubscribe(['accounts:reload'], async () => {
-    await loadAccounts();
+    await listAccounts();
   });
 
   // Reload on first render.
   useEffect(() => {
     runInBackground(async () => {
-      await loadAccounts();
+      await listAccounts();
     });
-  }, [loadAccounts]);
+  }, [listAccounts]);
 
   return accounts;
 };

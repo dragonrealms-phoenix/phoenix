@@ -17,9 +17,8 @@ export const useListCharacters = (options?: {
 }): Array<Character> => {
   const [characters, setCharacters] = useState<Array<Character>>([]);
 
-  const loadCharacters = useCallback(async () => {
+  const listCharacters = useCallback(async () => {
     const accountName = options?.accountName;
-
     const allCharacters = await window.api.listCharacters();
     const filteredCharacters = allCharacters.filter((character) => {
       return isBlank(accountName) || character.accountName === accountName;
@@ -30,15 +29,15 @@ export const useListCharacters = (options?: {
 
   // Reload when told to.
   useSubscribe(['characters:reload'], async () => {
-    await loadCharacters();
+    await listCharacters();
   });
 
   // Reload on first render.
   useEffect(() => {
     runInBackground(async () => {
-      await loadCharacters();
+      await listCharacters();
     });
-  }, [loadCharacters]);
+  }, [listCharacters]);
 
   return characters;
 };
