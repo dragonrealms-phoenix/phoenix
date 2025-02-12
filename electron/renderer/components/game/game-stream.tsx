@@ -3,7 +3,7 @@ import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
-import { useSubscribe } from '../../hooks/pubsub.jsx';
+import { useGameInfo } from '../../hooks/game.jsx';
 import type { GameLogLine } from '../../types/game.types.jsx';
 import { GameStreamText } from './game-stream-text.jsx';
 import {
@@ -46,19 +46,16 @@ export const GameStream: React.FC<GameStreamProps> = (
 ): ReactNode => {
   const { stream$, primaryStreamId, gameStreamIds, maxLines = 500 } = props;
 
+  const { isConnected } = useGameInfo();
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Clear streams on new connections.
-  useSubscribe(['game:connect'], () => {
-    setGameLogLines([]);
-    setIsConnected(true);
-  });
-
-  useSubscribe(['game:disconnect'], () => {
-    setIsConnected(false);
-  });
+  // Clear streams when reconnect to game.
+  useEffect(() => {
+    if (isConnected) {
+      setGameLogLines([]);
+    }
+  }, [isConnected]);
 
   // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
