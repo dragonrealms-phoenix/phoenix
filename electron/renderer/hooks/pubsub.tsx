@@ -15,7 +15,7 @@ export type PubSubUnsubscribeCallback = () => void;
  * They deviate from the convention of named arguments in the interest
  * of simplicity and brevity.
  */
-interface PubSub {
+export interface PubSub {
   /**
    * Subscribes to an event.
    * Returns a method that will unsubscribe from the event.
@@ -48,7 +48,11 @@ export const useSubscribe = (
   events: Array<string>,
   subscriber: PubSubSubscriber
 ): void => {
-  const subscribe = usePubSubStore((state) => state.subscribe);
+  const subscribe = usePubSubStore(
+    useShallow((state) => {
+      return state.subscribe;
+    })
+  );
 
   useEffect(() => {
     const unsubscribes = events.map((event) => {
@@ -75,11 +79,9 @@ export const usePubSub = (): PubSub => {
     // Technically, our state reducer is returning a new object
     // each time although the properties are the same.
     // Use the `useShallow` operator to prevent unnecessary re-renders.
+    // We exclude other props so that we don't re-render when they change.
     useShallow((state) => {
       return {
-        // We exclude other properties like `subscribers`
-        // so that we don't re-render when they change.
-        // Who is subscribed or not is not relevant to this API shape.
         subscribe: state.subscribe,
         unsubscribe: state.unsubscribe,
         publish: state.publish,
@@ -87,6 +89,8 @@ export const usePubSub = (): PubSub => {
     })
   );
 
+  // I'm not sure if this is necessary since we use a shallow store above,
+  // but I'm going to memoize the return value just in case.
   const pubsub = useMemo((): PubSub => {
     return {
       subscribe: (event: string, subscriber: PubSubSubscriber) => {
