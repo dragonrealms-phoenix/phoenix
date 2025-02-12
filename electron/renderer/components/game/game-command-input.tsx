@@ -8,7 +8,7 @@ import type {
 } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
-import { useCommandHistory } from '../../hooks/command-history.jsx';
+import { useCommandHistory } from '../../hooks/commands.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
 
 export const GameCommandInput: React.FC = (): ReactNode => {
