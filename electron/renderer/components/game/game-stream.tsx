@@ -1,9 +1,9 @@
 import { EuiPanel, EuiSpacer } from '@elastic/eui';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
-import { useGameInfo } from '../../hooks/game.jsx';
+import { GameContext } from '../../context/game.jsx';
 import type { GameLogLine } from '../../types/game.types.jsx';
 import { GameStreamText } from './game-stream-text.jsx';
 import {
@@ -46,7 +46,7 @@ export const GameStream: React.FC<GameStreamProps> = (
 ): ReactNode => {
   const { stream$, primaryStreamId, gameStreamIds, maxLines = 500 } = props;
 
-  const { isConnected } = useGameInfo();
+  const { isConnected } = useContext(GameContext);
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
