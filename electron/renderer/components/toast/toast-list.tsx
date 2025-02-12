@@ -97,6 +97,7 @@ export const ToastList: React.FC<ToastListProps> = (
       toastLifeTimeMs={toastLifeTimeMs}
       dismissToast={onDismissToast}
       onClearAllToasts={onClearAllToasts}
+      side="left"
     />
   );
 };
