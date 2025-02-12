@@ -1,3 +1,4 @@
+import type { GameCode } from '../../../common/game/types.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
 import { SGEServiceImpl } from '../../sge/sge.service.js';
@@ -43,7 +44,7 @@ export const playCharacterHandler = (options: {
     dispatch('game:connect', {
       accountName,
       characterName,
-      gameCode,
+      gameCode: gameCode as GameCode,
     });
 
     logger.debug('subscribing to game service stream');
@@ -61,7 +62,7 @@ export const playCharacterHandler = (options: {
         dispatch('game:disconnect', {
           accountName,
           characterName,
-          gameCode,
+          gameCode: gameCode as GameCode,
         });
       },
     });
