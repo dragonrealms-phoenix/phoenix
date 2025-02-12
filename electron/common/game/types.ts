@@ -416,13 +416,13 @@ export enum ExperienceMindState {
 export interface GameConnectMessage {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }
 
 export interface GameDisconnectMessage {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }
 
 export interface GameErrorMessage {

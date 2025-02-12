@@ -656,12 +656,12 @@ declare module 'common/game/types' {
   export interface GameConnectMessage {
     accountName: string;
     characterName: string;
-    gameCode: string;
+    gameCode: GameCode;
   }
   export interface GameDisconnectMessage {
     accountName: string;
     characterName: string;
-    gameCode: string;
+    gameCode: GameCode;
   }
   export interface GameErrorMessage {
     error: Error;

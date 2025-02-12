@@ -2,9 +2,10 @@ import type { IpcRendererEvent } from 'electron';
 import { EuiLoadingSpinner, EuiOverlayMask } from '@elastic/eui';
 import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 import type { Character } from '../../common/account/types.js';
 import type {
+  GameCode,
   GameCommandMessage,
   GameConnectMessage,
   GameDisconnectMessage,
@@ -20,15 +21,31 @@ import { runInBackground } from '../lib/async/run-in-background.js';
  * React context for storing Game-related data and callbacks.
  */
 export interface GameContextValue {
-  //
-  todo?: true;
+  /**
+   * Whether the game client is connected.
+   */
+  isConnected: boolean;
+  /**
+   * The account of the connected character.
+   */
+  accountName?: string;
+  /**
+   * The name of the connected character.
+   */
+  characterName?: string;
+  /**
+   * The game code of the connected character.
+   */
+  gameCode?: GameCode;
 }
 
 /**
  * Defines shape and behavior of the context value
  * when no provider is found in the component hierarchy.
  */
-export const GameContext = createContext<GameContextValue>({});
+export const GameContext = createContext<GameContextValue>({
+  isConnected: false,
+});
 
 GameContext.displayName = 'GameContext';
 
@@ -47,6 +64,20 @@ export const GameProvider: React.FC<GameProviderProps> = (
   const logger = useLogger('renderer:context:game');
   const router = useRouter();
   const pubsub = usePubSub();
+
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [accountName, setAccountName] = useState<string>();
+  const [characterName, setCharacterName] = useState<string>();
+  const [gameCode, setGameCode] = useState<GameCode>();
+
+  const contextValue = useMemo<GameContextValue>(() => {
+    return {
+      isConnected,
+      accountName,
+      characterName,
+      gameCode,
+    };
+  }, [isConnected, accountName, characterName, gameCode]);
 
   const quitCharacter = useQuitCharacter();
 
@@ -112,6 +143,10 @@ export const GameProvider: React.FC<GameProviderProps> = (
           characterName,
           gameCode,
         });
+        setIsConnected(true);
+        setAccountName(accountName);
+        setCharacterName(characterName);
+        setGameCode(gameCode);
         pubsub.publish('game:connect', {
           accountName,
           characterName,
@@ -134,6 +169,10 @@ export const GameProvider: React.FC<GameProviderProps> = (
           characterName,
           gameCode,
         });
+        setIsConnected(false);
+        setAccountName(accountName);
+        setCharacterName(characterName);
+        setGameCode(gameCode);
         pubsub.publish('game:disconnect', {
           accountName,
           characterName,
@@ -198,7 +237,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   }, [pubsub]);
 
   return (
-    <GameContext.Provider value={{}}>
+    <GameContext.Provider value={contextValue}>
       <>
         {(showPlayStartingOverlay || showPlayStoppingOverlay) && (
           <EuiOverlayMask>
