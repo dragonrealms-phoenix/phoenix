@@ -67,13 +67,13 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useSubscribe(['character:play:starting'], async (character: Character) => {
     logger.debug('character:play:starting', { character });
     setShowPlayStartingOverlay(true);
+    await router.push('/game');
   });
 
   useSubscribe(['character:play:started'], async (character: Character) => {
     logger.debug('character:play:started', { character });
     setShowPlayStartingOverlay(false);
     pubsub.publish('sidebar:hide');
-    await router.push('/game');
   });
 
   useSubscribe(['character:play:stopping'], async (character: Character) => {
