@@ -1,9 +1,10 @@
 import { EuiIcon, EuiToolTip } from '@elastic/eui';
 import type React from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
+import { GameContext } from '../../context/game.jsx';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
 
@@ -27,6 +28,8 @@ const compassPoints: Record<string, CompassPoint> = {
 };
 
 export const GameCompass: React.FC = (): ReactNode => {
+  const { isConnected } = useContext(GameContext);
+
   const [hasNorth, setHasNorth] = useState<boolean>(false);
   const [hasNorthEast, setHasNorthEast] = useState<boolean>(false);
   const [hasEast, setHasEast] = useState<boolean>(false);
@@ -36,6 +39,20 @@ export const GameCompass: React.FC = (): ReactNode => {
   const [hasWest, setHasWest] = useState<boolean>(false);
   const [hasNorthWest, setHasNorthWest] = useState<boolean>(false);
   const [hasOut, setHasOut] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setHasNorth(false);
+      setHasNorthEast(false);
+      setHasEast(false);
+      setHasSouthEast(false);
+      setHasSouth(false);
+      setHasSouthWest(false);
+      setHasWest(false);
+      setHasNorthWest(false);
+      setHasOut(false);
+    }
+  }, [isConnected]);
 
   // Every time the character changes rooms, the game sends a compass event
   // with the new set of obvious paths the character may move.

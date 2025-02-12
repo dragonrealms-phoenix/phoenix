@@ -9,8 +9,6 @@ import { useSubscribe } from '../../hooks/pubsub.jsx';
 export const GameStatusBars: React.FC = (): ReactNode => {
   const { euiTheme } = useEuiTheme();
 
-  const { isConnected } = useContext(GameContext);
-
   const [health, setHealth] = useState<number>(100);
   const [mana, setMana] = useState<number>(100);
   const [concentration, setConcentration] = useState<number>(100);
@@ -46,10 +44,9 @@ export const GameStatusBars: React.FC = (): ReactNode => {
         value={health}
         fillColor="#750E21"
         textColor={euiTheme.colors.text}
-        isConnected={isConnected}
       />
     );
-  }, [health, euiTheme, isConnected]);
+  }, [health, euiTheme]);
 
   const manaStatusBar = useMemo((): ReactElement => {
     return (
@@ -58,10 +55,9 @@ export const GameStatusBars: React.FC = (): ReactNode => {
         value={mana}
         fillColor="#4477CE"
         textColor={euiTheme.colors.text}
-        isConnected={isConnected}
       />
     );
-  }, [mana, euiTheme, isConnected]);
+  }, [mana, euiTheme]);
 
   const concentrationStatusBar = useMemo((): ReactElement => {
     return (
@@ -70,10 +66,9 @@ export const GameStatusBars: React.FC = (): ReactNode => {
         value={concentration}
         fillColor="#19376D"
         textColor={euiTheme.colors.text}
-        isConnected={isConnected}
       />
     );
-  }, [concentration, euiTheme, isConnected]);
+  }, [concentration, euiTheme]);
 
   const staminaStatusBar = useMemo((): ReactElement => {
     return (
@@ -82,10 +77,9 @@ export const GameStatusBars: React.FC = (): ReactNode => {
         value={stamina}
         fillColor="#006A67"
         textColor={euiTheme.colors.text}
-        isConnected={isConnected}
       />
     );
-  }, [stamina, euiTheme, isConnected]);
+  }, [stamina, euiTheme]);
 
   const spiritStatusBar = useMemo((): ReactElement => {
     return (
@@ -94,10 +88,9 @@ export const GameStatusBars: React.FC = (): ReactNode => {
         value={spirit}
         fillColor="#6A1E55"
         textColor={euiTheme.colors.text}
-        isConnected={isConnected}
       />
     );
-  }, [spirit, euiTheme, isConnected]);
+  }, [spirit, euiTheme]);
 
   const statusBars = useMemo((): ReactElement => {
     return (
@@ -135,15 +128,16 @@ interface GameStatusBarProps {
   value: number;
   fillColor: string;
   textColor: string;
-  isConnected: boolean;
 }
 
 const GameStatusBar: React.FC<GameStatusBarProps> = (
   props: GameStatusBarProps
 ): ReactNode => {
-  const { title, value, textColor, isConnected } = props;
+  const { title, value, textColor } = props;
 
   const { euiTheme } = useEuiTheme();
+
+  const { isConnected } = useContext(GameContext);
 
   const fillColor = isConnected ? props.fillColor : euiTheme.colors.disabled;
 
