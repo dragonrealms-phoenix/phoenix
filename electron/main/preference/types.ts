@@ -7,15 +7,15 @@ export enum PreferenceKey {
    * 1.0 = 100%
    * 1.5 = 150%
    */
-  WINDOW_ZOOM_FACTOR = 'preference.window.zoomFactor',
+  WINDOW_ZOOM_FACTOR = 'window.zoomFactor',
   /**
    * Whether to confirm before closing the window.
    */
-  WINDOW_CONFIRM_ON_CLOSE = 'preference.window.confirmOnClose',
+  WINDOW_CONFIRM_ON_CLOSE = 'window.confirmOnClose',
   /**
    * The maximum number of lines to keep in any game stream.
    */
-  GAME_STREAM_SCROLLBACK_BUFFER_SIZE = 'preference.gameStream.scrollbackBufferSize',
+  GAME_STREAM_SCROLLBACK_BUFFER_SIZE = 'gameStream.scrollbackBufferSize',
 }
 
 export type PreferenceKeyToTypeMap = {
