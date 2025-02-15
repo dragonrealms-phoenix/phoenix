@@ -40,9 +40,6 @@ const GamePage: React.FC = (): ReactNode => {
     return new rxjs.Subject<GameLogLine>();
   });
 
-  // TODO load the grid config items
-  // TODO load the grid layout items
-
   const { colorMode } = useTheme();
 
   const mainStreamId = getGameItemInfo(GameItemId.MAIN).streamId;
@@ -220,6 +217,7 @@ const GamePage: React.FC = (): ReactNode => {
     });
   });
 
+  // One of the ways to let user know the game has disconnected.
   useSubscribe(['game:disconnect'], () => {
     gameLogLineSubject$.next({
       eventId: uuid(),
@@ -323,7 +321,7 @@ const GamePage: React.FC = (): ReactNode => {
       isFocused: false,
       layout: {
         x: 828,
-        y: 390,
+        y: 190,
         width: 306,
         height: 355,
       },
@@ -337,7 +335,7 @@ const GamePage: React.FC = (): ReactNode => {
         x: 0,
         y: 200,
         width: 828,
-        height: 545,
+        height: 420,
       },
     });
 
