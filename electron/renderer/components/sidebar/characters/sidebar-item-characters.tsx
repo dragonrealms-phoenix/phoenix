@@ -9,6 +9,7 @@ import isEqual from 'lodash-es/isEqual.js';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
 import type { Character } from '../../../../common/account/types.js';
+import { useGetHasAccounts } from '../../../hooks/accounts.jsx';
 import {
   usePlayCharacter,
   useQuitCharacter,
@@ -30,6 +31,9 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showRemoveModal, setShowRemoveModal] = useState<boolean>(false);
+
+  // Has user added any accounts from which to manage characters?
+  const hasAccounts = useGetHasAccounts();
 
   // Hooks to manage characters.
   const playCharacter = usePlayCharacter();
@@ -145,7 +149,11 @@ export const SidebarItemCharacters: React.FC = (): ReactNode => {
       </EuiCallOut>
 
       <EuiPanel paddingSize="s" hasShadow={false}>
-        <EuiButton size="s" onClick={() => onAddCharacterClick()}>
+        <EuiButton
+          size="s"
+          onClick={() => onAddCharacterClick()}
+          disabled={!hasAccounts}
+        >
           Add Character
         </EuiButton>
 
