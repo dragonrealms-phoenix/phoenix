@@ -37,6 +37,7 @@ describe('get-layout', () => {
           textSize: 5,
           backgroundColor: 'test-background-color',
           foregroundColor: 'test-foreground-color',
+          whenHiddenRedirectToId: 'test-when-hidden-redirect-to-id',
         },
       ],
     };

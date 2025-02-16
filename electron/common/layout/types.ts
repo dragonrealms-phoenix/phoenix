@@ -118,5 +118,5 @@ export interface ItemLayout {
    *  - When StreamB is also hidden, both StreamA and StreamB redirect to StreamC.
    *  - When StreamC is also hidden, no content is displayed.
    */
-  whenHiddenRedirectToId?: string | null;
+  whenHiddenRedirectToId: string;
 }
