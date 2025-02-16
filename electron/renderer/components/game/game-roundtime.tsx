@@ -54,7 +54,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
   // Technically, we don't need to explicitly recalculate the round time
   // when these game events are received, but doing so will immediately
   // refresh the UI when new roundtimes are incurred rather than on a delay.
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     switch (gameEvent.type) {
       case GameEventType.SERVER_TIME:
         serverTimeRef.current = gameEvent.time;

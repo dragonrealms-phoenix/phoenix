@@ -8,7 +8,7 @@ export const useLoadedLayout = (): Maybe<Layout> => {
   const [layoutName, setLayoutName] = useState<string>('default');
   const layout = useGetLayout(layoutName);
 
-  useSubscribe(['layout:load'], (layoutName: string) => {
+  useSubscribe('layout:load', (layoutName: string) => {
     setLayoutName(layoutName);
   });
 
@@ -28,7 +28,7 @@ export const useGetLayout = (layoutName: string): Maybe<Layout> => {
   }, [layoutName]);
 
   // Reload when told to.
-  useSubscribe(['layouts:reload'], async () => {
+  useSubscribe('layouts:reload', async () => {
     await getLayout();
   });
 
@@ -55,7 +55,7 @@ export const useListLayoutNames = (): Array<string> => {
   }, []);
 
   // Reload when told to.
-  useSubscribe(['layouts:reload'], async () => {
+  useSubscribe('layouts:reload', async () => {
     await listLayoutNames();
   });
 

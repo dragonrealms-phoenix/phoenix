@@ -91,7 +91,7 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
     }
   }, []);
 
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     switch (gameEvent.type) {
       case GameEventType.INDICATOR:
         setIndicatorState(gameEvent);

@@ -20,11 +20,11 @@ export const Sidebar: React.FC = (): ReactNode => {
     setShowSettings(false);
   }, []);
 
-  useSubscribe(['sidebar:hide'], () => {
+  useSubscribe('sidebar:hide', () => {
     closeSidebar();
   });
 
-  useSubscribe(['sidebar:show'], (sidebarId: SidebarId) => {
+  useSubscribe('sidebar:show', (sidebarId: SidebarId) => {
     closeSidebar();
     switch (sidebarId) {
       case SidebarId.Characters:

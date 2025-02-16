@@ -34,7 +34,7 @@ export const useListAccounts = (): Array<Account> => {
   }, []);
 
   // Reload when told to.
-  useSubscribe(['accounts:reload'], async () => {
+  useSubscribe('accounts:reload', async () => {
     await listAccounts();
   });
 

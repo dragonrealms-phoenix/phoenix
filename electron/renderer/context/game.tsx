@@ -95,30 +95,30 @@ export const GameProvider: React.FC<GameProviderProps> = (
   // a second character and one is already playing. What you see
   // is a quick flicker of the overlay then no overlay at all.
   // Instead, use two variables to drive the overlay.
-  useSubscribe(['character:play:starting'], async (character: Character) => {
+  useSubscribe('character:play:starting', async (character: Character) => {
     logger.debug('character:play:starting', { character });
     setShowPlayStartingOverlay(true);
     await router.push('/game');
   });
 
-  useSubscribe(['character:play:started'], async (character: Character) => {
+  useSubscribe('character:play:started', async (character: Character) => {
     logger.debug('character:play:started', { character });
     setShowPlayStartingOverlay(false);
     pubsub.publish('sidebar:hide');
   });
 
-  useSubscribe(['character:play:stopping'], async (character: Character) => {
+  useSubscribe('character:play:stopping', async (character: Character) => {
     logger.debug('character:play:stopping', { character });
     setShowPlayStoppingOverlay(true);
   });
 
-  useSubscribe(['character:play:stopped'], async (character: Character) => {
+  useSubscribe('character:play:stopped', async (character: Character) => {
     logger.debug('character:play:stopped', { character });
     setShowPlayStoppingOverlay(false);
   });
 
   useSubscribe(
-    ['character:play:error'],
+    'character:play:error',
     async (event: { title: string; error: Error }) => {
       const { title, error } = event;
 

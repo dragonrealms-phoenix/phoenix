@@ -52,7 +52,7 @@ const GamePage: React.FC = (): ReactNode => {
 
   // Track high level game events such as stream ids and formatting.
   // Re-emit text events to the game stream subject to get to grid items.
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     const textStyles: GameLogLine['styles'] = {
       colorMode,
       outputClass: textOutputClassRef.current,
@@ -159,7 +159,7 @@ const GamePage: React.FC = (): ReactNode => {
 
   // When the user sends a command, echo it to the main game stream so that
   // the user sees what they sent and can correlate to the game response.
-  useSubscribe(['game:command'], (command: string) => {
+  useSubscribe('game:command', (command: string) => {
     gameLogLineSubject$.next({
       eventId: uuid(),
       streamId: 'main',
@@ -172,7 +172,7 @@ const GamePage: React.FC = (): ReactNode => {
   });
 
   // One of the ways to let user know the game has disconnected.
-  useSubscribe(['game:disconnect'], () => {
+  useSubscribe('game:disconnect', () => {
     gameLogLineSubject$.next({
       eventId: uuid(),
       streamId: 'main',

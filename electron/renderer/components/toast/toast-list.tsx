@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { useLogger } from '../../hooks/logger.jsx';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
+import type { ToastAddEvent } from '../../types/toast.types.js';
 
 export interface ToastListProps {
   /**
@@ -12,12 +13,6 @@ export interface ToastListProps {
    * Default is 5000ms.
    */
   toastLifeTimeMs?: number;
-}
-
-export interface ToastAddEvent {
-  title: string;
-  text?: ReactNode;
-  type?: 'success' | 'warning' | 'danger' | 'info';
 }
 
 export const ToastList: React.FC<ToastListProps> = (
@@ -29,7 +24,7 @@ export const ToastList: React.FC<ToastListProps> = (
 
   const [toasts, setToasts] = useState<Array<Toast>>([]);
 
-  useSubscribe(['toast:add'], (toastAddEvent: ToastAddEvent) => {
+  useSubscribe('toast:add', (toastAddEvent: ToastAddEvent) => {
     const { title, text, type } = toastAddEvent;
 
     // let iconType: EuiIconType | undefined;

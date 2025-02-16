@@ -56,7 +56,7 @@ export const GameCompass: React.FC = (): ReactNode => {
 
   // Every time the character changes rooms, the game sends a compass event
   // with the new set of obvious paths the character may move.
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     if (gameEvent.type === GameEventType.COMPASS) {
       const directionSet = new Set(gameEvent.directions);
       setHasNorth(directionSet.has('n'));

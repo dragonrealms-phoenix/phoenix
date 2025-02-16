@@ -39,13 +39,13 @@ export interface PubSub {
 }
 
 /**
- * Hook that subscribes to one or more events.
+ * Hook that subscribes to an event.
  * Automatically unsubscribes when the component unmounts.
  *
  * For more granular control, use `usePubSub()`.
  */
 export const useSubscribe = (
-  events: Array<string>,
+  event: string,
   subscriber: PubSubSubscriber
 ): void => {
   const subscribe = usePubSubStore(
@@ -55,15 +55,11 @@ export const useSubscribe = (
   );
 
   useEffect(() => {
-    const unsubscribes = events.map((event) => {
-      return subscribe({ event, subscriber });
-    });
+    const unsubscribe = subscribe({ event, subscriber });
     return () => {
-      unsubscribes.forEach((unsubscribe) => {
-        unsubscribe();
-      });
+      unsubscribe();
     };
-  }, [events, subscriber, subscribe]);
+  }, [event, subscriber, subscribe]);
 };
 
 /**

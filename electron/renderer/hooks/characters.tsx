@@ -28,7 +28,7 @@ export const useListCharacters = (options?: {
   }, [options?.accountName]);
 
   // Reload when told to.
-  useSubscribe(['characters:reload'], async () => {
+  useSubscribe('characters:reload', async () => {
     await listCharacters();
   });
 

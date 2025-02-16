@@ -15,7 +15,7 @@ export const GameStatusBars: React.FC = (): ReactNode => {
   const [stamina, setStamina] = useState<number>(100);
   const [spirit, setSpirit] = useState<number>(100);
 
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     if (gameEvent.type === GameEventType.VITALS) {
       switch (gameEvent.vitalId) {
         case 'health':
