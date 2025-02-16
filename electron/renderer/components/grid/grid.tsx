@@ -26,7 +26,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
     const focusedItem = contentItems.find((contentItem) => {
       return contentItem.isFocused;
     });
-    return focusedItem?.itemId ?? '';
+    return focusedItem?.itemId || 'main';
   });
 
   const onItemFocus = useCallback(
@@ -41,6 +41,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const onItemClose = useCallback(
     (item: GridItemInfo) => {
       logger.debug('closed item', { item });
+      // TODO remove from layout
     },
     [logger]
   );
@@ -48,6 +49,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const onItemMoveResize = useCallback(
     (item: GridItemInfo) => {
       logger.debug('moved item', { item });
+      // TODO auto-save layout or require user to save manually?
     },
     [logger]
   );
