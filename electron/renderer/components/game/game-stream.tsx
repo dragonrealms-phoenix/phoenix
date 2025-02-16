@@ -15,7 +15,7 @@ export interface GameStreamProps {
   /**
    * The stream of game text to display.
    * The stream is additive, so each new line will be appended to the end.
-   * The special log line text '__CLEAR_STREAM__' will clear all prior lines.
+   * The special log line text `'__CLEAR_STREAM__'` will clear all prior lines.
    */
   stream$: rxjs.Observable<GameLogLine>;
   /**
