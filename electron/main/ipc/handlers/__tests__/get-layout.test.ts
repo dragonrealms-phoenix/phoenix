@@ -24,7 +24,7 @@ describe('get-layout', () => {
         width: 3,
         height: 4,
       },
-      streams: [
+      items: [
         {
           id: 'test-stream-id',
           title: 'test-stream-title',

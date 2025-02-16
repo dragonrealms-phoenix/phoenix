@@ -1,88 +1,91 @@
-import type { Mock, Mocked } from 'vitest';
+import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Maybe } from '../../../common/types.js';
-import type { AccountService } from '../../account/types.js';
-import type { GameService } from '../../game/types.js';
-import type { StoreService } from '../../store/types.js';
+import { mockLogger } from '../../logger/__mocks__/logger.factory.js';
 import { IpcController } from '../ipc.controller.js';
 
-type GameInstanceModule = typeof import('../../game/game.instance.js');
-type MockAccountService = Mocked<AccountService> & { constructorSpy: Mock };
-
 const {
-  mockGameService,
   mockGameInstance,
+  mockGameService,
   mockAccountService,
-  mockStoreService,
+  mockLayoutService,
+  mockIpcMain,
   mockIpcPingHandler,
+  mockIpcLogHandler,
   mockIpcSaveAccountHandler,
   mockIpcRemoveAccountHandler,
+  mockIpcListAccountsHandler,
   mockIpcSaveCharacterHandler,
   mockIpcRemoveCharacterHandler,
   mockIpcListCharactersHandler,
   mockIpcPlayCharacterHandler,
+  mockIpcQuitCharacterHandler,
+  mockIpcGetLayoutHandler,
+  mockIpcListLayoutNamesHandler,
+  mockIpcSaveLayoutHandler,
+  mockIpcDeleteLayoutHandler,
   mockIpcSendCommandHandler,
-  mockIpcMain,
 } = await vi.hoisted(async () => {
-  const mockGameService: Mocked<GameService> = {
-    isConnected: vi.fn(),
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    send: vi.fn(),
-  };
+  const mockGameInstanceModule = await import(
+    '../../game/__mocks__/game-instance.mock.js'
+  );
+  const mockGameInstance = new mockGameInstanceModule.GameInstanceMock();
 
-  const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
-    getInstance: vi.fn(),
-    newInstance: vi.fn(),
-  };
+  const mockGameServiceModule = await import(
+    '../../game/__mocks__/game-service.mock.js'
+  );
+  const mockGameService = new mockGameServiceModule.GameServiceMockImpl();
 
-  const mockAccountService: MockAccountService = {
-    constructorSpy: vi.fn(),
+  const mockAccountServiceModule = await import(
+    '../../account/__mocks__/account-service.mock.js'
+  );
+  const mockAccountService =
+    new mockAccountServiceModule.AccountServiceMockImpl();
 
-    listAccounts: vi.fn<AccountService['listAccounts']>(),
-    getAccount: vi.fn<AccountService['getAccount']>(),
-    saveAccount: vi.fn<AccountService['saveAccount']>(),
-    removeAccount: vi.fn<AccountService['removeAccount']>(),
-    listCharacters: vi.fn<AccountService['listCharacters']>(),
-    getCharacter: vi.fn<AccountService['getCharacter']>(),
-    saveCharacter: vi.fn<AccountService['saveCharacter']>(),
-    removeCharacter: vi.fn<AccountService['removeCharacter']>(),
-  };
-
-  const mockStoreService: Mocked<StoreService> = {
-    keys: vi.fn<StoreService['keys']>(),
-    get: vi.fn<(key: string) => Promise<Maybe<any>>>(),
-    set: vi.fn<StoreService['set']>(),
-    remove: vi.fn<StoreService['remove']>(),
-    removeAll: vi.fn<StoreService['removeAll']>(),
-  };
-
-  const mockIpcPingHandler = vi.fn();
-  const mockIpcSaveAccountHandler = vi.fn();
-  const mockIpcRemoveAccountHandler = vi.fn();
-  const mockIpcSaveCharacterHandler = vi.fn();
-  const mockIpcRemoveCharacterHandler = vi.fn();
-  const mockIpcListCharactersHandler = vi.fn();
-  const mockIpcPlayCharacterHandler = vi.fn();
-  const mockIpcSendCommandHandler = vi.fn();
+  const mockLayoutServiceModule = await import(
+    '../../layout/__mocks__/layout-service.mock.js'
+  );
+  const mockLayoutService = new mockLayoutServiceModule.LayoutServiceMockImpl();
 
   const mockIpcMainModule = await import('../__mocks__/ipc-main.mock.js');
   const mockIpcMain = new mockIpcMainModule.IpcMainMock();
 
+  const mockIpcPingHandler = vi.fn();
+  const mockIpcLogHandler = vi.fn();
+  const mockIpcSaveAccountHandler = vi.fn();
+  const mockIpcRemoveAccountHandler = vi.fn();
+  const mockIpcListAccountsHandler = vi.fn();
+  const mockIpcSaveCharacterHandler = vi.fn();
+  const mockIpcRemoveCharacterHandler = vi.fn();
+  const mockIpcListCharactersHandler = vi.fn();
+  const mockIpcPlayCharacterHandler = vi.fn();
+  const mockIpcQuitCharacterHandler = vi.fn();
+  const mockIpcGetLayoutHandler = vi.fn();
+  const mockIpcListLayoutNamesHandler = vi.fn();
+  const mockIpcSaveLayoutHandler = vi.fn();
+  const mockIpcDeleteLayoutHandler = vi.fn();
+  const mockIpcSendCommandHandler = vi.fn();
+
   return {
-    mockGameService,
     mockGameInstance,
+    mockGameService,
     mockAccountService,
-    mockStoreService,
+    mockLayoutService,
+    mockIpcMain,
     mockIpcPingHandler,
+    mockIpcLogHandler,
     mockIpcSaveAccountHandler,
     mockIpcRemoveAccountHandler,
+    mockIpcListAccountsHandler,
     mockIpcSaveCharacterHandler,
     mockIpcRemoveCharacterHandler,
     mockIpcListCharactersHandler,
     mockIpcPlayCharacterHandler,
+    mockIpcQuitCharacterHandler,
+    mockIpcGetLayoutHandler,
+    mockIpcListLayoutNamesHandler,
+    mockIpcSaveLayoutHandler,
+    mockIpcDeleteLayoutHandler,
     mockIpcSendCommandHandler,
-    mockIpcMain,
   };
 });
 
@@ -92,73 +95,15 @@ vi.mock('../../game/game.instance.js', () => {
   };
 });
 
-vi.mock('../../account/account.service.js', () => {
-  class AccountServiceMockImpl implements AccountService {
-    constructor(...args: Array<any>) {
-      mockAccountService.constructorSpy(args);
-    }
-
-    listAccounts = vi
-      .fn<AccountService['listAccounts']>()
-      .mockImplementation(async () => {
-        return mockAccountService.listAccounts();
-      });
-
-    getAccount = vi
-      .fn<AccountService['getAccount']>()
-      .mockImplementation(async (options) => {
-        return mockAccountService.getAccount(options);
-      });
-
-    saveAccount = vi
-      .fn<AccountService['saveAccount']>()
-      .mockImplementation(async (account) => {
-        return mockAccountService.saveAccount(account);
-      });
-
-    removeAccount = vi
-      .fn<AccountService['removeAccount']>()
-      .mockImplementation(async (options) => {
-        return mockAccountService.removeAccount(options);
-      });
-
-    listCharacters = vi
-      .fn<AccountService['listCharacters']>()
-      .mockImplementation(async (options) => {
-        return mockAccountService.listCharacters(options);
-      });
-
-    getCharacter = vi
-      .fn<AccountService['getCharacter']>()
-      .mockImplementation(async (options) => {
-        return mockAccountService.getCharacter(options);
-      });
-
-    saveCharacter = vi
-      .fn<AccountService['saveCharacter']>()
-      .mockImplementation(async (character) => {
-        return mockAccountService.saveCharacter(character);
-      });
-
-    removeCharacter = vi
-      .fn<AccountService['removeCharacter']>()
-      .mockImplementation(async (character) => {
-        return mockAccountService.removeCharacter(character);
-      });
-  }
-
-  return {
-    AccountServiceImpl: AccountServiceMockImpl,
-  };
-});
-
-vi.mock('../../store/store.instance.ts', () => {
-  return { Store: mockStoreService };
-});
-
 vi.mock('../../ipc/handlers/ping.js', () => {
   return {
     pingHandler: mockIpcPingHandler,
+  };
+});
+
+vi.mock('../../ipc/handlers/log.js', () => {
+  return {
+    logHandler: mockIpcLogHandler,
   };
 });
 
@@ -171,6 +116,12 @@ vi.mock('../../ipc/handlers/save-account.js', () => {
 vi.mock('../../ipc/handlers/remove-account.js', () => {
   return {
     removeAccountHandler: mockIpcRemoveAccountHandler,
+  };
+});
+
+vi.mock('../../ipc/handlers/list-accounts.js', () => {
+  return {
+    listAccountsHandler: mockIpcListAccountsHandler,
   };
 });
 
@@ -198,6 +149,36 @@ vi.mock('../../ipc/handlers/play-character.js', () => {
   };
 });
 
+vi.mock('../../ipc/handlers/quit-character.js', () => {
+  return {
+    quitCharacterHandler: mockIpcQuitCharacterHandler,
+  };
+});
+
+vi.mock('../../ipc/handlers/get-layout.js', () => {
+  return {
+    getLayoutHandler: mockIpcGetLayoutHandler,
+  };
+});
+
+vi.mock('../../ipc/handlers/list-layout-names.js', () => {
+  return {
+    listLayoutNamesHandler: mockIpcListLayoutNamesHandler,
+  };
+});
+
+vi.mock('../../ipc/handlers/save-layout.js', () => {
+  return {
+    saveLayoutHandler: mockIpcSaveLayoutHandler,
+  };
+});
+
+vi.mock('../../ipc/handlers/delete-layout.js', () => {
+  return {
+    deleteLayoutHandler: mockIpcDeleteLayoutHandler,
+  };
+});
+
 vi.mock('../../ipc/handlers/send-command.js', () => {
   return {
     sendCommandHandler: mockIpcSendCommandHandler,
@@ -219,12 +200,19 @@ describe('ipc-controller', () => {
     mockIpcDispatcher = vi.fn();
 
     mockIpcPingHandler.mockReturnValue(vi.fn());
+    mockIpcLogHandler.mockReturnValue(vi.fn());
     mockIpcSaveAccountHandler.mockReturnValue(vi.fn());
     mockIpcRemoveAccountHandler.mockReturnValue(vi.fn());
+    mockIpcListAccountsHandler.mockReturnValue(vi.fn());
     mockIpcSaveCharacterHandler.mockReturnValue(vi.fn());
     mockIpcRemoveCharacterHandler.mockReturnValue(vi.fn());
     mockIpcListCharactersHandler.mockReturnValue(vi.fn());
     mockIpcPlayCharacterHandler.mockReturnValue(vi.fn());
+    mockIpcQuitCharacterHandler.mockReturnValue(vi.fn());
+    mockIpcGetLayoutHandler.mockReturnValue(vi.fn());
+    mockIpcListLayoutNamesHandler.mockReturnValue(vi.fn());
+    mockIpcSaveLayoutHandler.mockReturnValue(vi.fn());
+    mockIpcDeleteLayoutHandler.mockReturnValue(vi.fn());
     mockIpcSendCommandHandler.mockReturnValue(vi.fn());
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -242,6 +230,7 @@ describe('ipc-controller', () => {
         const controller = new IpcController({
           dispatch: mockIpcDispatcher,
           accountService: mockAccountService,
+          layoutService: mockLayoutService,
         });
 
         expect(controller).toBeInstanceOf(IpcController);
@@ -252,11 +241,19 @@ describe('ipc-controller', () => {
           dispatch: mockIpcDispatcher,
         });
 
+        expect(mockIpcLogHandler).toHaveBeenCalledWith({
+          logger: mockLogger,
+        });
+
         expect(mockIpcSaveAccountHandler).toHaveBeenCalledWith({
           accountService: mockAccountService,
         });
 
         expect(mockIpcRemoveAccountHandler).toHaveBeenCalledWith({
+          accountService: mockAccountService,
+        });
+
+        expect(mockIpcListAccountsHandler).toHaveBeenCalledWith({
           accountService: mockAccountService,
         });
 
@@ -275,6 +272,26 @@ describe('ipc-controller', () => {
         expect(mockIpcPlayCharacterHandler).toHaveBeenCalledWith({
           dispatch: mockIpcDispatcher,
           accountService: mockAccountService,
+        });
+
+        expect(mockIpcQuitCharacterHandler).toHaveBeenCalledWith({
+          dispatch: mockIpcDispatcher,
+        });
+
+        expect(mockIpcGetLayoutHandler).toHaveBeenCalledWith({
+          layoutService: mockLayoutService,
+        });
+
+        expect(mockIpcListLayoutNamesHandler).toHaveBeenCalledWith({
+          layoutService: mockLayoutService,
+        });
+
+        expect(mockIpcSaveLayoutHandler).toHaveBeenCalledWith({
+          layoutService: mockLayoutService,
+        });
+
+        expect(mockIpcDeleteLayoutHandler).toHaveBeenCalledWith({
+          layoutService: mockLayoutService,
         });
 
         expect(mockIpcSendCommandHandler).toHaveBeenCalledWith({
@@ -300,6 +317,11 @@ describe('ipc-controller', () => {
         );
 
         expect(handleChannelSpy).toHaveBeenCalledWith(
+          'listAccounts',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
           'saveCharacter',
           expect.any(Function)
         );
@@ -320,6 +342,31 @@ describe('ipc-controller', () => {
         );
 
         expect(handleChannelSpy).toHaveBeenCalledWith(
+          'quitCharacter',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'getLayout',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'listLayoutNames',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'saveLayout',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
+          'deleteLayout',
+          expect.any(Function)
+        );
+
+        expect(handleChannelSpy).toHaveBeenCalledWith(
           'sendCommand',
           expect.any(Function)
         );
@@ -332,6 +379,7 @@ describe('ipc-controller', () => {
           new IpcController({
             dispatch: mockIpcDispatcher,
             accountService: mockAccountService,
+            layoutService: mockLayoutService,
           });
           expect.unreachable('it should throw an error');
         } catch (error) {
@@ -349,18 +397,26 @@ describe('ipc-controller', () => {
         const controller = new IpcController({
           dispatch: mockIpcDispatcher,
           accountService: mockAccountService,
+          layoutService: mockLayoutService,
         });
 
         await controller.destroy();
 
         const removeChannelSpy = mockIpcMain.unsubscribeFromChannelSpy;
         expect(removeChannelSpy).toHaveBeenCalledWith('ping');
+        expect(removeChannelSpy).toHaveBeenCalledWith('log');
         expect(removeChannelSpy).toHaveBeenCalledWith('saveAccount');
         expect(removeChannelSpy).toHaveBeenCalledWith('removeAccount');
+        expect(removeChannelSpy).toHaveBeenCalledWith('listAccounts');
         expect(removeChannelSpy).toHaveBeenCalledWith('saveCharacter');
         expect(removeChannelSpy).toHaveBeenCalledWith('removeCharacter');
         expect(removeChannelSpy).toHaveBeenCalledWith('listCharacters');
         expect(removeChannelSpy).toHaveBeenCalledWith('playCharacter');
+        expect(removeChannelSpy).toHaveBeenCalledWith('quitCharacter');
+        expect(removeChannelSpy).toHaveBeenCalledWith('getLayout');
+        expect(removeChannelSpy).toHaveBeenCalledWith('listLayoutNames');
+        expect(removeChannelSpy).toHaveBeenCalledWith('saveLayout');
+        expect(removeChannelSpy).toHaveBeenCalledWith('deleteLayout');
         expect(removeChannelSpy).toHaveBeenCalledWith('sendCommand');
 
         expect(mockGameService.disconnect).toHaveBeenCalledTimes(1);
@@ -376,6 +432,7 @@ describe('ipc-controller', () => {
         new IpcController({
           dispatch: mockIpcDispatcher,
           accountService: mockAccountService,
+          layoutService: mockLayoutService,
         });
 
         await expect(mockIpcMain.invokeChannel('ping')).resolves.toEqual(
@@ -391,6 +448,7 @@ describe('ipc-controller', () => {
         new IpcController({
           dispatch: mockIpcDispatcher,
           accountService: mockAccountService,
+          layoutService: mockLayoutService,
         });
 
         await expect(mockIpcMain.invokeChannel('ping')).rejects.toEqual(

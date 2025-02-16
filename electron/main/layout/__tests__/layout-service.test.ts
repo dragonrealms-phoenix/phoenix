@@ -48,7 +48,7 @@ describe('layout-service', () => {
       x: 100,
       y: 100,
     },
-    streams: [],
+    windows: [],
   };
 
   let layoutService: LayoutService;

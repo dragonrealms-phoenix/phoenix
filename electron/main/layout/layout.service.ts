@@ -27,6 +27,9 @@ export class LayoutServiceImpl implements LayoutService {
 
     const layout = await fs.readJson(filePath);
 
+    // TODO validate against layout schema
+    // https://json-schema.org/learn/getting-started-step-by-step
+
     logger.debug('got layout', {
       layout,
     });
@@ -57,6 +60,9 @@ export class LayoutServiceImpl implements LayoutService {
       layoutName,
       filePath,
     });
+
+    // TODO validate against layout schema
+    // https://json-schema.org/learn/getting-started-step-by-step
 
     await fs.ensureFile(filePath);
 

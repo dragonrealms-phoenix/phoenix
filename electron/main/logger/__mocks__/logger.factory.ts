@@ -9,7 +9,7 @@ import { LoggerMockImpl } from '../../../common/logger/__mocks__/logger.mock.js'
 // https://vitest.dev/guide/mocking#automocking-algorithm
 //
 
-const mockLogger = new LoggerMockImpl();
+export const mockLogger = new LoggerMockImpl();
 
 export const getScopedLogger = vi.fn().mockReturnValue(mockLogger);
 
