@@ -14,7 +14,7 @@ export interface ToastListProps {
   toastLifeTimeMs?: number;
 }
 
-export interface ToastAddProps {
+export interface ToastAddEvent {
   title: string;
   text?: ReactNode;
   type?: 'success' | 'warning' | 'danger' | 'info';
@@ -29,8 +29,8 @@ export const ToastList: React.FC<ToastListProps> = (
 
   const [toasts, setToasts] = useState<Array<Toast>>([]);
 
-  useSubscribe(['toast:add'], (toastAddProps: ToastAddProps) => {
-    const { title, text, type } = toastAddProps;
+  useSubscribe(['toast:add'], (toastAddEvent: ToastAddEvent) => {
+    const { title, text, type } = toastAddEvent;
 
     // let iconType: EuiIconType | undefined;
     let color: Toast['color'] | undefined;
