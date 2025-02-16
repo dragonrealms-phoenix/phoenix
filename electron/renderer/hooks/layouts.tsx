@@ -4,6 +4,10 @@ import type { Maybe } from '../../common/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
+/**
+ * Gets the layout configuration for a given layout name.
+ * Automatically refreshes the layout when it is saved or deleted.
+ */
 export const useGetLayout = (layoutName: string): Maybe<Layout> => {
   const [layout, setLayout] = useState<Layout>();
 
