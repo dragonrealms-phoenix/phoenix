@@ -23,11 +23,15 @@ export const GameContainer: React.FC<GameContainerProps> = (
   // As a workaround, I take the window height minus other elements in the
   // same column as the grid to approximate the allowed grid height.
   const windowSize = useWindowSize();
-  const [topBarRef, topBarSize] = useMeasure<HTMLInputElement>();
-  const [bottomBarRef, bottomBarSize] = useMeasure<HTMLInputElement>();
-  const [gridWidthRef, { width: gridWidth }] = useMeasure<HTMLDivElement>();
-  const gridHeight =
-    windowSize.height - topBarSize.height - bottomBarSize.height - 1;
+  const [topSectionRef, topSectionSize] = useMeasure<HTMLInputElement>();
+  const [bottomSectionRef, bottomSectionSize] = useMeasure<HTMLInputElement>();
+  const [gridSectionRef, gridSectionSize] = useMeasure<HTMLDivElement>();
+
+  const { height: windowHeight } = windowSize;
+  const { height: topSectionHeight } = topSectionSize;
+  const { height: bottomSectionHeight } = bottomSectionSize;
+  const { width: gridWidth } = gridSectionSize;
+  const gridHeight = windowHeight - topSectionHeight - bottomSectionHeight - 1;
 
   const container = useMemo((): ReactNode => {
     return (
@@ -41,12 +45,12 @@ export const GameContainer: React.FC<GameContainerProps> = (
         css={{ height: '100%', maxWidth: 'unset' }}
       >
         <EuiPageTemplate.Section grow={true} paddingSize="none">
-          <div ref={topBarRef}>
+          <div ref={topSectionRef}>
             <GameTopBar />
           </div>
         </EuiPageTemplate.Section>
         <EuiPageTemplate.Section grow={true} paddingSize="none">
-          <div ref={gridWidthRef}>
+          <div ref={gridSectionRef}>
             <GameGrid
               boundary={{
                 height: gridHeight,
@@ -57,7 +61,7 @@ export const GameContainer: React.FC<GameContainerProps> = (
           </div>
         </EuiPageTemplate.Section>
         <EuiPageTemplate.BottomBar paddingSize="none">
-          <div ref={bottomBarRef}>
+          <div ref={bottomSectionRef}>
             <GameBottomBar />
           </div>
         </EuiPageTemplate.BottomBar>
@@ -65,11 +69,11 @@ export const GameContainer: React.FC<GameContainerProps> = (
     );
   }, [
     contentItems,
-    topBarRef,
-    bottomBarRef,
-    gridWidthRef,
     gridHeight,
     gridWidth,
+    topSectionRef,
+    bottomSectionRef,
+    gridSectionRef,
   ]);
 
   return container;
