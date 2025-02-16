@@ -1,7 +1,7 @@
 import isEmpty from 'lodash-es/isEmpty.js';
 import { useObservable } from 'observable-hooks';
 import type { ReactNode } from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import * as rxjs from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { getExperienceMindState } from '../../common/game/game.utils.js';
@@ -11,10 +11,10 @@ import type {
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType } from '../../common/game/types.js';
+import type { Layout } from '../../common/layout/types.js';
 import { GameContainer } from '../components/game/game-container.jsx';
 import { GameStream } from '../components/game/game-stream.jsx';
-import { useGetLayout } from '../hooks/layouts.jsx';
-import { useLogger } from '../hooks/logger.jsx';
+import { useLoadedLayout } from '../hooks/layouts.jsx';
 import { useSubscribe } from '../hooks/pubsub.jsx';
 import { useTheme } from '../hooks/theme.jsx';
 import type { GameLogLine } from '../types/game.types.js';
@@ -25,11 +25,9 @@ import type {
 } from '../types/grid.types.js';
 
 const GamePage: React.FC = (): ReactNode => {
-  const logger = useLogger('renderer:page:game');
+  const { colorMode } = useTheme();
 
-  const mainStreamId = 'main';
-  const roomStreamId = 'room';
-  const experienceStreamId = 'experience';
+  const layout = useLoadedLayout();
 
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
@@ -46,55 +44,6 @@ const GamePage: React.FC = (): ReactNode => {
   const gameLogLineSubject$ = useObservable(() => {
     return new rxjs.Subject<GameLogLine>();
   });
-
-  const { colorMode } = useTheme();
-
-  // TODO refactor to a ExperienceGameStream component
-  //      it will know all skills to render and can highlight
-  //      ones that pulse, toggle between mind state and mind state rate, etc
-  const formatExperienceText = useCallback(
-    (gameEvent: ExperienceGameEvent): string => {
-      const { skill, rank, percent, mindState } = gameEvent;
-      const mindStateRate = getExperienceMindState(mindState) ?? 0;
-
-      const txtSkill = skill.padStart(15);
-      const txtRank = String(rank).padStart(3);
-      const txtPercent = String(percent).padStart(2) + '%';
-
-      // TODO add user pref to toggle between mind state rate and mind state
-      const txtMindStateRate = `(${mindStateRate}/34)`.padStart(7);
-      // const txtMindState = mindState.padEnd(15);
-
-      return [
-        txtSkill,
-        txtRank,
-        txtPercent,
-        txtMindStateRate,
-        // txtMindState,
-      ].join(' ');
-    },
-    []
-  );
-
-  // TODO refactor to a RoomGameStream component
-  //      so that it subscribes to all the room events
-  //      and updates and formats the text as needed
-  //      This would allow the room name to be formatted
-  const formatRoomText = useCallback((gameEvent: RoomGameEvent): string => {
-    const { roomName, roomDescription } = gameEvent;
-    const { roomObjects, roomPlayers, roomExits } = gameEvent;
-
-    const text = [
-      roomName,
-      [roomDescription, roomObjects].join('  '), // two spaces between sentences
-      roomPlayers,
-      roomExits,
-    ]
-      .filter((s) => !isEmpty(s?.trim()))
-      .join('\n');
-
-    return text;
-  }, []);
 
   const [_roomGameEvent, setRoomGameEvent] = useState<RoomGameEvent>({
     type: GameEventType.ROOM,
@@ -126,7 +75,7 @@ const GamePage: React.FC = (): ReactNode => {
         break;
 
       case GameEventType.POP_STREAM:
-        gameStreamIdRef.current = mainStreamId;
+        gameStreamIdRef.current = 'main';
         break;
 
       case GameEventType.PUSH_BOLD:
@@ -160,7 +109,7 @@ const GamePage: React.FC = (): ReactNode => {
         //      then clear the exp stream and render all skills again
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
-          streamId: experienceStreamId,
+          streamId: 'experience',
           styles: {
             ...textStyles,
             outputClass: 'mono',
@@ -190,14 +139,14 @@ const GamePage: React.FC = (): ReactNode => {
           // Therefore, we clear the stream before displaying the new room.
           gameLogLineSubject$.next({
             eventId: oldRoom.eventId,
-            streamId: roomStreamId,
+            streamId: 'room',
             styles: textStyles,
             text: '__CLEAR_STREAM__',
           });
 
           gameLogLineSubject$.next({
             eventId: newRoom.eventId,
-            streamId: roomStreamId,
+            streamId: 'room',
             styles: textStyles,
             text: formatRoomText(newRoom),
           });
@@ -213,7 +162,7 @@ const GamePage: React.FC = (): ReactNode => {
   useSubscribe(['game:command'], (command: string) => {
     gameLogLineSubject$.next({
       eventId: uuid(),
-      streamId: mainStreamId,
+      streamId: 'main',
       styles: {
         colorMode,
         subdued: true,
@@ -226,7 +175,7 @@ const GamePage: React.FC = (): ReactNode => {
   useSubscribe(['game:disconnect'], () => {
     gameLogLineSubject$.next({
       eventId: uuid(),
-      streamId: mainStreamId,
+      streamId: 'main',
       styles: {
         colorMode,
         subdued: true,
@@ -235,100 +184,19 @@ const GamePage: React.FC = (): ReactNode => {
     });
   });
 
-  // TODO menu to let user select which layout to use
-  // TODO when layout is loaded, reposition/resize the app window (via ipc)
-  const layoutName = 'default';
-  const layout = useGetLayout(layoutName);
-
   const contentItems = useMemo<Array<GridItemContent>>(() => {
     if (!layout) {
-      logger.error('no layout found', { layoutName });
+      // On initial render, the layout won't be loaded yet, skip
       return [];
     }
 
-    // TODO create function to create grid item configs from layout
-    const configItems: Array<GridItemConfig> = [];
-    layout.items.forEach((streamLayout) => {
-      const configItem: GridItemConfig = {
-        itemId: streamLayout.id,
-        itemTitle: streamLayout.title,
-        isVisible: streamLayout.visible,
-        layout: {
-          x: streamLayout.x,
-          y: streamLayout.y,
-          width: streamLayout.width,
-          height: streamLayout.height,
-        },
-        whenHiddenRedirectToItemId: streamLayout.whenHiddenRedirectToId,
-      };
-      configItems.push(configItem);
-    });
+    const configItemsMap = buildConfigGridItemsMap(layout);
+    const configItems = Object.values(configItemsMap);
 
-    const configItemsMap: Record<string, GridItemConfig> = {};
-    configItems.forEach((configItem) => {
-      const itemId = configItem.itemId;
-      configItemsMap[itemId] = configItem;
-    });
+    const layoutItemsMap = buildLayoutGridItemsMap(configItems);
+    const layoutItems = Object.values(layoutItemsMap);
 
-    const layoutItems = new Array<GridItemInfo>();
-    configItems.forEach((configItem) => {
-      if (configItem.isVisible) {
-        const layoutItem: GridItemInfo = {
-          itemId: configItem.itemId,
-          itemTitle: configItem.itemTitle,
-          isFocused: configItem.itemId === mainStreamId,
-          layout: configItem.layout,
-        };
-        layoutItems.push(layoutItem);
-      }
-    });
-
-    const layoutItemsMap: Record<string, GridItemInfo> = {};
-    layoutItems.forEach((layoutItem) => {
-      const itemId = layoutItem.itemId;
-      layoutItemsMap[itemId] = layoutItem;
-    });
-
-    // Map of item ids to the item ids that should stream to it.
-    // The key is the item id that should receive the stream(s).
-    // The values are the items redirecting their stream to the key item.
-    const itemStreamMapping: Record<string, Array<string>> = {};
-
-    // If layout includes the config item then stream to its visible items.
-    // If layout does not include the config item then stream to its hidden items.
-    configItems.forEach((configItem) => {
-      const itemId = configItem.itemId;
-
-      const streamToItemId = configItem.isVisible
-        ? configItem.itemId
-        : configItem.whenHiddenRedirectToItemId;
-
-      if (!streamToItemId) {
-        return;
-      }
-
-      // TODO rename this method and move it out the for-each loop
-      // If an item is hidden and redirects elsewhere, follow the chain
-      // until we find an item that is visible to truly redirect to.
-      // This is necessary because the layout may not include all items.
-      const funcX = (streamToItemId: string, itemId: string) => {
-        const streamToConfigItem = configItemsMap[streamToItemId];
-        if (!streamToConfigItem) {
-          return;
-        }
-        if (streamToConfigItem.isVisible) {
-          // We're in luck. We found a visible item to stream to.
-          itemStreamMapping[streamToItemId] ||= [];
-          itemStreamMapping[streamToItemId].push(itemId);
-        } else if (streamToConfigItem.whenHiddenRedirectToItemId) {
-          // Well, where the hidden item wanted to redirect to
-          // also is hidden so we need to keep looking for a visible item.
-          funcX(streamToConfigItem.whenHiddenRedirectToItemId, itemId);
-        }
-      };
-
-      funcX(streamToItemId, itemId);
-    });
+    const streamItemsMap = buildGridItemStreamsMap(configItemsMap);
 
     const contentGridItems: Array<GridItemContent> = [];
 
@@ -341,7 +209,7 @@ const GamePage: React.FC = (): ReactNode => {
         content: (
           <GameStream
             primaryStreamId={layoutItem.itemId}
-            gameStreamIds={itemStreamMapping[layoutItem.itemId]}
+            gameStreamIds={streamItemsMap[layoutItem.itemId]}
             stream$={gameLogLineSubject$}
           />
         ),
@@ -349,10 +217,177 @@ const GamePage: React.FC = (): ReactNode => {
     });
 
     return contentGridItems;
-  }, [gameLogLineSubject$, layout, logger]);
+  }, [gameLogLineSubject$, layout]);
 
   return <GameContainer contentItems={contentItems} />;
 };
 
 // nextjs pages must be default exports
 export default GamePage;
+
+/**
+ * The keys are the item ids.
+ * The values are the grid item config.
+ */
+const buildConfigGridItemsMap = (
+  layout: Layout
+): Record<string, GridItemConfig> => {
+  const configItemsMap: Record<string, GridItemConfig> = {};
+
+  layout.items.forEach((streamLayout) => {
+    const configItem: GridItemConfig = {
+      itemId: streamLayout.id,
+      itemTitle: streamLayout.title,
+      isVisible: streamLayout.visible,
+      layout: {
+        x: streamLayout.x,
+        y: streamLayout.y,
+        width: streamLayout.width,
+        height: streamLayout.height,
+      },
+      whenHiddenRedirectToItemId: streamLayout.whenHiddenRedirectToId,
+    };
+    configItemsMap[configItem.itemId] = configItem;
+  });
+
+  return configItemsMap;
+};
+
+/**
+ * Returns a map of infos for visible grid items.
+ */
+const buildLayoutGridItemsMap = (
+  configItems: Array<GridItemConfig>
+): Record<string, GridItemInfo> => {
+  const layoutItemsMap: Record<string, GridItemInfo> = {};
+
+  configItems.forEach((configItem) => {
+    if (configItem.isVisible) {
+      const layoutItem: GridItemInfo = {
+        itemId: configItem.itemId,
+        itemTitle: configItem.itemTitle,
+        isFocused: configItem.itemId === 'main',
+        layout: configItem.layout,
+      };
+      layoutItemsMap[layoutItem.itemId] = layoutItem;
+    }
+  });
+
+  return layoutItemsMap;
+};
+
+/**
+ * Builds an array of item ids and which other items are redirecting to it.
+ * This is how we let other streams redirect to other streams.
+ * For example, if the 'combat' stream is hidden then 'assess' can
+ * redirect to the 'main' stream rather than not being seen at all.
+ */
+const buildGridItemStreamsMap = (
+  configItemsMap: Record<string, GridItemConfig>
+): Record<string, Array<string>> => {
+  // Map of item ids to the item ids that should stream to it.
+  // The key is the item id that should receive the stream(s).
+  // The values are the items redirecting their stream to the key item.
+  const itemStreamMapping: Record<string, Array<string>> = {};
+
+  // If an item is hidden and redirects elsewhere, follow the chain
+  // until we find an item that is visible to truly redirect to.
+  // This is necessary because the layout may not include all items.
+  const redirectItemToVisibleStream = (options: {
+    /**
+     * The item to map to a visible stream, if one can be found.
+     */
+    itemId: string;
+    /**
+     * Where the item wants to redirect to.
+     * It may be itself or another stream.
+     * If this item is hidden, we recursively check if
+     * it redirects to a visible stream and use that instead.
+     */
+    redirectToItemId: string;
+  }): void => {
+    const { itemId, redirectToItemId } = options;
+
+    const configItem = configItemsMap[redirectToItemId];
+
+    if (!configItem) {
+      return;
+    }
+
+    if (configItem.isVisible) {
+      // We're in luck. We found a visible item to stream to.
+      itemStreamMapping[redirectToItemId] ||= [];
+      itemStreamMapping[redirectToItemId].push(itemId);
+    } else if (configItem.whenHiddenRedirectToItemId) {
+      // Well, where the hidden item wanted to redirect to
+      // also is hidden so we need to keep looking for a visible item.
+      redirectItemToVisibleStream({
+        itemId,
+        redirectToItemId: configItem.whenHiddenRedirectToItemId,
+      });
+    }
+  };
+
+  const configItems = Object.values(configItemsMap);
+
+  configItems.forEach((configItem) => {
+    const streamToItemId = configItem.isVisible
+      ? configItem.itemId
+      : configItem.whenHiddenRedirectToItemId;
+
+    if (!streamToItemId) {
+      return;
+    }
+
+    redirectItemToVisibleStream({
+      itemId: configItem.itemId,
+      redirectToItemId: streamToItemId,
+    });
+  });
+
+  return itemStreamMapping;
+};
+
+// TODO refactor to a ExperienceGameStream component
+//      it will know all skills to render and can highlight
+//      ones that pulse, toggle between mind state and mind state rate, etc
+const formatExperienceText = (gameEvent: ExperienceGameEvent): string => {
+  const { skill, rank, percent, mindState } = gameEvent;
+  const mindStateRate = getExperienceMindState(mindState) ?? 0;
+
+  const txtSkill = skill.padStart(15);
+  const txtRank = String(rank).padStart(3);
+  const txtPercent = String(percent).padStart(2) + '%';
+
+  // TODO add user pref to toggle between mind state rate and mind state
+  const txtMindStateRate = `(${mindStateRate}/34)`.padStart(7);
+  // const txtMindState = mindState.padEnd(15);
+
+  return [
+    txtSkill,
+    txtRank,
+    txtPercent,
+    txtMindStateRate,
+    // txtMindState,
+  ].join(' ');
+};
+
+// TODO refactor to a RoomGameStream component
+//      so that it subscribes to all the room events
+//      and updates and formats the text as needed
+//      This would allow the room name to be formatted
+const formatRoomText = (gameEvent: RoomGameEvent): string => {
+  const { roomName, roomDescription } = gameEvent;
+  const { roomObjects, roomPlayers, roomExits } = gameEvent;
+
+  const text = [
+    roomName,
+    [roomDescription, roomObjects].join('  '), // two spaces between sentences
+    roomPlayers,
+    roomExits,
+  ]
+    .filter((s) => !isEmpty(s?.trim()))
+    .join('\n');
+
+  return text;
+};
