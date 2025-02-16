@@ -738,7 +738,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.CLEAR_STREAM,
       eventId: uuid(),
-      streamId,
+      streamId: this.formatStreamId(streamId),
     });
   }
 
@@ -746,7 +746,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.PUSH_STREAM,
       eventId: uuid(),
-      streamId,
+      streamId: this.formatStreamId(streamId),
     });
   }
 
@@ -835,5 +835,12 @@ export class GameParserImpl implements GameParser {
   protected emitGameEvent(gameEvent: GameEvent): void {
     logger.trace('emitting game event', { gameEvent });
     this.gameEventsSubject$.next(gameEvent);
+  }
+
+  protected formatStreamId(streamId: string): string {
+    // In the game, empty string is the main "catch all" stream.
+    // In code and config, we want a non-empty string to refer to.
+    // So, we use 'main' instead of ''.
+    return streamId || 'main';
   }
 }

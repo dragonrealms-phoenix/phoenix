@@ -244,12 +244,30 @@ describe('game-parser', () => {
       });
     });
 
+    it('emits ClearStreamGameEvent for main stream', () => {
+      gameSocketSubject$.next('<clearStream id=""/>\n');
+
+      expectGameEvent({
+        type: GameEventType.CLEAR_STREAM,
+        streamId: 'main',
+      });
+    });
+
     it('emits PushStreamGameEvent', () => {
       gameSocketSubject$.next('<pushStream id="experience"/>\n');
 
       expectGameEvent({
         type: GameEventType.PUSH_STREAM,
         streamId: 'experience',
+      });
+    });
+
+    it('emits PushStreamGameEvent for main stream', () => {
+      gameSocketSubject$.next('<pushStream id=""/>\n');
+
+      expectGameEvent({
+        type: GameEventType.PUSH_STREAM,
+        streamId: 'main',
       });
     });
 
