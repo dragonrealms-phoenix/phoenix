@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import type { GameItemInfo } from './game.types.js';
 
 export interface GridItemContent extends GridItemInfo {
   /**
@@ -21,21 +20,29 @@ export interface GridItemInfo {
 
 export interface GridItemConfig {
   /**
-   * Info about the game stream that this grid item is for.
+   * Game-specific identifier for the grid item stream.
+   * For example, "percWindow".
    */
-  gameItemInfo: GameItemInfo;
+  itemId: string;
   /**
-   * When this item is visible (i.e. added to the grid layout)
-   * then these are the grid item ids where to stream this item's content.
-   * Usually, this is the item's own id.
+   * User-friendly title for the grid item stream.
+   * For example, "Active Spells".
    */
-  whenVisibleStreamToItemIds: Array<string>;
+  itemTitle: string;
   /**
-   * When this item is hidden (i.e. removed from the grid layout)
-   * then these are the grid item ids where to stream this item's content.
-   * Usually, the fallback is the main grid item or empty array.
+   * Include this in the layout?
    */
-  whenHiddenStreamToItemIds: Array<string>;
+  isVisible: boolean;
+  /**
+   * The initial position for the grid item.
+   */
+  layout: GridItemLayout;
+  /**
+   * When this item is not visible, redirect its content to another item.
+   * If that item is also not visible, then it continues to be redirected
+   * until either a visible item in the chain is found or not.
+   */
+  whenHiddenRedirectToItemId: string | null;
 }
 
 /**

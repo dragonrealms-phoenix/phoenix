@@ -13,10 +13,11 @@ import type {
 import { GameEventType } from '../../common/game/types.js';
 import { GameContainer } from '../components/game/game-container.jsx';
 import { GameStream } from '../components/game/game-stream.jsx';
+import { useGetLayout } from '../hooks/layouts.jsx';
+import { useLogger } from '../hooks/logger.jsx';
 import { useSubscribe } from '../hooks/pubsub.jsx';
 import { useTheme } from '../hooks/theme.jsx';
-import { getGameItemInfo } from '../lib/game/game-item-info.js';
-import { GameItemId, type GameLogLine } from '../types/game.types.js';
+import type { GameLogLine } from '../types/game.types.js';
 import type {
   GridItemConfig,
   GridItemContent,
@@ -24,6 +25,12 @@ import type {
 } from '../types/grid.types.js';
 
 const GamePage: React.FC = (): ReactNode => {
+  const logger = useLogger('renderer:page:game');
+
+  const mainStreamId = 'main';
+  const roomStreamId = 'room';
+  const experienceStreamId = 'experience';
+
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
   // was received, resulting in text routing to the wrong stream window
@@ -41,8 +48,6 @@ const GamePage: React.FC = (): ReactNode => {
   });
 
   const { colorMode } = useTheme();
-
-  const mainStreamId = getGameItemInfo(GameItemId.MAIN).streamId;
 
   // TODO refactor to a ExperienceGameStream component
   //      it will know all skills to render and can highlight
@@ -121,7 +126,7 @@ const GamePage: React.FC = (): ReactNode => {
         break;
 
       case GameEventType.POP_STREAM:
-        gameStreamIdRef.current = '';
+        gameStreamIdRef.current = mainStreamId;
         break;
 
       case GameEventType.PUSH_BOLD:
@@ -155,7 +160,7 @@ const GamePage: React.FC = (): ReactNode => {
         //      then clear the exp stream and render all skills again
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
-          streamId: 'experience',
+          streamId: experienceStreamId,
           styles: {
             ...textStyles,
             outputClass: 'mono',
@@ -185,14 +190,14 @@ const GamePage: React.FC = (): ReactNode => {
           // Therefore, we clear the stream before displaying the new room.
           gameLogLineSubject$.next({
             eventId: oldRoom.eventId,
-            streamId: 'room',
+            streamId: roomStreamId,
             styles: textStyles,
             text: '__CLEAR_STREAM__',
           });
 
           gameLogLineSubject$.next({
             eventId: newRoom.eventId,
-            streamId: 'room',
+            streamId: roomStreamId,
             styles: textStyles,
             text: formatRoomText(newRoom),
           });
@@ -230,126 +235,58 @@ const GamePage: React.FC = (): ReactNode => {
     });
   });
 
+  // TODO menu to let user select which layout to use
+  // TODO when layout is loaded, reposition/resize the app window (via ipc)
+  const layoutName = 'default';
+  const layout = useGetLayout(layoutName);
+
   const contentItems = useMemo<Array<GridItemContent>>(() => {
-    // TODO define a default config set
-    // TODO allow users to customize the config, and add/remove items
-    // TODO api to get/save the user's config set
-    const configGridItems: Array<GridItemConfig> = [];
+    if (!layout) {
+      logger.error('no layout found', { layoutName });
+      return [];
+    }
 
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.MAIN),
-      whenVisibleStreamToItemIds: [GameItemId.MAIN],
-      whenHiddenStreamToItemIds: [],
-    });
-
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.ROOM),
-      whenVisibleStreamToItemIds: [GameItemId.ROOM],
-      whenHiddenStreamToItemIds: [],
-    });
-
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.EXPERIENCE),
-      whenVisibleStreamToItemIds: [GameItemId.EXPERIENCE],
-      whenHiddenStreamToItemIds: [],
-    });
-
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.SPELLS),
-      whenVisibleStreamToItemIds: [GameItemId.SPELLS],
-      whenHiddenStreamToItemIds: [],
-    });
-
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.ATMOSPHERICS),
-      whenVisibleStreamToItemIds: [GameItemId.ATMOSPHERICS],
-      whenHiddenStreamToItemIds: [GameItemId.MAIN],
-    });
-
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.COMBAT),
-      whenVisibleStreamToItemIds: [GameItemId.COMBAT],
-      whenHiddenStreamToItemIds: [GameItemId.MAIN],
-    });
-
-    configGridItems.push({
-      gameItemInfo: getGameItemInfo(GameItemId.ASSESS),
-      whenVisibleStreamToItemIds: [GameItemId.ASSESS],
-      whenHiddenStreamToItemIds: [GameItemId.COMBAT],
+    // TODO create function to create grid item configs from layout
+    const configItems: Array<GridItemConfig> = [];
+    layout.items.forEach((streamLayout) => {
+      const configItem: GridItemConfig = {
+        itemId: streamLayout.id,
+        itemTitle: streamLayout.title,
+        isVisible: streamLayout.visible,
+        layout: {
+          x: streamLayout.x,
+          y: streamLayout.y,
+          width: streamLayout.width,
+          height: streamLayout.height,
+        },
+        whenHiddenRedirectToItemId: streamLayout.whenHiddenRedirectToId,
+      };
+      configItems.push(configItem);
     });
 
     const configItemsMap: Record<string, GridItemConfig> = {};
-    const configItemIds: Array<string> = [];
-    configGridItems.forEach((configItem) => {
-      const itemId = configItem.gameItemInfo.itemId;
+    configItems.forEach((configItem) => {
+      const itemId = configItem.itemId;
       configItemsMap[itemId] = configItem;
-      configItemIds.push(itemId);
     });
 
-    // TODO define a default layout
-    // TODO api to get/save a layout
-    // TODO api to allow user to assign layouts to characters
-    let layoutGridItems = new Array<GridItemInfo>();
-
-    layoutGridItems.push({
-      itemId: 'room',
-      itemTitle: 'Room',
-      isFocused: false,
-      layout: {
-        x: 0,
-        y: 0,
-        width: 828,
-        height: 200,
-      },
-    });
-
-    layoutGridItems.push({
-      itemId: 'experience',
-      itemTitle: 'Experience',
-      isFocused: false,
-      layout: {
-        x: 828,
-        y: 0,
-        width: 306,
-        height: 392,
-      },
-    });
-
-    layoutGridItems.push({
-      itemId: 'spells',
-      itemTitle: 'Spells',
-      isFocused: false,
-      layout: {
-        x: 828,
-        y: 190,
-        width: 306,
-        height: 355,
-      },
-    });
-
-    layoutGridItems.push({
-      itemId: 'main',
-      itemTitle: 'Main',
-      isFocused: true,
-      layout: {
-        x: 0,
-        y: 200,
-        width: 828,
-        height: 420,
-      },
-    });
-
-    // Drop any items that no longer have a matching config item.
-    layoutGridItems = layoutGridItems.filter((layoutItem) => {
-      return configItemIds.includes(layoutItem.itemId);
+    const layoutItems = new Array<GridItemInfo>();
+    configItems.forEach((configItem) => {
+      if (configItem.isVisible) {
+        const layoutItem: GridItemInfo = {
+          itemId: configItem.itemId,
+          itemTitle: configItem.itemTitle,
+          isFocused: configItem.itemId === mainStreamId,
+          layout: configItem.layout,
+        };
+        layoutItems.push(layoutItem);
+      }
     });
 
     const layoutItemsMap: Record<string, GridItemInfo> = {};
-    const layoutItemIds: Array<string> = [];
-    layoutGridItems.forEach((layoutItem) => {
+    layoutItems.forEach((layoutItem) => {
       const itemId = layoutItem.itemId;
       layoutItemsMap[itemId] = layoutItem;
-      layoutItemIds.push(itemId);
     });
 
     // Map of item ids to the item ids that should stream to it.
@@ -359,55 +296,52 @@ const GamePage: React.FC = (): ReactNode => {
 
     // If layout includes the config item then stream to its visible items.
     // If layout does not include the config item then stream to its hidden items.
-    configGridItems.forEach((configItem) => {
-      const itemId = configItem.gameItemInfo.itemId;
+    configItems.forEach((configItem) => {
+      const itemId = configItem.itemId;
 
-      const streamToItemIds = layoutItemsMap[itemId]
-        ? configItem.whenVisibleStreamToItemIds
-        : configItem.whenHiddenStreamToItemIds;
+      const streamToItemId = configItem.isVisible
+        ? configItem.itemId
+        : configItem.whenHiddenRedirectToItemId;
+
+      if (!streamToItemId) {
+        return;
+      }
 
       // TODO rename this method and move it out the for-each loop
       // If an item is hidden and redirects elsewhere, follow the chain
       // until we find an item that is visible to truly redirect to.
       // This is necessary because the layout may not include all items.
-      const funcX = (streamToItemIds: Array<string>, itemId: string) => {
-        streamToItemIds.forEach((streamToItemId) => {
-          if (layoutItemsMap[streamToItemId]) {
-            // We're in luck. We found a visible item to stream to.
-            itemStreamMapping[streamToItemId] ||= [];
-            itemStreamMapping[streamToItemId].push(itemId);
-          } else {
-            // Well, where the hidden item wanted to redirect to
-            // also is hidden so we need to keep looking for a visible item.
-            funcX(
-              configItemsMap[streamToItemId].whenHiddenStreamToItemIds,
-              itemId
-            );
-          }
-        });
+      const funcX = (streamToItemId: string, itemId: string) => {
+        const streamToConfigItem = configItemsMap[streamToItemId];
+        if (!streamToConfigItem) {
+          return;
+        }
+        if (streamToConfigItem.isVisible) {
+          // We're in luck. We found a visible item to stream to.
+          itemStreamMapping[streamToItemId] ||= [];
+          itemStreamMapping[streamToItemId].push(itemId);
+        } else if (streamToConfigItem.whenHiddenRedirectToItemId) {
+          // Well, where the hidden item wanted to redirect to
+          // also is hidden so we need to keep looking for a visible item.
+          funcX(streamToConfigItem.whenHiddenRedirectToItemId, itemId);
+        }
       };
 
-      funcX(streamToItemIds, itemId);
+      funcX(streamToItemId, itemId);
     });
 
     const contentGridItems: Array<GridItemContent> = [];
 
-    layoutGridItems.forEach((layoutItem) => {
-      const configItem = configItemsMap[layoutItem.itemId];
-
+    layoutItems.forEach((layoutItem) => {
       contentGridItems.push({
         itemId: layoutItem.itemId,
-        itemTitle: configItem.gameItemInfo.itemTitle ?? layoutItem.itemTitle,
+        itemTitle: layoutItem.itemTitle,
         isFocused: layoutItem.isFocused,
         layout: layoutItem.layout,
         content: (
           <GameStream
-            primaryStreamId={configItem.gameItemInfo.streamId}
-            gameStreamIds={itemStreamMapping[layoutItem.itemId].map(
-              (itemId) => {
-                return configItemsMap[itemId].gameItemInfo.streamId;
-              }
-            )}
+            primaryStreamId={layoutItem.itemId}
+            gameStreamIds={itemStreamMapping[layoutItem.itemId]}
             stream$={gameLogLineSubject$}
           />
         ),
@@ -415,7 +349,7 @@ const GamePage: React.FC = (): ReactNode => {
     });
 
     return contentGridItems;
-  }, [gameLogLineSubject$]);
+  }, [gameLogLineSubject$, layout, logger]);
 
   return <GameContainer contentItems={contentItems} />;
 };
