@@ -114,6 +114,17 @@ export const GameProvider: React.FC<GameProviderProps> = (
     setShowPlayStoppingOverlay(false);
   });
 
+  useSubscribe('game:error', (error: Error) => {
+    logger.error('game:error', { error });
+    setShowPlayStartingOverlay(false);
+    setShowPlayStoppingOverlay(false);
+    pubsub.publish('toast:add', {
+      title: 'Game Error',
+      type: 'danger',
+      text: error.message,
+    });
+  });
+
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:connect',
@@ -177,15 +188,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
       'game:error',
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
-        setShowPlayStartingOverlay(false);
-        setShowPlayStoppingOverlay(false);
-        logger.error('game:error', { error });
         pubsub.publish('game:error', error);
-        pubsub.publish('toast:add', {
-          title: 'Game Error',
-          type: 'danger',
-          text: error.message,
-        });
       }
     );
     return () => {
