@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import { useLogger } from '../../hooks/logger.jsx';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
-import type { PubSubData } from '../../types/pubsub.types.js';
+import type { PubSubEvent } from '../../types/pubsub.types.js';
 
 export interface ToastListProps {
   /**
@@ -24,7 +24,7 @@ export const ToastList: React.FC<ToastListProps> = (
 
   const [toasts, setToasts] = useState<Array<Toast>>([]);
 
-  useSubscribe('toast:add', (toastData: PubSubData.ToastAdd) => {
+  useSubscribe('toast:add', (toastData: PubSubEvent.ToastAdd) => {
     const { title, text, type } = toastData;
 
     // let iconType: EuiIconType | undefined;
