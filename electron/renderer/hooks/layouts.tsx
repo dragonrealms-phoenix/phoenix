@@ -2,17 +2,27 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Layout } from '../../common/layout/types.js';
 import type { Maybe } from '../../common/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
+import type { PubSubEvent } from '../types/pubsub.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
-export const useLoadedLayout = (): Maybe<Layout> => {
+/**
+ * Gets the loaded layout name and the layout (if it exists).
+ */
+export const useLoadedLayout = (): {
+  layoutName: string;
+  layout: Maybe<Layout>;
+} => {
   const [layoutName, setLayoutName] = useState<string>('default');
   const layout = useGetLayout(layoutName);
 
-  useSubscribe('layout:load', (layoutName: string) => {
-    setLayoutName(layoutName);
+  useSubscribe('layout:load', (event: PubSubEvent.LayoutLoad) => {
+    setLayoutName(event.layoutName);
   });
 
-  return layout;
+  return {
+    layoutName,
+    layout,
+  };
 };
 
 /**
@@ -85,11 +95,6 @@ export const useSaveLayout = (): SaveLayoutFn => {
       const { layoutName, layout } = options;
       await window.api.saveLayout({ layoutName, layout });
       publish('layouts:reload');
-      publish('toast:add', {
-        title: 'Layout Saved',
-        type: 'success',
-        text: layoutName,
-      });
     },
     [publish]
   );
@@ -109,11 +114,6 @@ export const useDeleteLayout = (): DeleteLayoutFn => {
     async (layoutName): Promise<void> => {
       await window.api.deleteLayout({ layoutName });
       publish('layouts:reload');
-      publish('toast:add', {
-        title: 'Layout Deleted',
-        type: 'success',
-        text: layoutName,
-      });
     },
     [publish]
   );
