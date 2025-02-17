@@ -196,6 +196,7 @@ const buildDarwinTemplate = (
         label: 'Reload',
         role: 'reload',
         accelerator: 'Command+R',
+        visible: !app.isPackaged,
       },
       { type: 'separator' },
       {
@@ -276,6 +277,7 @@ const buildDefaultTemplate = (
             label: '&Reload',
             role: 'reload',
             accelerator: 'Ctrl+R',
+            visible: !app.isPackaged,
           },
           { type: 'separator' },
           {
