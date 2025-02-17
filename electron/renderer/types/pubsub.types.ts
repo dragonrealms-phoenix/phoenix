@@ -3,7 +3,10 @@ import type * as AccountTypes from '../../common/account/types.js';
 import type * as GameTypes from '../../common/game/types.js';
 import type * as SidebarTypes from './sidebar.types.js';
 
-export namespace PubSubData {
+/**
+ * By convention, I try to name the event types after their topics.
+ */
+export namespace PubSubEvent {
   export type GameConnect = GameTypes.GameConnectMessage;
 
   export type GameDisconnect = GameTypes.GameDisconnectMessage;
@@ -40,15 +43,13 @@ export namespace PubSubData {
 
   export type CharacterPlayStopped = AccountTypes.Character;
 
-  /**
-   * Layout name to load.
-   */
-  export type LayoutLoad = string;
+  export type LayoutLoad = {
+    layoutName: string;
+  };
 
-  /**
-   * Layout item id that was closed.
-   */
-  export type LayoutItemClosed = string;
+  export type LayoutItemClosed = {
+    itemId: string;
+  };
 
   export type LayoutItemMoved = {
     itemId: string;
