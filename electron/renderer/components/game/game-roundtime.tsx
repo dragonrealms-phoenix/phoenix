@@ -72,6 +72,12 @@ export const GameRoundTime: React.FC = (): ReactNode => {
     }
   });
 
+  useSubscribe('game:disconnect', () => {
+    clearInterval(intervalRef.current);
+    setCurrentRT(0);
+    setCurrentCT(0);
+  });
+
   const roundTimeCmp = useMemo((): ReactElement => {
     return (
       <GameTimeDisplay
