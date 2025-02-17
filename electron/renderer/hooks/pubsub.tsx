@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import type { Logger } from '../../common/logger/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import { getScopedLogger } from '../lib/logger/logger.factory.js';
-import type { PubSubData } from '../types/pubsub.types.js';
+import type { PubSubEvent } from '../types/pubsub.types.js';
 
 export type PubSubSubscribeCallback<T = unknown> = (
   data: T
@@ -14,33 +14,33 @@ export type PubSubUnsubscribeCallback = () => void;
 
 export type PubSubSubscriber<T extends string = string> =
   T extends 'game:connect'
-    ? PubSubSubscribeCallback<PubSubData.GameConnect>
+    ? PubSubSubscribeCallback<PubSubEvent.GameConnect>
     : T extends 'game:disconnect'
-      ? PubSubSubscribeCallback<PubSubData.GameDisconnect>
+      ? PubSubSubscribeCallback<PubSubEvent.GameDisconnect>
       : T extends 'game:event'
-        ? PubSubSubscribeCallback<PubSubData.GameEvent>
+        ? PubSubSubscribeCallback<PubSubEvent.GameEvent>
         : T extends 'game:command'
-          ? PubSubSubscribeCallback<PubSubData.GameCommand>
+          ? PubSubSubscribeCallback<PubSubEvent.GameCommand>
           : T extends 'game:error'
-            ? PubSubSubscribeCallback<PubSubData.GameError>
+            ? PubSubSubscribeCallback<PubSubEvent.GameError>
             : T extends 'sidebar:show'
-              ? PubSubSubscribeCallback<PubSubData.SidebarShow>
+              ? PubSubSubscribeCallback<PubSubEvent.SidebarShow>
               : T extends 'toast:add'
-                ? PubSubSubscribeCallback<PubSubData.ToastAdd>
+                ? PubSubSubscribeCallback<PubSubEvent.ToastAdd>
                 : T extends 'character:play:starting'
-                  ? PubSubSubscribeCallback<PubSubData.CharacterPlayStarting>
+                  ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStarting>
                   : T extends 'character:play:started'
-                    ? PubSubSubscribeCallback<PubSubData.CharacterPlayStarted>
+                    ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStarted>
                     : T extends 'character:play:stopping'
-                      ? PubSubSubscribeCallback<PubSubData.CharacterPlayStopping>
+                      ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStopping>
                       : T extends 'character:play:stopped'
-                        ? PubSubSubscribeCallback<PubSubData.CharacterPlayStopped>
+                        ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStopped>
                         : T extends 'layout:load'
-                          ? PubSubSubscribeCallback<PubSubData.LayoutLoad>
+                          ? PubSubSubscribeCallback<PubSubEvent.LayoutLoad>
                           : T extends 'layout:item:closed'
-                            ? PubSubSubscribeCallback<PubSubData.LayoutItemClosed>
+                            ? PubSubSubscribeCallback<PubSubEvent.LayoutItemClosed>
                             : T extends 'layout:item:moved'
-                              ? PubSubSubscribeCallback<PubSubData.LayoutItemMoved>
+                              ? PubSubSubscribeCallback<PubSubEvent.LayoutItemMoved>
                               : PubSubSubscribeCallback;
 
 type PubSubSubscriberDataArg<T extends string = string> = Parameters<
