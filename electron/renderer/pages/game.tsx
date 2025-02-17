@@ -14,7 +14,8 @@ import { GameEventType } from '../../common/game/types.js';
 import type { Layout } from '../../common/layout/types.js';
 import { GameContainer } from '../components/game/game-container.jsx';
 import { GameStream } from '../components/game/game-stream.jsx';
-import { useLoadedLayout } from '../hooks/layouts.jsx';
+import { useLoadedLayout, useSaveLayout } from '../hooks/layouts.jsx';
+import { useLogger } from '../hooks/logger.jsx';
 import { useSubscribe } from '../hooks/pubsub.jsx';
 import { useTheme } from '../hooks/theme.jsx';
 import type { GameLogLine } from '../types/game.types.js';
@@ -23,11 +24,15 @@ import type {
   GridItemContent,
   GridItemInfo,
 } from '../types/grid.types.js';
+import type { PubSubEvent } from '../types/pubsub.types.js';
 
 const GamePage: React.FC = (): ReactNode => {
   const { colorMode } = useTheme();
 
-  const layout = useLoadedLayout();
+  const logger = useLogger('renderer:page:game');
+
+  const { layoutName, layout } = useLoadedLayout();
+  const saveLayout = useSaveLayout();
 
   // I started tracking these via `useState` but when calling their setter
   // the value did not update fast enough before a text game event
@@ -183,6 +188,57 @@ const GamePage: React.FC = (): ReactNode => {
       text: `> GAME DISCONNECTED`,
     });
   });
+
+  useSubscribe(
+    'layout:item:closed',
+    async (event: PubSubEvent.LayoutItemClosed) => {
+      const { itemId } = event;
+
+      logger.debug('layout item closed, saving layout', event);
+
+      if (layout?.items) {
+        const streamLayout = layout.items.find((streamLayout) => {
+          return streamLayout.id === itemId;
+        });
+
+        if (streamLayout) {
+          streamLayout.visible = false;
+        }
+
+        await saveLayout({
+          layoutName,
+          layout,
+        });
+      }
+    }
+  );
+
+  useSubscribe(
+    'layout:item:moved',
+    async (event: PubSubEvent.LayoutItemMoved) => {
+      const { itemId, x, y, width, height } = event;
+
+      logger.debug('layout item moved, saving layout', event);
+
+      if (layout?.items) {
+        const streamLayout = layout.items.find((streamLayout) => {
+          return streamLayout.id === itemId;
+        });
+
+        if (streamLayout) {
+          streamLayout.x = x;
+          streamLayout.y = y;
+          streamLayout.width = width;
+          streamLayout.height = height;
+        }
+
+        await saveLayout({
+          layoutName,
+          layout,
+        });
+      }
+    }
+  );
 
   const contentItems = useMemo<Array<GridItemContent>>(() => {
     if (!layout) {
