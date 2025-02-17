@@ -1,6 +1,5 @@
 import type { IpcRendererEvent } from 'electron';
 import { EuiLoadingSpinner, EuiOverlayMask } from '@elastic/eui';
-import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useMemo, useState } from 'react';
 import type { Character } from '../../common/account/types.js';
@@ -62,7 +61,6 @@ export const GameProvider: React.FC<GameProviderProps> = (
   const { children } = props;
 
   const logger = useLogger('renderer:context:game');
-  const router = useRouter();
   const pubsub = usePubSub();
 
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -98,7 +96,6 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useSubscribe('character:play:starting', async (character: Character) => {
     logger.debug('character:play:starting', { character });
     setShowPlayStartingOverlay(true);
-    await router.push('/game');
   });
 
   useSubscribe('character:play:started', async (character: Character) => {
@@ -116,22 +113,6 @@ export const GameProvider: React.FC<GameProviderProps> = (
     logger.debug('character:play:stopped', { character });
     setShowPlayStoppingOverlay(false);
   });
-
-  useSubscribe(
-    'character:play:error',
-    async (event: { title: string; error: Error }) => {
-      const { title, error } = event;
-
-      setShowPlayStartingOverlay(false);
-      setShowPlayStoppingOverlay(false);
-
-      pubsub.publish('toast:add', {
-        title,
-        type: 'danger',
-        text: error.message,
-      });
-    }
-  );
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -196,6 +177,8 @@ export const GameProvider: React.FC<GameProviderProps> = (
       'game:error',
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
+        setShowPlayStartingOverlay(false);
+        setShowPlayStoppingOverlay(false);
         logger.error('game:error', { error });
         pubsub.publish('game:error', error);
         pubsub.publish('toast:add', {

@@ -123,11 +123,7 @@ export const usePlayCharacter = (): PlayCharacterFn => {
         publish('character:play:started', character);
         publish('characters:reload');
       } catch (error) {
-        publish('character:play:error', {
-          title: 'Error playing character',
-          error,
-          character,
-        });
+        publish('game:error', error);
       }
     },
     [setPlayingCharacter, quitCharacter, publish]
@@ -156,11 +152,7 @@ export const useQuitCharacter = (): QuitCharacterFn => {
         publish('character:play:stopped', playingCharacter);
         publish('characters:reload');
       } catch (error) {
-        publish('character:play:error', {
-          title: 'Error quitting character',
-          error,
-          character: playingCharacter,
-        });
+        publish('game:error', error);
       }
     }
   }, [playingCharacter, setPlayingCharacter, publish]);
