@@ -219,7 +219,11 @@ const GamePage: React.FC = (): ReactNode => {
     return contentGridItems;
   }, [gameLogLineSubject$, layout]);
 
-  return <GameContainer contentItems={contentItems} />;
+  const gameContainer = useMemo(() => {
+    return <GameContainer contentItems={contentItems} />;
+  }, [contentItems]);
+
+  return gameContainer;
 };
 
 // nextjs pages must be default exports
