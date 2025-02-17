@@ -5,6 +5,7 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useLogger } from '../../hooks/logger.jsx';
+import { usePubSub } from '../../hooks/pubsub.jsx';
 import type {
   GridItemBoundary,
   GridItemContent,
@@ -21,6 +22,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { boundary, contentItems } = props;
 
   const logger = useLogger('renderer:cmp:grid');
+  const { publish } = usePubSub();
 
   const [focusedItemId, setFocusedItemId] = useState<string>(() => {
     const focusedItem = contentItems.find((contentItem) => {
@@ -41,17 +43,25 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const onItemClose = useCallback(
     (item: GridItemInfo) => {
       logger.debug('closed item', { item });
-      // TODO remove from layout
+      publish('layout:item:closed', {
+        itemId: item.itemId,
+      });
     },
-    [logger]
+    [logger, publish]
   );
 
   const onItemMoveResize = useCallback(
     (item: GridItemInfo) => {
       logger.debug('moved item', { item });
-      // TODO auto-save layout or require user to save manually?
+      publish('layout:item:moved', {
+        itemId: item.itemId,
+        x: item.layout.x,
+        y: item.layout.y,
+        width: item.layout.width,
+        height: item.layout.height,
+      });
     },
-    [logger]
+    [logger, publish]
   );
 
   const gridItems = useMemo(() => {
