@@ -189,6 +189,7 @@ const GamePage: React.FC = (): ReactNode => {
     });
   });
 
+  // Save layout when item is closed.
   useSubscribe(
     'layout:item:closed',
     async (event: PubSubEvent.LayoutItemClosed) => {
@@ -213,6 +214,7 @@ const GamePage: React.FC = (): ReactNode => {
     }
   );
 
+  // Save layout when item is moved or resized.
   useSubscribe(
     'layout:item:moved',
     async (event: PubSubEvent.LayoutItemMoved) => {
