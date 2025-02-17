@@ -1,13 +1,58 @@
 import { useEffect, useMemo } from 'react';
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
+import type { Character } from '../../common/account/types.js';
+import type {
+  GameConnectMessage,
+  GameDisconnectMessage,
+  GameEvent,
+} from '../../common/game/types.js';
 import type { Logger } from '../../common/logger/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import { getScopedLogger } from '../lib/logger/logger.factory.js';
+import type { SidebarId } from '../types/sidebar.types.js';
+import type { ToastAddMessage } from '../types/toast.types.js';
 
-export type PubSubSubscriber = (data?: any) => Promise<void> | void;
+export type PubSubSubscribeCallback<T = unknown> = (
+  data: T
+) => Promise<void> | void;
 
 export type PubSubUnsubscribeCallback = () => void;
+
+export type PubSubSubscriber<T extends string = string> =
+  T extends 'game:connect'
+    ? PubSubSubscribeCallback<GameConnectMessage>
+    : T extends 'game:disconnect'
+      ? PubSubSubscribeCallback<GameDisconnectMessage>
+      : T extends 'game:event'
+        ? PubSubSubscribeCallback<GameEvent>
+        : T extends 'game:command'
+          ? PubSubSubscribeCallback<string>
+          : T extends 'game:error'
+            ? PubSubSubscribeCallback<Error>
+            : T extends 'sidebar:show'
+              ? PubSubSubscribeCallback<SidebarId>
+              : T extends 'toast:add'
+                ? PubSubSubscribeCallback<ToastAddMessage>
+                : T extends 'character:play:starting'
+                  ? PubSubSubscribeCallback<Character>
+                  : T extends 'character:play:started'
+                    ? PubSubSubscribeCallback<Character>
+                    : T extends 'character:play:stopping'
+                      ? PubSubSubscribeCallback<Character>
+                      : T extends 'character:play:stopped'
+                        ? PubSubSubscribeCallback<Character>
+                        : T extends 'layout:load'
+                          ? PubSubSubscribeCallback<string>
+                          : PubSubSubscribeCallback;
+
+type PubSubSubscriberDataArg<T extends string = string> = Parameters<
+  PubSubSubscriber<T>
+>[0];
+
+interface PubSubSubscribersByEventType<T extends string = string> {
+  [event: string]: Array<PubSubSubscriber<T>>;
+}
 
 /**
  * This interface is designed to be simple.
@@ -22,20 +67,26 @@ export interface PubSub {
    * Or, you can explicitly call `unsubscribe(event, subscriber)`.
    * For automatic unsubscription, use `useSubscribe` hook.
    */
-  subscribe: (
-    event: string,
-    subscriber: PubSubSubscriber
+  subscribe: <T extends string = string>(
+    event: T,
+    subscriber: PubSubSubscriber<T>
   ) => PubSubUnsubscribeCallback;
 
   /**
    * Unsubscribe from an event.
    */
-  unsubscribe: (event: string, subscriber: PubSubSubscriber) => void;
+  unsubscribe: <T extends string = string>(
+    event: T,
+    subscriber: PubSubSubscriber<T>
+  ) => void;
 
   /**
    * Publish a message to all subscribers of the event.
    */
-  publish: (event: string, data?: any) => void;
+  publish: <T extends string = string>(
+    event: T,
+    data?: PubSubSubscriberDataArg<T>
+  ) => void;
 }
 
 /**
@@ -44,9 +95,9 @@ export interface PubSub {
  *
  * For more granular control, use `usePubSub()`.
  */
-export const useSubscribe = (
-  event: string,
-  subscriber: PubSubSubscriber
+export const useSubscribe = <T extends string = string>(
+  event: T,
+  subscriber: PubSubSubscriber<T>
 ): void => {
   const subscribe = usePubSubStore(
     useShallow((state) => {
@@ -89,13 +140,24 @@ export const usePubSub = (): PubSub => {
   // but I'm going to memoize the return value just in case.
   const pubsub = useMemo((): PubSub => {
     return {
-      subscribe: (event: string, subscriber: PubSubSubscriber) => {
+      subscribe: <T extends string = string>(
+        event: T,
+        subscriber: PubSubSubscriber<T>
+      ) => {
         return store.subscribe({ event, subscriber });
       },
-      unsubscribe: (event: string, subscriber: PubSubSubscriber) => {
+
+      unsubscribe: <T extends string = string>(
+        event: T,
+        subscriber: PubSubSubscriber<T>
+      ) => {
         store.unsubscribe({ event, subscriber });
       },
-      publish: (event: string, data?: any) => {
+
+      publish: <T extends string = string>(
+        event: T,
+        data: PubSubSubscriberDataArg<T>
+      ) => {
         store.publish({ event, data });
       },
     };
@@ -113,30 +175,33 @@ interface PubSubStoreData {
   /**
    * Map of event names to subscribers.
    */
-  subscribers: Record<string, Array<PubSubSubscriber>>;
+  subscribers: PubSubSubscribersByEventType;
 
   /**
    * Subscribes to an event.
    * Returns a method that will unsubscribe from the event.
    * Or, you can explicitly call `unsubscribe(event, subscriber)`.
    */
-  subscribe: (options: {
-    event: string;
-    subscriber: PubSubSubscriber;
+  subscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
   }) => PubSubUnsubscribeCallback;
 
   /**
    * Unsubscribe from an event.
    */
-  unsubscribe: (options: {
-    event: string;
-    subscriber: PubSubSubscriber;
+  unsubscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
   }) => void;
 
   /**
    * Publish a message to all subscribers of the event.
    */
-  publish: (options: { event: string; data?: any }) => void;
+  publish: <T extends string = string>(options: {
+    event: T;
+    data: PubSubSubscriberDataArg<T>;
+  }) => void;
 }
 
 /**
@@ -147,13 +212,19 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
 
   subscribers: {},
 
-  subscribe: (options: { event: string; subscriber: PubSubSubscriber }) => {
+  subscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
+  }) => {
     const { event, subscriber } = options;
 
     set((state: PubSubStoreData) => {
       const subscribers = state.subscribers[event] ?? [];
 
-      const updatedSubscribers = [...subscribers, subscriber];
+      const updatedSubscribers = [
+        ...subscribers,
+        subscriber as PubSubSubscribeCallback,
+      ];
 
       return {
         subscribers: {
@@ -172,7 +243,10 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
     return unsub;
   },
 
-  unsubscribe: (options: { event: string; subscriber: PubSubSubscriber }) => {
+  unsubscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
+  }) => {
     const { event, subscriber } = options;
 
     set((state: PubSubStoreData) => {
@@ -191,7 +265,10 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
     });
   },
 
-  publish: (options: { event: string; data?: any }) => {
+  publish: <T extends string = string>(options: {
+    event: T;
+    data: PubSubSubscriberDataArg<T>;
+  }) => {
     const { event, data } = options;
 
     const state = get();
