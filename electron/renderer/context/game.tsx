@@ -61,7 +61,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   const { children } = props;
 
   const logger = useLogger('renderer:context:game');
-  const pubsub = usePubSub();
+  const { publish } = usePubSub();
 
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [accountName, setAccountName] = useState<string>();
@@ -101,7 +101,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useSubscribe('character:play:started', async (character: Character) => {
     logger.debug('character:play:started', { character });
     setShowPlayStartingOverlay(false);
-    pubsub.publish('sidebar:hide');
+    publish('sidebar:hide');
   });
 
   useSubscribe('character:play:stopping', async (character: Character) => {
@@ -118,7 +118,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
     logger.error('game:error', { error });
     setShowPlayStartingOverlay(false);
     setShowPlayStoppingOverlay(false);
-    pubsub.publish('toast:add', {
+    publish('toast:add', {
       title: 'Game Error',
       type: 'danger',
       text: error.message,
@@ -139,7 +139,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
         setAccountName(accountName);
         setCharacterName(characterName);
         setGameCode(gameCode);
-        pubsub.publish('game:connect', {
+        publish('game:connect', {
           accountName,
           characterName,
           gameCode,
@@ -149,7 +149,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
     return () => {
       unsubscribe();
     };
-  }, [logger, pubsub]);
+  }, [logger, publish]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -165,7 +165,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
         setAccountName(accountName);
         setCharacterName(characterName);
         setGameCode(gameCode);
-        pubsub.publish('game:disconnect', {
+        publish('game:disconnect', {
           accountName,
           characterName,
           gameCode,
@@ -181,46 +181,46 @@ export const GameProvider: React.FC<GameProviderProps> = (
     return () => {
       unsubscribe();
     };
-  }, [logger, pubsub, quitCharacter]);
+  }, [logger, publish, quitCharacter]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:error',
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
-        pubsub.publish('game:error', error);
+        publish('game:error', error);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [logger, pubsub]);
+  }, [logger, publish]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:event',
       (_event: IpcRendererEvent, message: GameEventMessage) => {
         const { gameEvent } = message;
-        pubsub.publish('game:event', gameEvent);
+        publish('game:event', gameEvent);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [pubsub]);
+  }, [publish]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:command',
       (_event: IpcRendererEvent, message: GameCommandMessage) => {
         const { command } = message;
-        pubsub.publish('game:command', command);
+        publish('game:command', command);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [pubsub]);
+  }, [publish]);
 
   return (
     <GameContext.Provider value={contextValue}>
