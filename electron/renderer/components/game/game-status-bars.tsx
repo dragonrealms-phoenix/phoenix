@@ -158,7 +158,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = (
       }}
     >
       <div
-        style={{
+        css={{
           position: 'absolute',
           left: 0,
           width: `${value}%`,
@@ -169,7 +169,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = (
         }}
       />
       <div
-        style={{
+        css={{
           position: 'absolute',
           width: '100%',
           height: '100%',

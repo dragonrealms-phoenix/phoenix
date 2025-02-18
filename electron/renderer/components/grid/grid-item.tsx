@@ -25,6 +25,7 @@ import type {
   GridItemBoundary,
   GridItemInfo,
   GridItemPosition,
+  GridItemStyle,
 } from '../../types/grid.types.js';
 
 export interface GridItemProps {
@@ -37,6 +38,12 @@ export interface GridItemProps {
    * If not specified then a default location will be used.
    */
   position?: GridItemPosition;
+  /**
+   * The default font styling for the grid item.
+   * It may be overridden on a line-by-line basis
+   * based on game style presets and user preferences.
+   */
+  style?: GridItemStyle;
   /**
    * The unique identifier for the grid item.
    */
@@ -81,10 +88,18 @@ const DEFAULT_GRID_ITEM_POSITION: GridItemPosition = {
   height: 500,
 };
 
+const DEFAULT_GRID_ITEM_STYLE: GridItemStyle = {
+  fontFamily: 'inherit',
+  fontSize: 'inherit',
+  foregroundColor: 'inherit',
+  backgroundColor: 'inherit',
+};
+
 export const GridItem: React.FC<GridItemProps> = memo(
   (props: GridItemProps): ReactNode => {
     const { itemId, itemTitle, isFocused = false, children } = props;
     const { boundary, position = DEFAULT_GRID_ITEM_POSITION } = props;
+    const { style = DEFAULT_GRID_ITEM_STYLE } = props;
     const { onFocus, onClose, onMoveResize } = props;
 
     const { euiTheme } = useEuiTheme();
@@ -104,6 +119,7 @@ export const GridItem: React.FC<GridItemProps> = memo(
         itemId,
         itemTitle,
         isFocused,
+        style,
         position: {
           x: x.get(),
           y: y.get(),
@@ -111,7 +127,7 @@ export const GridItem: React.FC<GridItemProps> = memo(
           height: height.get(),
         },
       };
-    }, [itemId, itemTitle, isFocused, x, y, width, height]);
+    }, [itemId, itemTitle, isFocused, style, x, y, width, height]);
 
     // Handle when the user clicks the close button in the title bar.
     const onCloseClick = useCallback(() => {
@@ -319,9 +335,13 @@ export const GridItem: React.FC<GridItemProps> = memo(
         <EuiSplitPanel.Outer
           grow={true}
           hasBorder={true}
-          style={{
+          css={{
             height: 'inherit',
             width: 'inherit',
+            fontSize: style.fontSize,
+            fontFamily: style.fontFamily,
+            color: style.foregroundColor,
+            backgroundColor: style.backgroundColor,
           }}
         >
           <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">

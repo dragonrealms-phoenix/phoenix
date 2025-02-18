@@ -16,6 +16,7 @@ export interface GridItemInfo {
   itemTitle: string;
   isFocused: boolean;
   position: GridItemPosition;
+  style: GridItemStyle;
 }
 
 export interface GridItemConfig {
@@ -99,12 +100,13 @@ export interface GridItemStyle {
    * The font family to use for the text.
    * For example, "Verdana" or "Courier New".
    */
-  textFont: string;
+  fontFamily: string;
   /**
-   * The font size to use for the text, in pixels.
-   * For example, 12.
+   * The font size to use for the stream content.
+   * Using a number without unit may not yield desired results.
+   * Example: '12px' (recommended) vs. '12' (not recommended).
    */
-  textSize: number;
+  fontSize: string;
   /**
    * The color name or hex code to use for the text.
    * For example, "red" or "#FF0000".

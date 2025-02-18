@@ -2,10 +2,11 @@ import { EuiText, useEuiTheme } from '@elastic/eui';
 import { type SerializedStyles, css } from '@emotion/react';
 import type { ReactNode } from 'react';
 import { memo, useMemo } from 'react';
-import type { GameLogLine } from '../../types/game.types.jsx';
+import type { GameLogLine, GameStreamStyle } from '../../types/game.types.jsx';
 
 export interface GameStreamTextProps {
   logLine: GameLogLine;
+  style?: GameStreamStyle;
 }
 
 /**
@@ -17,46 +18,70 @@ export interface GameStreamTextProps {
  */
 export const GameStreamText: React.FC<GameStreamTextProps> = memo(
   (props: GameStreamTextProps): ReactNode => {
-    const { logLine } = props;
+    const { logLine, style } = props;
 
     const { euiTheme } = useEuiTheme();
 
+    const defaultStyles = useMemo(() => {
+      const fontSize = style?.fontSize ?? euiTheme.size.m;
+      const fontFamily = style?.fontFamily ?? euiTheme.font.family;
+      const fontWeight = euiTheme.font.weight.regular;
+      const foregroundColor = style?.foregroundColor ?? euiTheme.colors.text;
+      const backgroundColor = style?.backgroundColor ?? 'inherit';
+
+      return {
+        fontSize,
+        fontFamily,
+        fontWeight,
+        foregroundColor,
+        backgroundColor,
+      };
+    }, [euiTheme, style]);
+
     const textStyles = useMemo((): SerializedStyles => {
-      let fontSize = euiTheme.size.m;
-      let fontFamily = euiTheme.font.family;
-      let fontWeight = euiTheme.font.weight.regular;
-      let fontColor = euiTheme.colors.text;
+      let fontSize = defaultStyles.fontSize;
+      let fontFamily = defaultStyles.fontFamily;
+      let fontWeight = defaultStyles.fontWeight;
+      let foregroundColor = defaultStyles.foregroundColor;
+      const backgroundColor = defaultStyles.backgroundColor;
 
-      if (logLine.styles?.outputClass === 'mono') {
-        fontFamily = euiTheme.font.familyCode ?? fontFamily;
+      // TODO add to user customizations in game stream style
+      if (logLine.style?.outputClass === 'mono') {
         fontSize = euiTheme.size.m;
+        fontFamily = euiTheme.font.familyCode ?? fontFamily;
       }
 
-      if (logLine.styles?.stylePreset === 'roomName') {
-        fontColor = euiTheme.colors.title;
+      // TODO add presets to user customizations in game stream style
+      if (logLine.style?.stylePreset === 'roomName') {
+        foregroundColor = euiTheme.colors.title;
         fontWeight = euiTheme.font.weight.bold;
       }
 
-      if (logLine.styles?.bold === true) {
+      if (logLine.style?.bold === true) {
         fontWeight = euiTheme.font.weight.bold;
       }
 
-      if (logLine.styles?.subdued === true) {
-        fontColor = euiTheme.colors.subduedText;
+      if (logLine.style?.subdued === true) {
+        foregroundColor = euiTheme.colors.subduedText;
       }
 
       const textStyles = css({
         fontSize,
         fontFamily,
         fontWeight,
-        color: fontColor,
+        color: foregroundColor,
+        backgroundColor,
         lineHeight: 'initial',
         paddingLeft: euiTheme.size.s,
         paddingRight: euiTheme.size.s,
+        b: {
+          color: '#FFD200', // TODO add 'monster bold' user customization to game stream style
+          fontWeight: euiTheme.font.weight.regular,
+        },
       });
 
       return textStyles;
-    }, [euiTheme, logLine.styles]);
+    }, [euiTheme, defaultStyles, logLine.style]);
 
     // We output the text using inner html because the text may contain tags.
     // For example, tags to highlight a single word or phrases.
@@ -91,8 +116,8 @@ const isSameLogLine = (options: {
 }): boolean => {
   const { oldLogLine, newLogLine } = options;
 
-  const { eventId: oldEventId, styles: oldTheme } = oldLogLine;
-  const { eventId: newEventId, styles: newTheme } = newLogLine;
+  const { eventId: oldEventId, style: oldTheme } = oldLogLine;
+  const { eventId: newEventId, style: newTheme } = newLogLine;
 
   const isSameEventId = oldEventId === newEventId;
   const isSameColorMode = oldTheme?.colorMode === newTheme?.colorMode;

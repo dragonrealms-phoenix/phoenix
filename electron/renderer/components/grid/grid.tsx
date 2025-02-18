@@ -73,6 +73,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
           itemTitle={contentItem.itemTitle}
           isFocused={contentItem.itemId === focusedItemId}
           position={contentItem.position}
+          style={contentItem.style}
           boundary={boundary}
           onFocus={onItemFocus}
           onClose={onItemClose}
@@ -93,7 +94,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
 
   return (
     <div
-      style={{
+      css={{
         overflowY: 'auto',
         overflowX: 'hidden',
         position: 'relative',

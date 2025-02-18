@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
 import { GameContext } from '../../context/game.jsx';
-import type { GameLogLine } from '../../types/game.types.jsx';
+import type { GameLogLine, GameStreamStyle } from '../../types/game.types.jsx';
 import { GameStreamText } from './game-stream-text.jsx';
 import {
   excludeDuplicateEmptyLines,
@@ -39,6 +39,12 @@ export interface GameStreamProps {
    * Default is 500.
    */
   maxLines?: number;
+  /**
+   * The default text formatting to apply to the entire stream.
+   * Styles may be overridden on a line-by-line basis.
+   * See {@link GameLogLine} for details.
+   */
+  style?: GameStreamStyle;
 }
 
 export const GameStream: React.FC<GameStreamProps> = (
@@ -187,6 +193,9 @@ export const GameStream: React.FC<GameStreamProps> = (
       css={{
         overflowY: 'scroll',
         height: '100%',
+        // Disable the eui scrollbar color as it conflicts with
+        // user customizations for grid item styling.
+        backgroundColor: 'inherit',
       }}
       className="eui-scrollBar"
       paddingSize="none"
@@ -201,7 +210,13 @@ export const GameStream: React.FC<GameStreamProps> = (
        */}
       <div css={{ overflowAnchor: 'none' }}>
         {gameLogLines.map((logLine) => {
-          return <GameStreamText key={logLine.eventId} logLine={logLine} />;
+          return (
+            <GameStreamText
+              key={logLine.eventId}
+              logLine={logLine}
+              style={props.style}
+            />
+          );
         })}
       </div>
       <EuiSpacer size="s" />

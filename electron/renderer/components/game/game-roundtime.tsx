@@ -105,7 +105,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
   const timerCmps = useMemo((): ReactElement => {
     return (
       <div
-        style={{
+        css={{
           display: 'flex',
           flexDirection: 'column',
           alignContent: 'center',
@@ -152,7 +152,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
   return (
     <EuiToolTip content={typeTooltip} position="top">
       <div
-        style={{
+        css={{
           position: 'relative',
           width: '100%',
           height: '25px',
@@ -162,7 +162,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
         }}
       >
         <div
-          style={{
+          css={{
             position: 'absolute',
             left: 0,
             width: `${fillWidth}%`,
@@ -171,7 +171,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
           }}
         />
         <div
-          style={{
+          css={{
             position: 'absolute',
             width: '100%',
             height: '100%',
