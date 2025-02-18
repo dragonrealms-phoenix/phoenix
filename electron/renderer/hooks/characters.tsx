@@ -3,9 +3,9 @@ import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
+import type { Character } from '../../common/account/types.js';
 import { isBlank } from '../../common/string/string.utils.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { Character } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
 /**
@@ -17,9 +17,8 @@ export const useListCharacters = (options?: {
 }): Array<Character> => {
   const [characters, setCharacters] = useState<Array<Character>>([]);
 
-  const loadCharacters = useCallback(async () => {
+  const listCharacters = useCallback(async () => {
     const accountName = options?.accountName;
-
     const allCharacters = await window.api.listCharacters();
     const filteredCharacters = allCharacters.filter((character) => {
       return isBlank(accountName) || character.accountName === accountName;
@@ -29,16 +28,16 @@ export const useListCharacters = (options?: {
   }, [options?.accountName]);
 
   // Reload when told to.
-  useSubscribe(['characters:reload'], async () => {
-    await loadCharacters();
+  useSubscribe('characters:reload', async () => {
+    await listCharacters();
   });
 
   // Reload on first render.
   useEffect(() => {
     runInBackground(async () => {
-      await loadCharacters();
+      await listCharacters();
     });
-  }, [loadCharacters]);
+  }, [listCharacters]);
 
   return characters;
 };
@@ -57,6 +56,11 @@ export const useSaveCharacter = (): SaveCharacterFn => {
       await window.api.saveCharacter(character);
       publish('character:saved', character);
       publish('characters:reload');
+      publish('toast:add', {
+        title: 'Character Saved',
+        type: 'success',
+        text: character.characterName,
+      });
     },
     [publish]
   );
@@ -85,6 +89,11 @@ export const useRemoveCharacter = (): RemoveCharacterFn => {
       await window.api.removeCharacter(character);
       publish('character:removed', character);
       publish('characters:reload');
+      publish('toast:add', {
+        title: 'Character Removed',
+        type: 'success',
+        text: character.characterName,
+      });
     },
     [playingCharacter, quitCharacter, publish]
   );
@@ -114,11 +123,7 @@ export const usePlayCharacter = (): PlayCharacterFn => {
         publish('character:play:started', character);
         publish('characters:reload');
       } catch (error) {
-        publish('character:play:error', {
-          title: 'Error playing character',
-          error,
-          character,
-        });
+        publish('game:error', error);
       }
     },
     [setPlayingCharacter, quitCharacter, publish]
@@ -147,11 +152,7 @@ export const useQuitCharacter = (): QuitCharacterFn => {
         publish('character:play:stopped', playingCharacter);
         publish('characters:reload');
       } catch (error) {
-        publish('character:play:error', {
-          title: 'Error quitting character',
-          error,
-          character: playingCharacter,
-        });
+        publish('game:error', error);
       }
     }
   }, [playingCharacter, setPlayingCharacter, publish]);

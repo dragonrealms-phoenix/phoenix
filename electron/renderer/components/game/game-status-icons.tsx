@@ -1,14 +1,15 @@
-import { EuiIcon, EuiImage, EuiToolTip } from '@elastic/eui';
+import { EuiIcon, EuiImage, EuiToolTip, useEuiTheme } from '@elastic/eui';
 import type { StaticImageData } from 'next/image.js';
 import type React from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import type {
   GameEvent,
   IndicatorGameEvent,
 } from '../../../common/game/types.js';
 import { GameEventType, IndicatorType } from '../../../common/game/types.js';
 import { toTitleCase } from '../../../common/string/string.utils.js';
+import { GameContext } from '../../context/game.jsx';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
 import ImageDead from './icons/dead.png';
 import ImageKneeling from './icons/kneeling.png';
@@ -90,7 +91,7 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
     }
   }, []);
 
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     switch (gameEvent.type) {
       case GameEventType.INDICATOR:
         setIndicatorState(gameEvent);
@@ -144,7 +145,7 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
         iconColor="lime"
       />
 
-      <div css={{ paddingLeft: '4px', paddingRight: '3px' }}>
+      <div css={{ paddingLeft: '4px', paddingRight: '4px' }}>
         <GameStatusIcon
           active={isInvisible}
           tooltipText="Invisible"
@@ -153,7 +154,7 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
         />
       </div>
 
-      <div css={{ paddingLeft: '3px', paddingRight: '4px' }}>
+      <div css={{ paddingLeft: '2px', paddingRight: '2px' }}>
         <GameStatusIcon
           active={isHidden}
           tooltipText="Hidden"
@@ -162,12 +163,16 @@ export const GameStatusIcons: React.FC = (): ReactNode => {
         />
       </div>
 
-      <GameStatusIcon
-        active={isJoined}
-        tooltipText="Joined"
-        iconType="users"
-        iconColor="success"
-      />
+      <div css={{ paddingLeft: '2px', paddingRight: '2px' }}>
+        <GameStatusIcon
+          active={isJoined}
+          tooltipText="Joined"
+          iconType="users"
+          iconColor="success"
+        />
+      </div>
+
+      <GameConnectivityIcon />
     </div>
   );
 };
@@ -184,23 +189,30 @@ interface GameStatusIconProps {
 const GameStatusIcon: React.FC<GameStatusIconProps> = (
   props: GameStatusIconProps
 ): ReactNode => {
-  const { active, tooltipText, iconType, iconColor } = props;
+  const { active, tooltipText, iconType } = props;
+
+  const { euiTheme } = useEuiTheme();
+
+  const { isConnected } = useContext(GameContext);
+
+  const activeColor = isConnected ? props.iconColor : euiTheme.colors.disabled;
+  const inactiveColor = isConnected ? 'subdued' : euiTheme.colors.disabled;
 
   const activeIcon = useMemo((): ReactElement => {
     return (
       <EuiToolTip content={tooltipText} position="top">
-        <EuiIcon type={iconType} color={iconColor} size="l" />
+        <EuiIcon type={iconType} color={activeColor} size="l" />
       </EuiToolTip>
     );
-  }, [iconType, iconColor, tooltipText]);
+  }, [iconType, activeColor, tooltipText]);
 
   const inactiveIcon = useMemo((): ReactElement => {
     return (
       <EuiToolTip content={`Not ${tooltipText}`} position="top">
-        <EuiIcon type={iconType} color="subdued" size="l" />
+        <EuiIcon type={iconType} color={inactiveColor} size="l" />
       </EuiToolTip>
     );
-  }, [iconType, tooltipText]);
+  }, [iconType, inactiveColor, tooltipText]);
 
   const icon = useMemo((): ReactElement => {
     return active ? activeIcon : inactiveIcon;
@@ -245,3 +257,23 @@ const GamePostureIcon: React.FC<GamePostureIconProps> = (
 };
 
 GamePostureIcon.displayName = 'GamePostureIcon';
+
+const GameConnectivityIcon: React.FC = (): ReactNode => {
+  const { isConnected } = useContext(GameContext);
+
+  const icon = useMemo((): ReactElement => {
+    const tooltipText = isConnected ? 'Game Connected' : 'Game Disconnected';
+    const iconType = isConnected ? 'online' : 'offline';
+    const iconColor = isConnected ? 'success' : 'danger';
+
+    return (
+      <EuiToolTip content={tooltipText} position="top">
+        <EuiIcon type={iconType} color={iconColor} size="l" />
+      </EuiToolTip>
+    );
+  }, [isConnected]);
+
+  return icon;
+};
+
+GameConnectivityIcon.displayName = 'GameConnectivityIcon';

@@ -1,4 +1,4 @@
-import HomePage from './home.js';
+import GamePage from './game.jsx';
 
 // nextjs pages must be default exports
-export default HomePage;
+export default GamePage;

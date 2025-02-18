@@ -6,12 +6,14 @@ import type {
   ReactElement,
   ReactNode,
 } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
-import { useCommandHistory } from '../../hooks/command-history.jsx';
+import { GameContext } from '../../context/game.jsx';
+import { useCommandHistory } from '../../hooks/commands.jsx';
 import { runInBackground } from '../../lib/async/run-in-background.js';
 
 export const GameCommandInput: React.FC = (): ReactNode => {
+  const { isConnected } = useContext(GameContext);
   const { input, handleKeyDown, handleOnChange } = useCommandHistory();
   const [lastCommand, setLastCommand] = useState<string>();
 
@@ -80,12 +82,13 @@ export const GameCommandInput: React.FC = (): ReactNode => {
           autoComplete="off"
           prepend={commandIcon}
           tabIndex={0}
+          disabled={!isConnected}
           onKeyDown={onKeyDown}
           onChange={onChange}
         />
       </div>
     );
-  }, [input, commandIcon, onKeyDown, onChange]);
+  }, [isConnected, input, commandIcon, onKeyDown, onChange]);
 
   return commandInput;
 };

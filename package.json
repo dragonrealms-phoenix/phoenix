@@ -51,7 +51,7 @@
     "start:dev": "yarn build:dev && APP_ENV=development electron ./electron/build/main/index.js",
     "build:common": "yarn clean && tsc -p electron/common",
     "build:main": "yarn clean && tsc -p electron/main",
-    "build:preload": "yarn clean && tsc -p electron/preload && yarn prettier:fix electron/preload/**/*.d.ts",
+    "build:preload": "yarn clean && yarn tsc -p electron/preload --declarationDir ../build/preload && tsc -p electron/preload --isolatedModules null --declarationDir null --emitDeclarationOnly --declaration --outFile electron/preload/index.d.ts && yarn prettier:fix electron/preload/**/*.d.ts",
     "build:renderer": "yarn clean && next build electron/renderer && mv electron/renderer/out electron/build/renderer",
     "build": "yarn clean && concurrently \"yarn build:main\" \"yarn build:preload\" \"yarn build:renderer\"",
     "build:dev": "yarn clean && concurrently \"yarn build:main\" \"yarn build:preload\"",

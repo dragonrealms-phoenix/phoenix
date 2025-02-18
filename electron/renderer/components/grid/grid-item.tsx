@@ -24,7 +24,8 @@ import { memo, useCallback, useMemo, useRef } from 'react';
 import type {
   GridItemBoundary,
   GridItemInfo,
-  GridItemLayout,
+  GridItemPosition,
+  GridItemStyle,
 } from '../../types/grid.types.js';
 
 export interface GridItemProps {
@@ -36,7 +37,13 @@ export interface GridItemProps {
    * The positional layout for the grid item.
    * If not specified then a default location will be used.
    */
-  layout?: GridItemLayout;
+  position?: GridItemPosition;
+  /**
+   * The default font styling for the grid item.
+   * It may be overridden on a line-by-line basis
+   * based on game style presets and user preferences.
+   */
+  style?: GridItemStyle;
   /**
    * The unique identifier for the grid item.
    */
@@ -74,26 +81,35 @@ export interface GridItemProps {
   children?: ReactNode;
 }
 
-const DEFAULT_GRID_ITEM_LAYOUT: GridItemLayout = {
+const DEFAULT_GRID_ITEM_POSITION: GridItemPosition = {
   x: 0,
   y: 0,
   width: 500,
   height: 500,
 };
 
+const DEFAULT_GRID_ITEM_STYLE: GridItemStyle = {
+  fontFamily: 'inherit',
+  fontSize: 'inherit',
+  foregroundColor: 'inherit',
+  backgroundColor: 'inherit',
+};
+
 export const GridItem: React.FC<GridItemProps> = memo(
   (props: GridItemProps): ReactNode => {
     const { itemId, itemTitle, isFocused = false, children } = props;
-    const { boundary, layout = DEFAULT_GRID_ITEM_LAYOUT } = props;
+    const { boundary, position = DEFAULT_GRID_ITEM_POSITION } = props;
+    const { style = DEFAULT_GRID_ITEM_STYLE } = props;
     const { onFocus, onClose, onMoveResize } = props;
 
     const { euiTheme } = useEuiTheme();
 
     // Set default position and size for the grid item.
     // Like `useState`, we can provide the default value, but as a function.
-    const [{ x, y, width, height }, sizeApi] = useSpring<GridItemLayout>(() => {
-      return layout;
-    }, [layout]);
+    const [{ x, y, width, height }, sizeApi] =
+      useSpring<GridItemPosition>(() => {
+        return position;
+      }, [position]);
 
     const dragHandleRef = useRef<HTMLDivElement>(null);
     const resizeHandleRef = useRef<HTMLDivElement>(null);
@@ -103,14 +119,15 @@ export const GridItem: React.FC<GridItemProps> = memo(
         itemId,
         itemTitle,
         isFocused,
-        layout: {
+        style,
+        position: {
           x: x.get(),
           y: y.get(),
           width: width.get(),
           height: height.get(),
         },
       };
-    }, [itemId, itemTitle, isFocused, x, y, width, height]);
+    }, [itemId, itemTitle, isFocused, style, x, y, width, height]);
 
     // Handle when the user clicks the close button in the title bar.
     const onCloseClick = useCallback(() => {
@@ -318,7 +335,7 @@ export const GridItem: React.FC<GridItemProps> = memo(
         <EuiSplitPanel.Outer
           grow={true}
           hasBorder={true}
-          style={{
+          css={{
             height: 'inherit',
             width: 'inherit',
           }}
@@ -381,7 +398,17 @@ export const GridItem: React.FC<GridItemProps> = memo(
               justifyContent="flexStart"
               gutterSize="none"
             >
-              <EuiFlexItem grow={true}>{children}</EuiFlexItem>
+              <EuiFlexItem
+                grow={true}
+                css={{
+                  fontSize: style.fontSize,
+                  fontFamily: style.fontFamily,
+                  color: style.foregroundColor,
+                  backgroundColor: style.backgroundColor,
+                }}
+              >
+                {children}
+              </EuiFlexItem>
               <EuiFlexItem grow={false}>
                 <div
                   ref={resizeHandleRef}

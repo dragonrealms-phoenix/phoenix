@@ -4,10 +4,11 @@ import path from 'node:path';
 import fs from 'fs-extra';
 import trimEnd from 'lodash-es/trimEnd.js';
 import { VERSION } from '../common/version.js';
+import { Accounts } from './account/account.instance.js';
 import { runInBackground } from './async/run-in-background.js';
-import type { IpcController } from './ipc/ipc.controller.js';
-import { newIpcController } from './ipc/ipc.controller.js';
+import { IpcController } from './ipc/ipc.controller.js';
 import type { IpcDispatcher } from './ipc/types.js';
+import { Layouts } from './layout/layout.instance.js';
 import { getScopedLogger } from './logger/logger.factory.js';
 import { getLogLevel } from './logger/logger.utils.js';
 import { initializeMenu } from './menu/menu.js';
@@ -149,7 +150,11 @@ export const initializeApp = async (): Promise<void> => {
       }
     };
 
-    ipcController = newIpcController({ dispatch });
+    ipcController = new IpcController({
+      dispatch,
+      accountService: Accounts,
+      layoutService: Layouts,
+    });
 
     logger.debug('loading main window', { appUrl });
     await mainWindow.loadURL(appUrl);

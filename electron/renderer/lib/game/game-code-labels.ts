@@ -1,13 +1,4 @@
-/**
- * Map of game codes to their user-friendly game instance labels.
- */
-export const GameCodeLabels: Record<string, string> = {
-  DR: 'Prime',
-  DRX: 'Platinum',
-  DRF: 'Fallen',
-  DRT: 'Test',
-  DRD: 'Development',
-};
+import { GameCodeMetaMap } from '../../../common/game/types.js';
 
 /**
  * An array of label-value pairs to power HTML select inputs.
@@ -23,9 +14,10 @@ export const GameCodeSelectOptions: Array<{
    * Example: 'DR'
    */
   value: string;
-}> = Object.entries(GameCodeLabels).map(([gameCode, label]) => {
+}> = Object.entries(GameCodeMetaMap).map(([gameCode, gameMeta]) => {
+  const { name } = gameMeta;
   return {
-    label,
+    label: name,
     value: gameCode,
   };
 });

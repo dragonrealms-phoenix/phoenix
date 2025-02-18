@@ -8,8 +8,8 @@ import {
 } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { memo, useMemo } from 'react';
+import type { Account } from '../../../../common/account/types.js';
 import { useListAccounts } from '../../../hooks/accounts.jsx';
-import type { Account } from '../../../types/game.types.js';
 
 export interface TableListAccountsProps {
   onEditAccountClick: (account: Account) => void;

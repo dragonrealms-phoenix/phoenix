@@ -54,7 +54,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
   // Technically, we don't need to explicitly recalculate the round time
   // when these game events are received, but doing so will immediately
   // refresh the UI when new roundtimes are incurred rather than on a delay.
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     switch (gameEvent.type) {
       case GameEventType.SERVER_TIME:
         serverTimeRef.current = gameEvent.time;
@@ -70,6 +70,17 @@ export const GameRoundTime: React.FC = (): ReactNode => {
         calculateRoundTimes();
         break;
     }
+  });
+
+  // Clear the counters otherwise they continue to tick down in the UI.
+  // I also tried clearing the interval, but because the component is still
+  // mounted then even when reconnecting to the game or reloading the page
+  // then the interval wasn't restarting and the numbers were frozen.
+  // This was the simplest solution I landed on.
+  useSubscribe('game:disconnect', () => {
+    serverTimeRef.current = 0;
+    roundTimeRef.current = 0;
+    castTimeRef.current = 0;
   });
 
   const roundTimeCmp = useMemo((): ReactElement => {
@@ -99,7 +110,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
   const timerCmps = useMemo((): ReactElement => {
     return (
       <div
-        style={{
+        css={{
           display: 'flex',
           flexDirection: 'column',
           alignContent: 'center',
@@ -146,7 +157,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
   return (
     <EuiToolTip content={typeTooltip} position="top">
       <div
-        style={{
+        css={{
           position: 'relative',
           width: '100%',
           height: '25px',
@@ -156,7 +167,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
         }}
       >
         <div
-          style={{
+          css={{
             position: 'absolute',
             left: 0,
             width: `${fillWidth}%`,
@@ -165,7 +176,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
           }}
         />
         <div
-          style={{
+          css={{
             position: 'absolute',
             width: '100%',
             height: '100%',

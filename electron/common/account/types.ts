@@ -1,5 +1,8 @@
 export interface Account {
   accountName: string;
+}
+
+export interface AccountWithPassword extends Account {
   accountPassword: string;
 }
 

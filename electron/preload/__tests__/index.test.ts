@@ -1,5 +1,12 @@
 import type { ContextBridge, IpcRenderer } from 'electron';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import type {
+  AccountWithPassword,
+  Character,
+} from '../../common/account/types.js';
+import type { Layout } from '../../common/layout/types.js';
+import type { LogMessage } from '../../common/logger/types.js';
+import { LogLevel } from '../../common/logger/types.js';
 
 const { mockContextBridge, mockIpcRenderer } = vi.hoisted(() => {
   const mockContextBridge = {
@@ -59,6 +66,10 @@ describe('index', () => {
           removeCharacter: expect.any(Function),
           listCharacters: expect.any(Function),
           playCharacter: expect.any(Function),
+          getLayout: expect.any(Function),
+          listLayoutNames: expect.any(Function),
+          saveLayout: expect.any(Function),
+          deleteLayout: expect.any(Function),
           sendCommand: expect.any(Function),
           onMessage: expect.any(Function),
           removeAllListeners: expect.any(Function),
@@ -79,9 +90,8 @@ describe('index', () => {
 
     describe('#log', async () => {
       it('sends log', async () => {
-        type LogMessage = Parameters<AppAPI['log']>[0];
         const logMessage: LogMessage = {
-          level: 'info',
+          level: LogLevel.INFO,
           scope: 'test-scope',
           message: 'test-message',
           timestamp: new Date(),
@@ -93,15 +103,17 @@ describe('index', () => {
     });
 
     describe('#saveAccount', async () => {
+      const mockAccount: AccountWithPassword = {
+        accountName: 'test-account-name',
+        accountPassword: 'test-account-password',
+      };
+
       it('invokes saveAccount', async () => {
-        await api.saveAccount({
-          accountName: 'test-account-name',
-          accountPassword: 'test-account-password',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('saveAccount', {
-          accountName: 'test-account-name',
-          accountPassword: 'test-account-password',
-        });
+        await api.saveAccount(mockAccount);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'saveAccount',
+          mockAccount
+        );
       });
     });
 
@@ -117,66 +129,158 @@ describe('index', () => {
     });
 
     describe('#saveCharacter', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes saveCharacter', async () => {
-        await api.saveCharacter({
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('saveCharacter', {
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
+        await api.saveCharacter(mockCharacter);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'saveCharacter',
+          mockCharacter
+        );
       });
     });
 
     describe('#removeCharacter', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes removeCharacter', async () => {
-        await api.removeCharacter({
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('removeCharacter', {
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
-        });
+        await api.removeCharacter(mockCharacter);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'removeCharacter',
+          mockCharacter
+        );
       });
     });
 
     describe('#listCharacters', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes listCharacters', async () => {
-        mockIpcRenderer.invoke.mockResolvedValueOnce([
-          {
-            accountName: 'test-account-name',
-            characterName: 'test-character-name',
-            gameCode: 'DR',
-          },
-        ]);
+        mockIpcRenderer.invoke.mockResolvedValueOnce([mockCharacter]);
         const result = await api.listCharacters();
-        expect(result).toEqual([
-          {
-            accountName: 'test-account-name',
-            characterName: 'test-character-name',
-            gameCode: 'DR',
-          },
-        ]);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('listCharacters');
+        expect(result).toEqual([mockCharacter]);
       });
     });
 
     describe('#playCharacter', async () => {
+      const mockCharacter: Character = {
+        accountName: 'test-account-name',
+        characterName: 'test-character-name',
+        gameCode: 'DR',
+      };
+
       it('invokes playCharacter', async () => {
-        await api.playCharacter({
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
+        await api.playCharacter(mockCharacter);
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
+          'playCharacter',
+          mockCharacter
+        );
+      });
+    });
+
+    describe('#getLayout', async () => {
+      const mockLayout: Layout = {
+        window: {
+          x: 1,
+          y: 2,
+          width: 3,
+          height: 4,
+        },
+        streams: [
+          {
+            id: 'test-stream-id',
+            title: 'test-stream-title',
+            visible: true,
+            x: 1,
+            y: 2,
+            width: 3,
+            height: 4,
+            textFont: 'test-text-font',
+            textSize: 5,
+            backgroundColor: 'test-background-color',
+            foregroundColor: 'test-foreground-color',
+          },
+        ],
+      };
+
+      it('invokes getLayout', async () => {
+        mockIpcRenderer.invoke.mockResolvedValueOnce(mockLayout);
+        const result = await api.getLayout({
+          layoutName: 'test-layout-name',
         });
-        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('playCharacter', {
-          accountName: 'test-account-name',
-          characterName: 'test-character-name',
-          gameCode: 'DR',
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('getLayout', {
+          layoutName: 'test-layout-name',
+        });
+        expect(result).toEqual(mockLayout);
+      });
+    });
+
+    describe('#listLayoutNames', async () => {
+      it('invokes listLayoutNames', async () => {
+        mockIpcRenderer.invoke.mockResolvedValueOnce(['test-layout-name']);
+        const result = await api.listLayoutNames();
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('listLayoutNames');
+        expect(result).toEqual(['test-layout-name']);
+      });
+    });
+
+    describe('#saveLayout', async () => {
+      const mockLayout: Layout = {
+        window: {
+          x: 1,
+          y: 2,
+          width: 3,
+          height: 4,
+        },
+        streams: [
+          {
+            id: 'test-stream-id',
+            title: 'test-stream-title',
+            visible: true,
+            x: 1,
+            y: 2,
+            width: 3,
+            height: 4,
+            textFont: 'test-text-font',
+            textSize: 5,
+            backgroundColor: 'test-background-color',
+            foregroundColor: 'test-foreground-color',
+          },
+        ],
+      };
+
+      it('invokes saveLayout', async () => {
+        await api.saveLayout({
+          layoutName: 'test-layout-name',
+          layout: mockLayout,
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('saveLayout', {
+          layoutName: 'test-layout-name',
+          layout: mockLayout,
+        });
+      });
+    });
+
+    describe('#deleteLayout', async () => {
+      it('invokes deleteLayout', async () => {
+        await api.deleteLayout({
+          layoutName: 'test-layout-name',
+        });
+        expect(mockIpcRenderer.invoke).toHaveBeenCalledWith('deleteLayout', {
+          layoutName: 'test-layout-name',
         });
       });
     });

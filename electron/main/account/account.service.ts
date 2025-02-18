@@ -1,12 +1,16 @@
 import { safeStorage } from 'electron';
 import isEmpty from 'lodash-es/isEmpty.js';
 import omit from 'lodash-es/omit.js';
-import type { Account, Character } from '../../common/account/types.js';
+import type {
+  Account,
+  AccountWithPassword,
+  Character,
+} from '../../common/account/types.js';
 import { equalsIgnoreCase } from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
 import type { StoreService } from '../store/types.js';
 import { logger } from './logger.js';
-import type { AccountService, ListAccountsType } from './types.js';
+import type { AccountService } from './types.js';
 
 export class AccountServiceImpl implements AccountService {
   private storeService: StoreService;
@@ -15,49 +19,55 @@ export class AccountServiceImpl implements AccountService {
     this.storeService = options.storeService;
   }
 
-  public async listAccounts(): Promise<ListAccountsType> {
-    logger.info('listing accounts');
+  public async listAccounts(): Promise<Array<Account>> {
+    logger.debug('listing accounts');
 
-    const allKeys = await this.storeService.keys();
+    const accounts = new Array<Account>();
 
-    const accountKeys = allKeys.filter((key) => {
-      return this.isAccountStoreKey(key);
-    });
-
-    const accounts: ListAccountsType = [];
+    const accountKeys = await this.listAccountStoreKeys();
 
     await Promise.all(
-      accountKeys.map(async (accountKey) => {
-        const account = await this.storeService.get<Account>(accountKey);
+      accountKeys.map(async (key) => {
+        const account = await this.storeService.get<AccountWithPassword>(key);
         if (account) {
           accounts.push(omit(account, 'accountPassword'));
         }
       })
     );
 
+    logger.debug('accounts found', {
+      count: accounts.length,
+    });
+
     return accounts;
   }
 
   public async getAccount(options: {
     accountName: string;
-  }): Promise<Maybe<Account>> {
+  }): Promise<Maybe<AccountWithPassword>> {
     const { accountName } = options;
 
-    logger.info('getting account', { accountName });
+    logger.debug('getting account', {
+      accountName,
+    });
 
-    const accountKey = this.getAccountStoreKey({ accountName });
-    const account = await this.storeService.get<Account>(accountKey);
+    const key = this.getAccountStoreKey({ accountName });
+    const account = await this.storeService.get<AccountWithPassword>(key);
 
     if (!account) {
-      logger.debug('no account found', { accountName });
-      return undefined;
+      logger.debug('no account found', {
+        accountName,
+      });
+      return;
     }
 
-    logger.debug('account found', { accountName });
+    logger.debug('account found', {
+      accountName,
+    });
 
     const { accountPassword } = account;
 
-    const decryptedAccount: Account = {
+    const decryptedAccount: AccountWithPassword = {
       ...account,
       accountPassword: this.decryptString(accountPassword),
     };
@@ -65,34 +75,37 @@ export class AccountServiceImpl implements AccountService {
     return decryptedAccount;
   }
 
-  public async saveAccount(account: Account): Promise<void> {
+  public async saveAccount(account: AccountWithPassword): Promise<void> {
     const { accountName, accountPassword } = account;
 
-    logger.info('saving account', { accountName });
+    logger.debug('saving account', {
+      accountName,
+    });
 
-    const encryptedAccount: Account = {
+    const encryptedAccount: AccountWithPassword = {
       accountName,
       accountPassword: this.encryptString(accountPassword),
     };
 
     const accountKey = this.getAccountStoreKey({ accountName });
     await this.storeService.set(accountKey, encryptedAccount);
+
+    logger.debug('saved account', {
+      accountName,
+    });
   }
 
   public async removeAccount(options: { accountName: string }): Promise<void> {
     const { accountName } = options;
 
-    logger.info('removing account', { accountName });
+    logger.debug('removing account', { accountName });
 
     const accountKey = this.getAccountStoreKey({ accountName });
     await this.storeService.remove(accountKey);
 
-    const characters = await this.listCharacters({ accountName });
-    await Promise.all(
-      characters.map(async (character) => {
-        await this.removeCharacter(character);
-      })
-    );
+    logger.debug('removed account', { accountName });
+
+    await this.removeCharactersByAccount({ accountName });
   }
 
   public async listCharacters(options?: {
@@ -100,15 +113,13 @@ export class AccountServiceImpl implements AccountService {
   }): Promise<Array<Character>> {
     const { accountName } = options ?? {};
 
-    logger.info('listing characters', { accountName });
-
-    const allKeys = await this.storeService.keys();
-
-    const characterKeys = allKeys.filter((key) => {
-      return this.isCharacterStoreKey(key);
+    logger.debug('listing characters', {
+      accountName,
     });
 
     const characters = new Array<Character>();
+
+    const characterKeys = await this.listCharacterStoreKeys();
 
     await Promise.all(
       characterKeys.map(async (characterKey) => {
@@ -124,6 +135,10 @@ export class AccountServiceImpl implements AccountService {
       })
     );
 
+    logger.debug('characters found', {
+      count: characters.length,
+    });
+
     return characters;
   }
 
@@ -133,7 +148,10 @@ export class AccountServiceImpl implements AccountService {
   }): Promise<Maybe<Character>> {
     const { characterName, gameCode } = options;
 
-    logger.info('getting character', { characterName, gameCode });
+    logger.debug('getting character', {
+      characterName,
+      gameCode,
+    });
 
     const characterKey = this.getCharacterStoreKey({ characterName, gameCode });
     const character = await this.storeService.get<Character>(characterKey);
@@ -143,17 +161,25 @@ export class AccountServiceImpl implements AccountService {
         characterName,
         gameCode,
       });
-      return undefined;
+      return;
     }
 
-    logger.debug('character found', { characterName, gameCode });
+    logger.debug('character found', {
+      characterName,
+      gameCode,
+    });
+
     return character;
   }
 
   public async saveCharacter(character: Character): Promise<void> {
     const { accountName, characterName, gameCode } = character;
 
-    logger.info('saving character', { accountName, characterName, gameCode });
+    logger.debug('saving character', {
+      accountName,
+      characterName,
+      gameCode,
+    });
 
     // Confirm the account exists, otherwise we have
     // no credentials by which to play the character.
@@ -170,12 +196,22 @@ export class AccountServiceImpl implements AccountService {
     });
 
     await this.storeService.set(characterKey, character);
+
+    logger.debug('saved character', {
+      accountName,
+      characterName,
+      gameCode,
+    });
   }
 
   public async removeCharacter(character: Character): Promise<void> {
     const { accountName, characterName, gameCode } = character;
 
-    logger.info('removing character', { accountName, characterName, gameCode });
+    logger.debug('removing character', {
+      accountName,
+      characterName,
+      gameCode,
+    });
 
     const characterKey = this.getCharacterStoreKey({
       characterName,
@@ -183,6 +219,54 @@ export class AccountServiceImpl implements AccountService {
     });
 
     await this.storeService.remove(characterKey);
+
+    logger.debug('removed character', {
+      accountName,
+      characterName,
+      gameCode,
+    });
+  }
+
+  private async removeCharactersByAccount(options: {
+    accountName: string;
+  }): Promise<void> {
+    const { accountName } = options;
+
+    logger.debug('removing characters for account', {
+      accountName,
+    });
+
+    const characters = await this.listCharacters({ accountName });
+
+    await Promise.all(
+      characters.map(async (character) => {
+        await this.removeCharacter(character);
+      })
+    );
+
+    logger.debug('removed characters for account', {
+      accountName,
+    });
+  }
+
+  private async listAccountStoreKeys(): Promise<Array<string>> {
+    const allKeys = await this.storeService.keys();
+
+    const accountKeys = allKeys.filter((key) => {
+      return this.isAccountStoreKey(key);
+    });
+
+    return accountKeys;
+  }
+
+  private async listCharacterStoreKeys(): Promise<Array<string>> {
+    const allKeys = await this.storeService.keys();
+
+    const characterKeys = allKeys.filter((key) => {
+      return this.isCharacterStoreKey(key);
+    });
+
+    return characterKeys;
   }
 
   private isAccountStoreKey(key: string): boolean {

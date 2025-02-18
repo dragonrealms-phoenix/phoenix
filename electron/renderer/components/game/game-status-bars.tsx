@@ -1,8 +1,9 @@
 import { useEuiTheme } from '@elastic/eui';
 import type { ReactElement, ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import type { GameEvent } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
+import { GameContext } from '../../context/game.jsx';
 import { useSubscribe } from '../../hooks/pubsub.jsx';
 
 export const GameStatusBars: React.FC = (): ReactNode => {
@@ -14,7 +15,7 @@ export const GameStatusBars: React.FC = (): ReactNode => {
   const [stamina, setStamina] = useState<number>(100);
   const [spirit, setSpirit] = useState<number>(100);
 
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     if (gameEvent.type === GameEventType.VITALS) {
       switch (gameEvent.vitalId) {
         case 'health':
@@ -132,9 +133,13 @@ interface GameStatusBarProps {
 const GameStatusBar: React.FC<GameStatusBarProps> = (
   props: GameStatusBarProps
 ): ReactNode => {
-  const { title, value, fillColor, textColor } = props;
+  const { title, value, textColor } = props;
 
   const { euiTheme } = useEuiTheme();
+
+  const { isConnected } = useContext(GameContext);
+
+  const fillColor = isConnected ? props.fillColor : euiTheme.colors.disabled;
 
   return (
     <div
@@ -153,7 +158,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = (
       }}
     >
       <div
-        style={{
+        css={{
           position: 'absolute',
           left: 0,
           width: `${value}%`,
@@ -164,7 +169,7 @@ const GameStatusBar: React.FC<GameStatusBarProps> = (
         }}
       />
       <div
-        style={{
+        css={{
           position: 'absolute',
           width: '100%',
           height: '100%',

@@ -13,7 +13,7 @@ export const GameHands: React.FC = (): ReactNode => {
   const [rightHand, setRightHand] = useState<string>('Empty');
   const [spell, setSpell] = useState<string>('None');
 
-  useSubscribe(['game:event'], (gameEvent: GameEvent) => {
+  useSubscribe('game:event', (gameEvent: GameEvent) => {
     switch (gameEvent.type) {
       case GameEventType.LEFT_HAND:
         setLeftHand(gameEvent.item);

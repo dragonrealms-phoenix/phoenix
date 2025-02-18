@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "composite": true,
+    "rootDir": "..",
     // Eletron does not support ESM in preload scripts in sandboxed renderers.
     // So this package is compiled down to ES6 as commonjs.
     // https://www.electronjs.org/docs/latest/tutorial/esm
     "target": "ES6",
     "module": "CommonJS",
     "moduleResolution": "Node",
-    "outDir": "../build/preload",
+    "outDir": "../build", // creates 'preload' and 'common' subfolders
     "declaration": true,
     "declarationDir": "./",
     "sourceMap": true,
@@ -32,5 +33,5 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"]
   },
   "exclude": ["node_modules", "**/__tests__/**", "**/__mocks__/**"],
-  "include": ["**/types.ts", "**/*.ts"]
+  "include": ["**/types.ts", "**/*.ts", "../common/**/types.ts"]
 }

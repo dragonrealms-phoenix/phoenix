@@ -25,7 +25,7 @@ export const TextTruncate: React.FC<TextTruncateProps> = (
 
   return (
     <div
-      style={{
+      css={{
         maxWidth,
         whiteSpace: 'nowrap',
         overflow: 'hidden',

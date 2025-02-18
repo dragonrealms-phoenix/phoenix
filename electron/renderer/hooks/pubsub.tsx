@@ -4,10 +4,52 @@ import { useShallow } from 'zustand/react/shallow';
 import type { Logger } from '../../common/logger/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
 import { getScopedLogger } from '../lib/logger/logger.factory.js';
+import type { PubSubEvent } from '../types/pubsub.types.js';
 
-export type PubSubSubscriber = (data?: any) => Promise<void> | void;
+export type PubSubSubscribeCallback<T = unknown> = (
+  data: T
+) => Promise<void> | void;
 
 export type PubSubUnsubscribeCallback = () => void;
+
+export type PubSubSubscriber<T extends string = string> =
+  T extends 'game:connect'
+    ? PubSubSubscribeCallback<PubSubEvent.GameConnect>
+    : T extends 'game:disconnect'
+      ? PubSubSubscribeCallback<PubSubEvent.GameDisconnect>
+      : T extends 'game:event'
+        ? PubSubSubscribeCallback<PubSubEvent.GameEvent>
+        : T extends 'game:command'
+          ? PubSubSubscribeCallback<PubSubEvent.GameCommand>
+          : T extends 'game:error'
+            ? PubSubSubscribeCallback<PubSubEvent.GameError>
+            : T extends 'sidebar:show'
+              ? PubSubSubscribeCallback<PubSubEvent.SidebarShow>
+              : T extends 'toast:add'
+                ? PubSubSubscribeCallback<PubSubEvent.ToastAdd>
+                : T extends 'character:play:starting'
+                  ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStarting>
+                  : T extends 'character:play:started'
+                    ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStarted>
+                    : T extends 'character:play:stopping'
+                      ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStopping>
+                      : T extends 'character:play:stopped'
+                        ? PubSubSubscribeCallback<PubSubEvent.CharacterPlayStopped>
+                        : T extends 'layout:load'
+                          ? PubSubSubscribeCallback<PubSubEvent.LayoutLoad>
+                          : T extends 'layout:item:closed'
+                            ? PubSubSubscribeCallback<PubSubEvent.LayoutItemClosed>
+                            : T extends 'layout:item:moved'
+                              ? PubSubSubscribeCallback<PubSubEvent.LayoutItemMoved>
+                              : PubSubSubscribeCallback;
+
+type PubSubSubscriberDataArg<T extends string = string> = Parameters<
+  PubSubSubscriber<T>
+>[0];
+
+interface PubSubSubscribersByEventType<T extends string = string> {
+  [event: string]: Array<PubSubSubscriber<T>>;
+}
 
 /**
  * This interface is designed to be simple.
@@ -15,51 +57,57 @@ export type PubSubUnsubscribeCallback = () => void;
  * They deviate from the convention of named arguments in the interest
  * of simplicity and brevity.
  */
-interface PubSub {
+export interface PubSub {
   /**
    * Subscribes to an event.
    * Returns a method that will unsubscribe from the event.
    * Or, you can explicitly call `unsubscribe(event, subscriber)`.
    * For automatic unsubscription, use `useSubscribe` hook.
    */
-  subscribe: (
-    event: string,
-    subscriber: PubSubSubscriber
+  subscribe: <T extends string = string>(
+    event: T,
+    subscriber: PubSubSubscriber<T>
   ) => PubSubUnsubscribeCallback;
 
   /**
    * Unsubscribe from an event.
    */
-  unsubscribe: (event: string, subscriber: PubSubSubscriber) => void;
+  unsubscribe: <T extends string = string>(
+    event: T,
+    subscriber: PubSubSubscriber<T>
+  ) => void;
 
   /**
    * Publish a message to all subscribers of the event.
    */
-  publish: (event: string, data?: any) => void;
+  publish: <T extends string = string>(
+    event: T,
+    data?: PubSubSubscriberDataArg<T>
+  ) => void;
 }
 
 /**
- * Hook that subscribes to one or more events.
+ * Hook that subscribes to an event.
  * Automatically unsubscribes when the component unmounts.
  *
  * For more granular control, use `usePubSub()`.
  */
-export const useSubscribe = (
-  events: Array<string>,
-  subscriber: PubSubSubscriber
+export const useSubscribe = <T extends string = string>(
+  event: T,
+  subscriber: PubSubSubscriber<T>
 ): void => {
-  const subscribe = usePubSubStore((state) => state.subscribe);
+  const subscribe = usePubSubStore(
+    useShallow((state) => {
+      return state.subscribe;
+    })
+  );
 
   useEffect(() => {
-    const unsubscribes = events.map((event) => {
-      return subscribe({ event, subscriber });
-    });
+    const unsubscribe = subscribe({ event, subscriber });
     return () => {
-      unsubscribes.forEach((unsubscribe) => {
-        unsubscribe();
-      });
+      unsubscribe();
     };
-  }, [events, subscriber, subscribe]);
+  }, [event, subscriber, subscribe]);
 };
 
 /**
@@ -75,11 +123,9 @@ export const usePubSub = (): PubSub => {
     // Technically, our state reducer is returning a new object
     // each time although the properties are the same.
     // Use the `useShallow` operator to prevent unnecessary re-renders.
+    // We exclude other props so that we don't re-render when they change.
     useShallow((state) => {
       return {
-        // We exclude other properties like `subscribers`
-        // so that we don't re-render when they change.
-        // Who is subscribed or not is not relevant to this API shape.
         subscribe: state.subscribe,
         unsubscribe: state.unsubscribe,
         publish: state.publish,
@@ -87,15 +133,28 @@ export const usePubSub = (): PubSub => {
     })
   );
 
+  // I'm not sure if this is necessary since we use a shallow store above,
+  // but I'm going to memoize the return value just in case.
   const pubsub = useMemo((): PubSub => {
     return {
-      subscribe: (event: string, subscriber: PubSubSubscriber) => {
+      subscribe: <T extends string = string>(
+        event: T,
+        subscriber: PubSubSubscriber<T>
+      ) => {
         return store.subscribe({ event, subscriber });
       },
-      unsubscribe: (event: string, subscriber: PubSubSubscriber) => {
+
+      unsubscribe: <T extends string = string>(
+        event: T,
+        subscriber: PubSubSubscriber<T>
+      ) => {
         store.unsubscribe({ event, subscriber });
       },
-      publish: (event: string, data?: any) => {
+
+      publish: <T extends string = string>(
+        event: T,
+        data: PubSubSubscriberDataArg<T>
+      ) => {
         store.publish({ event, data });
       },
     };
@@ -113,30 +172,33 @@ interface PubSubStoreData {
   /**
    * Map of event names to subscribers.
    */
-  subscribers: Record<string, Array<PubSubSubscriber>>;
+  subscribers: PubSubSubscribersByEventType;
 
   /**
    * Subscribes to an event.
    * Returns a method that will unsubscribe from the event.
    * Or, you can explicitly call `unsubscribe(event, subscriber)`.
    */
-  subscribe: (options: {
-    event: string;
-    subscriber: PubSubSubscriber;
+  subscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
   }) => PubSubUnsubscribeCallback;
 
   /**
    * Unsubscribe from an event.
    */
-  unsubscribe: (options: {
-    event: string;
-    subscriber: PubSubSubscriber;
+  unsubscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
   }) => void;
 
   /**
    * Publish a message to all subscribers of the event.
    */
-  publish: (options: { event: string; data?: any }) => void;
+  publish: <T extends string = string>(options: {
+    event: T;
+    data: PubSubSubscriberDataArg<T>;
+  }) => void;
 }
 
 /**
@@ -147,13 +209,19 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
 
   subscribers: {},
 
-  subscribe: (options: { event: string; subscriber: PubSubSubscriber }) => {
+  subscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
+  }) => {
     const { event, subscriber } = options;
 
     set((state: PubSubStoreData) => {
       const subscribers = state.subscribers[event] ?? [];
 
-      const updatedSubscribers = [...subscribers, subscriber];
+      const updatedSubscribers = [
+        ...subscribers,
+        subscriber as PubSubSubscribeCallback,
+      ];
 
       return {
         subscribers: {
@@ -172,7 +240,10 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
     return unsub;
   },
 
-  unsubscribe: (options: { event: string; subscriber: PubSubSubscriber }) => {
+  unsubscribe: <T extends string = string>(options: {
+    event: T;
+    subscriber: PubSubSubscriber<T>;
+  }) => {
     const { event, subscriber } = options;
 
     set((state: PubSubStoreData) => {
@@ -191,7 +262,10 @@ const usePubSubStore = create<PubSubStoreData>((set, get) => ({
     });
   },
 
-  publish: (options: { event: string; data?: any }) => {
+  publish: <T extends string = string>(options: {
+    event: T;
+    data: PubSubSubscriberDataArg<T>;
+  }) => {
     const { event, data } = options;
 
     const state = get();

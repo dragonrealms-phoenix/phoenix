@@ -1,10 +1,10 @@
 import { EuiPanel, EuiSpacer } from '@elastic/eui';
 import { useObservable, useSubscription } from 'observable-hooks';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type * as rxjs from 'rxjs';
-import { useSubscribe } from '../../hooks/pubsub.jsx';
-import type { GameLogLine } from '../../types/game.types.jsx';
+import { GameContext } from '../../context/game.jsx';
+import type { GameLogLine, GameStreamStyle } from '../../types/game.types.jsx';
 import { GameStreamText } from './game-stream-text.jsx';
 import {
   excludeDuplicateEmptyLines,
@@ -15,7 +15,7 @@ export interface GameStreamProps {
   /**
    * The stream of game text to display.
    * The stream is additive, so each new line will be appended to the end.
-   * The special log line text '__CLEAR_STREAM__' will clear all prior lines.
+   * The special log line text `'__CLEAR_STREAM__'` will clear all prior lines.
    */
   stream$: rxjs.Observable<GameLogLine>;
   /**
@@ -39,6 +39,12 @@ export interface GameStreamProps {
    * Default is 500.
    */
   maxLines?: number;
+  /**
+   * The default text formatting to apply to the entire stream.
+   * Styles may be overridden on a line-by-line basis.
+   * See {@link GameLogLine} for details.
+   */
+  style?: GameStreamStyle;
 }
 
 export const GameStream: React.FC<GameStreamProps> = (
@@ -46,19 +52,16 @@ export const GameStream: React.FC<GameStreamProps> = (
 ): ReactNode => {
   const { stream$, primaryStreamId, gameStreamIds, maxLines = 500 } = props;
 
+  const { isConnected } = useContext(GameContext);
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Clear streams on new connections.
-  useSubscribe(['game:connect'], () => {
-    setGameLogLines([]);
-    setIsConnected(true);
-  });
-
-  useSubscribe(['game:disconnect'], () => {
-    setIsConnected(false);
-  });
+  // Clear streams when reconnect to game.
+  useEffect(() => {
+    if (isConnected) {
+      setGameLogLines([]);
+    }
+  }, [isConnected]);
 
   // Ensure all timeouts are cleared when the component is unmounted.
   useEffect(() => {
@@ -190,6 +193,9 @@ export const GameStream: React.FC<GameStreamProps> = (
       css={{
         overflowY: 'scroll',
         height: '100%',
+        // Disable the eui scrollbar color as it conflicts with
+        // user customizations for grid item styling.
+        backgroundColor: 'inherit',
       }}
       className="eui-scrollBar"
       paddingSize="none"
@@ -204,7 +210,13 @@ export const GameStream: React.FC<GameStreamProps> = (
        */}
       <div css={{ overflowAnchor: 'none' }}>
         {gameLogLines.map((logLine) => {
-          return <GameStreamText key={logLine.eventId} logLine={logLine} />;
+          return (
+            <GameStreamText
+              key={logLine.eventId}
+              logLine={logLine}
+              style={props.style}
+            />
+          );
         })}
       </div>
       <EuiSpacer size="s" />

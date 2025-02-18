@@ -1,11 +1,13 @@
 import { ipcMain } from 'electron';
 import { toUpperSnakeCase } from '../../common/string/string.utils.js';
-import { AccountServiceImpl } from '../account/account.service.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
-import { Store } from '../store/store.instance.js';
+import type { LayoutService } from '../layout/types.js';
+import { deleteLayoutHandler } from './handlers/delete-layout.js';
+import { getLayoutHandler } from './handlers/get-layout.js';
 import { listAccountsHandler } from './handlers/list-accounts.js';
 import { listCharactersHandler } from './handlers/list-characters.js';
+import { listLayoutNamesHandler } from './handlers/list-layout-names.js';
 import { logHandler } from './handlers/log.js';
 import { pingHandler } from './handlers/ping.js';
 import { playCharacterHandler } from './handlers/play-character.js';
@@ -14,6 +16,7 @@ import { removeAccountHandler } from './handlers/remove-account.js';
 import { removeCharacterHandler } from './handlers/remove-character.js';
 import { saveAccountHandler } from './handlers/save-account.js';
 import { saveCharacterHandler } from './handlers/save-character.js';
+import { saveLayoutHandler } from './handlers/save-layout.js';
 import { sendCommandHandler } from './handlers/send-command.js';
 import { logger } from './logger.js';
 import type {
@@ -22,41 +25,20 @@ import type {
   IpcInvokableEvent,
 } from './types.js';
 
-/**
- * I didn't like the app nor controller needing to know about
- * the account service implementation so I created this util
- * to abstract that concern. For testing, or if we ever need to
- * specify the account service implementation, we can still
- * use this method or use the IpController constructor directly.
- */
-export const newIpcController = (options: {
-  dispatch: IpcDispatcher;
-  accountService?: AccountService;
-}): IpcController => {
-  const {
-    dispatch,
-    accountService = new AccountServiceImpl({
-      storeService: Store,
-    }),
-  } = options;
-
-  return new IpcController({
-    dispatch,
-    accountService,
-  });
-};
-
 export class IpcController {
   private dispatch: IpcDispatcher;
   private accountService: AccountService;
+  private layoutService: LayoutService;
   private handlerRegistry: IpcHandlerRegistry;
 
   constructor(options: {
     dispatch: IpcDispatcher;
     accountService: AccountService;
+    layoutService: LayoutService;
   }) {
     this.dispatch = options.dispatch;
     this.accountService = options.accountService;
+    this.layoutService = options.layoutService;
     this.handlerRegistry = this.createHandlerRegistry();
     this.registerHandlers(this.handlerRegistry);
   }
@@ -113,6 +95,22 @@ export class IpcController {
 
       quitCharacter: quitCharacterHandler({
         dispatch: this.dispatch,
+      }),
+
+      getLayout: getLayoutHandler({
+        layoutService: this.layoutService,
+      }),
+
+      listLayoutNames: listLayoutNamesHandler({
+        layoutService: this.layoutService,
+      }),
+
+      saveLayout: saveLayoutHandler({
+        layoutService: this.layoutService,
+      }),
+
+      deleteLayout: deleteLayoutHandler({
+        layoutService: this.layoutService,
       }),
 
       sendCommand: sendCommandHandler({

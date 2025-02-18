@@ -5,6 +5,7 @@
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 import { useLogger } from '../../hooks/logger.jsx';
+import { usePubSub } from '../../hooks/pubsub.jsx';
 import type {
   GridItemBoundary,
   GridItemContent,
@@ -21,12 +22,13 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const { boundary, contentItems } = props;
 
   const logger = useLogger('renderer:cmp:grid');
+  const { publish } = usePubSub();
 
   const [focusedItemId, setFocusedItemId] = useState<string>(() => {
     const focusedItem = contentItems.find((contentItem) => {
       return contentItem.isFocused;
     });
-    return focusedItem?.itemId ?? '';
+    return focusedItem?.itemId || 'main';
   });
 
   const onItemFocus = useCallback(
@@ -41,15 +43,25 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
   const onItemClose = useCallback(
     (item: GridItemInfo) => {
       logger.debug('closed item', { item });
+      publish('layout:item:closed', {
+        itemId: item.itemId,
+      });
     },
-    [logger]
+    [logger, publish]
   );
 
   const onItemMoveResize = useCallback(
     (item: GridItemInfo) => {
       logger.debug('moved item', { item });
+      publish('layout:item:moved', {
+        itemId: item.itemId,
+        x: item.position.x,
+        y: item.position.y,
+        width: item.position.width,
+        height: item.position.height,
+      });
     },
-    [logger]
+    [logger, publish]
   );
 
   const gridItems = useMemo(() => {
@@ -60,7 +72,8 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
           itemId={contentItem.itemId}
           itemTitle={contentItem.itemTitle}
           isFocused={contentItem.itemId === focusedItemId}
-          layout={contentItem.layout}
+          position={contentItem.position}
+          style={contentItem.style}
           boundary={boundary}
           onFocus={onItemFocus}
           onClose={onItemClose}
@@ -81,7 +94,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
 
   return (
     <div
-      style={{
+      css={{
         overflowY: 'auto',
         overflowX: 'hidden',
         position: 'relative',

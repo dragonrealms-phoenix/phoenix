@@ -87,7 +87,7 @@ describe('authenticate', () => {
           username,
           password,
         })
-      ).rejects.toThrowError('[SGE:LOGIN:ERROR:AUTHENTICATION] NORECORD');
+      ).rejects.toThrowError('[SGE:LOGIN:ERROR:AUTH] test-username NORECORD');
 
       expect(mockHashPassword).toHaveBeenCalledWith({
         socket: mockSocket,
@@ -110,7 +110,7 @@ describe('authenticate', () => {
           username,
           password,
         })
-      ).rejects.toThrowError('[SGE:LOGIN:ERROR:AUTHENTICATION] PASSWORD');
+      ).rejects.toThrowError('[SGE:LOGIN:ERROR:AUTH] test-username PASSWORD');
 
       expect(mockHashPassword).toHaveBeenCalledWith({
         socket: mockSocket,
@@ -133,7 +133,7 @@ describe('authenticate', () => {
           username,
           password,
         })
-      ).rejects.toThrowError('[SGE:LOGIN:ERROR:AUTHENTICATION] ?');
+      ).rejects.toThrowError('[SGE:LOGIN:ERROR:AUTH] test-username ?');
 
       expect(mockHashPassword).toHaveBeenCalledWith({
         socket: mockSocket,

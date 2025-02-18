@@ -66,7 +66,7 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
     try {
       logger.trace('writing cache to disk', { filepath });
       const cache = await this.delegate.readCache();
-      await fs.writeJson(filepath, cache);
+      await fs.writeJson(filepath, cache, { spaces: 2 });
       logger.trace('wrote cache to disk', { filepath });
     } catch (error) {
       logger.error('error writing cache to disk', {

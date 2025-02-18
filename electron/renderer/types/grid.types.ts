@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import type { GameItemInfo } from './game.types.js';
 
 export interface GridItemContent extends GridItemInfo {
   /**
@@ -16,26 +15,39 @@ export interface GridItemInfo {
   itemId: string;
   itemTitle: string;
   isFocused: boolean;
-  layout: GridItemLayout;
+  position: GridItemPosition;
+  style: GridItemStyle;
 }
 
 export interface GridItemConfig {
   /**
-   * Info about the game stream that this grid item is for.
+   * Game-specific identifier for the grid item stream.
+   * For example, "percWindow".
    */
-  gameItemInfo: GameItemInfo;
+  itemId: string;
   /**
-   * When this item is visible (i.e. added to the grid layout)
-   * then these are the grid item ids where to stream this item's content.
-   * Usually, this is the item's own id.
+   * User-friendly title for the grid item stream.
+   * For example, "Active Spells".
    */
-  whenVisibleStreamToItemIds: Array<string>;
+  itemTitle: string;
   /**
-   * When this item is hidden (i.e. removed from the grid layout)
-   * then these are the grid item ids where to stream this item's content.
-   * Usually, the fallback is the main grid item or empty array.
+   * Include this in the layout?
    */
-  whenHiddenStreamToItemIds: Array<string>;
+  isVisible: boolean;
+  /**
+   * The initial position for the grid item.
+   */
+  position: GridItemPosition;
+  /**
+   * The styling for the grid item.
+   */
+  style: GridItemStyle;
+  /**
+   * When this item is not visible, redirect its content to another item.
+   * If that item is also not visible, then it continues to be redirected
+   * until either a visible item in the chain is found or not.
+   */
+  whenHiddenRedirectToItemId: string | null;
 }
 
 /**
@@ -55,7 +67,7 @@ export interface GridItemBoundary {
 /**
  * The positional layout for the grid item.
  */
-export interface GridItemLayout {
+export interface GridItemPosition {
   /**
    * The x coordinate for the grid item.
    * The leftmost edge of the grid item.
@@ -78,4 +90,33 @@ export interface GridItemLayout {
    * Bottommost edge is `y + height`.
    */
   height: number;
+}
+
+/**
+ * The font styling for the grid item.
+ */
+export interface GridItemStyle {
+  /**
+   * The font family to use for the text.
+   * For example, "Verdana" or "Courier New".
+   */
+  fontFamily: string;
+  /**
+   * The font size to use for the stream content.
+   * Using a number without unit may not yield desired results.
+   * Example: '12px' (recommended) vs. '12' (not recommended).
+   */
+  fontSize: string;
+  /**
+   * The color name or hex code to use for the text.
+   * For example, "red" or "#FF0000".
+   * Though any valid CSS color value will work.
+   */
+  foregroundColor: string;
+  /**
+   * The color name or hex code to use for the background.
+   * For example, "blue" or "#0000FF".
+   * Though any valid CSS color value will work.
+   */
+  backgroundColor: string;
 }

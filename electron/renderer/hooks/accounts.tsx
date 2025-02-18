@@ -1,7 +1,7 @@
 import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useState } from 'react';
+import type { Account } from '../../common/account/types.js';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { Account } from '../types/game.types.js';
 import { usePubSub, useSubscribe } from './pubsub.jsx';
 
 /**
@@ -27,23 +27,23 @@ export const useGetHasAccounts = (): boolean => {
 export const useListAccounts = (): Array<Account> => {
   const [accounts, setAccounts] = useState<Array<Account>>([]);
 
-  const loadAccounts = useCallback(async () => {
+  const listAccounts = useCallback(async () => {
     const allAccounts = await window.api.listAccounts();
     const sortedAccounts = sortBy(allAccounts, 'accountName');
     setAccounts(sortedAccounts);
   }, []);
 
   // Reload when told to.
-  useSubscribe(['accounts:reload'], async () => {
-    await loadAccounts();
+  useSubscribe('accounts:reload', async () => {
+    await listAccounts();
   });
 
   // Reload on first render.
   useEffect(() => {
     runInBackground(async () => {
-      await loadAccounts();
+      await listAccounts();
     });
-  }, [loadAccounts]);
+  }, [listAccounts]);
 
   return accounts;
 };
@@ -66,6 +66,11 @@ export const useSaveAccount = (): SaveAccountFn => {
       await window.api.saveAccount({ accountName, accountPassword });
       publish('account:saved', { accountName });
       publish('accounts:reload');
+      publish('toast:add', {
+        title: 'Account Saved',
+        type: 'success',
+        text: accountName,
+      });
     },
     [publish]
   );
@@ -88,6 +93,11 @@ export const useRemoveAccount = (): RemoveAccountFn => {
       await window.api.removeAccount({ accountName });
       publish('account:removed', { accountName });
       publish('accounts:reload');
+      publish('toast:add', {
+        title: 'Account Removed',
+        type: 'success',
+        text: accountName,
+      });
     },
     [publish]
   );

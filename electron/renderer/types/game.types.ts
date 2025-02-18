@@ -1,15 +1,5 @@
 import type { EuiThemeColorMode } from '@elastic/eui';
 
-export interface Account {
-  accountName: string;
-}
-
-export interface Character {
-  accountName: string;
-  characterName: string;
-  gameCode: string;
-}
-
 export interface GameLogLine {
   /**
    * A unique id for this log line.
@@ -28,84 +18,69 @@ export interface GameLogLine {
   text: string;
   /**
    * The text formatting to apply to the entire line.
+   * Overrides the default stream style.
+   * See {@link GameStreamStyle} for details.
    */
-  styles?: {
-    /**
-     * The theme color mode to use (e.g. 'light' or 'dark').
-     */
-    colorMode: EuiThemeColorMode;
-    /**
-     * See `GameEventType.TEXT_OUTPUT_CLASS` for possible values.
-     * For example, 'mono' for monospaced text, or '' for normal text.
-     */
-    outputClass?: string;
-    /**
-     * See `GameEventType.TEXT_STYLE_PRESET` for possible values.
-     * For example, 'roomName' or 'roomDesc' or 'whisper', etc.
-     */
-    stylePreset?: string;
-    /**
-     * Use a bold font weight.
-     * Since this applies to the entire line, usually used for room titles.
-     */
-    bold?: boolean;
-    /**
-     * Use a subdued text color.
-     * Primarily used to style the command text we echo back to the user.
-     */
-    subdued?: boolean;
-  };
+  style?: GameLogLineStyle;
 }
 
 /**
- * When the game socket sends data, it may be tagged with a stream id.
- * The stream id indicates which game "window" the data is intended for.
- *
- * An item id is the unique identifier we use in Phoenix for the same
- * logical concept, but allows us to use more consistent or descriptive
- * values. Or in the case of the main stream, to use a non-blank value!
- *
- * Users will be allowed to create new streams to customize how
- * game content is routed to the UI. Sometimes custom scripts output
- * to specific streams, or DragonRealms introduces new streams before
- * we update the code to support them.
+ * The text formatting to apply to a single line of text.
  */
-export interface GameItemInfo {
+export interface GameLogLineStyle {
   /**
-   * Unique identifier for the game stream.
-   * Assigned by DragonRealms.
-   * Example: 'percWindow' for spells.
+   * The theme color mode to use (e.g. 'light' or 'dark').
    */
-  streamId: string;
+  colorMode: EuiThemeColorMode;
   /**
-   * Our logical id for the game stream item.
-   * Generally matches the stream id, but more consistent.
+   * See `GameEventType.TEXT_OUTPUT_CLASS` for possible values.
+   * For example, 'mono' for monospaced text, or '' for normal text.
    */
-  itemId: GameItemId | string;
+  outputClass?: string;
   /**
-   * User-friendly title for the game stream.
-   * Example: 'Spells' or 'Main'.
+   * See `GameEventType.TEXT_STYLE_PRESET` for possible values.
+   * For example, 'roomName' or 'roomDesc' or 'whisper', etc.
    */
-  itemTitle: string;
+  stylePreset?: string;
+  /**
+   * Use a bold font weight.
+   * Since this applies to the entire line, usually used for room titles.
+   */
+  bold?: boolean;
+  /**
+   * Use a subdued text color.
+   * Primarily used to style the command text we echo back to the user.
+   */
+  subdued?: boolean;
 }
 
-export enum GameItemId {
-  MAIN = 'main',
-  EXPERIENCE = 'experience',
-  ROOM = 'room',
-  SPELLS = 'spells',
-  INVENTORY = 'inventory',
-  FAMILIAR = 'familiar',
-  THOUGHTS = 'thoughts',
-  COMBAT = 'combat',
-  ASSESS = 'assess',
-  ARRIVALS = 'arrivals',
-  DEATHS = 'deaths',
-  ATMOSPHERICS = 'atmospherics',
-  CHATTER = 'chatter',
-  CONVERSATION = 'conversation',
-  WHISPERS = 'whispers',
-  TALK = 'talk',
-  OOC = 'ooc',
-  GROUP = 'group',
+/**
+ * The default text formatting to apply to the entire stream.
+ * Styles may be overridden on a line-by-line basis.
+ * See {@link GameLogLine} for details.
+ */
+export interface GameStreamStyle {
+  /**
+   * The font family to use for the text.
+   * For example, "Verdana" or "Courier New".
+   */
+  fontFamily: string;
+  /**
+   * The font size to use for the stream content.
+   * Using a number without unit may not yield desired results.
+   * Example: '12px' (recommended) vs. '12' (not recommended).
+   */
+  fontSize: string;
+  /**
+   * The color name or hex code to use for the text.
+   * For example, "red" or "#FF0000".
+   * Though any valid CSS color value will work.
+   */
+  foregroundColor: string;
+  /**
+   * The color name or hex code to use for the background.
+   * For example, "blue" or "#0000FF".
+   * Though any valid CSS color value will work.
+   */
+  backgroundColor: string;
 }

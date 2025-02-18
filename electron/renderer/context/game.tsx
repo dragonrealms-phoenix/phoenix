@@ -1,9 +1,10 @@
 import type { IpcRendererEvent } from 'electron';
 import { EuiLoadingSpinner, EuiOverlayMask } from '@elastic/eui';
-import { useRouter } from 'next/router.js';
 import type { ReactNode } from 'react';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
+import type { Character } from '../../common/account/types.js';
 import type {
+  GameCode,
   GameCommandMessage,
   GameConnectMessage,
   GameDisconnectMessage,
@@ -14,21 +15,36 @@ import { useQuitCharacter } from '../hooks/characters.jsx';
 import { useLogger } from '../hooks/logger.jsx';
 import { usePubSub, useSubscribe } from '../hooks/pubsub.jsx';
 import { runInBackground } from '../lib/async/run-in-background.js';
-import type { Character } from '../types/game.types.js';
 
 /**
  * React context for storing Game-related data and callbacks.
  */
 export interface GameContextValue {
-  //
-  todo?: true;
+  /**
+   * Whether the game client is connected.
+   */
+  isConnected: boolean;
+  /**
+   * The account of the connected character.
+   */
+  accountName?: string;
+  /**
+   * The name of the connected character.
+   */
+  characterName?: string;
+  /**
+   * The game code of the connected character.
+   */
+  gameCode?: GameCode;
 }
 
 /**
  * Defines shape and behavior of the context value
  * when no provider is found in the component hierarchy.
  */
-export const GameContext = createContext<GameContextValue>({});
+export const GameContext = createContext<GameContextValue>({
+  isConnected: false,
+});
 
 GameContext.displayName = 'GameContext';
 
@@ -45,8 +61,21 @@ export const GameProvider: React.FC<GameProviderProps> = (
   const { children } = props;
 
   const logger = useLogger('renderer:context:game');
-  const router = useRouter();
-  const pubsub = usePubSub();
+  const { publish } = usePubSub();
+
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [accountName, setAccountName] = useState<string>();
+  const [characterName, setCharacterName] = useState<string>();
+  const [gameCode, setGameCode] = useState<GameCode>();
+
+  const contextValue = useMemo<GameContextValue>(() => {
+    return {
+      isConnected,
+      accountName,
+      characterName,
+      gameCode,
+    };
+  }, [isConnected, accountName, characterName, gameCode]);
 
   const quitCharacter = useQuitCharacter();
 
@@ -64,43 +93,37 @@ export const GameProvider: React.FC<GameProviderProps> = (
   // a second character and one is already playing. What you see
   // is a quick flicker of the overlay then no overlay at all.
   // Instead, use two variables to drive the overlay.
-  useSubscribe(['character:play:starting'], async (character: Character) => {
+  useSubscribe('character:play:starting', async (character: Character) => {
     logger.debug('character:play:starting', { character });
     setShowPlayStartingOverlay(true);
   });
 
-  useSubscribe(['character:play:started'], async (character: Character) => {
+  useSubscribe('character:play:started', async (character: Character) => {
     logger.debug('character:play:started', { character });
     setShowPlayStartingOverlay(false);
-    pubsub.publish('sidebar:hide');
-    await router.push('/game');
+    publish('sidebar:hide');
   });
 
-  useSubscribe(['character:play:stopping'], async (character: Character) => {
+  useSubscribe('character:play:stopping', async (character: Character) => {
     logger.debug('character:play:stopping', { character });
     setShowPlayStoppingOverlay(true);
   });
 
-  useSubscribe(['character:play:stopped'], async (character: Character) => {
+  useSubscribe('character:play:stopped', async (character: Character) => {
     logger.debug('character:play:stopped', { character });
     setShowPlayStoppingOverlay(false);
   });
 
-  useSubscribe(
-    ['character:play:error'],
-    async (event: { title: string; error: Error }) => {
-      const { title, error } = event;
-
-      setShowPlayStartingOverlay(false);
-      setShowPlayStoppingOverlay(false);
-
-      pubsub.publish('toast:add', {
-        title,
-        type: 'danger',
-        text: error.message,
-      });
-    }
-  );
+  useSubscribe('game:error', (error: Error) => {
+    logger.error('game:error', { error });
+    setShowPlayStartingOverlay(false);
+    setShowPlayStoppingOverlay(false);
+    publish('toast:add', {
+      title: 'Game Error',
+      type: 'danger',
+      text: error.message,
+    });
+  });
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -112,7 +135,11 @@ export const GameProvider: React.FC<GameProviderProps> = (
           characterName,
           gameCode,
         });
-        pubsub.publish('game:connect', {
+        setIsConnected(true);
+        setAccountName(accountName);
+        setCharacterName(characterName);
+        setGameCode(gameCode);
+        publish('game:connect', {
           accountName,
           characterName,
           gameCode,
@@ -122,7 +149,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
     return () => {
       unsubscribe();
     };
-  }, [logger, pubsub]);
+  }, [logger, publish]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
@@ -134,7 +161,11 @@ export const GameProvider: React.FC<GameProviderProps> = (
           characterName,
           gameCode,
         });
-        pubsub.publish('game:disconnect', {
+        setIsConnected(false);
+        setAccountName(accountName);
+        setCharacterName(characterName);
+        setGameCode(gameCode);
+        publish('game:disconnect', {
           accountName,
           characterName,
           gameCode,
@@ -150,55 +181,49 @@ export const GameProvider: React.FC<GameProviderProps> = (
     return () => {
       unsubscribe();
     };
-  }, [logger, pubsub, quitCharacter]);
+  }, [logger, publish, quitCharacter]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:error',
       (_event: IpcRendererEvent, message: GameErrorMessage) => {
         const { error } = message;
-        logger.error('game:error', { error });
-        pubsub.publish('game:error', error);
-        pubsub.publish('toast:add', {
-          title: 'Game Error',
-          type: 'danger',
-          text: error.message,
-        });
+        publish('game:error', error);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [logger, pubsub]);
+  }, [logger, publish]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:event',
       (_event: IpcRendererEvent, message: GameEventMessage) => {
         const { gameEvent } = message;
-        pubsub.publish('game:event', gameEvent);
+        publish('game:event', gameEvent);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [pubsub]);
+  }, [publish]);
 
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:command',
       (_event: IpcRendererEvent, message: GameCommandMessage) => {
         const { command } = message;
-        pubsub.publish('game:command', command);
+        publish('game:command', command);
       }
     );
     return () => {
       unsubscribe();
     };
-  }, [pubsub]);
+  }, [publish]);
 
   return (
-    <GameContext.Provider value={{}}>
+    <GameContext.Provider value={contextValue}>
       <>
         {(showPlayStartingOverlay || showPlayStoppingOverlay) && (
           <EuiOverlayMask>
