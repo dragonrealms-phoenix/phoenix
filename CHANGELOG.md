@@ -1,3 +1,78 @@
+## [1.32.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.31.1...v1.32.0) (2025-02-18)
+
+### :sparkles: Features
+
+* add accounts singleton instance ([a846058](https://github.com/dragonrealms-phoenix/phoenix/commit/a8460588368c85e77c2cf4b60445d85b4973e5c0))
+* add common layout types ([5b949fe](https://github.com/dragonrealms-phoenix/phoenix/commit/5b949fefecea4dead2bb12a9d224e1b309378de6))
+* **auth:** include account name in auth errors ([2810362](https://github.com/dragonrealms-phoenix/phoenix/commit/28103629519453c8bcad7246e78f0689a75357a7))
+* **config:** store accounts and prefs in different files ([9b84fe4](https://github.com/dragonrealms-phoenix/phoenix/commit/9b84fe46fc353c2dd87436cde091eba57562e97c))
+* **context:** game context tracks which character is connected ([95fd45c](https://github.com/dragonrealms-phoenix/phoenix/commit/95fd45cd8e542ae3aed827f9497cf5c8abff71db))
+* **game-icons:** when disconnected, show subdued colors ([3d58fb1](https://github.com/dragonrealms-phoenix/phoenix/commit/3d58fb1587b3d4c810d128b146322f06707aed58))
+* **game-status-bars:** render disabled when not connected ([580c3a5](https://github.com/dragonrealms-phoenix/phoenix/commit/580c3a5fb94e1e1553318b191e2da5dc76121d1a))
+* **game:** add layout item save functionality on close and move events ([4034d37](https://github.com/dragonrealms-phoenix/phoenix/commit/4034d378c07b4be037bba77c2fb735c4014c55bc))
+* **game:** add layout saving on item close and move events ([f8f685c](https://github.com/dragonrealms-phoenix/phoenix/commit/f8f685c066e6a1d97cd34365d9058e18a273ff1b))
+* **game:** disable command input when not connected to the game ([073dbd7](https://github.com/dragonrealms-phoenix/phoenix/commit/073dbd750da8f79d4e95b3a3a1619a340fd4ea26))
+* **game:** handle game disconnect event by resetting round and current times ([127c80e](https://github.com/dragonrealms-phoenix/phoenix/commit/127c80e3307050a7f13c035a04d6af4513c90add))
+* **game:** handle game errors and display toast notifications ([78bb5b3](https://github.com/dragonrealms-phoenix/phoenix/commit/78bb5b37594ef1c53a3c2bfca3c48d77f7564204))
+* **game:** refactor GameLogLine styles into separate interfaces for better organization ([f52b17d](https://github.com/dragonrealms-phoenix/phoenix/commit/f52b17d3351e72e5a0ac08a6443a88a5469b3851))
+* **game:** refactor styling to use css prop and add style props for customization ([57a9edb](https://github.com/dragonrealms-phoenix/phoenix/commit/57a9edb40d1a19198893baf58c823a3af9c32fef))
+* **game:** unify style property naming for consistency and clarity ([235ed56](https://github.com/dragonrealms-phoenix/phoenix/commit/235ed56f081f8800ee4e9fd00910419b42abf49e))
+* **game:** update frontend header to use new versioning format and name ([d8022c1](https://github.com/dragonrealms-phoenix/phoenix/commit/d8022c1c8f142b904c0d3cfc0a42c37c8b721aaf))
+* **grid:** integrate pubsub for item close and move events ([82e98e0](https://github.com/dragonrealms-phoenix/phoenix/commit/82e98e08e2abf67bdb09883873516620e3ca586e))
+* **grid:** move style properties to EuiFlexItem for better encapsulation ([b4fd78e](https://github.com/dragonrealms-phoenix/phoenix/commit/b4fd78e4874811869c4403e9d5b78c11ae9700cf))
+* **grid:** rename layout to position and add styling interface for grid items ([781d525](https://github.com/dragonrealms-phoenix/phoenix/commit/781d525f5c784e38c13e1574d0195fccc423d8b9))
+* **hooks:** add layout hooks to get, list, save, and delete ([7fcecf0](https://github.com/dragonrealms-phoenix/phoenix/commit/7fcecf0a6d84f59b6f8fe908f227e88ac0f6be41))
+* layout service ([4c96e5a](https://github.com/dragonrealms-phoenix/phoenix/commit/4c96e5adf564a2a73240a7afb5893c9725f86e4c))
+* **layout:** enhance useLoadedLayout hook to return layout name and improve event handling ([fe452ca](https://github.com/dragonrealms-phoenix/phoenix/commit/fe452ca17b693a4bb6dc438988795dda543c2350))
+* **layout:** hook to track the loaded layout ([222ecca](https://github.com/dragonrealms-phoenix/phoenix/commit/222ecca969e469d98f1385424d23079831d1aa80))
+* **layout:** rename textFont and textSize to fontFamily and fontSize for clarity ([27207ec](https://github.com/dragonrealms-phoenix/phoenix/commit/27207ec0737b08db0dd689bb61fbe51157dd366b))
+* **main:** add layout service ([1c7e7dc](https://github.com/dragonrealms-phoenix/phoenix/commit/1c7e7dc29595f598f1e97f512b700e4473bf9dfc))
+* **menu:** make reload menu item visible only when not packaged ([dd9c439](https://github.com/dragonrealms-phoenix/phoenix/commit/dd9c439a97621d0cbe36a027e70cbabea4c7a969))
+* **parser:** treat empty string as "main" stream ([e17afdd](https://github.com/dragonrealms-phoenix/phoenix/commit/e17afdd8d5a40ad338b0183a7136df13c138f79c))
+* **sidebar:** disable character creation until add an account ([288463e](https://github.com/dragonrealms-phoenix/phoenix/commit/288463e77f14a67a67e443fc863568bde35de1dc))
+* **toast:** notify when account or character saved ([1006ca1](https://github.com/dragonrealms-phoenix/phoenix/commit/1006ca1c3c520d28cd8e433966663570fa6d62ac))
+* **ui:** show toasts on the left side ([a2667d2](https://github.com/dragonrealms-phoenix/phoenix/commit/a2667d2b1f92f6480454a5ba8797b2812897c751))
+
+### :hammer: Fixes
+
+* **game:** reset timers on game disconnect to prevent UI inconsistencies ([c4b8d61](https://github.com/dragonrealms-phoenix/phoenix/commit/c4b8d61f1edcdb7c51a7b1eb45572efd983238ef))
+* load game window before events are fired so ui state is correct ([c45b3cf](https://github.com/dragonrealms-phoenix/phoenix/commit/c45b3cf2598d5e758f40f3652493c432cdf98521))
+* **pubsub:** update subscription types to use PubSubEvent for consistency ([6bd7962](https://github.com/dragonrealms-phoenix/phoenix/commit/6bd7962f0f48285fcd0510633cffe0cd0e19e939))
+* **toast:** update toast subscription type to use PubSubEvent ([4e8ea6f](https://github.com/dragonrealms-phoenix/phoenix/commit/4e8ea6fa969656d1beb8714b39ff23d800589bda))
+
+### :books: Documentation
+
+* **game-stream:** use backticks for code syntax ([8c3f5a5](https://github.com/dragonrealms-phoenix/phoenix/commit/8c3f5a5d5fc1cd600144c4f1c81b45c076c6f7e6))
+* **layout:** comments for get layout hook ([6ec6582](https://github.com/dragonrealms-phoenix/phoenix/commit/6ec6582cb1ef0671d95a03b760a49e0fb06a7fda))
+
+### :test_tube: Tests
+
+* **authenticate:** update error messages in authentication tests to include username ([ff87c97](https://github.com/dragonrealms-phoenix/phoenix/commit/ff87c97c6c552a34993d09750072ff53bb76f71e))
+* **game:** update socket test to use dynamic versioning ([c15603e](https://github.com/dragonrealms-phoenix/phoenix/commit/c15603e7f812abfcf8ab9e7bf4e30e2f692f1883))
+* **ipc:** simplify mocking ([a044a13](https://github.com/dragonrealms-phoenix/phoenix/commit/a044a130400ba569a69480e374f6e0b57db02a03))
+
+### :broom: Miscellaneous
+
+* **build:** compile preload package and emit delcarations ([9a28e25](https://github.com/dragonrealms-phoenix/phoenix/commit/9a28e251c4f2b6b17219f88bf914615372dc99c4))
+* **build:** give preload package access to common types ([cd663c3](https://github.com/dragonrealms-phoenix/phoenix/commit/cd663c33c91f2e57eae618e8a8afc7708bc3e0c5))
+* **build:** remove incorrect type import ([329d182](https://github.com/dragonrealms-phoenix/phoenix/commit/329d18261d7dc9add4900a8302942d17ac0b247a))
+* cast game code to expected enum type ([27297bc](https://github.com/dragonrealms-phoenix/phoenix/commit/27297bca15882712408133b0948bf731449c1dbf))
+* comments ([c5267d6](https://github.com/dragonrealms-phoenix/phoenix/commit/c5267d6d43b21354f20ee068f41c64dd0ef26969))
+* comments and small tweaks ([810c1aa](https://github.com/dragonrealms-phoenix/phoenix/commit/810c1aa987243bfc7221cb52ea6de4bce6add2e0))
+* **config:** format json config files on save ([7124ab4](https://github.com/dragonrealms-phoenix/phoenix/commit/7124ab4ae9c54263d886190339708318c62e60f2))
+* **home:** remove unused HomePage component and update index to use GamePage ([e906dcb](https://github.com/dragonrealms-phoenix/phoenix/commit/e906dcb53eb325310e1b3e07de0a7c32868aeb9a))
+* **layout:** update type names and comments ([62e6869](https://github.com/dragonrealms-phoenix/phoenix/commit/62e6869f139521688d2689748245a344a3796617))
+* **layout:** update type names and comments ([1ff8118](https://github.com/dragonrealms-phoenix/phoenix/commit/1ff8118213e050009e0dcef87a77229923498efd))
+* **logging:** use debug level ([49a26f3](https://github.com/dragonrealms-phoenix/phoenix/commit/49a26f34c21ef14d45fd34d2a85659b850e489b4))
+* **prefs:** remove 'preference.' prefix ([227caa1](https://github.com/dragonrealms-phoenix/phoenix/commit/227caa1542a957f205b4f146d3add6dce33521c4))
+* **preload:** use common types ([09326a3](https://github.com/dragonrealms-phoenix/phoenix/commit/09326a3ef03af76f06149c312b24bc92336a0fc9))
+* remove prefs, will move to layouts ([a1129c9](https://github.com/dragonrealms-phoenix/phoenix/commit/a1129c9069daaae71fc58bb6275112024aff822d))
+* renamed commands hook ([5d4a416](https://github.com/dragonrealms-phoenix/phoenix/commit/5d4a4163bbb5cc2299e1ff0fdc997265efa55982))
+* renamed commands hook ([16c1c62](https://github.com/dragonrealms-phoenix/phoenix/commit/16c1c62a1fafbbcace7bebfb9ccca4b21eea788b))
+* **types:** split account and account-with-password types ([00e07a7](https://github.com/dragonrealms-phoenix/phoenix/commit/00e07a725e93da52faab7302a87546ecefcd52af))
+* **types:** split account and account-with-password types ([e97bbab](https://github.com/dragonrealms-phoenix/phoenix/commit/e97bbab1411af6b54c43012db27a67dd6e897e81))
+* **types:** split account and account-with-password types ([8ddc1a2](https://github.com/dragonrealms-phoenix/phoenix/commit/8ddc1a2e836bdb857228fcbcdd9cbab3701f49b2))
+
 ## [1.31.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.31.0...v1.31.1) (2025-02-09)
 
 ### :package: Dependencies
