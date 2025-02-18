@@ -9,6 +9,7 @@ import {
   it,
   vi,
 } from 'vitest';
+import { VERSION } from '../../../common/version.js';
 import type { NetSocketMock } from '../../__mocks__/net-socket.mock.js';
 import { mockNetConnect } from '../../__mocks__/net-socket.mock.js';
 import { runInBackground } from '../../async/run-in-background.js';
@@ -270,7 +271,7 @@ describe('game-socket', () => {
       );
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(
         2,
-        `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML\n`
+        `FE:PHOENIX /VERSION:${VERSION} /P:${process.platform.toUpperCase()} /XML\n`
       );
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
     });
