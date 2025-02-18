@@ -2,6 +2,7 @@ import net from 'node:net';
 import * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/async.utils.js';
 import { ReplayFirstSubscriberOnlySubject } from '../../common/observable/replay-first-subscriber-only.subject.js';
+import { VERSION } from '../../common/version.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { gameSocketLogger as logger } from './logger.js';
 import type { GameSocket } from './types.js';
@@ -241,7 +242,7 @@ export class GameSocketImpl implements GameSocket {
       // it was renamed to "Wrayth". The version is something I found common
       // on GitHub among other clients. I did not notice a theme for the platform
       // of the code I reviewed. I assume the last flag is to request XML formatted feed.
-      const frontendHeader = `FE:WRAYTH /VERSION:1.0.1.26 /P:${process.platform.toUpperCase()} /XML`;
+      const frontendHeader = `FE:PHOENIX /VERSION:${VERSION} /P:${process.platform.toUpperCase()} /XML`;
 
       socket.write(`${this.credentials.accessToken}\n`);
       socket.write(`${frontendHeader}\n`);
