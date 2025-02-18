@@ -58,7 +58,7 @@ const GamePage: React.FC = (): ReactNode => {
   // Track high level game events such as stream ids and formatting.
   // Re-emit text events to the game stream subject to get to grid items.
   useSubscribe('game:event', (gameEvent: GameEvent) => {
-    const textStyles: GameLogLine['styles'] = {
+    const textStyles: GameLogLine['style'] = {
       colorMode,
       outputClass: textOutputClassRef.current,
       stylePreset: textStylePresetRef.current,
@@ -70,7 +70,7 @@ const GamePage: React.FC = (): ReactNode => {
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
           streamId: gameEvent.streamId,
-          styles: textStyles,
+          style: textStyles,
           text: '__CLEAR_STREAM__',
         });
         break;
@@ -103,7 +103,7 @@ const GamePage: React.FC = (): ReactNode => {
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
           streamId: gameStreamIdRef.current,
-          styles: textStyles,
+          style: textStyles,
           text: gameEvent.text,
         });
         break;
@@ -115,7 +115,7 @@ const GamePage: React.FC = (): ReactNode => {
         gameLogLineSubject$.next({
           eventId: gameEvent.eventId,
           streamId: 'experience',
-          styles: {
+          style: {
             ...textStyles,
             outputClass: 'mono',
           },
@@ -145,14 +145,14 @@ const GamePage: React.FC = (): ReactNode => {
           gameLogLineSubject$.next({
             eventId: oldRoom.eventId,
             streamId: 'room',
-            styles: textStyles,
+            style: textStyles,
             text: '__CLEAR_STREAM__',
           });
 
           gameLogLineSubject$.next({
             eventId: newRoom.eventId,
             streamId: 'room',
-            styles: textStyles,
+            style: textStyles,
             text: formatRoomText(newRoom),
           });
 
@@ -168,7 +168,7 @@ const GamePage: React.FC = (): ReactNode => {
     gameLogLineSubject$.next({
       eventId: uuid(),
       streamId: 'main',
-      styles: {
+      style: {
         colorMode,
         subdued: true,
       },
@@ -181,7 +181,7 @@ const GamePage: React.FC = (): ReactNode => {
     gameLogLineSubject$.next({
       eventId: uuid(),
       streamId: 'main',
-      styles: {
+      style: {
         colorMode,
         subdued: true,
       },
@@ -263,12 +263,14 @@ const GamePage: React.FC = (): ReactNode => {
         itemId: layoutItem.itemId,
         itemTitle: layoutItem.itemTitle,
         isFocused: layoutItem.isFocused,
-        layout: layoutItem.layout,
+        position: layoutItem.position,
+        style: layoutItem.style,
         content: (
           <GameStream
+            stream$={gameLogLineSubject$}
             primaryStreamId={layoutItem.itemId}
             gameStreamIds={streamItemsMap[layoutItem.itemId]}
-            stream$={gameLogLineSubject$}
+            style={layoutItem.style}
           />
         ),
       });
@@ -301,11 +303,17 @@ const buildConfigGridItemsMap = (
       itemId: streamLayout.id,
       itemTitle: streamLayout.title,
       isVisible: streamLayout.visible,
-      layout: {
+      position: {
         x: streamLayout.x,
         y: streamLayout.y,
         width: streamLayout.width,
         height: streamLayout.height,
+      },
+      style: {
+        fontFamily: streamLayout.fontFamily,
+        fontSize: streamLayout.fontSize,
+        foregroundColor: streamLayout.foregroundColor,
+        backgroundColor: streamLayout.backgroundColor,
       },
       whenHiddenRedirectToItemId: streamLayout.whenHiddenRedirectToId,
     };
@@ -329,7 +337,8 @@ const buildLayoutGridItemsMap = (
         itemId: configItem.itemId,
         itemTitle: configItem.itemTitle,
         isFocused: configItem.itemId === 'main',
-        layout: configItem.layout,
+        position: configItem.position,
+        style: configItem.style,
       };
       layoutItemsMap[layoutItem.itemId] = layoutItem;
     }
