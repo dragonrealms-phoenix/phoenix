@@ -24,7 +24,7 @@ import { memo, useCallback, useMemo, useRef } from 'react';
 import type {
   GridItemBoundary,
   GridItemInfo,
-  GridItemLayout,
+  GridItemPosition,
 } from '../../types/grid.types.js';
 
 export interface GridItemProps {
@@ -36,7 +36,7 @@ export interface GridItemProps {
    * The positional layout for the grid item.
    * If not specified then a default location will be used.
    */
-  layout?: GridItemLayout;
+  position?: GridItemPosition;
   /**
    * The unique identifier for the grid item.
    */
@@ -74,7 +74,7 @@ export interface GridItemProps {
   children?: ReactNode;
 }
 
-const DEFAULT_GRID_ITEM_LAYOUT: GridItemLayout = {
+const DEFAULT_GRID_ITEM_POSITION: GridItemPosition = {
   x: 0,
   y: 0,
   width: 500,
@@ -84,16 +84,17 @@ const DEFAULT_GRID_ITEM_LAYOUT: GridItemLayout = {
 export const GridItem: React.FC<GridItemProps> = memo(
   (props: GridItemProps): ReactNode => {
     const { itemId, itemTitle, isFocused = false, children } = props;
-    const { boundary, layout = DEFAULT_GRID_ITEM_LAYOUT } = props;
+    const { boundary, position = DEFAULT_GRID_ITEM_POSITION } = props;
     const { onFocus, onClose, onMoveResize } = props;
 
     const { euiTheme } = useEuiTheme();
 
     // Set default position and size for the grid item.
     // Like `useState`, we can provide the default value, but as a function.
-    const [{ x, y, width, height }, sizeApi] = useSpring<GridItemLayout>(() => {
-      return layout;
-    }, [layout]);
+    const [{ x, y, width, height }, sizeApi] =
+      useSpring<GridItemPosition>(() => {
+        return position;
+      }, [position]);
 
     const dragHandleRef = useRef<HTMLDivElement>(null);
     const resizeHandleRef = useRef<HTMLDivElement>(null);
@@ -103,7 +104,7 @@ export const GridItem: React.FC<GridItemProps> = memo(
         itemId,
         itemTitle,
         isFocused,
-        layout: {
+        position: {
           x: x.get(),
           y: y.get(),
           width: width.get(),

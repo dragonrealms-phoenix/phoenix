@@ -55,10 +55,10 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
       logger.debug('moved item', { item });
       publish('layout:item:moved', {
         itemId: item.itemId,
-        x: item.layout.x,
-        y: item.layout.y,
-        width: item.layout.width,
-        height: item.layout.height,
+        x: item.position.x,
+        y: item.position.y,
+        width: item.position.width,
+        height: item.position.height,
       });
     },
     [logger, publish]
@@ -72,7 +72,7 @@ export const Grid: React.FC<GridProps> = (props: GridProps): ReactNode => {
           itemId={contentItem.itemId}
           itemTitle={contentItem.itemTitle}
           isFocused={contentItem.itemId === focusedItemId}
-          layout={contentItem.layout}
+          position={contentItem.position}
           boundary={boundary}
           onFocus={onItemFocus}
           onClose={onItemClose}

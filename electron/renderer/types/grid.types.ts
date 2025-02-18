@@ -15,7 +15,7 @@ export interface GridItemInfo {
   itemId: string;
   itemTitle: string;
   isFocused: boolean;
-  layout: GridItemLayout;
+  position: GridItemPosition;
 }
 
 export interface GridItemConfig {
@@ -36,7 +36,11 @@ export interface GridItemConfig {
   /**
    * The initial position for the grid item.
    */
-  layout: GridItemLayout;
+  position: GridItemPosition;
+  /**
+   * The styling for the grid item.
+   */
+  style: GridItemStyle;
   /**
    * When this item is not visible, redirect its content to another item.
    * If that item is also not visible, then it continues to be redirected
@@ -62,7 +66,7 @@ export interface GridItemBoundary {
 /**
  * The positional layout for the grid item.
  */
-export interface GridItemLayout {
+export interface GridItemPosition {
   /**
    * The x coordinate for the grid item.
    * The leftmost edge of the grid item.
@@ -85,4 +89,32 @@ export interface GridItemLayout {
    * Bottommost edge is `y + height`.
    */
   height: number;
+}
+
+/**
+ * The font styling for the grid item.
+ */
+export interface GridItemStyle {
+  /**
+   * The font family to use for the text.
+   * For example, "Verdana" or "Courier New".
+   */
+  textFont: string;
+  /**
+   * The font size to use for the text, in pixels.
+   * For example, 12.
+   */
+  textSize: number;
+  /**
+   * The color name or hex code to use for the text.
+   * For example, "red" or "#FF0000".
+   * Though any valid CSS color value will work.
+   */
+  foregroundColor: string;
+  /**
+   * The color name or hex code to use for the background.
+   * For example, "blue" or "#0000FF".
+   * Though any valid CSS color value will work.
+   */
+  backgroundColor: string;
 }
