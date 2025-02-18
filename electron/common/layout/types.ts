@@ -84,12 +84,13 @@ export interface ItemLayout {
    * The font family to use for the stream content.
    * Example: 'Verdana' or 'Courier New'.
    */
-  textFont: string;
+  fontFamily: string;
   /**
-   * The font size to use for the stream content, in pixels.
-   * Example: 12.
+   * The font size to use for the stream content.
+   * Using a number without unit may not yield desired results.
+   * Example: '12px' (recommended) vs. '12' (not recommended).
    */
-  textSize: number;
+  fontSize: string;
   /**
    * The color of the text in the stream content.
    * Can be color names (e.g. 'blue') or hex codes ('#00FF00').
