@@ -72,10 +72,15 @@ export const GameRoundTime: React.FC = (): ReactNode => {
     }
   });
 
+  // Clear the counters otherwise they continue to tick down in the UI.
+  // I also tried clearing the interval, but because the component is still
+  // mounted then even when reconnecting to the game or reloading the page
+  // then the interval wasn't restarting and the numbers were frozen.
+  // This was the simplest solution I landed on.
   useSubscribe('game:disconnect', () => {
-    clearInterval(intervalRef.current);
-    setCurrentRT(0);
-    setCurrentCT(0);
+    serverTimeRef.current = 0;
+    roundTimeRef.current = 0;
+    castTimeRef.current = 0;
   });
 
   const roundTimeCmp = useMemo((): ReactElement => {
