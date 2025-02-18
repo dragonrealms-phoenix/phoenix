@@ -338,10 +338,6 @@ export const GridItem: React.FC<GridItemProps> = memo(
           css={{
             height: 'inherit',
             width: 'inherit',
-            fontSize: style.fontSize,
-            fontFamily: style.fontFamily,
-            color: style.foregroundColor,
-            backgroundColor: style.backgroundColor,
           }}
         >
           <EuiSplitPanel.Inner grow={false} color="subdued" paddingSize="none">
@@ -402,7 +398,17 @@ export const GridItem: React.FC<GridItemProps> = memo(
               justifyContent="flexStart"
               gutterSize="none"
             >
-              <EuiFlexItem grow={true}>{children}</EuiFlexItem>
+              <EuiFlexItem
+                grow={true}
+                css={{
+                  fontSize: style.fontSize,
+                  fontFamily: style.fontFamily,
+                  color: style.foregroundColor,
+                  backgroundColor: style.backgroundColor,
+                }}
+              >
+                {children}
+              </EuiFlexItem>
               <EuiFlexItem grow={false}>
                 <div
                   ref={resizeHandleRef}
