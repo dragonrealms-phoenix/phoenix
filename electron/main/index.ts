@@ -12,10 +12,7 @@ app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 initializeDotenv();
 initializeSentry();
 
-// Once electron-log is initialized then it's safe for us to
-// import and use other modules that depend on logging.
-// Otherwise, those modules prematurely create logger instances.
-// To ensure no imported module (or their dependencies) loads prematurely,
-// then we dynamically import the app initialization module at the right time.
+// Wait to initialize the app until the above config and SDK's are ready.
+// Otherwise, the app may use the wrong app name/paths for logs, etc.
 const { initializeApp } = await import('./initialize-app.js');
 await initializeApp();
