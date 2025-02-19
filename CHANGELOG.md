@@ -1,3 +1,19 @@
+## [1.33.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.32.0...v1.33.0) (2025-02-19)
+
+### :sparkles: Features
+
+* add dynamic release versioning for Sentry integration ([cf1d2fa](https://github.com/dragonrealms-phoenix/phoenix/commit/cf1d2fa2b3aaac106412af0129c4a311cd3c987a))
+* enhance Sentry integration with profiling and improved initialization ([af8212b](https://github.com/dragonrealms-phoenix/phoenix/commit/af8212b99c549c7872d93a0fdc75e90854a20a9c))
+
+### :test_tube: Tests
+
+* update test cases to use 'items' instead of 'streams' and adjust properties ([061cd94](https://github.com/dragonrealms-phoenix/phoenix/commit/061cd949d159c4df77599e6c4288c257170f7403))
+
+### :broom: Miscellaneous
+
+* remove obsolete comment, don't use electron-log anymore ([8336669](https://github.com/dragonrealms-phoenix/phoenix/commit/8336669ae0a4ac75baaea4222347f9aa62c1c42d))
+* update dependencies to latest versions ([066f5c3](https://github.com/dragonrealms-phoenix/phoenix/commit/066f5c3318dda067795970286c4f3410b4a65639))
+
 ## [1.32.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.31.1...v1.32.0) (2025-02-18)
 
 ### :sparkles: Features
