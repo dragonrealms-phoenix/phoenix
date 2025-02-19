@@ -1,6 +1,5 @@
 import { app } from 'electron';
 import { config as initializeDotenv } from 'dotenv-flow';
-import { initializeApp } from './initialize-app.js';
 import { initializeSentry } from './sentry/initialize-sentry.js';
 
 // Unfortunately in development mode, the app name is 'Electron'.
@@ -13,4 +12,7 @@ app.setAppUserModelId('com.github.dragonrealms-phoenix.phoenix');
 initializeDotenv();
 initializeSentry();
 
+// Wait to initialize the app until the above config and SDK's are ready.
+// Otherwise, the app may use the wrong app name/paths for logs, etc.
+const { initializeApp } = await import('./initialize-app.js');
 await initializeApp();

@@ -274,9 +274,6 @@ const nextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
@@ -284,6 +281,9 @@ export default withSentryConfig(nextConfig, {
   release: {
     // e.g. "phoenix@x.y.z-abcdef"
     name: `${process.env.npm_package_name}@${process.env.npm_package_version}-${gitHash}`,
+    setCommits: {
+      auto: true,
+    },
   },
 
   // Suppresses source map uploading logs during build.
@@ -292,14 +292,11 @@ export default withSentryConfig(nextConfig, {
   // Don't send internal plugin errors and performance data to Sentry.
   telemetry: false,
 
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+  // Automatically tree-shake Sentry logger statements to reduce bundle size.
+  disableLogger: true,
 
   // Upload a larger set of source maps for prettier stack traces (increases build time).
   widenClientFileUpload: true,
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size.
-  disableLogger: true,
 
   sourcemaps: {
     // Reduce client bundle size by excluding source maps after upload.

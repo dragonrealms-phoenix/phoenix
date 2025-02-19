@@ -29,7 +29,9 @@ describe('initialize-sentry', () => {
 
     expect(mockSentryElectronMain.init).toHaveBeenCalledWith({
       dsn: 'test:sentry:dsn',
+      enableRendererProfiling: true,
       tracesSampleRate: 1,
+      profilesSampleRate: 1,
       normalizeDepth: 5,
       debug: false,
     });
