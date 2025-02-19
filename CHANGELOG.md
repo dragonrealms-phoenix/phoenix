@@ -1,3 +1,9 @@
+## [1.33.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.33.0...v1.33.1) (2025-02-19)
+
+### :broom: Miscellaneous
+
+* **license:** update copyright year to 2025 ([71e6eef](https://github.com/dragonrealms-phoenix/phoenix/commit/71e6eef897f2c16ac42b4d207448ad91fa92e3d4))
+
 ## [1.33.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.32.0...v1.33.0) (2025-02-19)
 
 ### :sparkles: Features
