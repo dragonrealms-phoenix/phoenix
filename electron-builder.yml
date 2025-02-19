@@ -9,7 +9,7 @@ appId: com.github.dragonrealms-phoenix.phoenix
 # https://github.com/electron-userland/electron-builder/issues/7098#issuecomment-1577507664
 artifactName: ${name}-v${version}-${os}-${arch}.${ext}
 
-copyright: Copyright © 2023-2024 Katoak
+copyright: Copyright © 2023-2025 Katoak
 
 # Name (without extension) to the app icon to use.
 # It only shows in the "About" menu when the app is packaged.
