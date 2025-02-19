@@ -199,7 +199,7 @@ describe('index', () => {
           width: 3,
           height: 4,
         },
-        streams: [
+        items: [
           {
             id: 'test-stream-id',
             title: 'test-stream-title',
@@ -208,10 +208,11 @@ describe('index', () => {
             y: 2,
             width: 3,
             height: 4,
-            textFont: 'test-text-font',
-            textSize: 5,
+            fontFamily: 'test-text-font',
+            fontSize: '12px',
             backgroundColor: 'test-background-color',
             foregroundColor: 'test-foreground-color',
+            whenHiddenRedirectToId: '',
           },
         ],
       };
@@ -245,7 +246,7 @@ describe('index', () => {
           width: 3,
           height: 4,
         },
-        streams: [
+        items: [
           {
             id: 'test-stream-id',
             title: 'test-stream-title',
@@ -254,10 +255,11 @@ describe('index', () => {
             y: 2,
             width: 3,
             height: 4,
-            textFont: 'test-text-font',
-            textSize: 5,
+            fontFamily: 'test-text-font',
+            fontSize: '12px',
             backgroundColor: 'test-background-color',
             foregroundColor: 'test-foreground-color',
+            whenHiddenRedirectToId: '',
           },
         ],
       };
