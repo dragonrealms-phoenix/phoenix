@@ -77,6 +77,7 @@ const ROOM_ID_TO_EVENT_PROPERTY_MAP: Record<string, keyof RoomGameEvent> = {
   'room objs': 'roomObjects', // sometimes it's short
   'room players': 'roomPlayers',
   'room exits': 'roomExits',
+  'room extra': 'roomExtra',
 };
 
 /**

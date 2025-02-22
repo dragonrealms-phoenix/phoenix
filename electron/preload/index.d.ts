@@ -509,6 +509,7 @@ declare module 'common/game/types' {
    * <component id='room objs'>You also see ...</component>
    * <component id='room players'>Also here: Katoak.</component>
    * <component id='room exits'>Obvious paths: <d>east</d>, <d>southwest</d>, <d>northwest</d>.<compass></compass></component>
+   * <component id='room extra'></component>
    */
   export interface RoomGameEvent extends GameEventBase {
     type: GameEventType.ROOM;
@@ -517,6 +518,7 @@ declare module 'common/game/types' {
     roomObjects?: string;
     roomPlayers?: string;
     roomExits?: string;
+    roomExtra?: string;
   }
   /**
    * <prompt time="1703617000">&gt;</prompt>
