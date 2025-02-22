@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CacheServiceMock } from '../__mocks__/cache-service.mock.js';
+import { CacheServiceMockImpl } from '../__mocks__/cache-service.mock.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 import { logger } from '../logger.js';
 
@@ -266,7 +266,7 @@ describe('disk-cache-service', () => {
       // The disk cache service reads data from its delegate
       // to get the data to write to disk.
       // To test a failure, we'll throw an error from the delegate.
-      const mockCacheService = new CacheServiceMock();
+      const mockCacheService = new CacheServiceMockImpl();
       mockCacheService.readCache.mockImplementation(() => {
         throw new Error('test');
       });
