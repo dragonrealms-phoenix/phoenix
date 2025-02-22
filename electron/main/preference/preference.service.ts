@@ -1,5 +1,5 @@
 import type { Maybe } from '../../common/types.js';
-import type { StoreService } from '../store/types.js';
+import type { CacheService } from '../cache/types.js';
 import { logger } from './logger.js';
 import type {
   PreferenceKey,
@@ -8,31 +8,31 @@ import type {
 } from './types.js';
 
 export class PreferenceServiceImpl implements PreferenceService {
-  private storeService: StoreService;
+  private cacheService: CacheService;
 
-  constructor(options: { storeService: StoreService }) {
-    this.storeService = options.storeService;
+  constructor(options: { cacheService: CacheService }) {
+    this.cacheService = options.cacheService;
   }
 
-  public async get<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
+  public get<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
     key: K
-  ): Promise<Maybe<V>> {
-    logger.debug('getting preference', { key });
-    const value = await this.storeService.get<V>(key);
-    logger.debug('got preference', { key, value });
+  ): Maybe<V> {
+    logger.trace('getting preference', { key });
+    const value = this.cacheService.get<V>(key);
+    logger.trace('got preference', { key, value });
     return value;
   }
 
-  public async set<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
+  public set<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
     key: K,
     value: V
-  ): Promise<void> {
-    logger.debug('setting preference', { key, value });
-    await this.storeService.set<V>(key, value);
+  ): void {
+    logger.trace('setting preference', { key, value });
+    this.cacheService.set<V>(key, value);
   }
 
-  public async remove(key: PreferenceKey): Promise<void> {
-    logger.debug('removing preference', { key });
-    await this.storeService.remove(key);
+  public remove(key: PreferenceKey): void {
+    logger.trace('removing preference', { key });
+    this.cacheService.remove(key);
   }
 }

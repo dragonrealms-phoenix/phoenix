@@ -1,21 +1,31 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PreferenceServiceImpl } from '../preference.service.js';
 
-const { mockStoreService, mockGetStoreForPath } = await vi.hoisted(async () => {
-  const storeServiceMockModule = await import(
-    '../../store/__mocks__/store-service.mock.js'
-  );
+const { mockCacheService, mockCacheServiceConstructorSpy } = await vi.hoisted(
+  async () => {
+    const cacheServiceMockModule = await import(
+      '../../cache/__mocks__/cache-service.mock.js'
+    );
 
-  const mockStoreService = new storeServiceMockModule.StoreServiceMockImpl();
+    const mockCacheService = new cacheServiceMockModule.CacheServiceMockImpl();
 
-  const mockGetStoreForPath = vi.fn();
+    return {
+      mockCacheService,
+      mockCacheServiceConstructorSpy: vi.fn(),
+    };
+  }
+);
 
-  return { mockStoreService, mockGetStoreForPath };
-});
+vi.mock('../../cache/disk-cache.service.js', async () => {
+  class MyDiskCacheService {
+    constructor(...args: any) {
+      mockCacheServiceConstructorSpy(...args);
+      return mockCacheService;
+    }
+  }
 
-vi.mock('../../store/store.instance.ts', () => {
   return {
-    getStoreForPath: mockGetStoreForPath.mockReturnValue(mockStoreService),
+    DiskCacheServiceImpl: MyDiskCacheService,
   };
 });
 
@@ -40,8 +50,8 @@ describe('preference-instance', () => {
 
     expect(Preferences).toBeInstanceOf(PreferenceServiceImpl);
 
-    expect(mockGetStoreForPath).toHaveBeenCalledWith(
-      'userData/preferences.json'
-    );
+    expect(mockCacheServiceConstructorSpy).toHaveBeenCalledWith({
+      filePath: 'userData/preferences.json',
+    });
   });
 });

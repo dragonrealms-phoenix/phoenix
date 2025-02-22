@@ -1,20 +1,20 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { StoreServiceMockImpl } from '../../store/__mocks__/store-service.mock.js';
-import type { StoreService } from '../../store/types.js';
+import { CacheServiceMockImpl } from '../../cache/__mocks__/cache-service.mock.js';
+import type { CacheService } from '../../cache/types.js';
 import { PreferenceServiceImpl } from '../preference.service.js';
 import type { PreferenceKey, PreferenceService } from '../types.js';
 
 vi.mock('../../logger/logger.factory.ts');
 
 describe('preference-service', () => {
-  let storeService: Mocked<StoreService>;
+  let mockCacheService: Mocked<CacheService>;
   let preferenceService: PreferenceService;
 
   beforeEach(() => {
-    storeService = new StoreServiceMockImpl();
+    mockCacheService = new CacheServiceMockImpl();
 
-    storeService.get.mockImplementation(async (key: string) => {
+    mockCacheService.get.mockImplementation((key: string) => {
       if (key === 'key') {
         return 'value';
       }
@@ -22,7 +22,7 @@ describe('preference-service', () => {
     });
 
     preferenceService = new PreferenceServiceImpl({
-      storeService,
+      cacheService: mockCacheService,
     });
   });
 
@@ -33,29 +33,29 @@ describe('preference-service', () => {
 
   describe('#get', () => {
     it('returns value if key found', async () => {
-      const value = await preferenceService.get('key' as PreferenceKey);
+      const value = preferenceService.get('key' as PreferenceKey);
       expect(value).toEqual('value');
-      expect(storeService.get).toHaveBeenCalledWith('key');
+      expect(mockCacheService.get).toHaveBeenCalledWith('key');
     });
 
     it('returns undefined if key not found', async () => {
-      const value = await preferenceService.get('test' as PreferenceKey);
+      const value = preferenceService.get('test' as PreferenceKey);
       expect(value).toBe(undefined);
-      expect(storeService.get).toHaveBeenCalledWith('test');
+      expect(mockCacheService.get).toHaveBeenCalledWith('test');
     });
   });
 
   describe('#set', () => {
     it('sets value', async () => {
-      await preferenceService.set('key' as PreferenceKey, 'value');
-      expect(storeService.set).toHaveBeenCalledWith('key', 'value');
+      preferenceService.set('key' as PreferenceKey, 'value');
+      expect(mockCacheService.set).toHaveBeenCalledWith('key', 'value');
     });
   });
 
   describe('#remove', () => {
     it('removes value', async () => {
-      await preferenceService.remove('key' as PreferenceKey);
-      expect(storeService.remove).toHaveBeenCalledWith('key');
+      preferenceService.remove('key' as PreferenceKey);
+      expect(mockCacheService.remove).toHaveBeenCalledWith('key');
     });
   });
 });

@@ -89,14 +89,12 @@ export type PreferenceKeyToTypeMap = {
 };
 
 export interface PreferenceService {
-  get<K extends PreferenceKey>(
-    key: K
-  ): Promise<Maybe<PreferenceKeyToTypeMap[K]>>;
+  get<K extends PreferenceKey>(key: K): Maybe<PreferenceKeyToTypeMap[K]>;
 
   set<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
     key: K,
     value: V
-  ): Promise<void>;
+  ): void;
 
-  remove(key: PreferenceKey): Promise<void>;
+  remove(key: PreferenceKey): void;
 }
