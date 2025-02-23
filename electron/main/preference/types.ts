@@ -89,9 +89,16 @@ export type PreferenceKeyToTypeMap = {
 };
 
 export interface PreferenceService {
-  get<K extends PreferenceKey>(key: K): Maybe<PreferenceKeyToTypeMap[K]>;
+  get<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
+    key: K,
+    defaultValue: V
+  ): V;
 
-  set<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
+  get<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
+    key: K
+  ): Maybe<V>;
+
+  set<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
     key: K,
     value: V
   ): void;

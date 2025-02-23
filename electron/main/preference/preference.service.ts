@@ -14,16 +14,26 @@ export class PreferenceServiceImpl implements PreferenceService {
     this.cacheService = options.cacheService;
   }
 
-  public get<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
+  public get<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
     key: K
+  ): Maybe<V>;
+
+  public get<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
+    key: K,
+    defaultValue: V
+  ): V;
+
+  public get<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
+    key: K,
+    defaultValue?: V
   ): Maybe<V> {
-    logger.trace('getting preference', { key });
-    const value = this.cacheService.get<V>(key);
+    logger.trace('getting preference', { key, defaultValue });
+    const value = this.cacheService.get<V>(key) ?? defaultValue;
     logger.trace('got preference', { key, value });
     return value;
   }
 
-  public set<K extends PreferenceKey, V = PreferenceKeyToTypeMap[K]>(
+  public set<K extends PreferenceKey, V extends PreferenceKeyToTypeMap[K]>(
     key: K,
     value: V
   ): void {
