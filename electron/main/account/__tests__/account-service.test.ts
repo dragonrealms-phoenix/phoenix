@@ -1,7 +1,7 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { StoreServiceMockImpl } from '../../store/__mocks__/store-service.mock.js';
-import type { StoreService } from '../../store/types.js';
+import { CacheServiceMockImpl } from '../../cache/__mocks__/cache-service.mock.js';
+import type { CacheService } from '../../cache/types.js';
 import { AccountServiceImpl } from '../account.service.js';
 import type { AccountService } from '../types.js';
 
@@ -32,7 +32,7 @@ vi.mock('electron', async (importOriginal) => {
 vi.mock('../../logger/logger.factory.ts');
 
 describe('account-service', () => {
-  let storeService: Mocked<StoreService>;
+  let mockCacheService: Mocked<CacheService>;
   let accountService: AccountService;
 
   beforeEach(() => {
@@ -42,10 +42,10 @@ describe('account-service', () => {
 
     mockSafeStorageDecryptString.mockReturnValueOnce('test-password');
 
-    storeService = new StoreServiceMockImpl();
+    mockCacheService = new CacheServiceMockImpl();
 
     accountService = new AccountServiceImpl({
-      storeService,
+      cacheService: mockCacheService,
     });
   });
 
@@ -56,30 +56,24 @@ describe('account-service', () => {
 
   describe('#listAccounts', () => {
     it('lists accounts', async () => {
-      storeService.keys.mockResolvedValueOnce([
-        'sge.account.test-account-1',
-        'sge.account.test-account-2',
-      ]);
+      const mockCache: Record<string, any> = {
+        'sge.account.test-account-1': {
+          accountName: 'test-account-1',
+          accountPassword: 'test-encrypted',
+        },
+        'sge.account.test-account-2': {
+          accountName: 'test-account-2',
+          accountPassword: 'test-encrypted',
+        },
+      };
 
-      storeService.get.mockImplementation(async (key: string) => {
-        if (key === 'sge.account.test-account-1') {
-          return {
-            accountName: 'test-account-1',
-            accountPassword: 'test-encrypted',
-          };
-        }
+      mockCacheService.readCache.mockReturnValueOnce(mockCache);
 
-        if (key === 'sge.account.test-account-2') {
-          return {
-            accountName: 'test-account-2',
-            accountPassword: 'test-encrypted',
-          };
-        }
-
-        return undefined;
+      mockCacheService.get.mockImplementation((key: string) => {
+        return mockCache[key];
       });
 
-      const accounts = await accountService.listAccounts();
+      const accounts = accountService.listAccounts();
 
       expect(accounts).toEqual([
         {
@@ -92,9 +86,9 @@ describe('account-service', () => {
     });
 
     it('returns an empty array if no accounts are found', async () => {
-      storeService.keys.mockResolvedValueOnce([]);
+      mockCacheService.readCache.mockReturnValueOnce({});
 
-      const accounts = await accountService.listAccounts();
+      const accounts = accountService.listAccounts();
 
       expect(accounts).toEqual([]);
     });
@@ -102,7 +96,7 @@ describe('account-service', () => {
 
   describe('#getAccount', () => {
     it('gets an account', async () => {
-      storeService.get.mockImplementation(async (key: string) => {
+      mockCacheService.get.mockImplementation((key: string) => {
         if (key === 'sge.account.test-account') {
           return {
             accountName: 'test-account',
@@ -113,7 +107,7 @@ describe('account-service', () => {
         return undefined;
       });
 
-      const account = await accountService.getAccount({
+      const account = accountService.getAccount({
         accountName: 'test-account',
       });
 
@@ -124,9 +118,9 @@ describe('account-service', () => {
     });
 
     it('returns undefined if no account is found', async () => {
-      storeService.get.mockResolvedValueOnce(undefined);
+      mockCacheService.get.mockReturnValueOnce(undefined);
 
-      const account = await accountService.getAccount({
+      const account = accountService.getAccount({
         accountName: 'test-account',
       });
 
@@ -136,12 +130,12 @@ describe('account-service', () => {
 
   describe('#saveAccount', () => {
     it('saves an account', async () => {
-      await accountService.saveAccount({
+      accountService.saveAccount({
         accountName: 'test-account',
         accountPassword: 'test-password',
       });
 
-      expect(storeService.set).toHaveBeenCalledWith(
+      expect(mockCacheService.set).toHaveBeenCalledWith(
         'sge.account.test-account',
         {
           accountName: 'test-account',
@@ -153,92 +147,78 @@ describe('account-service', () => {
 
   describe('#removeAccount', () => {
     it('removes an account', async () => {
-      storeService.keys.mockResolvedValueOnce([]); // No characters.
+      mockCacheService.readCache.mockReturnValueOnce({}); // No characters.
 
-      await accountService.removeAccount({
+      accountService.removeAccount({
         accountName: 'test-account',
       });
 
-      expect(storeService.remove).toHaveBeenCalledWith(
+      expect(mockCacheService.remove).toHaveBeenCalledWith(
         'sge.account.test-account'
       );
     });
 
     it('removes all characters for an account', async () => {
-      storeService.keys.mockResolvedValueOnce([
-        'sge.account.test-account',
-        'sge.character.test-character.dr',
-      ]);
+      const mockCache: Record<string, any> = {
+        'sge.account.test-account': {
+          accountName: 'test-account',
+          accountPassword: 'test-encrypted',
+        },
+        'sge.character.test-character.dr': {
+          gameCode: 'DR',
+          accountName: 'test-account',
+          characterName: 'test-character',
+        },
+      };
 
-      storeService.get.mockImplementation(async (key: string) => {
-        if (key === 'sge.account.test-account') {
-          return {
-            accountName: 'test-account',
-            accountPassword: 'test-encrypted',
-          };
-        }
+      mockCacheService.readCache.mockReturnValueOnce(mockCache);
 
-        if (key === 'sge.character.test-character.dr') {
-          return {
-            gameCode: 'DR',
-            accountName: 'test-account',
-            characterName: 'test-character',
-          };
-        }
-
-        return undefined;
+      mockCacheService.get.mockImplementation((key: string) => {
+        return mockCache[key];
       });
 
-      await accountService.removeAccount({
+      accountService.removeAccount({
         accountName: 'test-account',
       });
 
-      expect(storeService.remove).toHaveBeenCalledWith(
+      expect(mockCacheService.remove).toHaveBeenCalledWith(
         'sge.account.test-account'
       );
 
-      expect(storeService.remove).toHaveBeenCalledWith(
+      expect(mockCacheService.remove).toHaveBeenCalledWith(
         'sge.character.test-character.dr'
       );
     });
   });
 
   describe('#listCharacters', () => {
-    it('lists all characters', async () => {
-      storeService.keys.mockResolvedValueOnce([
-        'sge.account.test-account-1',
-        'sge.character.test-character-1.dr',
-        'sge.character.test-character-2.dr',
-      ]);
+    beforeEach(() => {
+      const mockCache: Record<string, any> = {
+        'sge.account.test-account-1': {
+          accountName: 'test-account-1',
+          accountPassword: 'test-encrypted',
+        },
+        'sge.character.test-character-1.dr': {
+          gameCode: 'DR',
+          accountName: 'test-account-1',
+          characterName: 'test-character-1',
+        },
+        'sge.character.test-character-2.dr': {
+          gameCode: 'DR',
+          accountName: 'test-account-2',
+          characterName: 'test-character-2',
+        },
+      };
 
-      storeService.get.mockImplementation(async (key: string) => {
-        if (key === 'sge.account.test-account-1') {
-          return {
-            accountName: 'test-account-1',
-            accountPassword: 'test-encrypted',
-          };
-        }
+      mockCacheService.readCache.mockReturnValueOnce(mockCache);
 
-        if (key === 'sge.character.test-character-1.dr') {
-          return {
-            gameCode: 'DR',
-            accountName: 'test-account-1',
-            characterName: 'test-character-1',
-          };
-        }
-
-        if (key === 'sge.character.test-character-2.dr') {
-          return {
-            gameCode: 'DR',
-            accountName: 'test-account-2',
-            characterName: 'test-character-2',
-          };
-        }
-
-        return undefined;
+      mockCacheService.get.mockImplementation((key: string) => {
+        return mockCache[key];
       });
+    });
 
-      const characters = await accountService.listCharacters();
+    it('lists all characters', async () => {
+      const characters = accountService.listCharacters();
 
       expect(characters).toEqual([
         {
@@ -255,40 +235,7 @@ describe('account-service', () => {
     });
 
     it('lists characters for an account', async () => {
-      storeService.keys.mockResolvedValueOnce([
-        'sge.account.test-account-1',
-        'sge.character.test-character-1.dr',
-        'sge.character.test-character-2.dr',
-      ]);
-
-      storeService.get.mockImplementation(async (key: string) => {
-        if (key === 'sge.account.test-account-1') {
-          return {
-            accountName: 'test-account-1',
-            accountPassword: 'test-encrypted',
-          };
-        }
-
-        if (key === 'sge.character.test-character-1.dr') {
-          return {
-            gameCode: 'DR',
-            accountName: 'test-account-1',
-            characterName: 'test-character-1',
-          };
-        }
-
-        if (key === 'sge.character.test-character-2.dr') {
-          return {
-            gameCode: 'DR',
-            accountName: 'test-account-2',
-            characterName: 'test-character-2',
-          };
-        }
-
-        return undefined;
-      });
-
-      const characters = await accountService.listCharacters({
+      const characters = accountService.listCharacters({
         accountName: 'test-account-1',
       });
 
@@ -302,9 +249,9 @@ describe('account-service', () => {
     });
 
     it('returns an empty array if no characters are found', async () => {
-      storeService.keys.mockResolvedValueOnce([]);
+      mockCacheService.readCache.mockReturnValueOnce({});
 
-      const characters = await accountService.listCharacters({
+      const characters = accountService.listCharacters({
         accountName: 'test-account',
       });
 
@@ -314,7 +261,7 @@ describe('account-service', () => {
 
   describe('#getCharacter', () => {
     it('gets a character', async () => {
-      storeService.get.mockImplementation(async (key: string) => {
+      mockCacheService.get.mockImplementation((key: string) => {
         if (key === 'sge.character.test-character.dr') {
           return {
             gameCode: 'DR',
@@ -326,7 +273,7 @@ describe('account-service', () => {
         return undefined;
       });
 
-      const character = await accountService.getCharacter({
+      const character = accountService.getCharacter({
         gameCode: 'DR',
         characterName: 'test-character',
       });
@@ -339,9 +286,9 @@ describe('account-service', () => {
     });
 
     it('returns undefined if no character is found', async () => {
-      storeService.get.mockResolvedValueOnce(undefined);
+      mockCacheService.get.mockReturnValueOnce(undefined);
 
-      const character = await accountService.getCharacter({
+      const character = accountService.getCharacter({
         gameCode: 'DR',
         characterName: 'test-character',
       });
@@ -353,7 +300,7 @@ describe('account-service', () => {
   describe('#saveCharacter', () => {
     it('does not save a character if no account is found', async () => {
       try {
-        await accountService.saveCharacter({
+        accountService.saveCharacter({
           gameCode: 'DR',
           accountName: 'test-account',
           characterName: 'test-character',
@@ -367,7 +314,7 @@ describe('account-service', () => {
     });
 
     it('saves a character', async () => {
-      storeService.get.mockImplementation(async (key: string) => {
+      mockCacheService.get.mockImplementation((key: string) => {
         if (key === 'sge.account.test-account') {
           return {
             accountName: 'test-account',
@@ -378,13 +325,13 @@ describe('account-service', () => {
         return undefined;
       });
 
-      await accountService.saveCharacter({
+      accountService.saveCharacter({
         gameCode: 'DR',
         accountName: 'test-account',
         characterName: 'test-character',
       });
 
-      expect(storeService.set).toHaveBeenCalledWith(
+      expect(mockCacheService.set).toHaveBeenCalledWith(
         'sge.character.test-character.dr',
         {
           gameCode: 'DR',
@@ -397,13 +344,13 @@ describe('account-service', () => {
 
   describe('#removeCharacter', () => {
     it('removes a character', async () => {
-      await accountService.removeCharacter({
+      accountService.removeCharacter({
         gameCode: 'DR',
         accountName: 'test-account',
         characterName: 'test-character',
       });
 
-      expect(storeService.remove).toHaveBeenCalledWith(
+      expect(mockCacheService.remove).toHaveBeenCalledWith(
         'sge.character.test-character.dr'
       );
     });
