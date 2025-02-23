@@ -1,22 +1,6 @@
 import type { BrowserWindow } from 'electron';
-import { runInBackground } from '../../async/run-in-background.js';
 import { Preferences } from '../../preference/preference.instance.js';
 import { PreferenceKey } from '../../preference/types.js';
-
-export const loadZoomFactorPreference = (window: BrowserWindow): void => {
-  runInBackground(async () => {
-    const zoomFactor = await Preferences.get(PreferenceKey.WINDOW_ZOOM_FACTOR);
-    if (zoomFactor !== undefined) {
-      setZoomFactor(window, zoomFactor);
-    }
-  });
-};
-
-export const saveZoomFactorPreference = (zoomFactor: number): void => {
-  runInBackground(async () => {
-    await Preferences.set(PreferenceKey.WINDOW_ZOOM_FACTOR, zoomFactor);
-  });
-};
 
 /**
  * Gets the current zoom factor of the window.
@@ -35,7 +19,7 @@ export const setZoomFactor = (
   zoomFactor: number
 ): void => {
   window.webContents.setZoomFactor(zoomFactor);
-  saveZoomFactorPreference(zoomFactor);
+  Preferences.set(PreferenceKey.APP_ZOOM_FACTOR, zoomFactor);
 };
 
 export const resetZoomFactor = (window: BrowserWindow): void => {
