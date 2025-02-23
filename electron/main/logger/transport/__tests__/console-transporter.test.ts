@@ -31,7 +31,7 @@ describe('console-log-transporter', () => {
   });
 
   describe('#transport', () => {
-    it('should log the message to the console', () => {
+    it('should log the message to the console', async () => {
       mockFormatter.format = vi.fn(); // noop formatter
 
       const consoleInfoSpy = vi.spyOn(console, 'info');
@@ -41,7 +41,7 @@ describe('console-log-transporter', () => {
       expect(consoleInfoSpy).toHaveBeenCalledWith(mockLogMessage);
     });
 
-    it('should log the formatted message to the console', () => {
+    it('should log the formatted message to the console', async () => {
       mockFormatter.format.mockReturnValue('test-formatted-message');
 
       const consoleInfoSpy = vi.spyOn(console, 'info');
@@ -49,6 +49,78 @@ describe('console-log-transporter', () => {
       transporter.transport(mockLogMessage);
 
       expect(consoleInfoSpy).toHaveBeenCalledWith('test-formatted-message');
+    });
+
+    it('uses console.debug for trace level', async () => {
+      mockLogMessage.level = LogLevel.TRACE;
+
+      mockFormatter.format.mockReturnValue('test-formatted-message');
+
+      const consoleDebugSpy = vi.spyOn(console, 'debug');
+
+      transporter.transport(mockLogMessage);
+
+      expect(consoleDebugSpy).toHaveBeenCalledWith('test-formatted-message');
+    });
+
+    it('uses console.debug for debug level', async () => {
+      mockLogMessage.level = LogLevel.DEBUG;
+
+      mockFormatter.format.mockReturnValue('test-formatted-message');
+
+      const consoleDebugSpy = vi.spyOn(console, 'debug');
+
+      transporter.transport(mockLogMessage);
+
+      expect(consoleDebugSpy).toHaveBeenCalledWith('test-formatted-message');
+    });
+
+    it('uses console.info for info level', async () => {
+      mockLogMessage.level = LogLevel.INFO;
+
+      mockFormatter.format.mockReturnValue('test-formatted-message');
+
+      const consoleInfoSpy = vi.spyOn(console, 'info');
+
+      transporter.transport(mockLogMessage);
+
+      expect(consoleInfoSpy).toHaveBeenCalledWith('test-formatted-message');
+    });
+
+    it('uses console.warn for warn level', async () => {
+      mockLogMessage.level = LogLevel.WARN;
+
+      mockFormatter.format.mockReturnValue('test-formatted-message');
+
+      const consoleWarnSpy = vi.spyOn(console, 'warn');
+
+      transporter.transport(mockLogMessage);
+
+      expect(consoleWarnSpy).toHaveBeenCalledWith('test-formatted-message');
+    });
+
+    it('uses console.error for error level', async () => {
+      mockLogMessage.level = LogLevel.ERROR;
+
+      mockFormatter.format.mockReturnValue('test-formatted-message');
+
+      const consoleErrorSpy = vi.spyOn(console, 'error');
+
+      transporter.transport(mockLogMessage);
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith('test-formatted-message');
+    });
+
+    it('uses console.log for unknown log levels', async () => {
+      mockLogMessage.level = 'unknown' as LogLevel;
+
+      mockFormatter.format.mockReturnValue('test-formatted-message');
+
+      const consoleLogSpy = vi.spyOn(console, 'log');
+
+      transporter.transport(mockLogMessage);
+
+      expect(consoleLogSpy).toHaveBeenCalledWith('test-formatted-message');
     });
   });
 });
