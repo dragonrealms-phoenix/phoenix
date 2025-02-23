@@ -1,4 +1,3 @@
-import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
 import type { Layout } from '../../common/layout/types.js';
@@ -7,13 +6,20 @@ import { logger } from './logger.js';
 import type { LayoutService } from './types.js';
 
 export class LayoutServiceImpl implements LayoutService {
-  public async getLayout(options: {
-    layoutName: string;
-  }): Promise<Maybe<Layout>> {
+  /**
+   * Where to store the layouts on disk.
+   */
+  private baseDir: string;
+
+  constructor(options: { baseDir: string }) {
+    this.baseDir = options.baseDir;
+  }
+
+  public getLayout(options: { layoutName: string }): Maybe<Layout> {
     const { layoutName } = options;
 
     const filePath = this.getLayoutPath(layoutName);
-    const fileExists = await fs.pathExists(filePath);
+    const fileExists = fs.pathExistsSync(filePath);
 
     logger.debug('getting layout', {
       layoutName,
@@ -25,10 +31,7 @@ export class LayoutServiceImpl implements LayoutService {
       return;
     }
 
-    const layout = await fs.readJson(filePath);
-
-    // TODO validate against layout schema
-    // https://json-schema.org/learn/getting-started-step-by-step
+    const layout = fs.readJsonSync(filePath);
 
     logger.debug('got layout', {
       layout,
@@ -37,8 +40,8 @@ export class LayoutServiceImpl implements LayoutService {
     return layout;
   }
 
-  public async listLayoutNames(): Promise<Array<string>> {
-    const fileNames = await fs.readdir(this.getLayoutsBaseDir());
+  public listLayoutNames(): Array<string> {
+    const fileNames = fs.readdirSync(this.baseDir);
 
     const layoutNames = fileNames
       .filter((fileName) => path.extname(fileName) === '.json')
@@ -48,10 +51,7 @@ export class LayoutServiceImpl implements LayoutService {
     return layoutNames;
   }
 
-  public async saveLayout(options: {
-    layoutName: string;
-    layout: Layout;
-  }): Promise<void> {
+  public saveLayout(options: { layoutName: string; layout: Layout }): void {
     const { layoutName, layout } = options;
 
     const filePath = this.getLayoutPath(layoutName);
@@ -61,23 +61,20 @@ export class LayoutServiceImpl implements LayoutService {
       filePath,
     });
 
-    // TODO validate against layout schema
-    // https://json-schema.org/learn/getting-started-step-by-step
+    fs.ensureFileSync(filePath);
 
-    await fs.ensureFile(filePath);
-
-    await fs.writeJson(filePath, layout, { spaces: 2 });
+    fs.writeJsonSync(filePath, layout, { spaces: 2 });
 
     logger.debug('saved layout', {
       layout,
     });
   }
 
-  public async deleteLayout(options: { layoutName: string }): Promise<void> {
+  public deleteLayout(options: { layoutName: string }): void {
     const { layoutName } = options;
 
     const filePath = this.getLayoutPath(layoutName);
-    const fileExists = await fs.pathExists(filePath);
+    const fileExists = fs.pathExistsSync(filePath);
 
     logger.debug('deleting layout', {
       layoutName,
@@ -89,7 +86,7 @@ export class LayoutServiceImpl implements LayoutService {
       return;
     }
 
-    await fs.remove(filePath);
+    fs.removeSync(filePath);
 
     logger.debug('deleted layout', {
       layoutName,
@@ -97,10 +94,6 @@ export class LayoutServiceImpl implements LayoutService {
   }
 
   protected getLayoutPath(name: string): string {
-    return path.join(this.getLayoutsBaseDir(), `${name}.json`);
-  }
-
-  protected getLayoutsBaseDir(): string {
-    return path.join(app.getPath('userData'), 'layouts');
+    return path.join(this.baseDir, `${name}.json`);
   }
 }
