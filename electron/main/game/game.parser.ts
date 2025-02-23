@@ -14,6 +14,8 @@ import {
   unescapeEntities,
 } from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
+import { Preferences } from '../preference/preference.instance.js';
+import { PreferenceKey } from '../preference/types.js';
 import { gameParserLogger as logger } from './logger.js';
 import type { GameParser } from './types.js';
 
@@ -152,11 +154,21 @@ export class GameParserImpl implements GameParser {
    */
   private gameText: string;
 
+  /**
+   * The text that should be displayed for game prompt events.
+   * This is a periodic terminal-like prompt that appears in the game.
+   * Example: `<prompt time="1703804031">&gt;</prompt>`
+   * In this example, the text would be '&gt;'.
+   * Users may set a preference to customize this text.
+   */
+  private promptText?: string;
+
   constructor() {
     this.gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     this.activeTags = [];
     this.compassDirections = [];
     this.gameText = '';
+    this.promptText = Preferences.get(PreferenceKey.GAME_WINDOW_PROMPT);
   }
 
   /**
@@ -392,7 +404,7 @@ export class GameParserImpl implements GameParser {
         // This is a periodic terminal-like prompt that appears in the game.
         // Example: `<prompt time="1703804031">&gt;</prompt>`
         // In this example, the text would be '&gt;'.
-        this.gameText += text;
+        this.gameText += this.promptText ?? text;
         break;
       case 'spell':
         // This is a spell name.
