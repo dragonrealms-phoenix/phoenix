@@ -245,8 +245,8 @@ export const initializeApp = async (): Promise<void> => {
         runInBackground(async () => {
           logger.debug('performing before-quit operations');
 
-          const confirmBeforeClose = await Preferences.get(
-            PreferenceKey.WINDOW_CONFIRM_ON_CLOSE
+          const confirmBeforeClose = Preferences.get(
+            PreferenceKey.APP_CONFIRM_CLOSE
           );
           if (confirmBeforeClose) {
             const result = await dialog.showMessageBox({
