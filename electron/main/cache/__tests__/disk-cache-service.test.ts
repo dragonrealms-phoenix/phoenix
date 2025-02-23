@@ -1,8 +1,61 @@
-import fs from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CacheServiceMockImpl } from '../__mocks__/cache-service.mock.js';
 import { DiskCacheServiceImpl } from '../disk-cache.service.js';
 import { logger } from '../logger.js';
+
+type FsExtraModule = typeof import('fs-extra');
+
+const { mockCacheService, mockFsExtra } = await vi.hoisted(async () => {
+  const cacheServiceModule = await import('../memory-cache.service.js');
+
+  const mockCacheService = new cacheServiceModule.MemoryCacheServiceImpl({});
+
+  const mockFsExtra = {
+    pathExistsSync: vi
+      .fn<FsExtraModule['pathExistsSync']>()
+      .mockImplementation((filePath) => {
+        return mockCacheService.get(filePath) !== undefined;
+      }),
+
+    writeJson: vi
+      .fn<FsExtraModule['writeJson']>()
+      .mockImplementation((filePath, fileData) => {
+        mockCacheService.set(filePath, JSON.stringify(fileData));
+      }),
+
+    writeJsonSync: vi
+      .fn<FsExtraModule['writeJsonSync']>()
+      .mockImplementation((filePath, fileData) => {
+        mockCacheService.set(filePath, JSON.stringify(fileData));
+      }),
+
+    readJsonSync: vi
+      .fn<FsExtraModule['readJsonSync']>()
+      .mockImplementation((filePath) => {
+        const fileData = mockCacheService.get<string>(filePath);
+        if (fileData) {
+          return JSON.parse(fileData);
+        }
+      }),
+
+    removeSync: vi
+      .fn<FsExtraModule['removeSync']>()
+      .mockImplementation((filePath) => {
+        mockCacheService.remove(filePath);
+      }),
+  };
+
+  return {
+    mockCacheService,
+    mockFsExtra,
+  };
+});
+
+vi.mock('fs-extra', async () => {
+  return {
+    default: mockFsExtra,
+  };
+});
 
 vi.mock('../../logger/logger.factory.ts');
 
@@ -10,12 +63,12 @@ describe('disk-cache-service', () => {
   const filePath = '/tmp/dsa2d';
 
   beforeEach(() => {
-    fs.writeJsonSync(filePath, {});
+    mockFsExtra.writeJsonSync(filePath, {});
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
-    fs.removeSync(filePath);
+    mockCacheService.clear();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -23,9 +76,7 @@ describe('disk-cache-service', () => {
 
   describe('#constructor', () => {
     it('creates cache file if not exists', async () => {
-      fs.removeSync(filePath);
-
-      expect(fs.pathExistsSync(filePath)).toBe(false);
+      mockFsExtra.removeSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -35,13 +86,13 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      expect(fs.pathExistsSync(filePath)).toBe(true);
+      expect(mockFsExtra.pathExistsSync(filePath)).toBe(true);
     });
 
     it('loads cache file if exists', async () => {
-      await fs.writeJson(filePath, { key: 42 });
+      mockFsExtra.writeJsonSync(filePath, { key: 42 });
 
-      expect(fs.pathExistsSync(filePath)).toBe(true);
+      expect(mockFsExtra.pathExistsSync(filePath)).toBe(true);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -49,21 +100,19 @@ describe('disk-cache-service', () => {
 
       expect(cacheService.readCache()).toEqual({ key: 42 });
 
-      expect(fs.pathExistsSync(filePath)).toBe(true);
+      expect(mockFsExtra.pathExistsSync(filePath)).toBe(true);
     });
 
     it('logs error when error loading existing cache file', async () => {
-      const readJsonSpy = vi
-        .spyOn(fs, 'readJsonSync')
-        .mockImplementation(() => {
-          throw new Error('test');
-        });
+      mockFsExtra.readJsonSync.mockImplementationOnce(() => {
+        throw new Error('test');
+      });
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
       });
 
-      expect(readJsonSpy).toHaveBeenCalledWith(filePath);
+      expect(mockFsExtra.readJsonSync).toHaveBeenCalledWith(filePath);
       expect(logger.error).toHaveBeenCalledWith(
         'error initializing disk cache',
         {
@@ -72,14 +121,12 @@ describe('disk-cache-service', () => {
         }
       );
       expect(cacheService.readCache()).toEqual({});
-
-      readJsonSpy.mockRestore();
     });
   });
 
   describe('#set', () => {
     it('sets a primitive cache value', async () => {
-      const cacheBefore = await fs.readJson(filePath);
+      const cacheBefore = mockFsExtra.readJsonSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -89,14 +136,14 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      const cacheAfter = await fs.readJson(filePath);
+      const cacheAfter = mockFsExtra.readJsonSync(filePath);
 
       expect(cacheBefore.key).toEqual(undefined);
       expect(cacheAfter.key).toEqual(42);
     });
 
     it('sets an object cache value', async () => {
-      const cacheBefore = await fs.readJson(filePath);
+      const cacheBefore = mockFsExtra.readJsonSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -106,7 +153,7 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      const cacheAfter = await fs.readJson(filePath);
+      const cacheAfter = mockFsExtra.readJsonSync(filePath);
 
       expect(cacheBefore.key).toEqual(undefined);
       expect(cacheAfter.key).toEqual({ value: 42 });
@@ -115,7 +162,7 @@ describe('disk-cache-service', () => {
 
   describe('#get', () => {
     it('gets a primitive cache value', async () => {
-      await fs.writeJson(filePath, { key: 42 });
+      mockFsExtra.writeJsonSync(filePath, { key: 42 });
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -127,7 +174,7 @@ describe('disk-cache-service', () => {
     });
 
     it('gets an object cache value', async () => {
-      await fs.writeJson(filePath, { key: { value: 42 } });
+      mockFsExtra.writeJsonSync(filePath, { key: { value: 42 } });
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -151,9 +198,9 @@ describe('disk-cache-service', () => {
 
   describe('#remove', () => {
     it('removes a primitive cache value', async () => {
-      await fs.writeJson(filePath, { key: 42 });
+      mockFsExtra.writeJsonSync(filePath, { key: 42 });
 
-      const cacheBefore = await fs.readJson(filePath);
+      const cacheBefore = mockFsExtra.readJsonSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -163,16 +210,16 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      const cacheAfter = await fs.readJson(filePath);
+      const cacheAfter = mockFsExtra.readJsonSync(filePath);
 
       expect(cacheBefore.key).toEqual(42);
       expect(cacheAfter.key).toEqual(undefined);
     });
 
     it('removes an object cache value', async () => {
-      await fs.writeJson(filePath, { key: { value: 42 } });
+      mockFsExtra.writeJsonSync(filePath, { key: { value: 42 } });
 
-      const cacheBefore = await fs.readJson(filePath);
+      const cacheBefore = mockFsExtra.readJsonSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -182,16 +229,16 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      const cacheAfter = await fs.readJson(filePath);
+      const cacheAfter = mockFsExtra.readJsonSync(filePath);
 
       expect(cacheBefore.key).toEqual({ value: 42 });
       expect(cacheAfter.key).toEqual(undefined);
     });
 
     it('makes no change when key is not found', async () => {
-      await fs.writeJson(filePath, { key: 42 });
+      mockFsExtra.writeJsonSync(filePath, { key: 42 });
 
-      const cacheBefore = await fs.readJson(filePath);
+      const cacheBefore = mockFsExtra.readJsonSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -201,7 +248,7 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      const cacheAfter = await fs.readJson(filePath);
+      const cacheAfter = mockFsExtra.readJsonSync(filePath);
 
       expect(cacheBefore).toEqual(cacheAfter);
     });
@@ -209,9 +256,9 @@ describe('disk-cache-service', () => {
 
   describe('#clear', () => {
     it('removes all entries from the cache', async () => {
-      await fs.writeJson(filePath, { key: { value: 42 } });
+      mockFsExtra.writeJsonSync(filePath, { key: { value: 42 } });
 
-      const cacheBefore = await fs.readJson(filePath);
+      const cacheBefore = mockFsExtra.readJsonSync(filePath);
 
       const cacheService = new DiskCacheServiceImpl({
         filePath,
@@ -221,7 +268,7 @@ describe('disk-cache-service', () => {
 
       await vi.advanceTimersToNextTimerAsync();
 
-      const cacheAfter = await fs.readJson(filePath);
+      const cacheAfter = mockFsExtra.readJsonSync(filePath);
 
       expect(cacheBefore).toEqual({ key: { value: 42 } });
       expect(cacheAfter).toEqual({});
@@ -287,8 +334,6 @@ describe('disk-cache-service', () => {
     });
 
     it('debounces writes to disk', async () => {
-      const writeJsonSpy = vi.spyOn(fs, 'writeJson');
-
       const cacheService = new DiskCacheServiceImpl({
         filePath,
       });
@@ -296,8 +341,7 @@ describe('disk-cache-service', () => {
       cacheService.set('k1', 1);
       cacheService.set('k2', 2);
 
-      expect(writeJsonSpy).toHaveBeenCalledTimes(0);
-      expect(fs.readJsonSync(filePath)).toEqual({});
+      expect(mockFsExtra.writeJson).toHaveBeenCalledTimes(0);
 
       // Let the write queue process.
       await vi.advanceTimersToNextTimerAsync();
@@ -305,8 +349,17 @@ describe('disk-cache-service', () => {
       // Wait for writes to debounce.
       await vi.advanceTimersToNextTimerAsync();
 
-      expect(writeJsonSpy).toHaveBeenCalledTimes(1);
-      expect(fs.readJsonSync(filePath)).toEqual({ k1: 1, k2: 2 });
+      expect(mockFsExtra.writeJson).toHaveBeenCalledTimes(1);
+      expect(mockFsExtra.writeJson).toHaveBeenCalledWith(
+        filePath,
+        {
+          k1: 1,
+          k2: 2,
+        },
+        {
+          spaces: 2,
+        }
+      );
     });
   });
 });
