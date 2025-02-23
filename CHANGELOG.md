@@ -1,3 +1,32 @@
+## [1.34.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.33.1...v1.34.0) (2025-02-23)
+
+### :sparkles: Features
+
+* **account:** replace store service with disk cache service and update account service methods ([677c8ec](https://github.com/dragonrealms-phoenix/phoenix/commit/677c8ec945aaf38e879a841e73888ada81cd5372))
+* **game-parser:** add preference-based prompt text customization ([8241e17](https://github.com/dragonrealms-phoenix/phoenix/commit/8241e175d5c7068d9971a81849ad68b4982d4c17))
+* **layout:** refactor layout service to use synchronous file operations ([564ad23](https://github.com/dragonrealms-phoenix/phoenix/commit/564ad23ac72f8aee4a997dbbae9eacc49f89477f))
+* **menu:** initialize menu with preferences for zoom factor and confirm before close ([3cfc147](https://github.com/dragonrealms-phoenix/phoenix/commit/3cfc147058152890223d833dd9a0f840cc575e6f))
+* **parser:** add roomExtra to RoomGameEvent interface ([8b5099c](https://github.com/dragonrealms-phoenix/phoenix/commit/8b5099c9285c069c48d352dbae14c15b6c4ed2f7))
+* **preference:** replace store service with cache service ([7b3428a](https://github.com/dragonrealms-phoenix/phoenix/commit/7b3428a06d6b815dbd16537641a172683d83e2c1))
+* **preference:** update get method to support default values ([0a56d86](https://github.com/dragonrealms-phoenix/phoenix/commit/0a56d86b8c1e2799aae1a5159a4ca27521cda7f3))
+* **prefs:** add more pref keys ([964c0c7](https://github.com/dragonrealms-phoenix/phoenix/commit/964c0c7e3a5af0a6e0aa6688745a9d8a69096ba4))
+
+### :test_tube: Tests
+
+* **console-transporter:** add tests for various log levels in transport method ([0941ae5](https://github.com/dragonrealms-phoenix/phoenix/commit/0941ae578e0dc9bd08cdca9a4367ce2b1c4d1638))
+* **disk-cache-service:** mock fs-extra methods for improved cache testing ([0d57ad8](https://github.com/dragonrealms-phoenix/phoenix/commit/0d57ad8c8f5247b1cdf62d69bd28e87385a0dcaa))
+* **electron-mocks:** replace mockImplementation with mockReturnValue for getPath ([552953f](https://github.com/dragonrealms-phoenix/phoenix/commit/552953ff8536821aeecd611e1ce3dfdb0f077a68))
+* **logger-factory:** add tests for getScopedLogger functionality ([ed46b0f](https://github.com/dragonrealms-phoenix/phoenix/commit/ed46b0f703030f178445d276a88f52287c6adbdd))
+* **logger-utils:** remove redundant tests ([655fd02](https://github.com/dragonrealms-phoenix/phoenix/commit/655fd02de1a7c73d4cdc279d4a09cea6cd2e938f))
+
+### :broom: Miscellaneous
+
+* **commit-instructions:** add guideline for message length to 100 characters ([e23ba77](https://github.com/dragonrealms-phoenix/phoenix/commit/e23ba77f6163bf95e1d40b1d5fffad6599836f81))
+* **ipc-handlers:** remove unnecessary await from service calls ([12829dd](https://github.com/dragonrealms-phoenix/phoenix/commit/12829dd91e15b5c001f433d9024d6328cfaf0dd8))
+* **ipc-handlers:** remove unnecessary await from service calls ([0e8362b](https://github.com/dragonrealms-phoenix/phoenix/commit/0e8362bfbe3c8f2a04adf3c4303cb0dc2fe0043e))
+* **preference:** change logger level from trace to debug ([93156f1](https://github.com/dragonrealms-phoenix/phoenix/commit/93156f1b7a9327d90e171c4ae269a2d25840c476))
+* **store:** remove StoreService and related mocks and tests in favor of CacheService ([da821de](https://github.com/dragonrealms-phoenix/phoenix/commit/da821def86cc437c022b42fe6fb8c442c1bdec0a))
+
 ## [1.33.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.33.0...v1.33.1) (2025-02-19)
 
 ### :broom: Miscellaneous
