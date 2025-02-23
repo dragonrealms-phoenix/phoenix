@@ -16,7 +16,7 @@ export const saveCharacterHandler = (options: {
       gameCode,
     });
 
-    await accountService.saveCharacter({
+    accountService.saveCharacter({
       accountName,
       characterName,
       gameCode,

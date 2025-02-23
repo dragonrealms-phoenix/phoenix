@@ -16,7 +16,7 @@ export const removeCharacterHandler = (options: {
       gameCode,
     });
 
-    await accountService.removeCharacter({
+    accountService.removeCharacter({
       accountName,
       characterName,
       gameCode,

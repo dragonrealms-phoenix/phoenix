@@ -12,6 +12,6 @@ export const removeAccountHandler = (options: {
 
     logger.debug('removeAccountHandler', { accountName });
 
-    await accountService.removeAccount({ accountName });
+    accountService.removeAccount({ accountName });
   };
 };
