@@ -32,7 +32,7 @@ vi.mock('../layout.service.js', async () => {
 vi.mock('electron', async () => {
   return {
     app: {
-      getPath: vi.fn().mockImplementation(() => 'userData'),
+      getPath: vi.fn().mockReturnValue('userData'),
     },
   };
 });
