@@ -1,23 +1,28 @@
-import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Maybe } from '../../../../common/types.js';
 import { PreferenceKey } from '../../../preference/types.js';
-import type { PreferenceService } from '../../../preference/types.js';
+import {
+  getConfirmBeforeClose,
+  setConfirmBeforeClose,
+  toggleConfirmBeforeClose,
+} from '../confirm-before-close.js';
 
-const { mockPreferenceService, mockGetMenuItemById } = vi.hoisted(() => {
-  const mockPreferenceService: Mocked<PreferenceService> = {
-    get: vi.fn<(key: PreferenceKey) => Promise<Maybe<any>>>(),
-    set: vi.fn<PreferenceService['set']>(),
-    remove: vi.fn<PreferenceService['remove']>(),
-  };
+const { mockPreferenceService, mockGetMenuItemById } = await vi.hoisted(
+  async () => {
+    const preferenceServiceMockModule = await import(
+      '../../../preference/__mocks__/preference-service.mock.js'
+    );
 
-  const mockGetMenuItemById = vi.fn();
+    const mockPreferenceService =
+      new preferenceServiceMockModule.PreferenceServiceMockImpl();
 
-  return {
-    mockPreferenceService,
-    mockGetMenuItemById,
-  };
-});
+    const mockGetMenuItemById = vi.fn();
+
+    return {
+      mockPreferenceService,
+      mockGetMenuItemById,
+    };
+  }
+);
 
 vi.mock('../../../preference/preference.instance.js', () => {
   return {
@@ -42,117 +47,17 @@ describe('confirm-before-close', () => {
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
-
-    // Because the `confirmBeforeClose` state is cached internal to the module,
-    // we need to reset the modules so that they start with a fresh state.
-    vi.resetModules();
-  });
-
-  describe('#loadConfirmBeforeClosePreference', () => {
-    it('does not set the confirm state if preference is undefined', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { loadConfirmBeforeClosePreference } = confirmBeforeCloseModule;
-
-      const mockMenuItem = { checked: false };
-      mockGetMenuItemById.mockReturnValue(mockMenuItem);
-
-      loadConfirmBeforeClosePreference();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockPreferenceService.get).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE
-      );
-
-      expect(mockPreferenceService.set).toHaveBeenCalledTimes(0);
-
-      expect(mockGetMenuItemById).toHaveBeenCalledTimes(0);
-
-      expect(mockMenuItem.checked).toBe(false);
-    });
-
-    it('sets the confirm state if preference is defined', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { loadConfirmBeforeClosePreference } = confirmBeforeCloseModule;
-
-      mockPreferenceService.get.mockResolvedValueOnce(true);
-
-      const mockMenuItem = { checked: false };
-      mockGetMenuItemById.mockReturnValue(mockMenuItem);
-
-      loadConfirmBeforeClosePreference();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockPreferenceService.get).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE
-      );
-
-      expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
-        true
-      );
-
-      expect(mockGetMenuItemById).toHaveBeenCalledWith('confirm-before-close');
-
-      expect(mockMenuItem.checked).toBe(true);
-    });
-  });
-
-  describe('#saveConfirmBeforeClosePreference', () => {
-    it('sets the preference to true', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { saveConfirmBeforeClosePreference } = confirmBeforeCloseModule;
-
-      saveConfirmBeforeClosePreference(true);
-
-      await vi.runAllTimersAsync();
-
-      expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
-        true
-      );
-    });
-
-    it('sets the preference to false', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { saveConfirmBeforeClosePreference } = confirmBeforeCloseModule;
-
-      saveConfirmBeforeClosePreference(false);
-
-      await vi.runAllTimersAsync();
-
-      expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
-        false
-      );
-    });
   });
 
   describe('#getConfirmBeforeClose', () => {
-    it('gets the confirm state', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { getConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { setConfirmBeforeClose } = confirmBeforeCloseModule;
+    it('gets true when the preference is true', async () => {
+      mockPreferenceService.get.mockReturnValue(true);
 
-      expect(getConfirmBeforeClose()).toBe(true); // default value
+      expect(getConfirmBeforeClose()).toBe(true);
+    });
 
-      setConfirmBeforeClose(false);
+    it('gets false when the preference is false', async () => {
+      mockPreferenceService.get.mockReturnValue(false);
 
       expect(getConfirmBeforeClose()).toBe(false);
     });
@@ -160,24 +65,13 @@ describe('confirm-before-close', () => {
 
   describe('#setConfirmBeforeClose', () => {
     it('sets the confirm state and checks the menu item', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { getConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { setConfirmBeforeClose } = confirmBeforeCloseModule;
-
       const mockMenuItem = { checked: false };
       mockGetMenuItemById.mockReturnValue(mockMenuItem);
 
       setConfirmBeforeClose(true);
 
-      await vi.runAllTimersAsync();
-
-      expect(getConfirmBeforeClose()).toBe(true);
-
       expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
+        PreferenceKey.APP_CONFIRM_CLOSE,
         true
       );
 
@@ -187,24 +81,13 @@ describe('confirm-before-close', () => {
     });
 
     it('unsets the confirm state and unchecks the menu item', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { getConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { setConfirmBeforeClose } = confirmBeforeCloseModule;
-
-      const mockMenuItem = { checked: false };
+      const mockMenuItem = { checked: true };
       mockGetMenuItemById.mockReturnValue(mockMenuItem);
 
       setConfirmBeforeClose(false);
 
-      await vi.runAllTimersAsync();
-
-      expect(getConfirmBeforeClose()).toBe(false);
-
       expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
+        PreferenceKey.APP_CONFIRM_CLOSE,
         false
       );
 
@@ -216,30 +99,15 @@ describe('confirm-before-close', () => {
 
   describe('#toggleConfirmBeforeClose', () => {
     it('toggles the confirm state to true', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { getConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { setConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { toggleConfirmBeforeClose } = confirmBeforeCloseModule;
-
       const mockMenuItem = { checked: false };
       mockGetMenuItemById.mockReturnValue(mockMenuItem);
 
-      setConfirmBeforeClose(false);
-      expect(getConfirmBeforeClose()).toBe(false);
-
-      vi.clearAllMocks();
+      mockPreferenceService.get.mockReturnValueOnce(false);
 
       toggleConfirmBeforeClose();
 
-      await vi.runAllTimersAsync();
-
-      expect(getConfirmBeforeClose()).toBe(true);
-
       expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
+        PreferenceKey.APP_CONFIRM_CLOSE,
         true
       );
 
@@ -249,30 +117,15 @@ describe('confirm-before-close', () => {
     });
 
     it('toggles the confirm state to false', async () => {
-      // Because we reset the modules after each test, we must import again.
-      const confirmBeforeCloseModule = await import(
-        '../confirm-before-close.js'
-      );
-      const { getConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { setConfirmBeforeClose } = confirmBeforeCloseModule;
-      const { toggleConfirmBeforeClose } = confirmBeforeCloseModule;
-
-      const mockMenuItem = { checked: false };
+      const mockMenuItem = { checked: true };
       mockGetMenuItemById.mockReturnValue(mockMenuItem);
 
-      setConfirmBeforeClose(true);
-      expect(getConfirmBeforeClose()).toBe(true);
-
-      vi.clearAllMocks();
+      mockPreferenceService.get.mockReturnValueOnce(true);
 
       toggleConfirmBeforeClose();
 
-      await vi.runAllTimersAsync();
-
-      expect(getConfirmBeforeClose()).toBe(false);
-
       expect(mockPreferenceService.set).toHaveBeenCalledWith(
-        PreferenceKey.WINDOW_CONFIRM_ON_CLOSE,
+        PreferenceKey.APP_CONFIRM_CLOSE,
         false
       );
 

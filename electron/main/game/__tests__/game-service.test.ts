@@ -106,7 +106,7 @@ vi.mock('../game.socket.js', () => {
 vi.mock('electron', async () => {
   return {
     app: {
-      getPath: vi.fn().mockImplementation(() => 'logs'),
+      getPath: vi.fn().mockReturnValue('logs'),
     },
   };
 });

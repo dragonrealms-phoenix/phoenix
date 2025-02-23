@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
-import debounce from 'lodash-es/debounce.js';
-import type { DebouncedFunc } from 'lodash-es/debounce.js';
+import { sleep } from '../../common/async/async.utils.js';
 import type { Maybe } from '../../common/types.js';
 import { AbstractCacheService } from './abstract-cache.service.js';
 import { logger } from './logger.js';
@@ -9,6 +8,8 @@ import type { Cache, CacheService, DiskCacheOptions } from './types.js';
 
 /**
  * Caches all data as properties of a single JSON object written to disk.
+ * Uses an in-memory cache buffer to provide synchronous access to data.
+ * Writes to disk occur in the background and may not flush immediately.
  */
 export class DiskCacheServiceImpl extends AbstractCacheService {
   /**
@@ -20,82 +21,117 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
   private delegate: CacheService;
 
   /**
-   * Debounce writes to disk for performance.
+   * Where to store the cache on disk.
    */
-  private writeToDisk: DebouncedFunc<() => Promise<void>>;
+  private filePath: string;
 
-  constructor(private options: DiskCacheOptions) {
+  /**
+   * The number of milliseconds to wait between writes to disk.
+   */
+  private writeInterval: number;
+
+  /**
+   * Is a write operation currently pending?
+   */
+  private pendingWrite: boolean;
+
+  /**
+   * Unix timestamp when we last wrote to disk.
+   * This is used with the write interval to know
+   * how long to delay consecutive writes to optimize IO.
+   */
+  private lastWriteTime: number = 0;
+
+  /**
+   * We use a promise-chain to ensure sequential writes to disk,
+   * and that only one write operation occurs at a time.
+   */
+  private writeQueue: Promise<void>;
+
+  constructor(options: DiskCacheOptions) {
     super();
-    this.delegate = this.createCacheServiceFromDisk();
-    this.writeToDisk = this.createDebouncedWriteToDisk();
+    this.filePath = options.filePath;
+    this.writeInterval = options.writeInterval ?? 1000;
+    this.pendingWrite = false;
+    this.writeQueue = Promise.resolve();
+    this.delegate = options.delegate ?? new MemoryCacheServiceImpl();
+    this.loadFromDisk();
   }
 
-  private createCacheServiceFromDisk(): CacheService {
-    const { filepath } = this.options;
-
-    let cache: Cache = {};
-
-    try {
-      if (!fs.pathExistsSync(filepath)) {
-        fs.writeJsonSync(filepath, {});
-      }
-      cache = fs.readJsonSync(filepath);
-    } catch (error) {
-      logger.error('error initializing disk cache', {
-        filepath,
-        error,
-      });
-    }
-
-    if (this.options.createInMemoryCache) {
-      return this.options.createInMemoryCache(cache);
-    }
-
-    return new MemoryCacheServiceImpl(cache);
+  public override set<T>(key: string, value: T): void {
+    this.delegate.set(key, value);
+    this.queueWriteToDisk();
   }
 
-  private createDebouncedWriteToDisk(): DebouncedFunc<() => Promise<void>> {
-    const { writeInterval = 1000 } = this.options;
-    return debounce(async () => {
-      await this.writeToDiskNow();
-    }, writeInterval);
-  }
-
-  private async writeToDiskNow(): Promise<void> {
-    const { filepath } = this.options;
-    try {
-      logger.trace('writing cache to disk', { filepath });
-      const cache = await this.delegate.readCache();
-      await fs.writeJson(filepath, cache, { spaces: 2 });
-      logger.trace('wrote cache to disk', { filepath });
-    } catch (error) {
-      logger.error('error writing cache to disk', {
-        filepath,
-        error,
-      });
-    }
-  }
-
-  public async set<T>(key: string, item: T): Promise<void> {
-    await this.delegate.set(key, item);
-    await this.writeToDisk();
-  }
-
-  public async get<T>(key: string): Promise<Maybe<T>> {
+  public override get<T>(key: string): Maybe<T> {
     return this.delegate.get(key);
   }
 
-  public async remove(key: string): Promise<void> {
-    await this.delegate.remove(key);
-    await this.writeToDisk();
+  public override remove(key: string): void {
+    this.delegate.remove(key);
+    this.queueWriteToDisk();
   }
 
-  public async clear(): Promise<void> {
-    await this.delegate.clear();
-    await this.writeToDisk();
+  public override clear(): void {
+    this.delegate.clear();
+    this.queueWriteToDisk();
   }
 
-  public async readCache(): Promise<Cache> {
+  public override readCache(): Cache {
     return this.delegate.readCache();
+  }
+
+  public override writeCache(newCache: Cache): void {
+    this.delegate.writeCache(newCache);
+    this.queueWriteToDisk();
+  }
+
+  private loadFromDisk(): void {
+    const filePath = this.filePath;
+    try {
+      logger.trace('initializing disk cache', { filePath });
+      if (!fs.pathExistsSync(filePath)) {
+        fs.writeJsonSync(filePath, {});
+      }
+      const cache = fs.readJsonSync(filePath);
+      this.delegate.writeCache(cache);
+    } catch (error) {
+      logger.error('error initializing disk cache', {
+        filePath,
+        error,
+      });
+    }
+  }
+
+  private queueWriteToDisk(): void {
+    if (!this.pendingWrite) {
+      this.pendingWrite = true;
+      this.writeQueue = this.writeQueue.then(() => this.writeToDiskAsync());
+    }
+  }
+
+  private async writeToDiskAsync(): Promise<void> {
+    const filePath = this.filePath;
+    try {
+      await this.throttleDiskWrite();
+      this.pendingWrite = false;
+      logger.trace('writing cache to disk', { filePath });
+      const cache = this.delegate.readCache();
+      await fs.writeJson(filePath, cache, { spaces: 2 });
+      logger.trace('wrote cache to disk', { filePath });
+    } catch (error) {
+      logger.error('error writing cache to disk', {
+        filePath,
+        error,
+      });
+    }
+  }
+
+  private async throttleDiskWrite(): Promise<void> {
+    const now = Date.now();
+    const elapsed = now - this.lastWriteTime;
+    const delay = Math.max(0, this.writeInterval - elapsed);
+    this.lastWriteTime = now + delay;
+    await sleep(delay);
   }
 }

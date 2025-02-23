@@ -12,32 +12,31 @@ import type { Maybe } from '../../common/types.js';
 export interface AccountService {
   /**
    * Lists all accounts.
+   * For security and performance, won't include passwords.
    */
-  listAccounts(): Promise<Array<Account>>;
+  listAccounts(): Array<Account>;
 
   /**
    * Gets an account by name.
    * The password will be decrypted.
    */
-  getAccount(options: {
-    accountName: string;
-  }): Promise<Maybe<AccountWithPassword>>;
+  getAccount(options: { accountName: string }): Maybe<AccountWithPassword>;
 
   /**
    * Adds or updates an account.
    * The password will be encrypted.
    */
-  saveAccount(account: AccountWithPassword): Promise<void>;
+  saveAccount(account: AccountWithPassword): void;
 
   /**
    * Removes an account and all of its characters.
    */
-  removeAccount(options: { accountName: string }): Promise<void>;
+  removeAccount(options: { accountName: string }): void;
 
   /**
    * Lists all characters, optionally filtered by an account.
    */
-  listCharacters(options?: { accountName?: string }): Promise<Array<Character>>;
+  listCharacters(options?: { accountName?: string }): Array<Character>;
 
   /**
    * Gets a character by name.
@@ -45,15 +44,15 @@ export interface AccountService {
   getCharacter(options: {
     characterName: string;
     gameCode: string;
-  }): Promise<Maybe<Character>>;
+  }): Maybe<Character>;
 
   /**
    * Adds or updates a character to an account.
    */
-  saveCharacter(character: Character): Promise<void>;
+  saveCharacter(character: Character): void;
 
   /**
    * Removes a character from an account.
    */
-  removeCharacter(character: Character): Promise<void>;
+  removeCharacter(character: Character): void;
 }

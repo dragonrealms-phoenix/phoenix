@@ -14,16 +14,18 @@ import {
   PHOENIX_SECURITY_URL,
   PLAY_NET_URL,
 } from '../../common/data/urls.js';
+import { Preferences } from '../preference/preference.instance.js';
+import { PreferenceKey } from '../preference/types.js';
 import {
   getConfirmBeforeClose,
-  loadConfirmBeforeClosePreference,
+  setConfirmBeforeClose,
   toggleConfirmBeforeClose,
 } from './utils/confirm-before-close.js';
 import {
   decreaseZoomFactor,
   increaseZoomFactor,
-  loadZoomFactorPreference,
   resetZoomFactor,
+  setZoomFactor,
 } from './utils/zoom-factor.js';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -37,8 +39,8 @@ export const initializeMenu = (window: BrowserWindow): void => {
 
   Menu.setApplicationMenu(menu);
 
-  loadZoomFactorPreference(window);
-  loadConfirmBeforeClosePreference();
+  setZoomFactor(window, Preferences.get(PreferenceKey.APP_ZOOM_FACTOR, 1));
+  setConfirmBeforeClose(Preferences.get(PreferenceKey.APP_CONFIRM_CLOSE, true));
 };
 
 // -- Menu Builders -- //

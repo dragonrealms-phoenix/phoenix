@@ -6,54 +6,43 @@ export interface CacheService {
   /**
    * Sets a value for the key in the cache.
    */
-  set<T>(key: string | number, value: T): Promise<void>;
+  set<T>(key: string, value: T): void;
   /**
    * Gets a value for the key from the cache.
    */
-  get<T>(key: string | number): Promise<Maybe<T>>;
+  get<T>(key: string): Maybe<T>;
   /**
    * Removes a value for the key from the cache.
    */
-  remove(key: string | number): Promise<void>;
+  remove(key: string): void;
   /**
    * Removes all entries from the cache.
    */
-  clear(): Promise<void>;
+  clear(): void;
   /**
    * Gets all entries from the cache.
    */
-  readCache(): Promise<Cache>;
+  readCache(): Cache;
   /**
    * Replaces the current cache with another one.
    */
-  writeCache(newCache: Cache): Promise<void>;
+  writeCache(newCache: Cache): void;
 }
 
 export interface DiskCacheOptions {
   /**
    * Path to the file where to store the cache.
    */
-  filepath: string;
+  filePath: string;
   /**
-   * Interval in milliseconds to write the cache to disk.
-   * Reads and writes occur on the delegate cache immediately.
-   * This controls how often the in-memory cache is flushed to disk.
+   * Interval in milliseconds to flush the in-memory cache to disk.
    * Default is 1000ms.
    */
   writeInterval?: number;
   /**
-   * Delegate cache service to use.
-   *
-   * Use this to provide an in-memory cache to offload
-   * work from reading and writing to disk.
-   * Reads and writes occur on the delegate cache immediately,
-   * while writes to disk are debounced for performance.
-   *
-   * The function is called with the initial cache read from disk, if any.
-   *
-   * This is also helpful in testing by being able to inject a dependency.
-   *
-   * Default is MemoryCacheServiceImpl.
+   * Cache to use for synchronous storage.
+   * All operations occur on this delegate first,
+   * then periodically flushed to disk.
    */
-  createInMemoryCache?: (cache: Cache) => CacheService;
+  delegate?: CacheService;
 }

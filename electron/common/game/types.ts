@@ -223,6 +223,7 @@ export interface ExperienceGameEvent extends GameEventBase {
  * <component id='room objs'>You also see ...</component>
  * <component id='room players'>Also here: Katoak.</component>
  * <component id='room exits'>Obvious paths: <d>east</d>, <d>southwest</d>, <d>northwest</d>.<compass></compass></component>
+ * <component id='room extra'></component>
  */
 export interface RoomGameEvent extends GameEventBase {
   type: GameEventType.ROOM;
@@ -231,6 +232,7 @@ export interface RoomGameEvent extends GameEventBase {
   roomObjects?: string;
   roomPlayers?: string;
   roomExits?: string;
+  roomExtra?: string;
 }
 
 /**

@@ -12,9 +12,11 @@ import {
   PLAY_NET_URL,
 } from '../../../common/data/urls.js';
 import type { Maybe } from '../../../common/types.js';
+import { PreferenceKey } from '../../preference/types.js';
 import { initializeMenu } from '../menu.js';
 
 const {
+  mockPreferenceService,
   mockBrowserWindow,
   mockZoomFactorModule,
   mockConfirmBeforeCloseModule,
@@ -23,6 +25,13 @@ const {
   mockElectronShellOpenPath,
   mockElectronShellOpenExternal,
 } = await vi.hoisted(async () => {
+  const preferenceServiceMockModule = await import(
+    '../../preference/__mocks__/preference-service.mock.js'
+  );
+
+  const mockPreferenceService =
+    new preferenceServiceMockModule.PreferenceServiceMockImpl();
+
   const mockBrowserWindow = {
     isFullScreen: vi.fn(),
     setFullScreen: vi.fn(),
@@ -30,14 +39,14 @@ const {
   } as unknown as BrowserWindow;
 
   const mockZoomFactorModule = {
-    loadZoomFactorPreference: vi.fn(),
     decreaseZoomFactor: vi.fn(),
     increaseZoomFactor: vi.fn(),
     resetZoomFactor: vi.fn(),
+    setZoomFactor: vi.fn(),
   };
 
   const mockConfirmBeforeCloseModule = {
-    loadConfirmBeforeClosePreference: vi.fn(),
+    setConfirmBeforeClose: vi.fn(),
     getConfirmBeforeClose: vi.fn(),
     toggleConfirmBeforeClose: vi.fn(),
   };
@@ -48,6 +57,7 @@ const {
   const mockElectronShellOpenExternal = vi.fn();
 
   return {
+    mockPreferenceService,
     mockBrowserWindow,
     mockZoomFactorModule,
     mockConfirmBeforeCloseModule,
@@ -55,6 +65,12 @@ const {
     mockElectronSetApplicationMenu,
     mockElectronShellOpenPath,
     mockElectronShellOpenExternal,
+  };
+});
+
+vi.mock('../../preference/preference.instance.js', () => {
+  return {
+    Preferences: mockPreferenceService,
   };
 });
 
@@ -118,6 +134,7 @@ describe('menu', () => {
   });
 
   afterEach(() => {
+    vi.resetAllMocks();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -129,7 +146,7 @@ describe('menu', () => {
     });
 
     describe('#initializeMenu', () => {
-      it('initializes the application menu', async () => {
+      it('initializes the menu items', async () => {
         initializeMenu(mockBrowserWindow);
 
         expect(mockElectronMenuBuildFromTemplate).toHaveBeenCalledWith(
@@ -342,14 +359,30 @@ describe('menu', () => {
         );
 
         expect(mockElectronSetApplicationMenu).toHaveBeenCalledTimes(1);
+      });
+
+      it('initializes the menu with preferences', async () => {
+        mockPreferenceService.get = vi.fn().mockImplementation((key) => {
+          switch (key) {
+            case PreferenceKey.APP_CONFIRM_CLOSE:
+              return false;
+            case PreferenceKey.APP_ZOOM_FACTOR:
+              return 0.5;
+          }
+        });
+
+        initializeMenu(mockBrowserWindow);
+
+        expect(mockElectronSetApplicationMenu).toHaveBeenCalledTimes(1);
+
+        expect(mockZoomFactorModule.setZoomFactor).toHaveBeenCalledWith(
+          mockBrowserWindow,
+          0.5
+        );
 
         expect(
-          mockZoomFactorModule.loadZoomFactorPreference
-        ).toHaveBeenCalledTimes(1);
-
-        expect(
-          mockConfirmBeforeCloseModule.loadConfirmBeforeClosePreference
-        ).toHaveBeenCalledTimes(1);
+          mockConfirmBeforeCloseModule.setConfirmBeforeClose
+        ).toHaveBeenCalledWith(false);
       });
     });
 
@@ -638,7 +671,7 @@ describe('menu', () => {
     });
 
     describe('#initializeMenu', () => {
-      it('initializes the application menu', async () => {
+      it('initializes the menu items', async () => {
         initializeMenu(mockBrowserWindow);
 
         expect(mockElectronMenuBuildFromTemplate).toHaveBeenCalledWith(
@@ -747,14 +780,31 @@ describe('menu', () => {
         );
 
         expect(mockElectronSetApplicationMenu).toHaveBeenCalledTimes(1);
+      });
+
+      it('initializes the menu with preferences', async () => {
+        mockPreferenceService.get = vi.fn().mockImplementation((key) => {
+          console.log('*** mock pref get', { key });
+          switch (key) {
+            case PreferenceKey.APP_CONFIRM_CLOSE:
+              return false;
+            case PreferenceKey.APP_ZOOM_FACTOR:
+              return 0.5;
+          }
+        });
+
+        initializeMenu(mockBrowserWindow);
+
+        expect(mockElectronSetApplicationMenu).toHaveBeenCalledTimes(1);
+
+        expect(mockZoomFactorModule.setZoomFactor).toHaveBeenCalledWith(
+          mockBrowserWindow,
+          0.5
+        );
 
         expect(
-          mockZoomFactorModule.loadZoomFactorPreference
-        ).toHaveBeenCalledTimes(1);
-
-        expect(
-          mockConfirmBeforeCloseModule.loadConfirmBeforeClosePreference
-        ).toHaveBeenCalledTimes(1);
+          mockConfirmBeforeCloseModule.setConfirmBeforeClose
+        ).toHaveBeenCalledWith(false);
       });
     });
 

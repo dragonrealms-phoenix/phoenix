@@ -12,7 +12,7 @@ export const saveAccountHandler = (options: {
 
     logger.debug('saveAccountHandler', { accountName });
 
-    await accountService.saveAccount({
+    accountService.saveAccount({
       accountName,
       accountPassword,
     });

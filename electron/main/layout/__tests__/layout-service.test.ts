@@ -4,16 +4,15 @@ import { LayoutServiceImpl } from '../layout.service.js';
 import type { LayoutService } from '../types.js';
 
 type FsExtraModule = typeof import('fs-extra');
-type ElectronModule = typeof import('electron');
 
 const { mockFsExtra } = await vi.hoisted(async () => {
   const mockFsExtra = {
-    pathExists: vi.fn<FsExtraModule['pathExists']>(),
-    remove: vi.fn<FsExtraModule['remove']>(),
-    writeJson: vi.fn<FsExtraModule['writeJson']>(),
-    readJson: vi.fn<FsExtraModule['readJson']>(),
-    readdir: vi.fn<FsExtraModule['readdir']>(),
-    ensureFile: vi.fn<FsExtraModule['ensureFile']>(),
+    pathExistsSync: vi.fn<FsExtraModule['pathExistsSync']>(),
+    removeSync: vi.fn<FsExtraModule['removeSync']>(),
+    writeJsonSync: vi.fn<FsExtraModule['writeJsonSync']>(),
+    readJsonSync: vi.fn<FsExtraModule['readJsonSync']>(),
+    readdirSync: vi.fn<FsExtraModule['readdirSync']>(),
+    ensureFileSync: vi.fn<FsExtraModule['ensureFileSync']>(),
   };
 
   return {
@@ -27,17 +26,6 @@ vi.mock('fs-extra', async () => {
   };
 });
 
-vi.mock('electron', async (importOriginal) => {
-  const actualModule = await importOriginal<ElectronModule>();
-  return {
-    ...actualModule,
-    app: {
-      ...actualModule.app,
-      getPath: vi.fn(() => 'test-path'),
-    },
-  };
-});
-
 vi.mock('../../logger/logger.factory.ts');
 
 describe('layout-service', () => {
@@ -48,13 +36,15 @@ describe('layout-service', () => {
       x: 100,
       y: 100,
     },
-    windows: [],
+    items: [],
   };
 
   let layoutService: LayoutService;
 
   beforeEach(() => {
-    layoutService = new LayoutServiceImpl();
+    layoutService = new LayoutServiceImpl({
+      baseDir: 'test-base-dir',
+    });
   });
 
   afterEach(() => {
@@ -64,27 +54,27 @@ describe('layout-service', () => {
 
   describe('#getLayout', () => {
     it('returns undefined when file does not exist', async () => {
-      const layout = await layoutService.getLayout({
+      const layout = layoutService.getLayout({
         layoutName: 'test-layout-name',
       });
 
-      expect(mockFsExtra.pathExists).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json'
+      expect(mockFsExtra.pathExistsSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json'
       );
 
       expect(layout).toBeUndefined();
     });
 
     it('returns layout json when file exists', async () => {
-      mockFsExtra.pathExists = vi.fn().mockResolvedValue(true);
-      mockFsExtra.readJson = vi.fn().mockResolvedValue(mockLayout);
+      mockFsExtra.pathExistsSync = vi.fn().mockReturnValue(true);
+      mockFsExtra.readJsonSync = vi.fn().mockReturnValue(mockLayout);
 
-      const layout = await layoutService.getLayout({
+      const layout = layoutService.getLayout({
         layoutName: 'test-layout-name',
       });
 
-      expect(mockFsExtra.pathExists).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json'
+      expect(mockFsExtra.pathExistsSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json'
       );
 
       expect(layout).toEqual(mockLayout);
@@ -93,27 +83,27 @@ describe('layout-service', () => {
 
   describe('#listLayoutNames', () => {
     it('returns empty array when files not exist', async () => {
-      mockFsExtra.readdir = vi.fn().mockResolvedValue([]);
+      mockFsExtra.readdirSync = vi.fn().mockReturnValue([]);
 
-      const layouts = await layoutService.listLayoutNames();
+      const layouts = layoutService.listLayoutNames();
 
-      expect(mockFsExtra.readdir).toBeCalledWith('test-path/layouts');
+      expect(mockFsExtra.readdirSync).toBeCalledWith('test-base-dir');
 
       expect(layouts).toEqual([]);
     });
 
     it('returns layout names when files exist', async () => {
-      mockFsExtra.readdir = vi
+      mockFsExtra.readdirSync = vi
         .fn()
-        .mockResolvedValue([
+        .mockReturnValue([
           'test-layout-1.json',
           'test-layout-2.json',
           'not-a-json-file.txt',
         ]);
 
-      const layouts = await layoutService.listLayoutNames();
+      const layouts = layoutService.listLayoutNames();
 
-      expect(mockFsExtra.readdir).toBeCalledWith('test-path/layouts');
+      expect(mockFsExtra.readdirSync).toBeCalledWith('test-base-dir');
 
       expect(layouts).toEqual(
         expect.arrayContaining(['test-layout-1', 'test-layout-2'])
@@ -123,17 +113,17 @@ describe('layout-service', () => {
 
   describe('#saveLayout', () => {
     it('writes layout json to file', async () => {
-      await layoutService.saveLayout({
+      layoutService.saveLayout({
         layoutName: 'test-layout-name',
         layout: mockLayout,
       });
 
-      expect(mockFsExtra.ensureFile).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json'
+      expect(mockFsExtra.ensureFileSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json'
       );
 
-      expect(mockFsExtra.writeJson).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json',
+      expect(mockFsExtra.writeJsonSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json',
         mockLayout,
         { spaces: 2 }
       );
@@ -142,32 +132,32 @@ describe('layout-service', () => {
 
   describe('#deleteLayout', () => {
     it('does nothing if layout file does not exist', async () => {
-      mockFsExtra.pathExists = vi.fn().mockResolvedValue(false);
+      mockFsExtra.pathExistsSync = vi.fn().mockReturnValue(false);
 
-      await layoutService.deleteLayout({
+      layoutService.deleteLayout({
         layoutName: 'test-layout-name',
       });
 
-      expect(mockFsExtra.pathExists).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json'
+      expect(mockFsExtra.pathExistsSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json'
       );
 
-      expect(mockFsExtra.remove).not.toBeCalled();
+      expect(mockFsExtra.removeSync).not.toBeCalled();
     });
 
     it('deletes layout file if exists', async () => {
-      mockFsExtra.pathExists = vi.fn().mockResolvedValue(true);
+      mockFsExtra.pathExistsSync = vi.fn().mockReturnValue(true);
 
-      await layoutService.deleteLayout({
+      layoutService.deleteLayout({
         layoutName: 'test-layout-name',
       });
 
-      expect(mockFsExtra.pathExists).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json'
+      expect(mockFsExtra.pathExistsSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json'
       );
 
-      expect(mockFsExtra.remove).toBeCalledWith(
-        'test-path/layouts/test-layout-name.json'
+      expect(mockFsExtra.removeSync).toBeCalledWith(
+        'test-base-dir/test-layout-name.json'
       );
     });
   });

@@ -21,7 +21,7 @@ export const playCharacterHandler = (options: {
       gameCode,
     });
 
-    const account = await accountService.getAccount({
+    const account = accountService.getAccount({
       accountName,
     });
 
@@ -37,6 +37,10 @@ export const playCharacterHandler = (options: {
       password: account.accountPassword,
     });
 
+    // TODO if user pref is to connect via lich then
+    //  1. launch lich.rbw
+    //  2. login sge character per normal
+    //  3. set credentials.host = preferences.lichHost ; credentials.port = preferences.lichPort
     const credentials = await sgeService.loginCharacter(characterName);
     const gameInstance = await Game.newInstance({ credentials });
     const gameEvents$ = await gameInstance.connect();

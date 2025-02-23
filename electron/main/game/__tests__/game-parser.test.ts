@@ -6,8 +6,28 @@ import {
   GameEventType,
   IndicatorType,
 } from '../../../common/game/types.js';
+import { PreferenceKey } from '../../preference/types.js';
 import { GameParserImpl } from '../game.parser.js';
 import type { GameParser } from '../types.js';
+
+const { mockPreferenceService } = await vi.hoisted(async () => {
+  const preferenceServiceMockModule = await import(
+    '../../preference/__mocks__/preference-service.mock.js'
+  );
+
+  const mockPreferenceService =
+    new preferenceServiceMockModule.PreferenceServiceMockImpl();
+
+  return {
+    mockPreferenceService,
+  };
+});
+
+vi.mock('../../preference/preference.instance.js', async () => {
+  return {
+    Preferences: mockPreferenceService,
+  };
+});
 
 vi.mock('../../logger/logger.factory.ts');
 
@@ -100,6 +120,47 @@ describe('game-parser', () => {
       expectGameEvent({
         type: GameEventType.TEXT,
         text: `test\n`,
+      });
+    });
+
+    it('emits TextGameEvent (prompt)', () => {
+      gameSocketSubject$.next('<prompt time="1703804031">&gt;</prompt>\n');
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `>\n`,
+      });
+    });
+
+    it('emits TextGameEvent (prompt preference)', () => {
+      mockPreferenceService.get.mockImplementation((key) => {
+        switch (key) {
+          case PreferenceKey.GAME_WINDOW_PROMPT:
+            return '#';
+        }
+      });
+
+      // Because the preference is read only once when
+      // the parser is created, we need to create a new
+      // parser so that it picks up the mocked value.
+
+      gameSocketSubject$ = new rxjs.Subject<string>();
+
+      parser = new GameParserImpl();
+
+      gameEventStream$ = parser.parse(gameSocketSubject$.asObservable());
+
+      gameEventStream$.subscribe({
+        next: onNextSpy,
+        complete: onCompleteSpy,
+        error: onErrorSpy,
+      });
+
+      gameSocketSubject$.next('<prompt time="1703804031">&gt;</prompt>\n');
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `${mockPreferenceService.get(PreferenceKey.GAME_WINDOW_PROMPT)}\n`,
       });
     });
 
@@ -403,6 +464,17 @@ describe('game-parser', () => {
       expectGameEvent({
         type: GameEventType.ROOM,
         roomExits: 'Obvious exits: out.',
+      });
+    });
+
+    it('emits RoomGameEvent (room extra)', () => {
+      gameSocketSubject$.next(
+        '<component id="room extra">Lorem ipsum</component>\n'
+      );
+
+      expectGameEvent({
+        type: GameEventType.ROOM,
+        roomExtra: 'Lorem ipsum',
       });
     });
 

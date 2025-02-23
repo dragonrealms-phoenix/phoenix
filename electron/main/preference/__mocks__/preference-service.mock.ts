@@ -10,7 +10,7 @@ export class PreferenceServiceMockImpl implements Mocked<PreferenceService> {
     this.constructorSpy(args);
   }
 
-  get = vi.fn<(key: PreferenceKey) => Promise<Maybe<any>>>();
+  get = vi.fn<(key: PreferenceKey) => Maybe<any>>();
   set = vi.fn<PreferenceService['set']>();
   remove = vi.fn<PreferenceService['remove']>();
 }
