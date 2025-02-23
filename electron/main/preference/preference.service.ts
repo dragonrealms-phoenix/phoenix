@@ -27,9 +27,9 @@ export class PreferenceServiceImpl implements PreferenceService {
     key: K,
     defaultValue?: V
   ): Maybe<V> {
-    logger.trace('getting preference', { key, defaultValue });
+    logger.debug('getting preference', { key, defaultValue });
     const value = this.cacheService.get<V>(key) ?? defaultValue;
-    logger.trace('got preference', { key, value });
+    logger.debug('got preference', { key, value });
     return value;
   }
 
@@ -37,12 +37,12 @@ export class PreferenceServiceImpl implements PreferenceService {
     key: K,
     value: V
   ): void {
-    logger.trace('setting preference', { key, value });
+    logger.debug('setting preference', { key, value });
     this.cacheService.set<V>(key, value);
   }
 
   public remove(key: PreferenceKey): void {
-    logger.trace('removing preference', { key });
+    logger.debug('removing preference', { key });
     this.cacheService.remove(key);
   }
 }
