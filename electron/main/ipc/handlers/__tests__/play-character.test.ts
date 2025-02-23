@@ -86,7 +86,7 @@ describe('play-character', () => {
       mockIpcDispatcher = vi.fn();
 
       mockAccountService = new AccountServiceMockImpl();
-      mockAccountService.getAccount.mockResolvedValueOnce({
+      mockAccountService.getAccount.mockReturnValue({
         accountName: 'test-account-name',
         accountPassword: 'test-account-password',
       });
