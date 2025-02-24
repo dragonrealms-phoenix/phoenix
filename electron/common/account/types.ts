@@ -1,3 +1,5 @@
+import type { GameCode } from '../game/types.js';
+
 export interface Account {
   accountName: string;
 }
@@ -9,5 +11,5 @@ export interface AccountWithPassword extends Account {
 export interface Character {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }

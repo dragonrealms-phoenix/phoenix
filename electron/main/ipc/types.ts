@@ -24,16 +24,6 @@ export type IpcHandlerRegistry = {
   [channel in IpcInvokableEvent]: IpcInvokeHandler<channel>;
 };
 
-export type IpcSgeAccount = {
-  accountName: string;
-};
-
-export type IpcSgeCharacter = {
-  gameCode: string;
-  accountName: string;
-  characterName: string;
-};
-
 /**
  * Defines the channels and message types that can be dispatched
  * from the main process to the renderer process.
