@@ -52,11 +52,6 @@ export enum PreferenceKey {
    */
   LICH_PATH = 'lich.path',
   /**
-   * The arguments to pass to Lich when starting it.
-   * Example: "--dragonrealms"
-   */
-  LICH_ARGS = 'lich.args',
-  /**
    * The host to connect to when starting Lich.
    * Example: "localhost"
    */
@@ -86,7 +81,6 @@ export type PreferenceKeyToTypeMap = {
   [PreferenceKey.GAME_COMMAND_HISTORY_MIN_LENGTH]: number;
   [PreferenceKey.LICH_RUBY_PATH]: string;
   [PreferenceKey.LICH_PATH]: string;
-  [PreferenceKey.LICH_ARGS]: string;
   [PreferenceKey.LICH_HOST]: string;
   [PreferenceKey.LICH_PORT]: number;
   [PreferenceKey.LICH_START_WAIT]: number;
