@@ -1,4 +1,5 @@
 import type tls from 'node:tls';
+import type { GameCode } from '../../common/game/types.js';
 import { logger } from './logger.js';
 import { authenticate } from './socket/authenticate.js';
 import { connect } from './socket/connect.js';
@@ -6,12 +7,7 @@ import { getGameCredentials } from './socket/get-game-credentials.js';
 import { getGameSubscription } from './socket/get-game-subscription.js';
 import { listAvailableCharacters } from './socket/list-available-characters.js';
 import { validateGameCode } from './socket/validate-game-code.js';
-import type {
-  SGECharacter,
-  SGEGameCode,
-  SGEGameCredentials,
-  SGEService,
-} from './types.js';
+import type { SGECharacter, SGEGameCredentials, SGEService } from './types.js';
 
 /**
  * SGE stands for Simutronics Game Entry
@@ -36,12 +32,12 @@ export class SGEServiceImpl implements SGEService {
   /**
    * Which instance of the game to log in to.
    */
-  private gameCode: SGEGameCode;
+  private gameCode: GameCode;
 
   constructor(options: {
     username: string;
     password: string;
-    gameCode: SGEGameCode;
+    gameCode: GameCode;
   }) {
     this.username = options.username;
     this.password = options.password;

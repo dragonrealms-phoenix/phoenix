@@ -1,8 +1,8 @@
 import type tls from 'node:tls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GameCode } from '../../../../common/game/types.js';
 import type { TLSSocketMock } from '../../../__mocks__/tls-socket.mock.js';
 import { mockTLSConnect } from '../../../__mocks__/tls-socket.mock.js';
-import { SGEGameCode } from '../../types.js';
 import { getGameSubscription } from '../get-game-subscription.js';
 
 const { mockSendAndReceive } = vi.hoisted(() => {
@@ -24,7 +24,7 @@ vi.mock('../../../logger/logger.factory.ts');
 describe('get-game-subscription', () => {
   let mockSocket: TLSSocketMock & tls.TLSSocket;
 
-  const gameCode = SGEGameCode.DRAGONREALMS_PRIME;
+  const gameCode = GameCode.PRIME;
 
   const socketRequest = Buffer.from(`G\t${gameCode}`);
 

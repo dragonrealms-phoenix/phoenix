@@ -1,4 +1,3 @@
-import type { IpcRendererEvent } from 'electron';
 import { EuiLoadingSpinner, EuiOverlayMask } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { createContext, useEffect, useMemo, useState } from 'react';
@@ -128,7 +127,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:connect',
-      (_event: IpcRendererEvent, message: GameConnectMessage) => {
+      (message: GameConnectMessage) => {
         const { accountName, characterName, gameCode } = message;
         logger.debug('game:connect', {
           accountName,
@@ -154,7 +153,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:disconnect',
-      (_event: IpcRendererEvent, message: GameDisconnectMessage) => {
+      (message: GameDisconnectMessage) => {
         const { accountName, characterName, gameCode } = message;
         logger.debug('game:disconnect', {
           accountName,
@@ -186,7 +185,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:error',
-      (_event: IpcRendererEvent, message: GameErrorMessage) => {
+      (message: GameErrorMessage) => {
         const { error } = message;
         publish('game:error', error);
       }
@@ -199,7 +198,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:event',
-      (_event: IpcRendererEvent, message: GameEventMessage) => {
+      (message: GameEventMessage) => {
         const { gameEvent } = message;
         publish('game:event', gameEvent);
       }
@@ -212,7 +211,7 @@ export const GameProvider: React.FC<GameProviderProps> = (
   useEffect(() => {
     const unsubscribe = window.api.onMessage(
       'game:command',
-      (_event: IpcRendererEvent, message: GameCommandMessage) => {
+      (message: GameCommandMessage) => {
         const { command } = message;
         publish('game:command', command);
       }

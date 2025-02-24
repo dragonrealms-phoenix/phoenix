@@ -1,10 +1,10 @@
 import type tls from 'node:tls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GameCode } from '../../../common/game/types.js';
 import type { TLSSocketMock } from '../../__mocks__/tls-socket.mock.js';
 import { mockTLSConnect } from '../../__mocks__/tls-socket.mock.js';
 import { SGEServiceImpl } from '../sge.service.js';
 import type { SGECharacter, SGEGameCredentials, SGEService } from '../types.js';
-import { SGEGameCode } from '../types.js';
 
 const {
   mockConnect,
@@ -81,7 +81,7 @@ describe('sge-service', () => {
     sgeService = new SGEServiceImpl({
       username: 'test-username',
       password: 'test-password',
-      gameCode: SGEGameCode.DRAGONREALMS_PRIME,
+      gameCode: GameCode.PRIME,
     });
 
     vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -119,12 +119,12 @@ describe('sge-service', () => {
 
       expect(mockValidateGameCode).toHaveBeenCalledWith({
         socket: mockSocket,
-        gameCode: SGEGameCode.DRAGONREALMS_PRIME,
+        gameCode: GameCode.PRIME,
       });
 
       expect(mockGetGameSubscription).toHaveBeenCalledWith({
         socket: mockSocket,
-        gameCode: SGEGameCode.DRAGONREALMS_PRIME,
+        gameCode: GameCode.PRIME,
       });
 
       expect(mockGetGameCredentials).toHaveBeenCalledWith({
@@ -178,12 +178,12 @@ describe('sge-service', () => {
 
       expect(mockValidateGameCode).toHaveBeenCalledWith({
         socket: mockSocket,
-        gameCode: SGEGameCode.DRAGONREALMS_PRIME,
+        gameCode: GameCode.PRIME,
       });
 
       expect(mockGetGameSubscription).toHaveBeenCalledWith({
         socket: mockSocket,
-        gameCode: SGEGameCode.DRAGONREALMS_PRIME,
+        gameCode: GameCode.PRIME,
       });
 
       expect(mockListAvailableCharacters).toHaveBeenCalledWith({

@@ -1,6 +1,7 @@
 import type tls from 'node:tls';
+import type { GameCode } from '../../../common/game/types.js';
 import { logger } from '../logger.js';
-import type { SGEGame, SGEGameCode } from '../types.js';
+import type { SGEGame } from '../types.js';
 import { listAvailableGames } from './list-available-games.js';
 
 /**
@@ -9,18 +10,16 @@ import { listAvailableGames } from './list-available-games.js';
  */
 export const validateGameCode = async (options: {
   socket: tls.TLSSocket;
-  gameCode: SGEGameCode;
+  gameCode: GameCode;
 }): Promise<void> => {
   const { socket, gameCode } = options;
 
   logger.debug('validating game code', { gameCode });
 
   const availableGames = await listAvailableGames({ socket });
-  const availableGameCodes = availableGames.map(
-    (game: SGEGame): SGEGameCode => {
-      return game.code;
-    }
-  );
+  const availableGameCodes = availableGames.map((game: SGEGame): GameCode => {
+    return game.code;
+  });
 
   if (!availableGameCodes.includes(gameCode)) {
     logger.error('game is not available to account', {

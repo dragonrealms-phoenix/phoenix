@@ -1,4 +1,4 @@
-import { GameCode } from '../../common/game/types.js';
+import type { GameCode } from '../../common/game/types.js';
 
 export enum SGEGameProtocol {
   STORMFRONT = 'STORM',
@@ -8,14 +8,6 @@ export enum SGEGameProtocol {
  * Simutronics has multiple games and instances per game.
  * Only interested in DragonRealms, though.
  */
-export enum SGEGameCode {
-  DRAGONREALMS_PRIME = GameCode.PRIME,
-  DRAGONREALMS_FALLEN = GameCode.FALLEN,
-  DRAGONREALMS_PLATINUM = GameCode.PLATINUM,
-  DRAGONREALMS_TEST = GameCode.TEST,
-  DRAGONREALMS_DEVELOPMENT = GameCode.DEVELOPMENT,
-}
-
 export interface SGEGame {
   /**
    * Name of a game, like 'DragonRealms' or 'DragonRealms The Fallen'
@@ -24,7 +16,7 @@ export interface SGEGame {
   /**
    * Identifier of a game, like 'DR' or 'DRF'
    */
-  code: SGEGameCode;
+  code: GameCode;
 }
 
 export interface SGEGameSubscription {

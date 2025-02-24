@@ -2,6 +2,7 @@ import * as rxjs from 'rxjs';
 import type { Mock, Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  GameCode,
   type GameEvent,
   GameEventType,
 } from '../../../../common/game/types.js';
@@ -15,21 +16,36 @@ import { playCharacterHandler } from '../play-character.js';
 type GameInstanceModule = typeof import('../../../game/game.instance.js');
 type MockSGEService = Mocked<SGEService> & { constructorSpy: Mock };
 
-const { mockGameInstance, mockSgeService } = vi.hoisted(() => {
-  const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
-    getInstance: vi.fn(),
-    newInstance: vi.fn(),
-  };
+const { mockPreferenceService, mockGameInstance, mockSgeService } =
+  await vi.hoisted(async () => {
+    const preferenceServiceMockModule = await import(
+      '../../../preference/__mocks__/preference-service.mock.js'
+    );
 
-  const mockSgeService: MockSGEService = {
-    constructorSpy: vi.fn(),
-    loginCharacter: vi.fn<SGEService['loginCharacter']>(),
-    listCharacters: vi.fn<SGEService['listCharacters']>(),
-  };
+    const mockPreferenceService =
+      new preferenceServiceMockModule.PreferenceServiceMockImpl();
 
+    const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
+      getInstance: vi.fn(),
+      newInstance: vi.fn(),
+    };
+
+    const mockSgeService: MockSGEService = {
+      constructorSpy: vi.fn(),
+      loginCharacter: vi.fn<SGEService['loginCharacter']>(),
+      listCharacters: vi.fn<SGEService['listCharacters']>(),
+    };
+
+    return {
+      mockPreferenceService,
+      mockGameInstance,
+      mockSgeService,
+    };
+  });
+
+vi.mock('../../../preference/preference.instance.js', () => {
   return {
-    mockGameInstance,
-    mockSgeService,
+    Preferences: mockPreferenceService,
   };
 });
 
@@ -114,7 +130,7 @@ describe('play-character', () => {
         {
           accountName: 'test-account-name',
           characterName: 'test-character-name',
-          gameCode: 'test-game-code',
+          gameCode: GameCode.PRIME,
         },
       ]);
 
@@ -126,7 +142,7 @@ describe('play-character', () => {
         {
           username: 'test-account-name',
           password: 'test-account-password',
-          gameCode: 'test-game-code',
+          gameCode: GameCode.PRIME,
         },
       ]);
 
@@ -147,7 +163,7 @@ describe('play-character', () => {
       expect(mockIpcDispatcher).toHaveBeenCalledWith('game:connect', {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
-        gameCode: 'test-game-code',
+        gameCode: GameCode.PRIME,
       });
     });
 
@@ -161,7 +177,7 @@ describe('play-character', () => {
         {
           accountName: 'test-account-name',
           characterName: 'test-character-name',
-          gameCode: 'test-game-code',
+          gameCode: GameCode.PRIME,
         },
       ]);
 
@@ -195,7 +211,7 @@ describe('play-character', () => {
         {
           accountName: 'test-account-name',
           characterName: 'test-character-name',
-          gameCode: 'test-game-code',
+          gameCode: GameCode.PRIME,
         },
       ]);
 
@@ -222,7 +238,7 @@ describe('play-character', () => {
         {
           accountName: 'test-account-name',
           characterName: 'test-character-name',
-          gameCode: 'test-game-code',
+          gameCode: GameCode.PRIME,
         },
       ]);
 
@@ -236,7 +252,7 @@ describe('play-character', () => {
       expect(mockIpcDispatcher).toHaveBeenCalledWith('game:disconnect', {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
-        gameCode: 'test-game-code',
+        gameCode: GameCode.PRIME,
       });
     });
 
@@ -253,7 +269,7 @@ describe('play-character', () => {
           {
             accountName: 'test-account-name',
             characterName: 'test-character-name',
-            gameCode: 'test-game-code',
+            gameCode: GameCode.PRIME,
           },
         ]);
         expect.unreachable('it should throw an error');
