@@ -1,3 +1,4 @@
+import type { GameCode } from '../../../common/game/types.js';
 import { GameCodeMetaMap } from '../../../common/game/types.js';
 
 /**
@@ -13,11 +14,11 @@ export const GameCodeSelectOptions: Array<{
    * Game code for the game instance.
    * Example: 'DR'
    */
-  value: string;
-}> = Object.entries(GameCodeMetaMap).map(([gameCode, gameMeta]) => {
-  const { name } = gameMeta;
+  value: GameCode;
+}> = Object.values(GameCodeMetaMap).map((gameMeta) => {
+  const { name, code } = gameMeta;
   return {
     label: name,
-    value: gameCode,
+    value: code,
   };
 });

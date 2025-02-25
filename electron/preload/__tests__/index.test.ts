@@ -1,9 +1,10 @@
-import type { ContextBridge, IpcRenderer } from 'electron';
+import type { ContextBridge, IpcRenderer, IpcRendererEvent } from 'electron';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type {
   AccountWithPassword,
   Character,
 } from '../../common/account/types.js';
+import { GameCode } from '../../common/game/types.js';
 import type { Layout } from '../../common/layout/types.js';
 import type { LogMessage } from '../../common/logger/types.js';
 import { LogLevel } from '../../common/logger/types.js';
@@ -16,7 +17,11 @@ const { mockContextBridge, mockIpcRenderer } = vi.hoisted(() => {
   const mockIpcRenderer = {
     send: vi.fn<IpcRenderer['send']>(),
     invoke: vi.fn<IpcRenderer['invoke']>(),
-    on: vi.fn<IpcRenderer['on']>(),
+    on: vi.fn<IpcRenderer['on']>().mockImplementation((channel, callback) => {
+      // Invoke our callbacks so we can assert they're being registered.
+      callback({} as IpcRendererEvent, 'test-message');
+      return {} as IpcRenderer;
+    }),
     off: vi.fn<IpcRenderer['off']>(),
     removeAllListeners: vi.fn<IpcRenderer['removeAllListeners']>(),
   };
@@ -132,7 +137,7 @@ describe('index', () => {
       const mockCharacter: Character = {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
       };
 
       it('invokes saveCharacter', async () => {
@@ -148,7 +153,7 @@ describe('index', () => {
       const mockCharacter: Character = {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
       };
 
       it('invokes removeCharacter', async () => {
@@ -164,7 +169,7 @@ describe('index', () => {
       const mockCharacter: Character = {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
       };
 
       it('invokes listCharacters', async () => {
@@ -179,7 +184,7 @@ describe('index', () => {
       const mockCharacter: Character = {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
       };
 
       it('invokes playCharacter', async () => {
@@ -299,19 +304,23 @@ describe('index', () => {
 
     describe('#onMessage', async () => {
       it('invokes on, then off when unsubscribe', async () => {
+        // The `onMessage` API wraps our callback so to assert that
+        // our function is being used then we need to assert it is invoked.
         const mockListener = vi.fn();
 
         const unsubscribe = api.onMessage('test-channel', mockListener);
         expect(mockIpcRenderer.on).toHaveBeenCalledWith(
           'test-channel',
-          mockListener
+          expect.any(Function)
         );
 
         unsubscribe();
         expect(mockIpcRenderer.off).toHaveBeenCalledWith(
           'test-channel',
-          mockListener
+          expect.any(Function)
         );
+
+        expect(mockListener).toHaveBeenCalledWith('test-message');
       });
     });
 

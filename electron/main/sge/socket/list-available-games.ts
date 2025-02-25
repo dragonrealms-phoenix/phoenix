@@ -1,7 +1,8 @@
 import type tls from 'node:tls';
+import type { GameCode } from '../../../common/game/types.js';
 import { sendAndReceive } from '../../tls/send-and-receive.js';
 import { logger } from '../logger.js';
-import type { SGEGame, SGEGameCode } from '../types.js';
+import type { SGEGame } from '../types.js';
 
 /**
  * Identify the games that are available to the account.
@@ -34,7 +35,7 @@ export const listAvailableGames = async (options: {
     const gameCode = gamePairs[i];
     const gameName = gamePairs[i + 1];
     games.push({
-      code: gameCode as SGEGameCode,
+      code: gameCode as GameCode,
       name: gameName,
     });
   }

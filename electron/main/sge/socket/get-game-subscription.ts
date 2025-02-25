@@ -1,14 +1,15 @@
 import type tls from 'node:tls';
+import type { GameCode } from '../../../common/game/types.js';
 import { sendAndReceive } from '../../tls/send-and-receive.js';
 import { logger } from '../logger.js';
-import type { SGEGameCode, SGEGameSubscription } from '../types.js';
+import type { SGEGameSubscription } from '../types.js';
 
 /**
  * Get the account's subscription status with the game.
  */
 export const getGameSubscription = async (options: {
   socket: tls.TLSSocket;
-  gameCode: SGEGameCode;
+  gameCode: GameCode;
 }): Promise<SGEGameSubscription> => {
   const { socket, gameCode } = options;
 

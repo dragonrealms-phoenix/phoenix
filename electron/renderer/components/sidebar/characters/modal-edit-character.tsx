@@ -10,6 +10,7 @@ import sortBy from 'lodash-es/sortBy.js';
 import { useCallback, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import type { GameCode } from '../../../../common/game/types.js';
 import { useListAccounts } from '../../../hooks/accounts.jsx';
 import { runInBackground } from '../../../lib/async/run-in-background.js';
 import { GameCodeSelectOptions } from '../../../lib/game/game-code-labels.js';
@@ -17,13 +18,13 @@ import { GameCodeSelectOptions } from '../../../lib/game/game-code-labels.js';
 export interface ModalEditCharacterInitialData {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }
 
 export interface ModalEditCharacterConfirmData {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }
 
 export interface ModalEditCharacterProps {

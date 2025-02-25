@@ -1,8 +1,10 @@
 import type { GameCode } from '../../../common/game/types.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
+import { startLichProcess } from '../../lich/start-process.js';
+import { Preferences } from '../../preference/preference.instance.js';
+import { PreferenceKey } from '../../preference/types.js';
 import { SGEServiceImpl } from '../../sge/sge.service.js';
-import type { SGEGameCode } from '../../sge/types.js';
 import { logger } from '../logger.js';
 import type { IpcDispatcher, IpcInvokeHandler } from '../types.js';
 
@@ -32,16 +34,21 @@ export const playCharacterHandler = (options: {
     }
 
     const sgeService = new SGEServiceImpl({
-      gameCode: gameCode as SGEGameCode,
+      gameCode: gameCode,
       username: account.accountName,
       password: account.accountPassword,
     });
 
-    // TODO if user pref is to connect via lich then
-    //  1. launch lich.rbw
-    //  2. login sge character per normal
-    //  3. set credentials.host = preferences.lichHost ; credentials.port = preferences.lichPort
     const credentials = await sgeService.loginCharacter(characterName);
+
+    if (Preferences.get(PreferenceKey.LICH_ENABLED)) {
+      const { host, port } = await startLichProcess({
+        gameCode: gameCode as GameCode,
+      });
+      credentials.host = host;
+      credentials.port = port;
+    }
+
     const gameInstance = await Game.newInstance({ credentials });
     const gameEvents$ = await gameInstance.connect();
 

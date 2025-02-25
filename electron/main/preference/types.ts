@@ -40,37 +40,36 @@ export enum PreferenceKey {
    */
   GAME_COMMAND_HISTORY_MIN_LENGTH = 'game.command.historyMinLength',
   /**
-   * Absolute path to the Ruby executable.
+   * Absolute path to a Ruby executable supported by Lich.
    * Windows Example: "C:\path\to\Ruby4Lich\bin\ruby.exe"
    * macOS Example: "/path/to/.rbenv/shims/ruby"
    */
-  RUBY_PATH = 'lich.rubyPath',
+  LICH_RUBY_PATH = 'lich.rubyPath',
   /**
    * Absolute path to the Lich executable.
    * Windows Example: "C:\path\to\lich\lich.rbw"
    * macOS Example: "/path/to/lich.rbw"
    */
-  LICH_PATH = 'lich.lichPath',
-  /**
-   * The arguments to pass to Lich when starting it.
-   * Example: "--dragonrealms"
-   */
-  LICH_ARGS = 'lich.lichArgs',
+  LICH_PATH = 'lich.path',
   /**
    * The host to connect to when starting Lich.
    * Example: "localhost"
    */
-  LICH_HOST = 'lich.lichHost',
+  LICH_HOST = 'lich.host',
   /**
    * The port to connect to when starting Lich.
    * Example: 11024
    */
-  LICH_PORT = 'lich.lichPort',
+  LICH_PORT = 'lich.port',
   /**
    * The number of seconds to wait after starting Lich before
    * attempting to connect to it.
    */
-  LICH_WAIT = 'lich.startWait',
+  LICH_START_WAIT = 'lich.startWait',
+  /**
+   * Should the app auto start and connect to Lich when playing a character?
+   */
+  LICH_ENABLED = 'lich.enabled',
 }
 
 export type PreferenceKeyToTypeMap = {
@@ -80,12 +79,12 @@ export type PreferenceKeyToTypeMap = {
   [PreferenceKey.GAME_WINDOW_PROMPT]: string;
   [PreferenceKey.GAME_COMMAND_SEPARATOR]: string;
   [PreferenceKey.GAME_COMMAND_HISTORY_MIN_LENGTH]: number;
-  [PreferenceKey.RUBY_PATH]: string;
+  [PreferenceKey.LICH_RUBY_PATH]: string;
   [PreferenceKey.LICH_PATH]: string;
-  [PreferenceKey.LICH_ARGS]: string;
   [PreferenceKey.LICH_HOST]: string;
   [PreferenceKey.LICH_PORT]: number;
-  [PreferenceKey.LICH_WAIT]: number;
+  [PreferenceKey.LICH_START_WAIT]: number;
+  [PreferenceKey.LICH_ENABLED]: boolean;
 };
 
 export interface PreferenceService {

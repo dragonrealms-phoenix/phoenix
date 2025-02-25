@@ -1,17 +1,18 @@
 import { EuiCode, EuiConfirmModal } from '@elastic/eui';
 import type { ReactNode } from 'react';
 import { useCallback } from 'react';
+import type { GameCode } from '../../../../common/game/types.js';
 
 export interface ModalRemoveCharacterInitialData {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }
 
 export interface ModalRemoveCharacterConfirmData {
   accountName: string;
   characterName: string;
-  gameCode: string;
+  gameCode: GameCode;
 }
 
 export interface ModalRemoveCharacterProps {
