@@ -1,3 +1,22 @@
+## [1.35.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.34.0...v1.35.0) (2025-02-25)
+
+### :sparkles: Features
+
+* **characters:** update game code type to enum instead of string ([d8d03f2](https://github.com/dragonrealms-phoenix/phoenix/commit/d8d03f2476490bd64720466f13f0e523b73b3b92))
+* **lich:** implement startLichProcess and related tests for game integration ([b6da262](https://github.com/dragonrealms-phoenix/phoenix/commit/b6da262569e8ecace7125c7f85b7422da7deea7d))
+* **play-character:** connect to Lich when pref is enabled ([bde56b0](https://github.com/dragonrealms-phoenix/phoenix/commit/bde56b02375f5caeb8793dbdd4fe7cd06327d833))
+* **preference:** remove LICH_ARGS preference key for simplification ([fd0aca4](https://github.com/dragonrealms-phoenix/phoenix/commit/fd0aca48871757f00d62a4818d2b4cf9bb556000))
+* **preference:** update preference keys for clarity and add lich enabled option ([c546134](https://github.com/dragonrealms-phoenix/phoenix/commit/c54613464b81663458a9c6e74cafadc73de23ee8))
+* **security:** don't expose electron event to user code ([7662012](https://github.com/dragonrealms-phoenix/phoenix/commit/7662012d5f31282f0fed7dcc112aae67db15e554))
+
+### :test_tube: Tests
+
+* **preload:** enhance IPC mock to assert event listener invocation ([e6bc7d4](https://github.com/dragonrealms-phoenix/phoenix/commit/e6bc7d401ca8e84f6d1e598e6154a0dbcd91bc68))
+
+### :broom: Miscellaneous
+
+* **preload:** simplify tsconfig and update build command ([138d37a](https://github.com/dragonrealms-phoenix/phoenix/commit/138d37a5b274d862c51468311cbd315fd30d1eee))
+
 ## [1.34.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.33.1...v1.34.0) (2025-02-23)
 
 ### :sparkles: Features
