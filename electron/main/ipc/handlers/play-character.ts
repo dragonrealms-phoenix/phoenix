@@ -1,4 +1,3 @@
-import type { GameCode } from '../../../common/game/types.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
 import { startLichProcess } from '../../lich/start-process.js';
@@ -34,7 +33,7 @@ export const playCharacterHandler = (options: {
     }
 
     const sgeService = new SGEServiceImpl({
-      gameCode: gameCode,
+      gameCode,
       username: account.accountName,
       password: account.accountPassword,
     });
@@ -42,9 +41,7 @@ export const playCharacterHandler = (options: {
     const credentials = await sgeService.loginCharacter(characterName);
 
     if (Preferences.get(PreferenceKey.LICH_ENABLED)) {
-      const { host, port } = await startLichProcess({
-        gameCode: gameCode as GameCode,
-      });
+      const { host, port } = await startLichProcess({ gameCode });
       credentials.host = host;
       credentials.port = port;
     }
@@ -55,7 +52,7 @@ export const playCharacterHandler = (options: {
     dispatch('game:connect', {
       accountName,
       characterName,
-      gameCode: gameCode as GameCode,
+      gameCode,
     });
 
     logger.debug('subscribing to game service stream');
@@ -73,7 +70,7 @@ export const playCharacterHandler = (options: {
         dispatch('game:disconnect', {
           accountName,
           characterName,
-          gameCode: gameCode as GameCode,
+          gameCode,
         });
       },
     });
