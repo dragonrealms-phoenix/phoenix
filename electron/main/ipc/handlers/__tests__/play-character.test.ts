@@ -10,38 +10,46 @@ import { AccountServiceMockImpl } from '../../../account/__mocks__/account-servi
 import type { AccountService } from '../../../account/types.js';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
 import type { GameService } from '../../../game/types.js';
+import { PreferenceKey } from '../../../preference/types.js';
 import type { SGEService } from '../../../sge/types.js';
 import { playCharacterHandler } from '../play-character.js';
 
 type GameInstanceModule = typeof import('../../../game/game.instance.js');
 type MockSGEService = Mocked<SGEService> & { constructorSpy: Mock };
 
-const { mockPreferenceService, mockGameInstance, mockSgeService } =
-  await vi.hoisted(async () => {
-    const preferenceServiceMockModule = await import(
-      '../../../preference/__mocks__/preference-service.mock.js'
-    );
+const {
+  mockPreferenceService,
+  mockGameInstance,
+  mockSgeService,
+  mockLichStartProcess,
+} = await vi.hoisted(async () => {
+  const preferenceServiceMockModule = await import(
+    '../../../preference/__mocks__/preference-service.mock.js'
+  );
 
-    const mockPreferenceService =
-      new preferenceServiceMockModule.PreferenceServiceMockImpl();
+  const mockPreferenceService =
+    new preferenceServiceMockModule.PreferenceServiceMockImpl();
 
-    const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
-      getInstance: vi.fn(),
-      newInstance: vi.fn(),
-    };
+  const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
+    getInstance: vi.fn(),
+    newInstance: vi.fn(),
+  };
 
-    const mockSgeService: MockSGEService = {
-      constructorSpy: vi.fn(),
-      loginCharacter: vi.fn<SGEService['loginCharacter']>(),
-      listCharacters: vi.fn<SGEService['listCharacters']>(),
-    };
+  const mockSgeService: MockSGEService = {
+    constructorSpy: vi.fn(),
+    loginCharacter: vi.fn<SGEService['loginCharacter']>(),
+    listCharacters: vi.fn<SGEService['listCharacters']>(),
+  };
 
-    return {
-      mockPreferenceService,
-      mockGameInstance,
-      mockSgeService,
-    };
-  });
+  const mockLichStartProcess = vi.fn();
+
+  return {
+    mockPreferenceService,
+    mockGameInstance,
+    mockSgeService,
+    mockLichStartProcess,
+  };
+});
 
 vi.mock('../../../preference/preference.instance.js', () => {
   return {
@@ -76,6 +84,12 @@ vi.mock('../../../sge/sge.service.js', () => {
 
   return {
     SGEServiceImpl: SGEServiceMockImpl,
+  };
+});
+
+vi.mock('../../../lich/start-process.js', () => {
+  return {
+    startLichProcess: mockLichStartProcess,
   };
 });
 
@@ -164,6 +178,45 @@ describe('play-character', () => {
         accountName: 'test-account-name',
         characterName: 'test-character-name',
         gameCode: GameCode.PRIME,
+      });
+    });
+
+    it('starts lich process when lich preference is enabled', async () => {
+      mockPreferenceService.get.mockImplementation((key) => {
+        switch (key) {
+          case PreferenceKey.LICH_ENABLED:
+            return true;
+        }
+      });
+
+      mockLichStartProcess.mockResolvedValue({
+        host: 'test-lich-host',
+        port: 4242,
+      });
+
+      const handler = playCharacterHandler({
+        dispatch: mockIpcDispatcher,
+        accountService: mockAccountService,
+      });
+
+      await handler([
+        {
+          accountName: 'test-account-name',
+          characterName: 'test-character-name',
+          gameCode: GameCode.PRIME,
+        },
+      ]);
+
+      expect(mockLichStartProcess).toHaveBeenCalledWith({
+        gameCode: GameCode.PRIME,
+      });
+
+      expect(mockGameInstance.newInstance).toHaveBeenCalledWith({
+        credentials: {
+          host: 'test-lich-host',
+          port: 4242,
+          accessToken: 'test-access-token',
+        },
       });
     });
 
