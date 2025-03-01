@@ -6,7 +6,7 @@ import type {
   ReactElement,
   ReactNode,
 } from 'react';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
 import { GameContext } from '../../context/game.jsx';
 import { useCommandHistory } from '../../hooks/commands.jsx';
@@ -16,6 +16,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
   const { isConnected } = useContext(GameContext);
   const { input, handleKeyDown, handleOnChange } = useCommandHistory();
   const [lastCommand, setLastCommand] = useState<string>();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLInputElement>>(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -41,6 +42,15 @@ export const GameCommandInput: React.FC = (): ReactNode => {
             }
           });
         }
+      } else if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
+        // Ensure cursor remains at the end of the line.
+        // Use a timeout so the cursor is set after the history navigation.
+        setTimeout(() => {
+          inputRef.current?.setSelectionRange(
+            inputRef.current.value.length,
+            inputRef.current.value.length
+          );
+        });
       }
     },
     [handleKeyDown, lastCommand]
@@ -68,6 +78,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         }}
       >
         <EuiFieldText
+          inputRef={inputRef}
           css={{
             // Removes the bottom blue border when user focuses the field.
             // I found it distracting.
