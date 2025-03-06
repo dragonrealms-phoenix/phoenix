@@ -1,11 +1,21 @@
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
-import type * as rxjs from 'rxjs';
+import * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/async.utils.js';
-import type { GameEvent } from '../../common/game/types.js';
+import type {
+  GameEvent,
+  StyledTextGameEvent,
+  StyledTextSegment,
+} from '../../common/game/types.js';
+import { GameEventType } from '../../common/game/types.js';
 import { LogLevel } from '../../common/logger/types.js';
 import { isLogLevelEnabled } from '../logger/logger.utils.js';
+import { HighlightSettingServiceImpl } from '../setting/highlight/highlight.service.js';
+import {
+  HighlightMatchType,
+  type HighlightSetting,
+} from '../setting/highlight/types.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { GameParserImpl } from './game.parser.js';
 import { GameSocketImpl } from './game.socket.js';
@@ -63,7 +73,41 @@ export class GameServiceImpl implements GameService {
     logger.info('connecting');
 
     const socketData$ = await this.socket.connect();
-    const gameEvents$ = this.parser.parse(socketData$);
+
+    const highlightService = new HighlightSettingServiceImpl({
+      filePath: path.join(
+        process.cwd(),
+        'electron',
+        'main',
+        'setting',
+        'highlight',
+        '__tests__',
+        'file.cfg'
+      ),
+    });
+    const highlights = await highlightService.load();
+
+    const gameEvents$ = this.parser.parse(socketData$).pipe(
+      rxjs.concatMap(async (gameEvent): Promise<GameEvent> => {
+        if (gameEvent.type !== GameEventType.TEXT) {
+          return gameEvent;
+        }
+        // TODO substitutions
+        // TODO ignores
+        // TODO triggers
+        // TODO highlights
+        // TODO emit as StyledTextGameEvent
+        const styledTextEvent: StyledTextGameEvent = {
+          eventId: gameEvent.eventId,
+          type: GameEventType.STYLED_TEXT,
+          text: gameEvent.text,
+          segments: applyHighlights(gameEvent.text, highlights),
+        };
+        logger.info('***', { styledTextEvent });
+        // return styledTextEvent;
+        return gameEvent;
+      })
+    );
 
     if (isLogLevelEnabled(LogLevel.TRACE)) {
       this.logGameStreams({
@@ -144,3 +188,180 @@ export class GameServiceImpl implements GameService {
     writeStreamToFile({ stream$: gameEvents$, filePath: eventLogPath });
   }
 }
+
+/**
+ * Apply multiple regex patterns to highlight a line of text.
+ */
+export const applyHighlights = (
+  text: string,
+  settings: Array<HighlightSetting>
+): Array<StyledTextSegment> => {
+  const matches: Array<StyledTextSegment> = [];
+
+  for (const setting of settings) {
+    console.log('setting', setting);
+
+    const { matchType, pattern } = setting;
+
+    if (matchType !== HighlightMatchType.REGEX) {
+      // TODO implement other match types
+      continue;
+    }
+
+    const settingMatches = getAllMatches({ text, pattern });
+    console.log('settingMatches', settingMatches);
+    matches.push(...settingMatches);
+  }
+
+  const sortedMatches = matches.sort((a, b) => a.start - b.start);
+
+  // Iterate the sorted matches, checking if the current entry starts within
+  // the previous entry. If yes, then split the previous entry into two such
+  // that the first part of the previous entry ends at the start of the current entry,
+  // and the second part of the previous entry starts at the end of the current entry.
+  // In this way, ensure that all entries never overlap.
+  //
+  // Example Input:
+  /*
+   *   [
+   *     { text: 'quick brown fox', start:  4, end:  19 },
+   *     { text: 'brown', start:  10, end:  15 },
+   *     { text: 'fox jumped', start: 16, 26 }
+   *   ]
+   */
+  // Example Output after Pass 1 because 'brown' starts within 'quick brown fox':
+  /*
+   *  [
+   *    { text: 'quick ', start: 4, end: 10 },
+   *    { text: 'brown', start: 10, end: 15 },
+   *    { text: ' fox', start: 15, end: 19 },
+   *    { text: 'fox jumped', start: 16, 26 }
+   *  ]
+   */
+  // Example Output after Pass 2 because 'fox jumped' overlaps with ' fox':
+  /*
+   *  [
+   *    { text: 'quick ', start: 4, end: 10 },
+   *    { text: 'brown', start: 10, end: 15 },
+   *    { text: ' ', start: 15, end: 16 },
+   *    { text: 'fox jumped', start: 16, 26 }
+   *  ]
+   */
+  for (let i = 1; i < sortedMatches.length; i += 1) {
+    const current = sortedMatches[i];
+    const previous = sortedMatches[i - 1];
+
+    if (current.start < previous.end) {
+      const firstPart: StyledTextSegment = {
+        text: previous.text.substring(0, current.start - previous.start),
+        start: previous.start,
+        end: current.start,
+      };
+      const secondPart: StyledTextSegment = {
+        text: previous.text.substring(current.start - previous.start),
+        start: current.start,
+        end: previous.end,
+      };
+      matches.splice(i - 1, 1, firstPart, secondPart);
+    }
+  }
+
+  // Process text into non-overlapping highlighted segments
+  const result: Array<StyledTextSegment> = [];
+
+  let index = 0;
+  for (const match of matches) {
+    if (index < match.start) {
+      result.push({
+        text: text.slice(index, match.start),
+        start: index,
+        end: match.start,
+      });
+    }
+    result.push(match);
+    index = match.end;
+  }
+
+  return result;
+};
+
+interface RegExpMatchResult {
+  /**
+   * The matched text.
+   */
+  text: string;
+  /**
+   * The start index of the match in the original text.
+   */
+  start: number;
+  /**
+   * The end index of the match in the original text.
+   */
+  end: number;
+}
+
+/**
+ * Executes a regex pattern against text then returns all the captured groups.
+ * Uses the 'd' and 'g' flags to include the `indices` property in the match.
+ *
+ * Example:
+ * ```
+ *   text: 'The quick brown fox'
+ *   pattern: 'The (quick) brown (fox)'
+ *   returns: [
+ *     { text: 'quick', start:  4, end:  9 },
+ *     { text: 'fox',   start: 16, end: 19 },
+ *   ]
+ * ```
+ */
+const getAllMatches = (options: {
+  /**
+   * The text to search for matches.
+   *
+   * Example: 'The quick brown fox'.
+   */
+  text: string;
+  /**
+   * A regular expression to match against the text.
+   * The flags `d` and `g` will be used.
+   *
+   * Example: 'The (quick) brown (fox)'.
+   */
+  pattern: string;
+}): Array<RegExpMatchResult> => {
+  const { text, pattern } = options;
+
+  console.log('get all matches', { text, pattern });
+
+  const results = new Array<RegExpMatchResult>();
+
+  // Since regexp objects maintain state, we don't accept them
+  // as an argument but rather instantiate a new one each time.
+  const regex = getCachedRegExp(pattern, 'dg');
+  regex.lastIndex = 0;
+
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    // The indices property will be defined because we used the 'd' flag.
+    // But typescript doesn't know that.
+    if (!match.indices) {
+      console.log('no indices', match);
+      continue;
+    }
+    for (let i = 1; i < match.indices.length; i += 1) {
+      const [start, end] = match.indices[i];
+      results.push({ text: match[i], start, end });
+    }
+  }
+
+  console.log('results', results);
+  return results;
+};
+
+const regexCache: { [key: string]: RegExp } = {};
+
+const getCachedRegExp = (pattern: string, flags: string): RegExp => {
+  const cacheKey = `${pattern}_${flags}`;
+  regexCache[cacheKey] ||= new RegExp(pattern, flags);
+  return regexCache[cacheKey];
+};

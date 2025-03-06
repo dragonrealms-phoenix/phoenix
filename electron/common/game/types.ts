@@ -60,6 +60,7 @@ export const GameCodeMetaMap: Record<GameCode, GameCodeMeta> = {
  * Events emitted by the game parser of data received from the game socket.
  */
 export type GameEvent =
+  | StyledTextGameEvent
   | TextGameEvent
   | PushBoldGameEvent
   | PopBoldGameEvent
@@ -91,9 +92,55 @@ export interface GameEventBase {
 }
 
 /**
+ * Indicates text to display to the player, and
+ * how substrings of the text should be styled.
+ * This event was introduced to support highlight settings.
+ *
+ * Note that previous game events may indicate how the
+ * text should be styled (e.g. font) and to which window to display it.
+ */
+export interface StyledTextGameEvent extends GameEventBase {
+  type: GameEventType.STYLED_TEXT;
+  /**
+   * The entire line of text, unstyled.
+   * Same value that would be emitted with a {@link TextGameEvent}.
+   */
+  text: string;
+  /**
+   * Segments of the line of text annotated with style information.
+   */
+  segments: Array<StyledTextSegment>;
+}
+
+export interface StyledTextSegment {
+  /**
+   * The segment of text to style.
+   * This is a substring between the start and end indices
+   * of the entire line of text.
+   */
+  text: string;
+  /**
+   * The start index of the styled segment of text.
+   */
+  start: number;
+  /**
+   * The end index of the styled segment of text.
+   */
+  end: number;
+  /**
+   * The font color to apply to the styled segment of text.
+   */
+  fgColor?: string;
+  /**
+   * The background color to apply to the styled segment of text.
+   */
+  bgColor?: string;
+}
+
+/**
  * Indicates text to display to the player.
  * Note that previous game events may indicate how the
- * text should be styled and to which window to display it.
+ * text should be styled (e.g. font) and to which window to display it.
  */
 export interface TextGameEvent extends GameEventBase {
   type: GameEventType.TEXT;
@@ -260,6 +307,11 @@ export interface CastTimeGameEvent extends GameEventBase {
 }
 
 export enum GameEventType {
+  /**
+   * A super type of TEXT where segments of the line of text
+   * are annotated with style information, such as font color.
+   */
+  STYLED_TEXT = 'STYLED_TEXT',
   /**
    * Text to display to the player.
    */
