@@ -1,10 +1,11 @@
 import path from 'node:path';
-import process from 'node:process';
-import { afterEach, beforeEach, describe, it, vi } from 'vitest';
-import type { StyledTextSegment } from '../../../../common/game/types.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HighlightSettingServiceImpl } from '../highlight.service.js';
-import type { HighlightSetting, HighlightSettingService } from '../types.js';
-import { HighlightMatchType } from '../types.js';
+import {
+  HighlightMatchType,
+  type HighlightSetting,
+  type HighlightSettingService,
+} from '../types.js';
 
 vi.mock('../../../logger/logger.factory.ts');
 
@@ -13,15 +14,7 @@ describe('highlight-service', () => {
 
   beforeEach(() => {
     highlightService = new HighlightSettingServiceImpl({
-      filePath: path.join(
-        process.cwd(),
-        'electron',
-        'main',
-        'setting',
-        'highlight',
-        '__tests__',
-        'file.cfg'
-      ),
+      filePath: path.join(__dirname, 'file.cfg'),
     });
   });
 
@@ -35,250 +28,79 @@ describe('highlight-service', () => {
     it('should load highlights from file', async () => {
       const highlights = await highlightService.load();
 
-      /**
-       * Apply multiple regex patterns to highlight only captured groups in a line of text.
-       */
-      const applyHighlights = (
-        text: string,
-        patterns: Array<HighlightSetting>
-      ): Array<StyledTextSegment> => {
-        const matches: Array<StyledTextSegment> = [];
+      expect(highlights.length).toBe(8);
 
-        // Collect matches for only the captured groups using `match.indices`
-        for (const pattern of patterns) {
-          const { matchType } = pattern;
-          if (matchType !== HighlightMatchType.REGEX) {
-            continue;
-          }
-          const regex = new RegExp(pattern.pattern, 'dg');
-          let match: RegExpExecArray | null;
-          while ((match = regex.exec(text)) !== null) {
-            if (match.indices) {
-              for (let i = 1; i < match.indices.length; i += 1) {
-                const [start, end] = match.indices[i];
-                matches.push({
-                  text: text.slice(start, end),
-                  start,
-                  end,
-                  fgColor: pattern.fgColor,
-                  bgColor: pattern.bgColor,
-                });
-              }
-            }
-          }
-        }
-
-        // Sort matches by start index
-        matches.sort((a, b) => a.start - b.start);
-
-        // Process text into non-overlapping highlighted segments
-        const result: Array<StyledTextSegment> = [];
-        let currentIndex = 0;
-
-        for (const { start, end, fgColor, bgColor } of matches) {
-          if (start >= currentIndex) {
-            // Add unstyled text before the match
-            if (start > currentIndex) {
-              result.push({
-                text: text.slice(currentIndex, start),
-                start: currentIndex,
-                end: start,
-              });
-            }
-            // Add highlighted text
-            result.push({
-              text: text.slice(start, end),
-              start,
-              end,
-              fgColor,
-              bgColor,
-            });
-            currentIndex = end;
-          }
-        }
-
-        // Add remaining unstyled text
-        if (currentIndex < text.length) {
-          result.push({
-            text: text.slice(currentIndex),
-            start: currentIndex,
-            end: text.length,
-          });
-        }
-
-        return result;
+      const highlight0: HighlightSetting = {
+        matchType: HighlightMatchType.CONTAINS,
+        pattern: 'pattern 0',
+        fgColor: 'fg0',
+        bgColor: '',
+        className: 'class 0',
       };
+      expect(highlights[0]).toEqual(highlight0);
 
-      // Example usage
-      const text =
-        "You compare your assassin's blade with the iron yardstick several times and are certain the length measures ten spans, the width measures one span and the height measures one span.\n";
-
-      const highlightedText = applyHighlights(text, highlights);
-      console.log(highlightedText);
-    });
-
-    it.only('chatgpt', async () => {
-      type Highlight = {
-        text: string;
-        start: number;
-        end: number;
-        color: string;
+      const highlight1: HighlightSetting = {
+        matchType: HighlightMatchType.CONTAINS,
+        pattern: 'pattern 1',
+        fgColor: 'fg1',
+        bgColor: 'bg1',
+        className: 'class 1',
       };
+      expect(highlights[1]).toEqual(highlight1);
 
-      type StyledSegment = {
-        text: string;
-        start: number;
-        end: number;
-        color: string;
+      const highlight2: HighlightSetting = {
+        matchType: HighlightMatchType.STARTS,
+        pattern: 'pattern 2',
+        fgColor: 'fg2',
+        bgColor: '',
+        className: 'class 2',
       };
+      expect(highlights[2]).toEqual(highlight2);
 
-      function buildSegments(
-        text: string,
-        patterns: Array<{ regex: RegExp; color: string }>
-      ): Array<StyledSegment> {
-        const matches: Array<Highlight> = [];
+      const highlight3: HighlightSetting = {
+        matchType: HighlightMatchType.STARTS,
+        pattern: 'pattern 3',
+        fgColor: 'fg3',
+        bgColor: 'bg3',
+        className: 'class 3',
+      };
+      expect(highlights[3]).toEqual(highlight3);
 
-        for (const pattern of patterns) {
-          const color = pattern.color;
-          const regex = pattern.regex;
-          let match: RegExpExecArray | null;
-          while ((match = regex.exec(text)) !== null) {
-            if (match.indices) {
-              for (let i = 1; i < match.indices.length; i += 1) {
-                const [start, end] = match.indices[i] || [];
-                if (start !== undefined && end !== undefined) {
-                  matches.push({ text: match[i], start, end, color });
-                }
-              }
-            }
-          }
-        }
+      const highlight4: HighlightSetting = {
+        matchType: HighlightMatchType.REGEX,
+        pattern: 'pattern 4',
+        fgColor: 'fg4',
+        bgColor: '',
+        className: 'class 4',
+      };
+      expect(highlights[4]).toEqual(highlight4);
 
-        matches.sort((a, b) => a.start - b.start || a.end - b.end);
+      const highlight5: HighlightSetting = {
+        matchType: HighlightMatchType.REGEX,
+        pattern: 'pattern 5',
+        fgColor: 'fg5',
+        bgColor: 'bg5',
+        className: 'class 5',
+      };
+      expect(highlights[5]).toEqual(highlight5);
 
-        const result: Array<StyledSegment> = [];
-        let currentIndex = 0;
+      const highlight6: HighlightSetting = {
+        matchType: HighlightMatchType.EXACT,
+        pattern: 'pattern 6',
+        fgColor: 'fg6',
+        bgColor: '',
+        className: 'class 6',
+      };
+      expect(highlights[6]).toEqual(highlight6);
 
-        for (const { start, end, color } of matches) {
-          if (start > currentIndex) {
-            result.push({
-              text: text.slice(currentIndex, start),
-              start: currentIndex,
-              end: start,
-              color: '',
-            });
-          }
-
-          if (result.length > 0 && result[result.length - 1].end > start) {
-            const lastSegment = result.pop()!;
-            if (lastSegment.start < start) {
-              result.push({
-                text: text.slice(lastSegment.start, start),
-                start: lastSegment.start,
-                end: start,
-                color: lastSegment.color,
-              });
-            }
-            result.push({
-              text: text.slice(start, end),
-              start,
-              end,
-              color,
-            });
-            if (end < lastSegment.end) {
-              result.push({
-                text: text.slice(end, lastSegment.end),
-                start: end,
-                end: lastSegment.end,
-                color: lastSegment.color,
-              });
-            }
-          } else {
-            result.push({
-              text: text.slice(start, end),
-              start,
-              end,
-              color,
-            });
-          }
-
-          currentIndex = end;
-        }
-
-        if (currentIndex < text.length) {
-          result.push({
-            text: text.slice(currentIndex),
-            start: currentIndex,
-            end: text.length,
-            color: '',
-          });
-        }
-
-        return result;
-      }
-
-      // Example usage
-      const text = 'certain the length measures ten spans';
-      const patterns = [
-        {
-          regex: /((?:length|width|height) measures (?:[\w\s-]+?) spans?)/dg,
-          color: 'red',
-        },
-        {
-          regex: /measures ([\w\s-]+?) span/dg,
-          color: 'blue',
-        },
-      ];
-
-      console.log(text);
-      const highlightedText = buildSegments(text, patterns);
-      console.log(highlightedText);
+      const highlight7: HighlightSetting = {
+        matchType: HighlightMatchType.EXACT,
+        pattern: 'pattern 7',
+        fgColor: 'fg7',
+        bgColor: 'bg7',
+        className: 'class 7',
+      };
+      expect(highlights[7]).toEqual(highlight7);
     });
   });
 });
-/*
-
-  line = "certain the length measures ten spans, the width measures one span and the height measures one span.\n"
-
-  matchesByStart = [
-    { start: 12, end: 37, fgColor, bgColor, "length measures ten spans" },
-    { start: 28, end: 31, fgColor, bgColor, "ten" },
-  ]
-
-  matchesByEnd = [
-    { start: 28, end: 31, fgColor, bgColor, "ten" },
-    { start: 12, end: 37, fgColor, bgColor, "length measures ten spans" },
-  ]
-
-  results = []
-  tagStack = []
-  currentIndex = 0
-  currMatch = nil
-  prevMatch = nil
-
-  for (const i = 0; i < matches.length; i += 1) {
-    prevMatch = matches[i-1];
-    currMatch = matches[i];
-
-    if (!prevMatch) {
-      if (currMatch.start >= currentIndex) {
-        if (currMatch.start > currentIndex) {
-          results.push(line.slice(currentIndex, currMatch.start))
-        }
-        tagStack.push(match)
-        results.push(line.slice(currMatch.start, currMatch.end))
-      }
-    }
-
-
-  }
-
-  //--
-  certain the length measures ten spans, the width measures one span and the height measures one span.\n
-
-  quick sly fox jumps
-  quick <span style="color:red">sly fox</span> jumps
-  quick <span style="color:red">sly <span style="color:blue">fox jumps</span></span>
-  //--
-
-*/

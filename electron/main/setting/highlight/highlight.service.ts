@@ -10,14 +10,14 @@ import {
 } from './types.js';
 
 // I fully appreciate the irony of using regex to parse regex.
-// https://regex101.com/r/kxnr6j/1
-const TYPE_REGEX = /{(?<type>\w+)}/;
-const COLOR_REGEX = /{(?<fgColor>[#\w]+)(?:\s*,\s*(?<bgColor>[#\w]+))?}/;
+// https://regex101.com/r/J18f91/1
+const TYPE_REGEX = /{(?<type>.+?)}/;
+const COLOR_REGEX = /{(?<fgColor>.+?)(?:\s*,\s*(?<bgColor>.+?))?}/;
 const PATTERN_REGEX = /{(?<pattern>.+?)}/;
-const CLASS_REGEX = /{(?<className>\w+)}/;
+const CLASS_REGEX = /{(?<className>.+?)}/;
 
 const HIGHLIGHT_REGEX = new RegExp(
-  `#highlight\\s*${TYPE_REGEX.source}\\s*${COLOR_REGEX.source}\\s*${PATTERN_REGEX.source}\\s*(?:${CLASS_REGEX.source})?$`
+  `^#highlight\\s*${TYPE_REGEX.source}\\s*${COLOR_REGEX.source}\\s*${PATTERN_REGEX.source}\\s*(?:${CLASS_REGEX.source})?$`
 );
 
 export class HighlightSettingServiceImpl implements HighlightSettingService {
@@ -103,10 +103,10 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
 
     const highlight: HighlightSetting = {
       matchType: this.parseMatchType({ type: match.groups.type }),
-      pattern: match.groups.pattern,
-      fgColor: match.groups.fgColor,
-      bgColor: match.groups.bgColor,
-      className: match.groups.className,
+      pattern: match.groups.pattern ?? '',
+      fgColor: match.groups.fgColor ?? '',
+      bgColor: match.groups.bgColor ?? '',
+      className: match.groups.className ?? '',
     };
 
     return highlight;
