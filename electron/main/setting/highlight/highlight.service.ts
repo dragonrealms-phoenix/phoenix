@@ -21,23 +21,34 @@ const HIGHLIGHT_REGEX = new RegExp(
 );
 
 export class HighlightSettingServiceImpl implements HighlightSettingService {
-  private filePath: string;
   private highlights: Array<HighlightSetting>;
 
-  constructor(options: { filePath: string }) {
-    this.filePath = options.filePath;
+  constructor() {
     this.highlights = [];
   }
 
-  public getHighlights(): Array<HighlightSetting> {
+  public get(): Array<HighlightSetting> {
     return this.highlights;
   }
 
-  public async load(): Promise<Array<HighlightSetting>> {
-    const filePath = this.filePath;
-    logger.debug('loading highlights file', { filePath });
-    this.highlights = await this.parseFile({ filePath });
-    return this.highlights;
+  public async load(options: {
+    filePath: string;
+    mode?: 'append' | 'replace';
+  }): Promise<void> {
+    const { filePath, mode = 'append' } = options;
+
+    logger.debug('loading highlights file', { filePath, mode });
+
+    if (mode === 'replace') {
+      this.clear();
+    }
+
+    const parsedHighlights = await this.parseFile({ filePath });
+    this.highlights.push(...parsedHighlights);
+  }
+
+  public clear(): void {
+    this.highlights = [];
   }
 
   protected async parseFile(options: {
@@ -54,7 +65,7 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
 
     try {
       const highlights = await parseLines<HighlightSetting>({
-        readStream: fs.createReadStream(this.filePath, 'utf8'),
+        readStream: fs.createReadStream(filePath, 'utf8'),
         parse: (line) => this.parseLine({ line }),
       });
       logger.debug('done parsing highlights file', {

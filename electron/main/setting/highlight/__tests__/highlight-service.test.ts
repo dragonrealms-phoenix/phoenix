@@ -13,9 +13,7 @@ describe('highlight-service', () => {
   let highlightService: HighlightSettingService;
 
   beforeEach(() => {
-    highlightService = new HighlightSettingServiceImpl({
-      filePath: path.join(__dirname, 'file.cfg'),
-    });
+    highlightService = new HighlightSettingServiceImpl();
   });
 
   afterEach(() => {
@@ -24,9 +22,31 @@ describe('highlight-service', () => {
     vi.useRealTimers();
   });
 
+  describe('#get', () => {
+    it('should return empty highlights', () => {
+      const highlights = highlightService.get();
+
+      expect(highlights.length).toBe(0);
+    });
+
+    it('should return loaded highlights', async () => {
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const highlights = highlightService.get();
+
+      expect(highlights.length).not.toBe(0);
+    });
+  });
+
   describe('#load', () => {
-    it('should load highlights from file', async () => {
-      const highlights = await highlightService.load();
+    it('should parse highlights from file', async () => {
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const highlights = highlightService.get();
 
       expect(highlights.length).toBe(8);
 
@@ -101,6 +121,50 @@ describe('highlight-service', () => {
         className: 'class 7',
       };
       expect(highlights[7]).toEqual(highlight7);
+    });
+
+    it('should append to previously loaded highlights', async () => {
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      expect(highlightService.get().length).toBe(8);
+
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+        mode: 'append',
+      });
+
+      expect(highlightService.get().length).toBe(16);
+    });
+
+    it('should replace previously loaded highlights', async () => {
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      expect(highlightService.get().length).toBe(8);
+
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+        mode: 'replace',
+      });
+
+      expect(highlightService.get().length).toBe(8);
+    });
+  });
+
+  describe('#clear', () => {
+    it('should clear highlights', async () => {
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      highlightService.clear();
+
+      const highlights = highlightService.get();
+
+      expect(highlights.length).toBe(0);
     });
   });
 });
