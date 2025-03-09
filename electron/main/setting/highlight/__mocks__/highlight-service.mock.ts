@@ -12,6 +12,6 @@ export class HighlightSettingServiceMockImpl
   }
 
   get = vi.fn<HighlightSettingService['get']>();
-  load = vi.fn<HighlightSettingService['load']>();
   clear = vi.fn<HighlightSettingService['clear']>();
+  load = vi.fn<HighlightSettingService['load']>();
 }

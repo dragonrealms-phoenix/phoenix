@@ -31,6 +31,10 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
     return this.highlights;
   }
 
+  public clear(): void {
+    this.highlights = [];
+  }
+
   public async load(options: {
     filePath: string;
     mode?: 'append' | 'replace';
@@ -45,10 +49,6 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
 
     const parsedHighlights = await this.parseFile({ filePath });
     this.highlights.push(...parsedHighlights);
-  }
-
-  public clear(): void {
-    this.highlights = [];
   }
 
   protected async parseFile(options: {

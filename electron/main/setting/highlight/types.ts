@@ -68,6 +68,12 @@ export interface HighlightSettingService {
   get(): Array<HighlightSetting>;
 
   /**
+   * Remove all loaded settings from memory.
+   * To load new settings, call {@link load}.
+   */
+  clear(): void;
+
+  /**
    * Load settings from file path.
    * Can be configured to append to or replace the settings in memory.
    * To get all the loaded settings, call {@link get}.
@@ -84,10 +90,4 @@ export interface HighlightSettingService {
      */
     mode?: 'append' | 'replace';
   }): Promise<void>;
-
-  /**
-   * Remove all loaded settings from memory.
-   * To load new settings, call {@link load}.
-   */
-  clear(): void;
 }
