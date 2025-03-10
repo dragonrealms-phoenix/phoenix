@@ -9,35 +9,6 @@ export interface GameStreamTextProps {
   style?: GameStreamStyle;
 }
 
-const ignores = [/^(xObvious exits:).*$/];
-
-const substitutions = [
-  {
-    regex: /exchanges ((a few|some) words)/,
-    replacement: 'growls $1',
-  },
-];
-
-const highlights = [
-  {
-    regex: /^((Obvious exits:|Obvious paths:).+)$/,
-    color: '#FFD200',
-  },
-  {
-    regex: /(^(Also here:)|^(Also in the room:)|(\bYou also see ).*)/,
-    color: '#FF6347',
-  },
-  {
-    regex:
-      /(([\s\w-']*) (asks|exclaims|says|thinks|yells|swears|signs|gurgles|declares|announces|responds|states|hisses|belts out)( to)?([\s\w-']*), )["']/,
-    color: '#00DF00',
-  },
-  {
-    regex: /^(\[?(Roundtime|Round time).*)$/,
-    color: '#FF6600',
-  },
-];
-
 /**
  * We memoize the component per the event id because the log lines
  * are effectively immutable. This prevents unnecessary re-renders.
@@ -112,49 +83,47 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
       return textStyles;
     }, [euiTheme, defaultStyles, logLine.style]);
 
-    const richText = useMemo(() => {
-      let lines = logLine.text.split('\n');
+    // We use `dangerouslySetInnerHTML` because the text may contain tags.
+    // For example, <b> or <a> tags for monsterbold and links.
+    // Otherwise those tags are escaped.
+    const textNode = useMemo(() => {
+      const nodeSegments = new Array<ReactNode>();
 
-      // TODO apply ignores
-      lines = lines.filter((line) => {
-        return !ignores.some((regex) => regex.test(line));
-      });
+      const textSegments = logLine.segments ?? [
+        {
+          text: logLine.text,
+          start: 0,
+          end: logLine.text.length,
+          backgroundColor: '',
+          foregroundColor: '',
+        },
+      ];
 
-      // TODO apply substitutions
-      substitutions.forEach(({ regex, replacement }) => {
-        lines = lines.map((line) => {
-          return line.replace(regex, replacement);
+      for (let i = 0; i < textSegments.length; i += 1) {
+        const segment = textSegments[i];
+
+        const segmentStyles = css({
+          color: segment.foregroundColor || 'inherit',
+          backgroundColor: segment.backgroundColor || 'inherit',
         });
-      });
 
-      // TODO apply highlights
-      highlights.forEach(({ regex, color }) => {
-        lines = lines.map((line) => {
-          const match = line.match(regex);
+        nodeSegments.push(
+          <span
+            key={i}
+            css={segmentStyles}
+            dangerouslySetInnerHTML={{ __html: segment.text }}
+          />
+        );
+      }
 
-          if (!match) {
-            return line;
-          }
+      return (
+        <EuiText id={logLine.eventId} css={textStyles}>
+          {nodeSegments}
+        </EuiText>
+      );
+    }, [logLine, textStyles]);
 
-          return line.replace(
-            match[1],
-            `<span style="color: ${color};">${match[1]}</span>`
-          );
-        });
-      });
-
-      return lines.join('\n');
-    }, [logLine.text]);
-
-    // We output the text using inner html because the text may contain tags.
-    // For example, tags to highlight a single word or phrases.
-    // If we output as `{logLine.text}` then those tags are escaped.
-
-    return (
-      <EuiText id={logLine.eventId} css={textStyles}>
-        <span dangerouslySetInnerHTML={{ __html: logLine.text }} />
-      </EuiText>
-    );
+    return textNode;
   },
   (oldProps, newProps) => {
     // Component will only rerender when this method returns false.

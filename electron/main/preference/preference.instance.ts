@@ -7,6 +7,11 @@ import { PreferenceServiceImpl } from './preference.service.js';
 // easy anywhere in the app to get/set preference values.
 export const Preferences = new PreferenceServiceImpl({
   cacheService: new DiskCacheServiceImpl({
-    filePath: path.join(app.getPath('userData'), 'preferences.json'),
+    filePath: path.join(
+      app.getPath('userData'),
+      'phoenix',
+      'config',
+      'preferences.json'
+    ),
   }),
 });

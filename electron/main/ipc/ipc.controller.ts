@@ -3,6 +3,7 @@ import { toUpperSnakeCase } from '../../common/string/string.utils.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
 import type { LayoutService } from '../layout/types.js';
+import type { SettingService } from '../setting/types.js';
 import { deleteLayoutHandler } from './handlers/delete-layout.js';
 import { getLayoutHandler } from './handlers/get-layout.js';
 import { listAccountsHandler } from './handlers/list-accounts.js';
@@ -28,16 +29,19 @@ import type {
 export class IpcController {
   private dispatch: IpcDispatcher;
   private accountService: AccountService;
+  private settingService: SettingService;
   private layoutService: LayoutService;
   private handlerRegistry: IpcHandlerRegistry;
 
   constructor(options: {
     dispatch: IpcDispatcher;
     accountService: AccountService;
+    settingService: SettingService;
     layoutService: LayoutService;
   }) {
     this.dispatch = options.dispatch;
     this.accountService = options.accountService;
+    this.settingService = options.settingService;
     this.layoutService = options.layoutService;
     this.handlerRegistry = this.createHandlerRegistry();
     this.registerHandlers(this.handlerRegistry);
@@ -91,6 +95,7 @@ export class IpcController {
       playCharacter: playCharacterHandler({
         dispatch: this.dispatch,
         accountService: this.accountService,
+        settingService: this.settingService,
       }),
 
       quitCharacter: quitCharacterHandler({

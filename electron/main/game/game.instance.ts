@@ -1,4 +1,5 @@
 import type { Maybe } from '../../common/types.js';
+import type { SettingService } from '../setting/types.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { GameServiceImpl } from './game.service.js';
 import { gameInstanceLogger as logger } from './logger.js';
@@ -22,14 +23,22 @@ export const Game = {
    */
   newInstance: async (options: {
     credentials: SGEGameCredentials;
+    settingService: SettingService;
   }): Promise<GameService> => {
-    const { credentials } = options;
+    const { credentials, settingService } = options;
+
     if (gameInstance) {
       logger.info('disconnecting from existing game instance');
       await gameInstance.disconnect();
     }
+
     logger.info('creating new game instance');
-    gameInstance = new GameServiceImpl({ credentials });
+
+    gameInstance = new GameServiceImpl({
+      credentials,
+      settingService,
+    });
+
     return gameInstance;
   },
 

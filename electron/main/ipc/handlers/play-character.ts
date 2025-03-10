@@ -3,6 +3,7 @@ import { Game } from '../../game/game.instance.js';
 import { startLichProcess } from '../../lich/start-process.js';
 import { Preferences } from '../../preference/preference.instance.js';
 import { PreferenceKey } from '../../preference/types.js';
+import type { SettingService } from '../../setting/types.js';
 import { SGEServiceImpl } from '../../sge/sge.service.js';
 import { logger } from '../logger.js';
 import type { IpcDispatcher, IpcInvokeHandler } from '../types.js';
@@ -10,8 +11,9 @@ import type { IpcDispatcher, IpcInvokeHandler } from '../types.js';
 export const playCharacterHandler = (options: {
   dispatch: IpcDispatcher;
   accountService: AccountService;
+  settingService: SettingService;
 }): IpcInvokeHandler<'playCharacter'> => {
-  const { dispatch, accountService } = options;
+  const { dispatch, accountService, settingService } = options;
 
   return async (args): Promise<void> => {
     const { accountName, characterName, gameCode } = args[0];
@@ -32,6 +34,10 @@ export const playCharacterHandler = (options: {
       );
     }
 
+    settingService.clear();
+    await settingService.load({ profileName: 'default' });
+    await settingService.load({ profileName: characterName });
+
     const sgeService = new SGEServiceImpl({
       gameCode,
       username: account.accountName,
@@ -46,7 +52,11 @@ export const playCharacterHandler = (options: {
       credentials.port = port;
     }
 
-    const gameInstance = await Game.newInstance({ credentials });
+    const gameInstance = await Game.newInstance({
+      credentials,
+      settingService,
+    });
+
     const gameEvents$ = await gameInstance.connect();
 
     dispatch('game:connect', {

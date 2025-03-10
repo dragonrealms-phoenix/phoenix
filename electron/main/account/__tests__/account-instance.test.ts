@@ -51,7 +51,7 @@ describe('account-instance', () => {
     expect(Accounts).toBeInstanceOf(AccountServiceImpl);
 
     expect(mockCacheServiceConstructorSpy).toHaveBeenCalledWith({
-      filePath: 'userData/accounts.json',
+      filePath: 'userData/phoenix/config/accounts.json',
     });
   });
 });

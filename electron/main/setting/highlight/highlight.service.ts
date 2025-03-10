@@ -1,13 +1,11 @@
-import type { Maybe } from 'common/types';
 import fs from 'fs-extra';
+import type { HighlightSetting } from '../../../common/setting/types.js';
+import { HighlightMatchType } from '../../../common/setting/types.js';
 import { isBlank } from '../../../common/string/string.utils.js';
+import type { Maybe } from '../../../common/types.js';
 import { parseLines } from '../setting.utils.js';
 import { logger } from './logger.js';
-import {
-  HighlightMatchType,
-  type HighlightSetting,
-  type HighlightSettingService,
-} from './types.js';
+import type { HighlightSettingService } from './types.js';
 
 // I fully appreciate the irony of using regex to parse regex.
 // https://regex101.com/r/J18f91/1
@@ -59,7 +57,7 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
     logger.debug('parsing highlights file', { filePath });
 
     if (!fs.pathExistsSync(filePath)) {
-      logger.warn('highlights file not found, skipping', { filePath });
+      logger.debug('highlights file not found, skipping', { filePath });
       return [];
     }
 
@@ -115,8 +113,8 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
     const highlight: HighlightSetting = {
       matchType: this.parseMatchType({ type: match.groups.type }),
       pattern: match.groups.pattern ?? '',
-      fgColor: match.groups.fgColor ?? '',
-      bgColor: match.groups.bgColor ?? '',
+      foregroundColor: match.groups.fgColor ?? '',
+      backgroundColor: match.groups.bgColor ?? '',
       className: match.groups.className ?? '',
     };
 

@@ -1,3 +1,5 @@
+import type { HighlightedTextSegment } from '../setting/types.js';
+
 /**
  * Simutronics has multiple games and instances per game.
  * Only interested in DragonRealms, though.
@@ -109,32 +111,7 @@ export interface StyledTextGameEvent extends GameEventBase {
   /**
    * Segments of the line of text annotated with style information.
    */
-  segments: Array<StyledTextSegment>;
-}
-
-export interface StyledTextSegment {
-  /**
-   * The segment of text to style.
-   * This is a substring between the start and end indices
-   * of the entire line of text.
-   */
-  text: string;
-  /**
-   * The start index of the styled segment of text.
-   */
-  start: number;
-  /**
-   * The end index of the styled segment of text.
-   */
-  end: number;
-  /**
-   * The font color to apply to the styled segment of text.
-   */
-  fgColor?: string;
-  /**
-   * The background color to apply to the styled segment of text.
-   */
-  bgColor?: string;
+  segments: Array<HighlightedTextSegment>;
 }
 
 /**

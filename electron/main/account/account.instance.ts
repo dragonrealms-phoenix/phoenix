@@ -7,6 +7,11 @@ import { AccountServiceImpl } from './account.service.js';
 // easy anywhere in the app to manage accounts and characters.
 export const Accounts = new AccountServiceImpl({
   cacheService: new DiskCacheServiceImpl({
-    filePath: path.join(app.getPath('userData'), 'accounts.json'),
+    filePath: path.join(
+      app.getPath('userData'),
+      'phoenix',
+      'config',
+      'accounts.json'
+    ),
   }),
 });

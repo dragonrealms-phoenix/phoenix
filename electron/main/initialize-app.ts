@@ -14,6 +14,7 @@ import { getLogLevel } from './logger/logger.utils.js';
 import { initializeMenu } from './menu/menu.js';
 import { Preferences } from './preference/preference.instance.js';
 import { PreferenceKey } from './preference/types.js';
+import { Settings } from './setting/setting.instance.js';
 
 export const initializeApp = async (): Promise<void> => {
   const logger = getScopedLogger('main:app');
@@ -153,6 +154,7 @@ export const initializeApp = async (): Promise<void> => {
     ipcController = new IpcController({
       dispatch,
       accountService: Accounts,
+      settingService: Settings,
       layoutService: Layouts,
     });
 
