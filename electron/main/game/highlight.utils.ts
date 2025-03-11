@@ -1,3 +1,4 @@
+import RegExpEscape from 'regexp.escape';
 import {
   filterToMinimalCompleteMatches,
   getAllMatches,
@@ -24,11 +25,34 @@ export const applyHighlights = (options: {
     let segments = new Array<HighlightedTextSegment>();
 
     for (const highlight of highlights) {
-      const { matchType, pattern } = highlight;
+      const { matchType } = highlight;
 
-      if (matchType !== HighlightMatchType.REGEX) {
-        // TODO implement other match types
-        continue;
+      let pattern = highlight.pattern;
+
+      // TODO cache the escaped patterns for performance
+      // TODO consider doing that when load highlights from file,
+      //      then this code wouldn't care about match type but
+      //      rather just use the regex property on the setting?
+      switch (matchType) {
+        case HighlightMatchType.EXACT: {
+          pattern = '^(' + RegExpEscape(pattern) + ')$';
+          break;
+        }
+
+        case HighlightMatchType.STARTS: {
+          pattern = '^(' + RegExpEscape(pattern) + '.*?)$';
+          break;
+        }
+
+        case HighlightMatchType.CONTAINS: {
+          pattern = '^(.*?' + RegExpEscape(pattern) + '.*?)$';
+          break;
+        }
+
+        case HighlightMatchType.REGEX: {
+          pattern = highlight.pattern;
+          break;
+        }
       }
 
       const matches = filterToMinimalCompleteMatches(
