@@ -142,6 +142,17 @@ export class GameParserImpl implements GameParser {
   private activeTags: Array<Tag>;
 
   /**
+   * When the game wants to bold some text, it doesn't use <b> tags.
+   * Instead, it uses <pushBold/> and <popBold/> tags.
+   * However, the XML tags may not come paired on the same line.
+   * Sometimes a <pushBold/> tag appears one or more lines before a <popBold/> tag.
+   * To help distinguish between inline text styles and game text styles,
+   * we track the state of the bold tag so we know when we should emit
+   * push/pop bold events vs. embedding <b> tags to the text we emit.
+   */
+  private boldTagActive: boolean;
+
+  /**
    * When parsing a <compass> tag, these are the directions we find.
    * Example: `<compass><dir value="e"/><dir value="sw"/></compass>`
    */
@@ -167,6 +178,7 @@ export class GameParserImpl implements GameParser {
     this.gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     this.activeTags = [];
     this.compassDirections = [];
+    this.boldTagActive = false;
     this.gameText = '';
     this.promptText = Preferences.get(PreferenceKey.GAME_WINDOW_PROMPT);
   }
@@ -314,8 +326,10 @@ export class GameParserImpl implements GameParser {
             attributes[name] = value;
           });
 
+          const remaining = startTagSliceResult.remaining;
+
           logger.trace('parsed start tag', { tagName, attributes });
-          this.processTagStart(tagName, attributes);
+          this.processTagStart({ tagName, attributes, remaining });
 
           if (tag.endsWith('/>')) {
             this.processTagEnd();
@@ -427,10 +441,17 @@ export class GameParserImpl implements GameParser {
     }
   }
 
-  protected processTagStart(
-    tagName: string,
-    attributes: Record<string, string>
-  ): void {
+  protected processTagStart(options: {
+    tagName: string;
+    attributes: Record<string, string>;
+    /**
+     * The remaining line of text that appears after this tag.
+     * It does not contain any text prior to the tag.
+     */
+    remaining: string;
+  }): void {
+    const { tagName, attributes, remaining } = options;
+
     logger.trace('processing tag start', { tagName, attributes });
 
     this.activeTags.push({
@@ -445,22 +466,26 @@ export class GameParserImpl implements GameParser {
         break;
       case 'pushBold': // <pushBold/>
         // If this is nested inside text then it is an inline text style.
-        // For example, emphasizing a person's name.
+        // For example, emphasizing a person's name or a shop label.
         // "You also see <pushBold />a town guard<popBold />."
+        // "<pushBold/>Worn:  <popBold/>Generally worn."
         // Otherwise emit a game event to turn on bold text.
-        if (this.gameText.length > 0) {
+        if (remaining.includes('<popBold/>')) {
           this.gameText += '<b>';
+          this.boldTagActive = true;
         } else {
           this.emitPushBoldGameEvent();
         }
         break;
       case 'popBold': // <popBold/>
         // If this is nested inside text then it is an inline text style.
-        // For example, emphasizing a person's name.
+        // For example, emphasizing a person's name or a shop label.
         // "You also see <pushBold />a town guard<popBold />."
+        // "<pushBold/>Worn:  <popBold/>Generally worn."
         // Otherwise emit a game event to turn off bold text.
-        if (this.gameText.length > 0) {
+        if (this.boldTagActive) {
           this.gameText += '</b>';
+          this.boldTagActive = false;
         } else {
           this.emitPopBoldGameEvent();
         }
