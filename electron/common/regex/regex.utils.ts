@@ -95,7 +95,7 @@ export const getAllMatches = (options: {
    * A regular expression to match against the text.
    * The flags `d` and `g` will be used.
    *
-   * Example: 'The (quick) brown (fox)'.
+   * Example: '^The (quick) brown (fox)'.
    */
   pattern: string;
 }): Array<RegExpMatchResult> => {

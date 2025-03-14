@@ -10,11 +10,11 @@ import type {
 import { GameEventType } from '../../common/game/types.js';
 import { LogLevel } from '../../common/logger/types.js';
 import { isLogLevelEnabled } from '../logger/logger.utils.js';
+import { applyHighlights } from '../setting/highlight/highlight.utils.js';
 import type { SettingService } from '../setting/types.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { GameParserImpl } from './game.parser.js';
 import { GameSocketImpl } from './game.socket.js';
-import { applyHighlights } from './highlight.utils.js';
 import { gameServiceLogger as logger } from './logger.js';
 import type { GameParser, GameService, GameSocket } from './types.js';
 

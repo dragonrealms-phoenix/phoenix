@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import type { HighlightSetting } from '../../../common/setting/types.js';
-import { HighlightMatchType } from '../../../common/setting/types.js';
 import { isBlank } from '../../../common/string/string.utils.js';
 import type { Maybe } from '../../../common/types.js';
 import { parseLines } from '../setting.utils.js';
+import { buildHighlightSetting } from './highlight.utils.js';
 import { logger } from './logger.js';
 import type { HighlightSettingService } from './types.js';
 
@@ -14,7 +14,7 @@ const COLOR_REGEX = /{(?<fgColor>.+?)(?:\s*,\s*(?<bgColor>.+?))?}/;
 const PATTERN_REGEX = /{(?<pattern>.+?)}/;
 const CLASS_REGEX = /{(?<className>.+?)}/;
 
-const HIGHLIGHT_REGEX = new RegExp(
+const HIGHLIGHT_CONFIG_LINE_REGEX = new RegExp(
   `^#highlight\\s*${TYPE_REGEX.source}\\s*${COLOR_REGEX.source}\\s*${PATTERN_REGEX.source}\\s*(?:${CLASS_REGEX.source})?$`
 );
 
@@ -104,51 +104,18 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
       return;
     }
 
-    const match = HIGHLIGHT_REGEX.exec(line.trim());
+    const match = HIGHLIGHT_CONFIG_LINE_REGEX.exec(line.trim());
 
     if (!match?.groups) {
       return;
     }
 
-    const highlight: HighlightSetting = {
-      matchType: this.parseMatchType({ type: match.groups.type }),
-      pattern: match.groups.pattern ?? '',
-      foregroundColor: match.groups.fgColor ?? '',
-      backgroundColor: match.groups.bgColor ?? '',
-      className: match.groups.className ?? '',
-    };
-
-    return highlight;
-  }
-
-  /**
-   * Converts a Genie match type to our enum.
-   */
-  protected parseMatchType(options: { type: string }): HighlightMatchType {
-    const { type } = options;
-
-    let matchType: HighlightMatchType;
-
-    switch (type) {
-      case 'line':
-      case 'lines':
-        matchType = HighlightMatchType.CONTAINS;
-        break;
-      case 'beginswith':
-      case 'startswith':
-        matchType = HighlightMatchType.STARTS;
-        break;
-      case 'regex':
-      case 'regexp':
-        matchType = HighlightMatchType.REGEX;
-        break;
-      case 'string':
-      case 'strings':
-      default:
-        matchType = HighlightMatchType.EXACT;
-        break;
-    }
-
-    return matchType;
+    return buildHighlightSetting({
+      matchType: match.groups.type,
+      pattern: match.groups.pattern,
+      foregroundColor: match.groups.fgColor,
+      backgroundColor: match.groups.bgColor,
+      className: match.groups.className,
+    });
   }
 }

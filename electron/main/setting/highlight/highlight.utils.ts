@@ -1,14 +1,12 @@
+import type { HighlightSetting } from 'common/setting/types';
 import RegExpEscape from 'regexp.escape';
 import {
   filterToMinimalCompleteMatches,
   getAllMatches,
-} from '../../common/regex/regex.utils.js';
-import type {
-  HighlightSetting,
-  HighlightedTextSegment,
-} from '../../common/setting/types.js';
-import { HighlightMatchType } from '../../common/setting/types.js';
-import { gameServiceLogger as logger } from './logger.js';
+} from '../../../common/regex/regex.utils.js';
+import type { HighlightedTextSegment } from '../../../common/setting/types.js';
+import { HighlightMatchType } from '../../../common/setting/types.js';
+import { logger } from './logger.js';
 
 /**
  * Apply multiple regex patterns to highlight a line of text.
@@ -25,38 +23,11 @@ export const applyHighlights = (options: {
     let segments = new Array<HighlightedTextSegment>();
 
     for (const highlight of highlights) {
-      const { matchType } = highlight;
-
-      let pattern = highlight.pattern;
-
-      // TODO cache the escaped patterns for performance
-      // TODO consider doing that when load highlights from file,
-      //      then this code wouldn't care about match type but
-      //      rather just use the regex property on the setting?
-      switch (matchType) {
-        case HighlightMatchType.EXACT: {
-          pattern = '^(' + RegExpEscape(pattern) + ')$';
-          break;
-        }
-
-        case HighlightMatchType.STARTS: {
-          pattern = '^(' + RegExpEscape(pattern) + '.*?)$';
-          break;
-        }
-
-        case HighlightMatchType.CONTAINS: {
-          pattern = '^(.*?' + RegExpEscape(pattern) + '.*?)$';
-          break;
-        }
-
-        case HighlightMatchType.REGEX: {
-          pattern = highlight.pattern;
-          break;
-        }
-      }
-
       const matches = filterToMinimalCompleteMatches(
-        getAllMatches({ text, pattern })
+        getAllMatches({
+          text,
+          pattern: highlight.regexPattern,
+        })
       );
 
       // Combine each match with their highlight settings.
@@ -223,7 +194,7 @@ export const applyHighlights = (options: {
   } catch (error) {
     // Clear any partial results, otherwise we might emit incomplete text.
     results.length = 0;
-    logger.error('error applying highlights', {
+    logger.error('error applying highlights, skipping', {
       text,
       error,
     });
@@ -282,4 +253,99 @@ export const isPartiallyEnclosedBy = (options: {
   const endsAfter = left.end <= right.end;
 
   return startsWithin && endsAfter;
+};
+
+export const buildHighlightSetting = (options: {
+  matchType?: string;
+  pattern?: string;
+  regexPattern?: string;
+  foregroundColor?: string;
+  backgroundColor?: string;
+  className?: string;
+}): HighlightSetting => {
+  const matchType = getMatchType(options.matchType ?? '');
+  const pattern = options.pattern ?? '';
+  const regexPattern = getRegexPattern({ matchType, pattern });
+  const foregroundColor = options.foregroundColor ?? '';
+  const backgroundColor = options.backgroundColor ?? '';
+  const className = options.className ?? '';
+
+  const highlight: HighlightSetting = {
+    matchType,
+    pattern,
+    regexPattern,
+    foregroundColor,
+    backgroundColor,
+    className,
+  };
+
+  return highlight;
+};
+
+/**
+ * Converts a Genie match type to our enum.
+ */
+export const getMatchType = (type: string): HighlightMatchType => {
+  let matchType: HighlightMatchType;
+
+  switch (type) {
+    case 'line':
+    case 'lines':
+      matchType = HighlightMatchType.CONTAINS;
+      break;
+
+    case 'beginswith':
+    case 'startswith':
+      matchType = HighlightMatchType.STARTS;
+      break;
+
+    case 'regex':
+    case 'regexp':
+      matchType = HighlightMatchType.REGEX;
+      break;
+
+    case 'string':
+    case 'strings':
+    default:
+      matchType = HighlightMatchType.EXACT;
+      break;
+  }
+
+  return matchType;
+};
+
+/**
+ * A regular expression inferred from the pattern and match type.
+ * For example, when the match type is not a regex then the pattern
+ * should be interpreted literally, and so characters that have special
+ * meanings in regular expressions should be escaped.
+ * Use this value to create `RegExp` objects.
+ */
+export const getRegexPattern = (options: {
+  matchType: HighlightMatchType;
+  pattern: string;
+}): string => {
+  const { matchType, pattern } = options;
+
+  let regexPattern = pattern;
+
+  switch (matchType) {
+    case HighlightMatchType.EXACT:
+      regexPattern = '^(' + RegExpEscape(pattern) + ')$';
+      break;
+
+    case HighlightMatchType.STARTS:
+      regexPattern = '^(' + RegExpEscape(pattern) + '.*?)$';
+      break;
+
+    case HighlightMatchType.CONTAINS:
+      regexPattern = '^(.*?' + RegExpEscape(pattern) + '.*?)$';
+      break;
+
+    case HighlightMatchType.REGEX:
+      regexPattern = pattern;
+      break;
+  }
+
+  return regexPattern;
 };

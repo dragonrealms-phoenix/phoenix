@@ -37,8 +37,17 @@ declare module 'common/setting/types' {
     /**
      * Literal or regular expression whose captured groups will be
      * highlighted with the specified colors.
+     * See {@link regexPattern} for the inferred regular expression.
      */
     pattern: string;
+    /**
+     * A regular expression inferred from the pattern and match type.
+     * For example, when the match type is not a regex then the pattern
+     * should be interpreted literally, and so characters that have special
+     * meanings in regular expressions should be escaped.
+     * Use this value to create `RegExp` objects.
+     */
+    regexPattern: string;
     /**
      * Foreground color of the text.
      * A falsy value will not apply a foreground color.
