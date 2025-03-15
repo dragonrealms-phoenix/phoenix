@@ -157,7 +157,10 @@ export class GameServiceImpl implements GameService {
     }): void => {
       const { stream$, filePath } = options;
 
-      const fileWriteStream = fs.createWriteStream(filePath);
+      const fileWriteStream = fs.createWriteStream(filePath, {
+        encoding: 'utf8',
+        flags: 'w',
+      });
 
       stream$.subscribe({
         next: (data: T) => {
