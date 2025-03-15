@@ -181,7 +181,7 @@ export const initializeApp = async (): Promise<void> => {
 
   // Disable or limit creation of new windows to protect app and users.
   // https://www.electronjs.org/docs/latest/tutorial/security
-  app.on('web-contents-created', (_, contents) => {
+  app.on('web-contents-created', (_event, contents) => {
     const allowedDomains = [
       // https://regex101.com/r/pUmfMR/1
       /^(.*\.)?github\.com$/i,
@@ -211,11 +211,11 @@ export const initializeApp = async (): Promise<void> => {
       return { action: 'deny' };
     });
 
-    contents.on('will-navigate', (event, url) => {
+    contents.on('will-navigate', (_event, url) => {
       logger.debug('will-navigate', { url });
     });
 
-    contents.on('will-redirect', (event, url) => {
+    contents.on('will-redirect', (_event, url) => {
       logger.debug('will-redirect', { url });
     });
   });
