@@ -7,7 +7,6 @@ import { VERSION } from '../common/version.js';
 import { Accounts } from './account/account.instance.js';
 import { runInBackground } from './async/run-in-background.js';
 import { IpcController } from './ipc/ipc.controller.js';
-import type { IpcDispatcher } from './ipc/types.js';
 import { Layouts } from './layout/layout.instance.js';
 import { getScopedLogger } from './logger/logger.factory.js';
 import { getLogLevel } from './logger/logger.utils.js';
@@ -142,17 +141,8 @@ export const initializeApp = async (): Promise<void> => {
       mainWindow.show();
     });
 
-    const dispatch: IpcDispatcher = (channel, ...args): void => {
-      // When the window is closed or destroyed, we might still
-      // receive async events from the ipc controller. Ignore them.
-      // This usually happens when the app is quit while a game is being played.
-      if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(channel, ...args);
-      }
-    };
-
     ipcController = new IpcController({
-      dispatch,
+      window: mainWindow,
       accountService: Accounts,
       settingService: Settings,
       layoutService: Layouts,

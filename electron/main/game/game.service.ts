@@ -1,17 +1,11 @@
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
-import * as rxjs from 'rxjs';
+import type * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/async.utils.js';
-import type {
-  GameEvent,
-  StyledTextGameEvent,
-} from '../../common/game/types.js';
-import { GameEventType } from '../../common/game/types.js';
+import type { GameEvent } from '../../common/game/types.js';
 import { LogLevel } from '../../common/logger/types.js';
 import { isLogLevelEnabled } from '../logger/logger.utils.js';
-import { applyHighlights } from '../setting/highlight/highlight.utils.js';
-import type { SettingService } from '../setting/types.js';
 import type { SGEGameCredentials } from '../sge/types.js';
 import { GameParserImpl } from './game.parser.js';
 import { GameSocketImpl } from './game.socket.js';
@@ -41,16 +35,8 @@ export class GameServiceImpl implements GameService {
    */
   private parser: GameParser;
 
-  /**
-   * Provides various settings for how to manipulate game output.
-   */
-  private settingService: SettingService;
-
-  constructor(options: {
-    credentials: SGEGameCredentials;
-    settingService: SettingService;
-  }) {
-    const { credentials, settingService } = options;
+  constructor(options: { credentials: SGEGameCredentials }) {
+    const { credentials } = options;
 
     this.socket = new GameSocketImpl({
       credentials,
@@ -65,8 +51,6 @@ export class GameServiceImpl implements GameService {
     });
 
     this.parser = new GameParserImpl();
-
-    this.settingService = settingService;
   }
 
   public isConnected(): boolean {
@@ -81,29 +65,7 @@ export class GameServiceImpl implements GameService {
     logger.info('connecting');
 
     const socketData$ = await this.socket.connect();
-
-    const gameEvents$ = this.parser.parse(socketData$).pipe(
-      rxjs.concatMap(async (gameEvent): Promise<GameEvent> => {
-        if (gameEvent.type !== GameEventType.TEXT) {
-          return gameEvent;
-        }
-        // TODO substitutions
-        // TODO ignores
-        // TODO triggers
-        // TODO highlights
-        // TODO emit as StyledTextGameEvent
-        const styledTextEvent: StyledTextGameEvent = {
-          eventId: gameEvent.eventId,
-          type: GameEventType.STYLED_TEXT,
-          text: gameEvent.text,
-          segments: applyHighlights({
-            text: gameEvent.text,
-            highlights: this.settingService.getHighlights(),
-          }),
-        };
-        return styledTextEvent;
-      })
-    );
+    const gameEvents$ = this.parser.parse(socketData$);
 
     if (isLogLevelEnabled(LogLevel.TRACE)) {
       this.logGameStreams({
