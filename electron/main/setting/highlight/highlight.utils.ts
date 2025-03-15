@@ -291,21 +291,25 @@ export const getMatchType = (type: string): HighlightMatchType => {
   switch (type) {
     case 'line':
     case 'lines':
+    case HighlightMatchType.CONTAINS:
       matchType = HighlightMatchType.CONTAINS;
       break;
 
     case 'beginswith':
     case 'startswith':
+    case HighlightMatchType.STARTS:
       matchType = HighlightMatchType.STARTS;
       break;
 
     case 'regex':
     case 'regexp':
+    case HighlightMatchType.REGEX:
       matchType = HighlightMatchType.REGEX;
       break;
 
     case 'string':
     case 'strings':
+    case HighlightMatchType.EXACT:
     default:
       matchType = HighlightMatchType.EXACT;
       break;

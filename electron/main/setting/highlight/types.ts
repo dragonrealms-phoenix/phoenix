@@ -24,6 +24,16 @@ export interface HighlightSettingService {
   load(options: {
     /**
      * Path to the settings file.
+     *
+     * A setting line has the format:
+     * ```
+     * #highlight {matchType} {fg[,bg]} {pattern} {class}
+     * ```
+     * Where `matchType` defines how to match the pattern to the text.
+     * Where `fg` is the foreground color, like `#ff0000` or `red`.
+     * Where `bg` is the background color, like `#0000ff` or `blue`.
+     * Where `pattern` is the string or regex pattern to match.
+     * Where `class` is the name of the class to assign the setting to.
      */
     filePath: string;
     /**
