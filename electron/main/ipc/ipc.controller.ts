@@ -113,6 +113,7 @@ export class IpcController {
 
       playCharacter: playCharacterHandler({
         dispatch: this.dispatch,
+        window: this.window,
         accountService: this.accountService,
         settingService: this.settingService,
       }),

@@ -1,8 +1,16 @@
+import type { BrowserWindow } from 'electron';
+import * as rxjs from 'rxjs';
+import type {
+  GameEvent,
+  StyledTextGameEvent,
+} from '../../../common/game/types.js';
+import { GameEventType } from '../../../common/game/types.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
 import { startLichProcess } from '../../lich/start-process.js';
 import { Preferences } from '../../preference/preference.instance.js';
 import { PreferenceKey } from '../../preference/types.js';
+import { applyHighlights } from '../../setting/highlight/highlight.utils.js';
 import type { SettingService } from '../../setting/types.js';
 import { SGEServiceImpl } from '../../sge/sge.service.js';
 import { logger } from '../logger.js';
@@ -10,10 +18,11 @@ import type { IpcDispatcher, IpcInvokeHandler } from '../types.js';
 
 export const playCharacterHandler = (options: {
   dispatch: IpcDispatcher;
+  window: BrowserWindow;
   accountService: AccountService;
   settingService: SettingService;
 }): IpcInvokeHandler<'playCharacter'> => {
-  const { dispatch, accountService, settingService } = options;
+  const { dispatch, window, accountService, settingService } = options;
 
   return async (args): Promise<void> => {
     const { accountName, characterName, gameCode } = args[0];
@@ -52,11 +61,7 @@ export const playCharacterHandler = (options: {
       credentials.port = port;
     }
 
-    const gameInstance = await Game.newInstance({
-      credentials,
-      settingService,
-    });
-
+    const gameInstance = await Game.newInstance({ credentials });
     const gameEvents$ = await gameInstance.connect();
 
     dispatch('game:connect', {
@@ -66,23 +71,46 @@ export const playCharacterHandler = (options: {
     });
 
     logger.debug('subscribing to game service stream');
-    gameEvents$.subscribe({
-      next: (gameEvent) => {
-        logger.trace('game service stream event', { gameEvent });
-        dispatch('game:event', { gameEvent });
-      },
-      error: (error) => {
-        logger.error('game service stream error', { error });
-        dispatch('game:error', { error });
-      },
-      complete: () => {
-        logger.debug('game service stream completed');
-        dispatch('game:disconnect', {
-          accountName,
-          characterName,
-          gameCode,
-        });
-      },
-    });
+    gameEvents$
+      .pipe(
+        rxjs.concatMap(async (gameEvent): Promise<GameEvent> => {
+          if (gameEvent.type !== GameEventType.TEXT) {
+            return gameEvent;
+          }
+          // TODO substitutions
+          // TODO ignores
+          // TODO triggers
+          // TODO highlights
+          // TODO emit as StyledTextGameEvent
+          const styledTextEvent: StyledTextGameEvent = {
+            eventId: gameEvent.eventId,
+            type: GameEventType.STYLED_TEXT,
+            text: gameEvent.text,
+            segments: applyHighlights({
+              text: gameEvent.text,
+              highlights: settingService.getHighlights(),
+            }),
+          };
+          return styledTextEvent;
+        })
+      )
+      .subscribe({
+        next: (gameEvent) => {
+          logger.trace('game service stream event', { gameEvent });
+          dispatch('game:event', { gameEvent });
+        },
+        error: (error) => {
+          logger.error('game service stream error', { error });
+          dispatch('game:error', { error });
+        },
+        complete: () => {
+          logger.debug('game service stream completed');
+          dispatch('game:disconnect', {
+            accountName,
+            characterName,
+            gameCode,
+          });
+        },
+      });
   };
 };
