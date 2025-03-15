@@ -462,6 +462,11 @@ export class GameParserImpl implements GameParser {
 
     switch (tagName) {
       case 'a': // <a href='https://elanthipedia.play.net'>Elanthipedia</a>
+        // Ensure url starts with a protocol, otherwise the redirect
+        // goes to 'http://localhost:3000/<url>' instead of '<url>'.
+        if (!attributes.href.startsWith('http')) {
+          attributes.href = 'https://' + attributes.href;
+        }
         this.gameText += `<a href="${attributes.href}" target="_blank">`;
         break;
       case 'pushBold': // <pushBold/>

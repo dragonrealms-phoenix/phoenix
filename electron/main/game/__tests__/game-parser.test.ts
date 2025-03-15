@@ -175,9 +175,20 @@ describe('game-parser', () => {
       });
     });
 
-    it('emits TextGameEvent (anchor link text)', () => {
+    it('emits TextGameEvent (anchor link text with protocol)', () => {
       gameSocketSubject$.next(
         'Visit the <a href="https://play.net/dr">DragonRealms</a> website.\n'
+      );
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `Visit the <a href="https://play.net/dr" target="_blank">DragonRealms</a> website.\n`,
+      });
+    });
+
+    it('emits TextGameEvent (anchor link text without protocol)', () => {
+      gameSocketSubject$.next(
+        'Visit the <a href="play.net/dr">DragonRealms</a> website.\n'
       );
 
       expectGameEvent({
