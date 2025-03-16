@@ -45,7 +45,7 @@ export const playCharacterHandler = (options: {
 
     settingService.clear();
     await settingService.load({ profileName: 'default' });
-    await settingService.load({ profileName: characterName });
+    await settingService.load({ profileName: `${characterName}${gameCode}` });
 
     const sgeService = new SGEServiceImpl({
       gameCode,
@@ -88,7 +88,7 @@ export const playCharacterHandler = (options: {
             text: gameEvent.text,
             segments: applyHighlights({
               text: gameEvent.text,
-              highlights: settingService.getHighlights(),
+              highlights: settingService.getEnabledHighlights(),
             }),
           };
           return styledTextEvent;
