@@ -1,5 +1,6 @@
 import { app } from 'electron';
 import path from 'node:path';
+import { ClassSettingServiceImpl } from './class/class.service.js';
 import { HighlightSettingServiceImpl } from './highlight/highlight.service.js';
 import { SettingServiceImpl } from './setting.service.js';
 
@@ -7,5 +8,6 @@ import { SettingServiceImpl } from './setting.service.js';
 // easy anywhere in the app to get/set settings.
 export const Settings = new SettingServiceImpl({
   baseDir: path.join(app.getPath('userData'), 'phoenix', 'settings'),
+  classService: new ClassSettingServiceImpl(),
   highlightService: new HighlightSettingServiceImpl(),
 });
