@@ -37,6 +37,27 @@ describe('class-service', () => {
     });
   });
 
+  describe('#getAsMap', () => {
+    it('should return an empty map for an empty array', async () => {
+      const map = classService.getAsMap();
+
+      expect(map).toEqual({});
+    });
+
+    it('should return a map with keys for each setting name', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const map = classService.getAsMap();
+
+      expect(map).toEqual({
+        'name 0': true,
+        'name 1': false,
+      });
+    });
+  });
+
   describe('#load', () => {
     it('should parse settings from file', async () => {
       await classService.load({

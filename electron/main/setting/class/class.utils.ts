@@ -12,3 +12,15 @@ export const buildClassSetting = (options: {
 
   return setting;
 };
+
+export const toClassMap = (
+  settings: Array<ClassSetting>
+): Record<string, boolean> => {
+  const map: Record<string, boolean> = {};
+
+  for (const setting of settings) {
+    map[setting.name] = setting.enabled;
+  }
+
+  return map;
+};

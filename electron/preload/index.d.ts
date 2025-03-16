@@ -63,9 +63,6 @@ declare module 'common/setting/types' {
      * Genie uses classes as boolean flags to denote if a setting
      * is enabled or disabled. If the class is enabled then so are
      * all the settings tagged with it.
-     *
-     * However, this functionality is not yet implemented in Phoenix
-     * but we do parse the data to preserve it for future use.
      */
     className: string;
   }
@@ -94,6 +91,18 @@ declare module 'common/setting/types' {
      * Genie uses the term "regex" or "regexp".
      */
     REGEX = 'regex',
+  }
+  export interface ClassSetting {
+    /**
+     * The name of the class.
+     */
+    name: string;
+    /**
+     * Whether the class is enabled or disabled.
+     * When enabled, then settings assigned that class are also enabled.
+     * When disabled, then settings assigned that class are also disabled.
+     */
+    enabled: boolean;
   }
 }
 declare module 'common/game/types' {

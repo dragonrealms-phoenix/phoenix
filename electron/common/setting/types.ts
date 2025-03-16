@@ -63,9 +63,6 @@ export interface HighlightSetting {
    * Genie uses classes as boolean flags to denote if a setting
    * is enabled or disabled. If the class is enabled then so are
    * all the settings tagged with it.
-   *
-   * However, this functionality is not yet implemented in Phoenix
-   * but we do parse the data to preserve it for future use.
    */
   className: string;
 }

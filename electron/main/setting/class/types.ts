@@ -7,6 +7,11 @@ import type { ClassSetting } from '../../../common/setting/types.js';
  */
 export interface ClassSettingService {
   /**
+   * Get a map to know which classes are enabled or disabled.
+   */
+  getAsMap(): Record<string, boolean>;
+
+  /**
    * Get all loaded settings.
    */
   get(): Array<ClassSetting>;

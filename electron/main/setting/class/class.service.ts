@@ -5,6 +5,7 @@ import { isBlank } from '../../../common/string/string.utils.js';
 import type { Maybe } from '../../../common/types.js';
 import { logger } from '../logger.js';
 import { parseLines } from '../setting.utils.js';
+import { toClassMap } from './class.utils.js';
 import type { ClassSettingService } from './types.js';
 
 // https://regex101.com/r/Q48LbC/1
@@ -20,6 +21,10 @@ export class ClassSettingServiceImpl implements ClassSettingService {
 
   constructor() {
     this.settings = [];
+  }
+
+  public getAsMap(): Record<string, boolean> {
+    return toClassMap(this.settings);
   }
 
   public get(): Array<ClassSetting> {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildClassSetting } from '../class.utils.js';
+import { buildClassSetting, toClassMap } from '../class.utils.js';
 
 describe('class-utils', () => {
   describe('#buildClassSetting', () => {
@@ -58,6 +58,30 @@ describe('class-utils', () => {
       ).toEqual({
         name: '',
         enabled: false,
+      });
+    });
+  });
+
+  describe('#toClassMap', () => {
+    it('should return an empty map for an empty array', async () => {
+      expect(toClassMap([])).toEqual({});
+    });
+
+    it('should return a map with keys for each setting name', async () => {
+      expect(
+        toClassMap([
+          {
+            name: 'test-name-1',
+            enabled: true,
+          },
+          {
+            name: 'test-name-2',
+            enabled: false,
+          },
+        ])
+      ).toEqual({
+        'test-name-1': true,
+        'test-name-2': false,
       });
     });
   });
