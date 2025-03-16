@@ -68,17 +68,17 @@ describe('class-service', () => {
 
       expect(settings.length).toBe(2);
 
-      const class0 = buildClassSetting({
+      const setting0 = buildClassSetting({
         name: 'name 0',
         enabled: 'true',
       });
-      expect(settings[0]).toEqual(class0);
+      expect(settings[0]).toEqual(setting0);
 
-      const class1 = buildClassSetting({
+      const setting1 = buildClassSetting({
         name: 'name 1',
         enabled: 'false',
       });
-      expect(settings[1]).toEqual(class1);
+      expect(settings[1]).toEqual(setting1);
     });
 
     it('should append to previously loaded settings', async () => {

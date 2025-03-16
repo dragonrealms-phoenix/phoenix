@@ -1,13 +1,13 @@
 import fs from 'fs-extra';
-import { toBoolean } from '../../../common/boolean/boolean.utils.js';
 import type { ClassSetting } from '../../../common/setting/types.js';
 import { isBlank } from '../../../common/string/string.utils.js';
 import type { Maybe } from '../../../common/types.js';
 import { logger } from '../logger.js';
 import { parseLines } from '../setting.utils.js';
-import { toClassMap } from './class.utils.js';
+import { buildClassSetting, toClassMap } from './class.utils.js';
 import type { ClassSettingService } from './types.js';
 
+// I fully appreciate the irony of using regex to parse regex.
 // https://regex101.com/r/Q48LbC/1
 const NAME_REGEX = /{(?<name>.+?)}/;
 const ENABLED_REGEX = /{(?<enabled>.+?)}/;
@@ -128,11 +128,9 @@ export class ClassSettingServiceImpl implements ClassSettingService {
       return;
     }
 
-    const setting: ClassSetting = {
+    return buildClassSetting({
       name: match.groups.name,
-      enabled: toBoolean(match.groups.enabled, false),
-    };
-
-    return setting;
+      enabled: match.groups.enabled,
+    });
   }
 }
