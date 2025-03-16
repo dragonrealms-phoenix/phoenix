@@ -8,14 +8,14 @@ import { logger } from './logger.js';
 import type { HighlightSettingService } from './types.js';
 
 // I fully appreciate the irony of using regex to parse regex.
-// https://regex101.com/r/J18f91/1
+// https://regex101.com/r/R3iNxl/1
 const TYPE_REGEX = /{(?<type>.+?)}/;
 const COLOR_REGEX = /{(?<fgColor>.+?)(?:\s*,\s*(?<bgColor>.+?))?}/;
-const PATTERN_REGEX = /{(?<pattern>.+?)}/;
+const TEXT_REGEX = /{(?<text>.+?)}/;
 const CLASS_REGEX = /{(?<className>.+?)}/;
 
 const SETTING_LINE_REGEX = new RegExp(
-  `^#highlight\\s*${TYPE_REGEX.source}\\s*${COLOR_REGEX.source}\\s*${PATTERN_REGEX.source}\\s*(?:${CLASS_REGEX.source})?$`
+  `^#highlight\\s*${TYPE_REGEX.source}\\s*${COLOR_REGEX.source}\\s*${TEXT_REGEX.source}\\s*(?:${CLASS_REGEX.source})?$`
 );
 
 export class HighlightSettingServiceImpl implements HighlightSettingService {
@@ -130,7 +130,7 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
 
     return buildHighlightSetting({
       matchType: match.groups.type,
-      pattern: match.groups.pattern,
+      text: match.groups.text,
       foregroundColor: match.groups.fgColor,
       backgroundColor: match.groups.bgColor,
       className: match.groups.className,

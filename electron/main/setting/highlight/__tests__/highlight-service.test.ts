@@ -50,7 +50,7 @@ describe('highlight-service', () => {
 
       const highlight0 = buildHighlightSetting({
         matchType: HighlightMatchType.CONTAINS,
-        pattern: 'pattern 0',
+        text: 'text 0',
         foregroundColor: 'fg0',
         backgroundColor: '',
         className: 'class 0',
@@ -59,7 +59,7 @@ describe('highlight-service', () => {
 
       const highlight1 = buildHighlightSetting({
         matchType: HighlightMatchType.CONTAINS,
-        pattern: 'pattern 1',
+        text: 'text 1',
         foregroundColor: 'fg1',
         backgroundColor: 'bg1',
         className: 'class 1',
@@ -68,7 +68,7 @@ describe('highlight-service', () => {
 
       const highlight2 = buildHighlightSetting({
         matchType: HighlightMatchType.STARTS,
-        pattern: 'pattern 2',
+        text: 'text 2',
         foregroundColor: 'fg2',
         backgroundColor: '',
         className: 'class 2',
@@ -77,7 +77,7 @@ describe('highlight-service', () => {
 
       const highlight3 = buildHighlightSetting({
         matchType: HighlightMatchType.STARTS,
-        pattern: 'pattern 3',
+        text: 'text 3',
         foregroundColor: 'fg3',
         backgroundColor: 'bg3',
         className: 'class 3',
@@ -86,7 +86,7 @@ describe('highlight-service', () => {
 
       const highlight4 = buildHighlightSetting({
         matchType: HighlightMatchType.REGEX,
-        pattern: 'pattern 4',
+        text: 'text 4',
         foregroundColor: 'fg4',
         backgroundColor: '',
         className: 'class 4',
@@ -95,7 +95,7 @@ describe('highlight-service', () => {
 
       const highlight5 = buildHighlightSetting({
         matchType: HighlightMatchType.REGEX,
-        pattern: 'pattern 5',
+        text: 'text 5',
         foregroundColor: 'fg5',
         backgroundColor: 'bg5',
         className: 'class 5',
@@ -104,7 +104,7 @@ describe('highlight-service', () => {
 
       const highlight6 = buildHighlightSetting({
         matchType: HighlightMatchType.EXACT,
-        pattern: 'pattern 6',
+        text: 'text 6',
         foregroundColor: 'fg6',
         backgroundColor: '',
         className: 'class 6',
@@ -113,12 +113,31 @@ describe('highlight-service', () => {
 
       const highlight7 = buildHighlightSetting({
         matchType: HighlightMatchType.EXACT,
-        pattern: 'pattern 7',
+        text: 'text 7',
         foregroundColor: 'fg7',
         backgroundColor: 'bg7',
         className: 'class 7',
       });
       expect(settings[7]).toEqual(highlight7);
+    });
+
+    it('should skip incomplete settings', async () => {
+      await highlightService.load({
+        filePath: path.join(__dirname, 'file2.cfg'),
+      });
+
+      const settings = highlightService.get();
+
+      expect(settings.length).toBe(1);
+
+      const highlight0 = buildHighlightSetting({
+        matchType: HighlightMatchType.CONTAINS,
+        text: 'text 0',
+        foregroundColor: 'fg0',
+        backgroundColor: '',
+        className: '',
+      });
+      expect(settings[0]).toEqual(highlight0);
     });
 
     it('should append to previously loaded settings', async () => {

@@ -26,7 +26,7 @@ export const applyHighlights = (options: {
       const matches = filterToMinimalCompleteMatches(
         getAllMatches({
           text,
-          pattern: highlight.regexPattern,
+          pattern: highlight.pattern,
         })
       );
 
@@ -257,23 +257,23 @@ export const isPartiallyEnclosedBy = (options: {
 
 export const buildHighlightSetting = (options: {
   matchType?: string;
+  text?: string;
   pattern?: string;
-  regexPattern?: string;
   foregroundColor?: string;
   backgroundColor?: string;
   className?: string;
 }): HighlightSetting => {
   const matchType = getMatchType(options.matchType ?? '');
-  const pattern = options.pattern ?? '';
-  const regexPattern = getRegexPattern({ matchType, pattern });
+  const text = options.text ?? '';
+  const pattern = options.pattern ?? getRegexPattern({ matchType, text });
   const foregroundColor = options.foregroundColor ?? '';
   const backgroundColor = options.backgroundColor ?? '';
   const className = options.className ?? '';
 
   const highlight: HighlightSetting = {
     matchType,
+    text,
     pattern,
-    regexPattern,
     foregroundColor,
     backgroundColor,
     className,
@@ -327,29 +327,29 @@ export const getMatchType = (type: string): HighlightMatchType => {
  */
 export const getRegexPattern = (options: {
   matchType: HighlightMatchType;
-  pattern: string;
+  text: string;
 }): string => {
-  const { matchType, pattern } = options;
+  const { matchType, text } = options;
 
-  let regexPattern = pattern;
+  let pattern = text;
 
   switch (matchType) {
     case HighlightMatchType.EXACT:
-      regexPattern = '^(' + RegExpEscape(pattern) + ')$';
+      pattern = '^(' + RegExpEscape(text) + ')$';
       break;
 
     case HighlightMatchType.STARTS:
-      regexPattern = '^(' + RegExpEscape(pattern) + '.*?)$';
+      pattern = '^(' + RegExpEscape(text) + '.*?)$';
       break;
 
     case HighlightMatchType.CONTAINS:
-      regexPattern = '^(.*?' + RegExpEscape(pattern) + '.*?)$';
+      pattern = '^(.*?' + RegExpEscape(text) + '.*?)$';
       break;
 
     case HighlightMatchType.REGEX:
-      regexPattern = pattern;
+      pattern = text;
       break;
   }
 
-  return regexPattern;
+  return pattern;
 };

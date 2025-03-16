@@ -37,9 +37,9 @@ export interface HighlightSetting {
   /**
    * Literal or regular expression whose captured groups will be
    * highlighted with the specified colors.
-   * See {@link regexPattern} for the inferred regular expression.
+   * See {@link pattern} for the inferred regular expression.
    */
-  pattern: string;
+  text: string;
   /**
    * A regular expression inferred from the pattern and match type.
    * For example, when the match type is not a regex then the pattern
@@ -47,7 +47,7 @@ export interface HighlightSetting {
    * meanings in regular expressions should be escaped.
    * Use this value to create `RegExp` objects.
    */
-  regexPattern: string;
+  pattern: string;
   /**
    * Foreground color of the text.
    * A falsy value will not apply a foreground color.
