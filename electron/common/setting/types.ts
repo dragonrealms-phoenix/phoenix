@@ -96,3 +96,16 @@ export enum HighlightMatchType {
    */
   REGEX = 'regex',
 }
+
+export interface ClassSetting {
+  /**
+   * The name of the class.
+   */
+  name: string;
+  /**
+   * Whether the class is enabled or disabled.
+   * When enabled, then settings assigned that class are also enabled.
+   * When disabled, then settings assigned that class are also disabled.
+   */
+  enabled: boolean;
+}
