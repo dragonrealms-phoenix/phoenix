@@ -59,10 +59,11 @@ export interface HighlightSetting {
    */
   backgroundColor: string;
   /**
-   * Optional class name to apply to the highlighted text.
+   * Optional class name to assign to the setting.
    * Genie uses classes as boolean flags to denote if a setting
-   * is enabled or disabled. If the class is enabled then so are
-   * all the settings tagged with it.
+   * is enabled or disabled.
+   * A setting is presumed enabled unless it is assigned a class
+   * that is explicitly disabled.
    */
   className: string;
 }
@@ -105,4 +106,27 @@ export interface ClassSetting {
    * When disabled, then settings assigned that class are also disabled.
    */
   enabled: boolean;
+}
+
+export interface TriggerSetting {
+  /**
+   * A regular expression that when matches a line of text
+   * then will trigger the action.
+   */
+  pattern: string;
+  /**
+   * A semicolon-delimited list of actions to perform when triggered.
+   * These can be game commands (e.g. "look") and phoenix commands (e.g. "#class boxes off").
+   * Whitespace around the semicolons are ignored.
+   * Example: 'look ; #class boxes off'
+   */
+  action: string;
+  /**
+   * Optional class name to assign to the setting.
+   * Genie uses classes as boolean flags to denote if a setting
+   * is enabled or disabled.
+   * A setting is presumed enabled unless it is assigned a class
+   * that is explicitly disabled.
+   */
+  className: string;
 }
