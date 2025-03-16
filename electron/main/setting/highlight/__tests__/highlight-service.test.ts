@@ -21,32 +21,32 @@ describe('highlight-service', () => {
   });
 
   describe('#get', () => {
-    it('should return empty highlights', () => {
-      const highlights = highlightService.get();
+    it('should return empty settings', () => {
+      const settings = highlightService.get();
 
-      expect(highlights.length).toBe(0);
+      expect(settings.length).toBe(0);
     });
 
-    it('should return loaded highlights', async () => {
+    it('should return loaded settings', async () => {
       await highlightService.load({
         filePath: path.join(__dirname, 'file.cfg'),
       });
 
-      const highlights = highlightService.get();
+      const settings = highlightService.get();
 
-      expect(highlights.length).not.toBe(0);
+      expect(settings.length).not.toBe(0);
     });
   });
 
   describe('#load', () => {
-    it('should parse highlights from file', async () => {
+    it('should parse settings from file', async () => {
       await highlightService.load({
         filePath: path.join(__dirname, 'file.cfg'),
       });
 
-      const highlights = highlightService.get();
+      const settings = highlightService.get();
 
-      expect(highlights.length).toBe(8);
+      expect(settings.length).toBe(8);
 
       const highlight0 = buildHighlightSetting({
         matchType: HighlightMatchType.CONTAINS,
@@ -55,7 +55,7 @@ describe('highlight-service', () => {
         backgroundColor: '',
         className: 'class 0',
       });
-      expect(highlights[0]).toEqual(highlight0);
+      expect(settings[0]).toEqual(highlight0);
 
       const highlight1 = buildHighlightSetting({
         matchType: HighlightMatchType.CONTAINS,
@@ -64,7 +64,7 @@ describe('highlight-service', () => {
         backgroundColor: 'bg1',
         className: 'class 1',
       });
-      expect(highlights[1]).toEqual(highlight1);
+      expect(settings[1]).toEqual(highlight1);
 
       const highlight2 = buildHighlightSetting({
         matchType: HighlightMatchType.STARTS,
@@ -73,7 +73,7 @@ describe('highlight-service', () => {
         backgroundColor: '',
         className: 'class 2',
       });
-      expect(highlights[2]).toEqual(highlight2);
+      expect(settings[2]).toEqual(highlight2);
 
       const highlight3 = buildHighlightSetting({
         matchType: HighlightMatchType.STARTS,
@@ -82,7 +82,7 @@ describe('highlight-service', () => {
         backgroundColor: 'bg3',
         className: 'class 3',
       });
-      expect(highlights[3]).toEqual(highlight3);
+      expect(settings[3]).toEqual(highlight3);
 
       const highlight4 = buildHighlightSetting({
         matchType: HighlightMatchType.REGEX,
@@ -91,7 +91,7 @@ describe('highlight-service', () => {
         backgroundColor: '',
         className: 'class 4',
       });
-      expect(highlights[4]).toEqual(highlight4);
+      expect(settings[4]).toEqual(highlight4);
 
       const highlight5 = buildHighlightSetting({
         matchType: HighlightMatchType.REGEX,
@@ -100,7 +100,7 @@ describe('highlight-service', () => {
         backgroundColor: 'bg5',
         className: 'class 5',
       });
-      expect(highlights[5]).toEqual(highlight5);
+      expect(settings[5]).toEqual(highlight5);
 
       const highlight6 = buildHighlightSetting({
         matchType: HighlightMatchType.EXACT,
@@ -109,7 +109,7 @@ describe('highlight-service', () => {
         backgroundColor: '',
         className: 'class 6',
       });
-      expect(highlights[6]).toEqual(highlight6);
+      expect(settings[6]).toEqual(highlight6);
 
       const highlight7 = buildHighlightSetting({
         matchType: HighlightMatchType.EXACT,
@@ -118,10 +118,10 @@ describe('highlight-service', () => {
         backgroundColor: 'bg7',
         className: 'class 7',
       });
-      expect(highlights[7]).toEqual(highlight7);
+      expect(settings[7]).toEqual(highlight7);
     });
 
-    it('should append to previously loaded highlights', async () => {
+    it('should append to previously loaded settings', async () => {
       await highlightService.load({
         filePath: path.join(__dirname, 'file.cfg'),
       });
@@ -136,7 +136,7 @@ describe('highlight-service', () => {
       expect(highlightService.get().length).toBe(16);
     });
 
-    it('should replace previously loaded highlights', async () => {
+    it('should replace previously loaded settings', async () => {
       await highlightService.load({
         filePath: path.join(__dirname, 'file.cfg'),
       });
@@ -153,16 +153,16 @@ describe('highlight-service', () => {
   });
 
   describe('#clear', () => {
-    it('should clear highlights', async () => {
+    it('should clear settings', async () => {
       await highlightService.load({
         filePath: path.join(__dirname, 'file.cfg'),
       });
 
       highlightService.clear();
 
-      const highlights = highlightService.get();
+      const settings = highlightService.get();
 
-      expect(highlights.length).toBe(0);
+      expect(settings.length).toBe(0);
     });
   });
 });
