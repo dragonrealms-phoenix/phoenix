@@ -2,10 +2,12 @@ import path from 'node:path';
 import type {
   ClassSetting,
   HighlightSetting,
+  TriggerSetting,
 } from '../../common/setting/types.js';
 import type { ClassSettingService } from './class/types.js';
 import type { HighlightSettingService } from './highlight/types.js';
 import { logger } from './logger.js';
+import type { TriggerSettingService } from './trigger/types.js';
 import type { SettingService } from './types.js';
 
 export class SettingServiceImpl implements SettingService {
@@ -17,7 +19,7 @@ export class SettingServiceImpl implements SettingService {
   // TODO ignoreService
   // TODO macroService
   // TODO substituteService
-  // TODO triggerService
+  private triggerService: TriggerSettingService;
 
   constructor(options: {
     /**
@@ -27,10 +29,12 @@ export class SettingServiceImpl implements SettingService {
     baseDir: string;
     classService: ClassSettingService;
     highlightService: HighlightSettingService;
+    triggerService: TriggerSettingService;
   }) {
     this.baseDir = options.baseDir;
     this.classService = options.classService;
     this.highlightService = options.highlightService;
+    this.triggerService = options.triggerService;
   }
 
   public getClasses(): Array<ClassSetting> {
@@ -57,7 +61,17 @@ export class SettingServiceImpl implements SettingService {
 
   // TODO get substitutes
 
-  // TODO get triggers
+  public getTriggers(): Array<TriggerSetting> {
+    return this.triggerService.get();
+  }
+
+  public getEnabledTriggers(): Array<TriggerSetting> {
+    const classMap = this.classService.getAsMap();
+    return this.getTriggers().filter((setting) => {
+      // Presumed enabled unless explicitly disabled.
+      return classMap[setting.className] ?? true;
+    });
+  }
 
   public clear(): void {
     logger.debug('clearing settings');
@@ -68,7 +82,7 @@ export class SettingServiceImpl implements SettingService {
     // TODO clear ignores
     // TODO clear macros
     // TODO clear substitutes
-    // TODO clear triggers
+    this.triggerService.clear();
   }
 
   public async load(options: {
@@ -95,7 +109,9 @@ export class SettingServiceImpl implements SettingService {
       // TODO load ignores
       // TODO load macros
       // TODO load substitutes
-      // TODO load triggers
+      this.triggerService.load({
+        filePath: path.join(profileDir, 'triggers.cfg'),
+      }),
     ]);
   }
 }
