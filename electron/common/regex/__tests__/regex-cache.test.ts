@@ -3,7 +3,7 @@ import { getCachedRegExp } from '../regex.cache.js';
 
 describe('regex-cache', () => {
   describe('#getCachedRegExp', () => {
-    it('it caches regexp objects by pattern and flags', async () => {
+    it('caches regexp objects by pattern and flags', async () => {
       const pattern1 = 'pattern one';
       const pattern2 = 'pattern two';
 
@@ -57,6 +57,28 @@ describe('regex-cache', () => {
       expect(regex2).not.toBe(regex6);
       expect(regex3).not.toBe(regex7);
       expect(regex4).not.toBe(regex8);
+    });
+
+    it('resets lastIndex to 0', async () => {
+      const text = 'The quick brown fox jumped over the sleeping fox';
+
+      const regex = getCachedRegExp('fox', 'g');
+      expect(regex.lastIndex).toBe(0);
+
+      // Find the first 'fox'
+      const match0 = regex.exec(text);
+      expect(match0).not.toBeNull();
+      expect(regex.lastIndex).toBe(19);
+
+      // Find the second 'fox'
+      const match1 = regex.exec(text);
+      expect(match1).not.toBeNull();
+      expect(regex.lastIndex).toBe(48);
+
+      // Get regex from cache and the index is reset
+      const regex2 = getCachedRegExp('fox', 'g');
+      expect(regex).toBe(regex2);
+      expect(regex.lastIndex).toBe(0);
     });
   });
 });

@@ -13,5 +13,6 @@ const regexCache: { [key: string]: RegExp } = {};
 export const getCachedRegExp = (pattern: string, flags: string): RegExp => {
   const cacheKey = `${pattern}_${flags}`;
   regexCache[cacheKey] ||= new RegExp(pattern, flags);
+  regexCache[cacheKey].lastIndex = 0;
   return regexCache[cacheKey];
 };
