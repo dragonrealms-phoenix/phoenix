@@ -61,11 +61,10 @@ export const filterToMinimalCompleteMatches = <
 
 /**
  * Executes a regex pattern against text then returns all the captured groups.
- * Uses the 'd' and 'g' flags to include the `indices` property in the match.
  *
  * Example 1:
  * ```
- *   text: 'The quick brown fox'
+ *   text: 'The quick brown fox jumped over the lazy dog'
  *   pattern: 'The (quick) brown (fox)'
  *   returns: [
  *     { text: 'quick', start:  4, end:  9 },
@@ -75,7 +74,7 @@ export const filterToMinimalCompleteMatches = <
  *
  * Example 2:
  * ```
- *   text: 'The quick brown fox'
+ *   text: 'The quick brown fox jumped over the lazy dog'
  *   pattern: 'The ((quick) brown (fox))'
  *   returns: [
  *     { text: 'quick brown fox', start:  4, end: 19 },
@@ -88,12 +87,11 @@ export const getAllMatches = (options: {
   /**
    * The text to search for matches.
    *
-   * Example: 'The quick brown fox'.
+   * Example: 'The quick brown fox jumped over the lazy dog'.
    */
   text: string;
   /**
    * A regular expression to match against the text.
-   * The flags `d` and `g` will be used.
    *
    * Example: '^The (quick) brown (fox)'.
    */
@@ -108,23 +106,108 @@ export const getAllMatches = (options: {
   // Use 'g' flag so ^ and $ match the start and end of each line.
   const regex = getCachedRegExp(pattern, 'dg');
 
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(text.trimEnd())) !== null) {
-    // The indices property will be defined because we used the 'd' flag.
-    // But typescript doesn't know that.
-    if (!match.indices) {
+  // Remove trailing whitespace, such as newlines (\n) that
+  // may have been parsed from the game stream. User's don't
+  // expect to need to specify them in their regex settings.
+  const match = regex.exec(text.trimEnd());
+
+  // The indices property will be defined because we used the 'd' flag.
+  // But typescript doesn't know that.
+  if (!match?.indices) {
+    return results;
+  }
+
+  for (let i = 1; i < match.indices.length; i += 1) {
+    // If the captured group was optional (e.g. '(quick)?'),
+    // and there's no match then the value will be undefined, skip it.
+    if (!match.indices[i]) {
       continue;
     }
-    for (let i = 1; i < match.indices.length; i += 1) {
-      // If the captured group was optional (e.g. '(quick)?'),
-      // and there's no match then the value will be undefined, skip it.
-      if (!match.indices[i]) {
-        continue;
-      }
-      const [start, end] = match.indices[i];
-      results.push({ text: match[i], start, end });
-    }
+
+    const [start, end] = match.indices[i];
+
+    results.push({
+      text: match[i],
+      start,
+      end,
+    });
   }
 
   return results;
+};
+
+/**
+ * Returns true if the pattern is found in the text.
+ */
+export const isMatch = (option: {
+  /**
+   * The text to search for matches.
+   *
+   * Example: 'The quick brown fox jumped over the lazy dog'.
+   */
+  text: string;
+  /**
+   * A regular expression to match against the text.
+   *
+   * Example: '^The (quick|agile) brown fox'.
+   */
+  pattern: string;
+}): boolean => {
+  const { text, pattern } = option;
+
+  // For performance, cache compiled regex patterns.
+  // Use 'g' flag so ^ and $ match the start and end of each line.
+  const regex = getCachedRegExp(pattern, 'g');
+
+  return regex.test(text);
+};
+
+/**
+ * Returns the `textToReplace` with any numerical regex tokens
+ * replaced with the captured groups from executing the `pattern`
+ * against the `textToMatch`.
+ *
+ * Originally designed to replace regex tokens in trigger actions.
+ */
+export const replaceTokensWithMatches = (options: {
+  /**
+   * The text to search for matches.
+   *
+   * Example: 'Katoak arrives.'.
+   */
+  textToMatch: string;
+  /**
+   * The text with numerical regex tokens to replace with any matches.
+   *
+   * Example: 'say "Hello, $1"' ==> 'say "Hello, Katoak"'.
+   */
+  textToReplace: string;
+  /**
+   * A regular expression to match against the text.
+   *
+   * Example: '^(.*?) arrives.'.
+   */
+  pattern: string;
+}): string => {
+  const { textToMatch, textToReplace, pattern } = options;
+
+  // For performance, cache compiled regex patterns.
+  // Use 'g' flag so ^ and $ match the start and end of each line.
+  const regex = getCachedRegExp(pattern, 'g');
+
+  // Remove trailing whitespace, such as newlines (\n) that
+  // may have been parsed from the game stream. User's don't
+  // expect to need to specify them in their regex settings.
+  const match = regex.exec(textToMatch.trimEnd());
+
+  let result = textToReplace;
+
+  if (match) {
+    for (let i = 1; i < match.length; i += 1) {
+      const token = `$${i}`; // e.g. $1, $2, $3, etc.
+      result = result.replaceAll(token, match[i] ?? token);
+    }
+  }
+
+  return result;
 };
