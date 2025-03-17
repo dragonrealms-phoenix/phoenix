@@ -6,12 +6,14 @@ import isNil from 'lodash-es/isNil.js';
 const BOOLEAN_STRINGS: Record<string, boolean> = {
   // truthy
   'true': true,
+  'enable': true,
   'enabled': true,
   'on': true,
   'yes': true,
   '1': true,
   // falsey
   'false': false,
+  'disable': false,
   'disabled': false,
   'off': false,
   'no': false,
