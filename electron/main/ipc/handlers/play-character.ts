@@ -1,16 +1,20 @@
-import type { BrowserWindow } from 'electron';
+import { type BrowserWindow, shell } from 'electron';
+import type { TriggerSetting } from 'common/setting/types';
 import * as rxjs from 'rxjs';
 import type {
   GameEvent,
   StyledTextGameEvent,
+  TextGameEvent,
 } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
+import { replaceTokensWithMatches } from '../../../common/regex/regex.utils.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
 import { startLichProcess } from '../../lich/start-process.js';
 import { Preferences } from '../../preference/preference.instance.js';
 import { PreferenceKey } from '../../preference/types.js';
 import { applyHighlights } from '../../setting/highlight/highlight.utils.js';
+import { splitActions } from '../../setting/trigger/trigger.utils.js';
 import type { SettingService } from '../../setting/types.js';
 import { SGEServiceImpl } from '../../sge/sge.service.js';
 import { logger } from '../logger.js';
@@ -77,11 +81,13 @@ export const playCharacterHandler = (options: {
           if (gameEvent.type !== GameEventType.TEXT) {
             return gameEvent;
           }
-          // TODO substitutions
+
+          processTriggers(gameEvent);
+
           // TODO ignores
-          // TODO triggers
-          // TODO highlights
-          // TODO emit as StyledTextGameEvent
+
+          // TODO substitutions
+
           const styledTextEvent: StyledTextGameEvent = {
             eventId: gameEvent.eventId,
             type: GameEventType.STYLED_TEXT,
@@ -91,6 +97,7 @@ export const playCharacterHandler = (options: {
               highlights: settingService.getEnabledHighlights(),
             }),
           };
+
           return styledTextEvent;
         })
       )
@@ -112,5 +119,106 @@ export const playCharacterHandler = (options: {
           });
         },
       });
+
+    /**
+     * Processes all enabled triggers for the given line of game text.
+     */
+    const processTriggers = (gameEvent: TextGameEvent): void => {
+      const triggers = settingService.getEnabledTriggers();
+
+      for (const trigger of triggers) {
+        processTrigger({
+          text: gameEvent.text,
+          trigger,
+        });
+      }
+    };
+
+    /**
+     * Processes a trigger for the given line of game text.
+     * If the trigger's pattern matches then its actions are processed.
+     * Otherwise, the trigger is ignored.
+     */
+    const processTrigger = (options: {
+      /**
+       * The line of text from the game to trigger on.
+       */
+      text: string;
+      /**
+       * The trigger setting to use.
+       * If matches the text then perform the action(s).
+       */
+      trigger: TriggerSetting;
+    }): void => {
+      const { text, trigger } = options;
+
+      const { patternMatchedText, replacedText } = replaceTokensWithMatches({
+        textToMatch: text,
+        textToReplace: trigger.action,
+        pattern: trigger.pattern,
+      });
+
+      logger.trace('processing trigger', {
+        text,
+        pattern: trigger.pattern,
+        patternMatchedText,
+        originalAction: trigger.action,
+        replacedAction: replacedText,
+      });
+
+      if (!patternMatchedText) {
+        return;
+      }
+
+      // A trigger may define semi-colon delimited actions.
+      const actions = splitActions(replacedText);
+      logger.trace('handling trigger actions', { actions });
+      for (const action of actions) {
+        processAction({ action });
+      }
+    };
+
+    /**
+     * Processes an action either as a game command or a Phoenix action.
+     * Phoenix actions start with a hash (#), e.g. #beep, #flash.
+     * Unrecognized Phoenix actions are ignored.
+     * Actions without the hash prefix are sent to the game as-is.
+     */
+    const processAction = (options: {
+      /**
+       * The action to perform.
+       * Can be a game command (e.g. 'look') or a Phoenix action (e.g. '#beep').
+       */
+      action: string;
+    }): void => {
+      const { action } = options;
+
+      if (!action.startsWith('#')) {
+        // Treat action as a game command.
+        gameInstance.send(action);
+        return;
+      }
+
+      logger.trace('processing action', { action });
+
+      switch (action) {
+        case '#beep':
+          // Emits a beep noise.
+          logger.trace('beeping', { action });
+          shell.beep();
+          break;
+
+        case '#flash':
+          // Flashes the window until it gains focus.
+          // If the window already has focus then does nothing.
+          logger.trace('flashing window', { action });
+          window.flashFrame(true);
+          break;
+
+        default:
+          logger.trace('unhandled action, ignoring', { action });
+          break;
+      }
+    };
   };
 };
