@@ -105,13 +105,14 @@ describe('regex-utils', () => {
       const pattern = 'Does not match the text';
       const textToReplace = 'The $1 dog is jumped over by the $2 $3';
 
-      const replaced = replaceTokensWithMatches({
+      const result = replaceTokensWithMatches({
         textToMatch,
         textToReplace,
         pattern,
       });
 
-      expect(replaced).toBe(textToReplace);
+      expect(result.patternMatchedText).toBeFalsy();
+      expect(result.replacedText).toBe(textToReplace);
     });
 
     it('replaces tokens with matches', async () => {
@@ -119,14 +120,17 @@ describe('regex-utils', () => {
       const pattern = 'The (quick) brown (fox) jumps over the (lazy) dog';
       const textToReplace = 'The $3 dog is jumped over by the $1 $2';
 
-      const replaced = replaceTokensWithMatches({
+      const result = replaceTokensWithMatches({
         textToMatch,
         textToReplace,
         pattern,
       });
 
-      expect(replaced).not.toBe(textToReplace);
-      expect(replaced).toBe('The lazy dog is jumped over by the quick fox');
+      expect(result.patternMatchedText).toBeTruthy();
+      expect(result.replacedText).not.toBe(textToReplace);
+      expect(result.replacedText).toBe(
+        'The lazy dog is jumped over by the quick fox'
+      );
     });
 
     it('replaces duplicate tokens with matches', async () => {
@@ -134,14 +138,15 @@ describe('regex-utils', () => {
       const pattern = 'The (quick) brown (fox) jumps over the (lazy) dog';
       const textToReplace = '$1 $2 $3 $1 $2 $3';
 
-      const replaced = replaceTokensWithMatches({
+      const result = replaceTokensWithMatches({
         textToMatch,
         textToReplace,
         pattern,
       });
 
-      expect(replaced).not.toBe(textToReplace);
-      expect(replaced).toBe('quick fox lazy quick fox lazy');
+      expect(result.patternMatchedText).toBeTruthy();
+      expect(result.replacedText).not.toBe(textToReplace);
+      expect(result.replacedText).toBe('quick fox lazy quick fox lazy');
     });
 
     it('leaves unmatched tokens as-is while replacing others', async () => {
@@ -149,14 +154,17 @@ describe('regex-utils', () => {
       const pattern = `The (quick )?brown (fox) jumps over the (lazy) dog`;
       const textToReplace = 'The $3 dog is jumped over by the $1 $2';
 
-      const replaced = replaceTokensWithMatches({
+      const result = replaceTokensWithMatches({
         textToMatch,
         textToReplace,
         pattern,
       });
 
-      expect(replaced).not.toBe(textToReplace);
-      expect(replaced).toBe('The lazy dog is jumped over by the $1 fox');
+      expect(result.patternMatchedText).toBeTruthy();
+      expect(result.replacedText).not.toBe(textToReplace);
+      expect(result.replacedText).toBe(
+        'The lazy dog is jumped over by the $1 fox'
+      );
     });
   });
 });

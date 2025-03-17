@@ -188,7 +188,20 @@ export const replaceTokensWithMatches = (options: {
    * Example: '^(.*?) arrives.'.
    */
   pattern: string;
-}): string => {
+}): {
+  /**
+   * Denotes if the pattern matched the text-to-match.
+   * If yes, then any captured groups may have been
+   * used to replace tokens in the text-to-replace.
+   */
+  patternMatchedText: boolean;
+  /**
+   * The text-to-replace with any numerical regex tokens replaced.
+   * If no matches were found, or if the tokens were not replaced,
+   * then this will be the same as the original text-to-replace.
+   */
+  replacedText: string;
+} => {
   const { textToMatch, textToReplace, pattern } = options;
 
   // For performance, cache compiled regex patterns.
@@ -200,14 +213,19 @@ export const replaceTokensWithMatches = (options: {
   // expect to need to specify them in their regex settings.
   const match = regex.exec(textToMatch.trimEnd());
 
-  let result = textToReplace;
+  let patternMatchedText = false;
+  let replacedText = textToReplace;
 
   if (match) {
+    patternMatchedText = true;
     for (let i = 1; i < match.length; i += 1) {
       const token = `$${i}`; // e.g. $1, $2, $3, etc.
-      result = result.replaceAll(token, match[i] ?? token);
+      replacedText = replacedText.replaceAll(token, match[i] ?? token);
     }
   }
 
-  return result;
+  return {
+    patternMatchedText,
+    replacedText,
+  };
 };
