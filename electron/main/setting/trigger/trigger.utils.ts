@@ -14,6 +14,16 @@ export const buildTriggerSetting = (options: {
   return setting;
 };
 
+/**
+ * Splits a delimited string of actions into an array of actions.
+ * Empty actions are removed.
+ *
+ * Example:
+ * ```
+ * splitActions('say "Hello, $1"; say "Goodbye, $1";')
+ * //=> ['say "Hello, $1"', 'say "Goodbye, $1"']
+ * ```
+ */
 export const splitActions = (delimitedActionStr: string): Array<string> => {
   return delimitedActionStr
     .split(';')
