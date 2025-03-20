@@ -6,6 +6,7 @@ import type {
 
 export interface SettingService {
   getClasses(): Array<ClassSetting>;
+  upsertClass(setting: ClassSetting): void;
 
   // TODO getAliases()
   // TODO getEnabledAliases()

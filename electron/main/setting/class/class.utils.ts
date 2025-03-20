@@ -3,7 +3,7 @@ import type { ClassSetting } from '../../../common/setting/types.js';
 
 export const buildClassSetting = (options: {
   name?: string;
-  enabled?: string;
+  enabled?: string | boolean;
 }): ClassSetting => {
   const setting: ClassSetting = {
     name: options.name ?? '',
@@ -11,16 +11,4 @@ export const buildClassSetting = (options: {
   };
 
   return setting;
-};
-
-export const toClassMap = (
-  settings: Array<ClassSetting>
-): Record<string, boolean> => {
-  const map: Record<string, boolean> = {};
-
-  for (const setting of settings) {
-    map[setting.name] = setting.enabled;
-  }
-
-  return map;
 };

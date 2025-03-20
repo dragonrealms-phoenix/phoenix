@@ -4,7 +4,7 @@ import { isBlank } from '../../../common/string/string.utils.js';
 import type { Maybe } from '../../../common/types.js';
 import { logger } from '../logger.js';
 import { parseLines } from '../setting.utils.js';
-import { buildClassSetting, toClassMap } from './class.utils.js';
+import { buildClassSetting } from './class.utils.js';
 import type { ClassSettingService } from './types.js';
 
 // I fully appreciate the irony of using regex to parse regex.
@@ -17,22 +17,30 @@ const SETTING_LINE_REGEX = new RegExp(
 );
 
 export class ClassSettingServiceImpl implements ClassSettingService {
-  private settings: Array<ClassSetting>;
+  private settings: Record<string, ClassSetting>;
 
   constructor() {
-    this.settings = [];
+    this.settings = {};
   }
 
   public getAsMap(): Record<string, boolean> {
-    return toClassMap(this.settings);
+    const map: Record<string, boolean> = {};
+    for (const setting of Object.values(this.settings)) {
+      map[setting.name] = setting.enabled;
+    }
+    return map;
+  }
+
+  public upsert(newSetting: ClassSetting): void {
+    this.settings[newSetting.name] = newSetting;
   }
 
   public get(): Array<ClassSetting> {
-    return this.settings;
+    return Object.values(this.settings);
   }
 
   public clear(): void {
-    this.settings = [];
+    this.settings = {};
   }
 
   public async load(options: {
@@ -63,7 +71,9 @@ export class ClassSettingServiceImpl implements ClassSettingService {
     }
 
     const parsedSettings = await this.parseFile({ filePath });
-    this.settings.push(...parsedSettings);
+    for (const setting of parsedSettings) {
+      this.upsert(setting);
+    }
   }
 
   protected async parseFile(options: {

@@ -81,7 +81,35 @@ describe('class-service', () => {
       expect(settings[1]).toEqual(setting1);
     });
 
-    it('should append to previously loaded settings', async () => {
+    it('should parse settings from file2', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file2.cfg'),
+      });
+
+      const settings = classService.get();
+
+      expect(settings.length).toBe(3);
+
+      const setting0 = buildClassSetting({
+        name: 'name 1',
+        enabled: 'true',
+      });
+      expect(settings[0]).toEqual(setting0);
+
+      const setting1 = buildClassSetting({
+        name: 'name 2',
+        enabled: 'false',
+      });
+      expect(settings[1]).toEqual(setting1);
+
+      const setting2 = buildClassSetting({
+        name: 'name 3',
+        enabled: 'false',
+      });
+      expect(settings[2]).toEqual(setting2);
+    });
+
+    it('should upsert to previously loaded settings', async () => {
       await classService.load({
         filePath: path.join(__dirname, 'file.cfg'),
       });
@@ -89,11 +117,37 @@ describe('class-service', () => {
       expect(classService.get().length).toBe(2);
 
       await classService.load({
-        filePath: path.join(__dirname, 'file.cfg'),
+        filePath: path.join(__dirname, 'file2.cfg'),
         mode: 'append',
       });
 
       expect(classService.get().length).toBe(4);
+
+      const settings = classService.get();
+
+      const setting0 = buildClassSetting({
+        name: 'name 0',
+        enabled: 'true',
+      });
+      expect(settings[0]).toEqual(setting0);
+
+      const setting1 = buildClassSetting({
+        name: 'name 1',
+        enabled: 'true',
+      });
+      expect(settings[1]).toEqual(setting1);
+
+      const setting2 = buildClassSetting({
+        name: 'name 2',
+        enabled: 'false',
+      });
+      expect(settings[2]).toEqual(setting2);
+
+      const setting3 = buildClassSetting({
+        name: 'name 3',
+        enabled: 'false',
+      });
+      expect(settings[3]).toEqual(setting3);
     });
 
     it('should replace previously loaded settings', async () => {

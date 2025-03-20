@@ -41,6 +41,10 @@ export class SettingServiceImpl implements SettingService {
     return this.classService.get();
   }
 
+  public upsertClass(setting: ClassSetting): void {
+    this.classService.upsert(setting);
+  }
+
   // TODO get aliases
 
   public getHighlights(): Array<HighlightSetting> {
