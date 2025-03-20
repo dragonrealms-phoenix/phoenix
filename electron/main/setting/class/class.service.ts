@@ -19,8 +19,8 @@ const SETTING_LINE_REGEX = new RegExp(
 export class ClassSettingServiceImpl implements ClassSettingService {
   private settings: Record<string, ClassSetting>;
 
-  constructor() {
-    this.settings = {};
+  constructor(settings: Record<string, ClassSetting> = {}) {
+    this.settings = settings;
   }
 
   public getAsMap(): Record<string, boolean> {
@@ -31,8 +31,10 @@ export class ClassSettingServiceImpl implements ClassSettingService {
     return map;
   }
 
-  public upsert(newSetting: ClassSetting): void {
-    this.settings[newSetting.name] = newSetting;
+  public upsert(newSettings: Array<ClassSetting>): void {
+    for (const newSetting of newSettings) {
+      this.settings[newSetting.name] = newSetting;
+    }
   }
 
   public get(): Array<ClassSetting> {
@@ -71,9 +73,7 @@ export class ClassSettingServiceImpl implements ClassSettingService {
     }
 
     const parsedSettings = await this.parseFile({ filePath });
-    for (const setting of parsedSettings) {
-      this.upsert(setting);
-    }
+    this.upsert(parsedSettings);
   }
 
   protected async parseFile(options: {

@@ -1,7 +1,6 @@
 import { type BrowserWindow, shell } from 'electron';
 import type { TriggerSetting } from 'common/setting/types';
 import * as rxjs from 'rxjs';
-import { toBoolean } from '../../../common/boolean/boolean.utils.js';
 import type {
   GameEvent,
   StyledTextGameEvent,
@@ -17,6 +16,7 @@ import { Game } from '../../game/game.instance.js';
 import { startLichProcess } from '../../lich/start-process.js';
 import { Preferences } from '../../preference/preference.instance.js';
 import { PreferenceKey } from '../../preference/types.js';
+import { buildClassSetting } from '../../setting/class/class.utils.js';
 import { applyHighlights } from '../../setting/highlight/highlight.utils.js';
 import { splitActions } from '../../setting/trigger/trigger.utils.js';
 import type { SettingService } from '../../setting/types.js';
@@ -234,21 +234,24 @@ export const playCharacterHandler = (options: {
 
       logger.trace('unhandled action, ignoring', { action });
     };
-  };
-};
 
-const parseClassAction = (action: string): Maybe<ClassSetting> => {
-  // https://regex101.com/r/eDz3bz/1
-  const regex = getCachedRegExp(
-    '^#class\\s+(?<name>[^\\s]+)\\s+(?<booleanLike>[^\\s]+).*$',
-    'g'
-  );
-  const match = regex.exec(action);
-  if (!match?.groups?.name) {
-    return;
-  }
-  return {
-    name: match.groups.name,
-    enabled: toBoolean(match.groups.booleanLike, false),
+    const parseClassAction = (action: string): Maybe<ClassSetting> => {
+      // https://regex101.com/r/eDz3bz/1
+      const regex = getCachedRegExp(
+        '^#class\\s+(?<name>[^\\s]+)\\s+(?<booleanLike>[^\\s]+).*$',
+        'g'
+      );
+
+      const match = regex.exec(action);
+
+      if (!match?.groups?.name) {
+        return;
+      }
+
+      return buildClassSetting({
+        name: match.groups.name,
+        enabled: match.groups.booleanLike,
+      });
+    };
   };
 };

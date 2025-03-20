@@ -12,11 +12,11 @@ export interface ClassSettingService {
   getAsMap(): Record<string, boolean>;
 
   /**
-   * Creates or updates a class setting.
+   * Adds or updates class settings.
    * Only affects the loaded settings in memory.
    * Originally designed so trigger actions can toggle class settings on/off.
    */
-  upsert(setting: ClassSetting): void;
+  upsert(settings: Array<ClassSetting>): void;
 
   /**
    * Get all loaded settings.

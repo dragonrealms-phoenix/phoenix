@@ -20,8 +20,12 @@ const SETTING_LINE_REGEX = new RegExp(
 export class TriggerSettingServiceImpl implements TriggerSettingService {
   private settings: Array<TriggerSetting>;
 
-  constructor() {
-    this.settings = [];
+  constructor(settings: Array<TriggerSetting> = []) {
+    this.settings = settings;
+  }
+
+  public add(settings: Array<TriggerSetting>): void {
+    this.settings.push(...settings);
   }
 
   public get(): Array<TriggerSetting> {
@@ -61,7 +65,7 @@ export class TriggerSettingServiceImpl implements TriggerSettingService {
     }
 
     const parsedSettings = await this.parseFile({ filePath });
-    this.settings.push(...parsedSettings);
+    this.add(parsedSettings);
   }
 
   protected async parseFile(options: {

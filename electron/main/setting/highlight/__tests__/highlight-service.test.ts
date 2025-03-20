@@ -20,6 +20,50 @@ describe('highlight-service', () => {
     vi.useRealTimers();
   });
 
+  describe('#constructor', () => {
+    it('should initialize with empty settings', async () => {
+      highlightService = new HighlightSettingServiceImpl();
+
+      expect(highlightService.get()).toEqual([]);
+    });
+
+    it('should initialize with specified settings', async () => {
+      const settings = [
+        buildHighlightSetting({
+          matchType: HighlightMatchType.EXACT,
+          text: 'text 0',
+          foregroundColor: 'fg0',
+          backgroundColor: '',
+          className: 'class 0',
+        }),
+      ];
+
+      highlightService = new HighlightSettingServiceImpl(settings);
+
+      expect(highlightService.get()).toEqual(settings);
+    });
+  });
+
+  describe('#add', () => {
+    it('should add settings', async () => {
+      expect(highlightService.get()).toEqual([]);
+
+      const settings = [
+        buildHighlightSetting({
+          matchType: HighlightMatchType.EXACT,
+          text: 'text 0',
+          foregroundColor: 'fg0',
+          backgroundColor: '',
+          className: 'class 0',
+        }),
+      ];
+
+      highlightService.add(settings);
+
+      expect(highlightService.get()).toEqual(settings);
+    });
+  });
+
   describe('#get', () => {
     it('should return empty settings', () => {
       const settings = highlightService.get();

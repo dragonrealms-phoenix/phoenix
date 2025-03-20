@@ -19,6 +19,46 @@ describe('trigger-service', () => {
     vi.useRealTimers();
   });
 
+  describe('#constructor', () => {
+    it('should initialize with empty settings', async () => {
+      triggerService = new TriggerSettingServiceImpl();
+
+      expect(triggerService.get()).toEqual([]);
+    });
+
+    it('should initialize with specified settings', async () => {
+      const settings = [
+        buildTriggerSetting({
+          pattern: 'pattern 0',
+          action: 'action 0',
+          className: 'class 0',
+        }),
+      ];
+
+      triggerService = new TriggerSettingServiceImpl(settings);
+
+      expect(triggerService.get()).toEqual(settings);
+    });
+  });
+
+  describe('#add', () => {
+    it('should add settings', async () => {
+      expect(triggerService.get()).toEqual([]);
+
+      const settings = [
+        buildTriggerSetting({
+          pattern: 'pattern 0',
+          action: 'action 0',
+          className: 'class 0',
+        }),
+      ];
+
+      triggerService.add(settings);
+
+      expect(triggerService.get()).toEqual(settings);
+    });
+  });
+
   describe('#get', () => {
     it('should return empty settings', () => {
       const settings = triggerService.get();

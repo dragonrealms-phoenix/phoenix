@@ -19,21 +19,41 @@ describe('class-service', () => {
     vi.useRealTimers();
   });
 
-  describe('#get', () => {
-    it('should return empty settings', () => {
-      const settings = classService.get();
+  describe('#constructor', () => {
+    it('should initialize with empty settings', async () => {
+      classService = new ClassSettingServiceImpl();
 
-      expect(settings.length).toBe(0);
+      expect(classService.get()).toEqual([]);
     });
 
-    it('should return loaded settings', async () => {
-      await classService.load({
-        filePath: path.join(__dirname, 'file.cfg'),
-      });
+    it('should initialize with specified settings', async () => {
+      const settings = {
+        'name 0': buildClassSetting({
+          name: 'name 0',
+          enabled: 'true',
+        }),
+      };
 
-      const settings = classService.get();
+      classService = new ClassSettingServiceImpl(settings);
 
-      expect(settings.length).not.toBe(0);
+      expect(classService.get()).toEqual(Object.values(settings));
+    });
+  });
+
+  describe('#add', () => {
+    it('should add settings', async () => {
+      expect(classService.get()).toEqual([]);
+
+      const settings = [
+        buildClassSetting({
+          name: 'name 0',
+          enabled: 'true',
+        }),
+      ];
+
+      classService.upsert(settings);
+
+      expect(classService.get()).toEqual(settings);
     });
   });
 
@@ -55,6 +75,24 @@ describe('class-service', () => {
         'name 0': true,
         'name 1': false,
       });
+    });
+  });
+
+  describe('#get', () => {
+    it('should return empty settings', () => {
+      const settings = classService.get();
+
+      expect(settings.length).toBe(0);
+    });
+
+    it('should return loaded settings', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const settings = classService.get();
+
+      expect(settings.length).not.toBe(0);
     });
   });
 

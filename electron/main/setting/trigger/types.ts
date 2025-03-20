@@ -6,13 +6,18 @@ import type { TriggerSetting } from '../../../common/setting/types.js';
  */
 export interface TriggerSettingService {
   /**
+   * Append to the loaded settings in memory.
+   */
+  add(settings: Array<TriggerSetting>): void;
+
+  /**
    * Get all loaded settings.
    */
   get(): Array<TriggerSetting>;
 
   /**
    * Remove all loaded settings from memory.
-   * To load new settings, call {@link load}.
+   * To load new settings, call {@link load} or {@link add}.
    */
   clear(): void;
 

@@ -42,7 +42,7 @@ export class SettingServiceImpl implements SettingService {
   }
 
   public upsertClass(setting: ClassSetting): void {
-    this.classService.upsert(setting);
+    this.classService.upsert([setting]);
   }
 
   // TODO get aliases

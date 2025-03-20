@@ -6,6 +6,11 @@ import type { HighlightSetting } from '../../../common/setting/types.js';
  */
 export interface HighlightSettingService {
   /**
+   * Append to the loaded settings in memory.
+   */
+  add(settings: Array<HighlightSetting>): void;
+
+  /**
    * Get all loaded settings.
    */
   get(): Array<HighlightSetting>;

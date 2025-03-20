@@ -21,8 +21,12 @@ const SETTING_LINE_REGEX = new RegExp(
 export class HighlightSettingServiceImpl implements HighlightSettingService {
   private settings: Array<HighlightSetting>;
 
-  constructor() {
-    this.settings = [];
+  constructor(settings: Array<HighlightSetting> = []) {
+    this.settings = settings;
+  }
+
+  public add(settings: Array<HighlightSetting>): void {
+    this.settings.push(...settings);
   }
 
   public get(): Array<HighlightSetting> {
@@ -64,7 +68,7 @@ export class HighlightSettingServiceImpl implements HighlightSettingService {
     }
 
     const parsedSettings = await this.parseFile({ filePath });
-    this.settings.push(...parsedSettings);
+    this.add(parsedSettings);
   }
 
   protected async parseFile(options: {
