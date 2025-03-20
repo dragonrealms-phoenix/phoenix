@@ -28,11 +28,7 @@ export const applyHighlights = (options: {
         pattern: highlight.pattern,
       });
 
-      console.log('*** matches.raw', allMatches);
-
       const matches = filterToMinimalCompleteMatches(allMatches);
-
-      console.log('*** matches.filtered', matches);
 
       // Combine each match with their highlight settings.
       for (const match of matches) {
@@ -48,13 +44,9 @@ export const applyHighlights = (options: {
       }
     }
 
-    console.log('*** segments.raw', segments);
-
     // We need one more pass to consolidate overlapping segments
     // since different patterns may match the same text.
     segments = filterToMinimalCompleteMatches(segments);
-
-    console.log('*** segments.filtered', segments);
 
     // Process text into non-overlapping highlighted segments.
     // Iterate the sorted matches, checking if the current entry starts within
