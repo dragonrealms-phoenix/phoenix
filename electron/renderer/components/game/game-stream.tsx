@@ -56,6 +56,14 @@ export const GameStream: React.FC<GameStreamProps> = (
   const [gameLogLines, setGameLogLines] = useState<Array<GameLogLine>>([]);
   const clearStreamTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Scroll to the bottom of the scrollable element when new content is added.
+  // https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/
+  const scrollableRef = useRef<HTMLDivElement>(null);
+  const scrollTargetRef = useRef<HTMLDivElement>(null);
+  const observedTargetCountRef = useRef<number>(0);
+  const hasScrolledTargetIntoViewRef = useRef<boolean>(false);
+  const scrollTargetIsInViewRef = useRef<boolean>(false);
+
   // Clear streams when reconnect to game.
   useEffect(() => {
     if (isConnected) {
@@ -75,8 +83,22 @@ export const GameStream: React.FC<GameStreamProps> = (
       setGameLogLines((oldLogLines: Array<GameLogLine>): Array<GameLogLine> => {
         // Append new log line to the list.
         newLogLines = oldLogLines.concat(newLogLines);
-        // Trim the back of the list to keep it within the scrollback buffer.
-        newLogLines = newLogLines.slice(maxLines * -1);
+
+        // In normal operation, the user is scrolled to the bottom
+        // of the panel as new log lines are added. Once the desired max
+        // lines are reached, we trim the back of the list to manage memory.
+        // However, when the user scrolls up to view older content, we don't
+        // want to continuously trim the list else the user will lose their
+        // place. So we only trim the list when the user is scrolled to bottom.
+        // As a protection, we enforce a hard upper limit before trim again.
+        if (
+          scrollTargetIsInViewRef.current ||
+          newLogLines.length > maxLines * 3 // arbitrary upper limit
+        ) {
+          // Trim the back of the list to keep it within the scrollback buffer.
+          newLogLines = newLogLines.slice(maxLines * -1);
+        }
+
         return newLogLines;
       });
     },
@@ -119,12 +141,6 @@ export const GameStream: React.FC<GameStreamProps> = (
     });
   });
 
-  // Scroll to the bottom of the scrollable element when new content is added.
-  // https://css-tricks.com/books/greatest-css-tricks/pin-scrolling-to-bottom/
-  const scrollableRef = useRef<HTMLDivElement>(null);
-  const scrollTargetRef = useRef<HTMLDivElement>(null);
-  const observedTargetCountRef = useRef<number>(0);
-
   // The scroll behavior of `overflowAnchor: auto` doesn't take effect
   // to pin the content to the bottom until after an initial scroll event.
   // Therefore, we observe the target to know if sufficient content has been
@@ -143,30 +159,35 @@ export const GameStream: React.FC<GameStreamProps> = (
       // The callback receives an entry for each observed target.
       // In practice, we are only observing one target so we loop once.
       entries.forEach((entry) => {
-        // When the component is first rendering, there is a period where
-        // there is no content and the scroll target is not visible.
-        // The observer invokes the callback that initial time, but we
-        // don't actually want to scroll to the bottom then, it's too soon.
-        // So we ignore the first invocation and only scroll on the second.
-        observedTargetCountRef.current += 1;
-        if (observedTargetCountRef.current <= 1) {
+        scrollTargetIsInViewRef.current = entry.isIntersecting;
+
+        if (!hasScrolledTargetIntoViewRef.current) {
+          // When the component is first rendering, there is a period where
+          // there is no content and the scroll target is not visible.
+          // The observer invokes the callback that initial time, but we
+          // don't actually want to scroll to the bottom then, it's too soon.
+          // So we ignore the first invocation and only scroll on the second.
+          observedTargetCountRef.current += 1;
+          if (observedTargetCountRef.current <= 1) {
+            return;
+          }
+          // If the scroll target is visible, nothing to do yet.
+          if (scrollTargetIsInViewRef.current) {
+            return;
+          }
+          // The scroll target is now not visible, meaning that there's
+          // enough content on screen to cause the window to scroll.
+          // Perform our initial scroll to bottom.
+          // From now on, if the user scrolls away that's fine, we won't keep
+          // it pinned to bottom until they scroll back to bottom.
+          hasScrolledTargetIntoViewRef.current = true;
+          scrollTargetRef.current?.scrollIntoView({
+            behavior: 'instant',
+            block: 'end',
+            inline: 'nearest',
+          });
           return;
         }
-        // If the scroll target is visible, nothing to do yet.
-        if (entry.isIntersecting) {
-          return;
-        }
-        // The scroll target is now not visible, meaning that there's
-        // enough content on screen to cause the window to scroll.
-        // Perform our initial scroll to bottom and disconnect the observer.
-        // From now on, if the user scrolls away that's fine, we won't keep
-        // it pinned to bottom until they scroll back to bottom.
-        observer.disconnect();
-        scrollTargetRef.current?.scrollIntoView({
-          behavior: 'instant',
-          block: 'end',
-          inline: 'nearest',
-        });
       });
     };
 
