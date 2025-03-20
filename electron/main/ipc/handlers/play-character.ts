@@ -1,13 +1,17 @@
 import { type BrowserWindow, shell } from 'electron';
 import type { TriggerSetting } from 'common/setting/types';
 import * as rxjs from 'rxjs';
+import { toBoolean } from '../../../common/boolean/boolean.utils.js';
 import type {
   GameEvent,
   StyledTextGameEvent,
   TextGameEvent,
 } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
+import { getCachedRegExp } from '../../../common/regex/regex.cache.js';
 import { replaceTokensWithMatches } from '../../../common/regex/regex.utils.js';
+import type { ClassSetting } from '../../../common/setting/types.js';
+import type { Maybe } from '../../../common/types.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
 import { startLichProcess } from '../../lich/start-process.js';
@@ -201,24 +205,50 @@ export const playCharacterHandler = (options: {
 
       logger.trace('processing action', { action });
 
-      switch (action) {
-        case '#beep':
-          // Emits a beep noise.
-          logger.trace('beeping', { action });
-          shell.beep();
-          break;
-
-        case '#flash':
-          // Flashes the window until it gains focus.
-          // If the window already has focus then does nothing.
-          logger.trace('flashing window', { action });
-          window.flashFrame(true);
-          break;
-
-        default:
-          logger.trace('unhandled action, ignoring', { action });
-          break;
+      // Emits a beep noise.
+      if (action === '#beep') {
+        logger.trace('beeping', { action });
+        shell.beep();
+        return;
       }
+
+      // Flashes the window until it gains focus.
+      // If the window already has focus then does nothing.
+      if (action === '#flash') {
+        logger.trace('flashing window', { action });
+        window.flashFrame(true);
+        return;
+      }
+
+      // Toggles a class setting.
+      // Syntax: '#class <className> <boolean-like>'
+      // Example: '#class combat on'
+      if (action.startsWith('#class')) {
+        const setting = parseClassAction(action);
+        if (setting) {
+          logger.trace('upserting class setting', { setting });
+          settingService.upsertClass(setting);
+        }
+        return;
+      }
+
+      logger.trace('unhandled action, ignoring', { action });
     };
+  };
+};
+
+const parseClassAction = (action: string): Maybe<ClassSetting> => {
+  // https://regex101.com/r/eDz3bz/1
+  const regex = getCachedRegExp(
+    '^#class\\s+(?<name>[^\\s]+)\\s+(?<booleanLike>[^\\s]+).*$',
+    'g'
+  );
+  const match = regex.exec(action);
+  if (!match?.groups?.name) {
+    return;
+  }
+  return {
+    name: match.groups.name,
+    enabled: toBoolean(match.groups.booleanLike, false),
   };
 };
