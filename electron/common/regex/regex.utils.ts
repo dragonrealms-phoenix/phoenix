@@ -109,28 +109,29 @@ export const getAllMatches = (options: {
   // Remove trailing whitespace, such as newlines (\n) that
   // may have been parsed from the game stream. User's don't
   // expect to need to specify them in their regex settings.
-  const match = regex.exec(text.trimEnd());
-
-  // The indices property will be defined because we used the 'd' flag.
-  // But typescript doesn't know that.
-  if (!match?.indices) {
-    return results;
-  }
-
-  for (let i = 1; i < match.indices.length; i += 1) {
-    // If the captured group was optional (e.g. '(quick)?'),
-    // and there's no match then the value will be undefined, skip it.
-    if (!match.indices[i]) {
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text.trimEnd())) !== null) {
+    // The indices property will be defined because we used the 'd' flag.
+    // But typescript doesn't know that.
+    if (!match?.indices) {
       continue;
     }
 
-    const [start, end] = match.indices[i];
+    for (let i = 1; i < match.indices.length; i += 1) {
+      // If the captured group was optional (e.g. '(quick)?'),
+      // and there's no match then the value will be undefined, skip it.
+      if (!match.indices[i]) {
+        continue;
+      }
 
-    results.push({
-      text: match[i],
-      start,
-      end,
-    });
+      const [start, end] = match.indices[i];
+
+      results.push({
+        text: match[i],
+        start,
+        end,
+      });
+    }
   }
 
   return results;

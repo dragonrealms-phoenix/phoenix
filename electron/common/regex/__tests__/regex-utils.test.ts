@@ -77,6 +77,25 @@ describe('regex-utils', () => {
         { text: 'lazy', start: 35, end: 39 },
       ]);
     });
+
+    it('finds all instances of pattern in the text', async () => {
+      const pattern = '([aeiou]+)';
+
+      const matches = getAllMatches({ text, pattern });
+
+      expect(matches).toEqual([
+        { text: 'e', start: 2, end: 3 }, // thE
+        { text: 'ui', start: 5, end: 7 }, // qUIck
+        { text: 'o', start: 12, end: 13 }, // brOwn
+        { text: 'o', start: 17, end: 18 }, // fOx
+        { text: 'u', start: 21, end: 22 }, // jUmps
+        { text: 'o', start: 26, end: 27 }, // Over
+        { text: 'e', start: 28, end: 29 }, // ovEr
+        { text: 'e', start: 33, end: 34 }, // thE
+        { text: 'a', start: 36, end: 37 }, // lAzy
+        { text: 'o', start: 41, end: 42 }, // dOg
+      ]);
+    });
   });
 
   describe('#isMatch', () => {
