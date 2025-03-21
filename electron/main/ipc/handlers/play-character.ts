@@ -198,8 +198,7 @@ export const playCharacterHandler = (options: {
       const { action } = options;
 
       if (!action.startsWith('#')) {
-        // Treat action as a game command.
-        gameInstance.send(action);
+        sendCommand(action);
         return;
       }
 
@@ -232,6 +231,27 @@ export const playCharacterHandler = (options: {
         return;
       }
 
+      // Sends a game command after a delay.
+      // Syntax: '#send <seconds> <command>'
+      // Example: '#send 5 look'
+      if (action.startsWith('#send')) {
+        const sendAction = parseSendAction(action);
+        if (sendAction) {
+          const { seconds, command } = sendAction;
+          logger.trace('scheduling send command', { seconds, command });
+          setTimeout(() => {
+            sendCommand(command);
+          }, seconds * 1000);
+        }
+        return;
+      }
+
+      // TODO #echo
+
+      // TODO #gag #ignore
+
+      // TODO #ungag #unignore
+
       logger.trace('unhandled action, ignoring', { action });
     };
 
@@ -244,7 +264,7 @@ export const playCharacterHandler = (options: {
 
       const match = regex.exec(action);
 
-      if (!match?.groups?.name) {
+      if (!match?.groups) {
         return;
       }
 
@@ -252,6 +272,42 @@ export const playCharacterHandler = (options: {
         name: match.groups.name,
         enabled: match.groups.booleanLike,
       });
+    };
+
+    const parseSendAction = (
+      action: string
+    ): Maybe<{
+      /**
+       * Send the command afer this many seconds.
+       */
+      seconds: number;
+      /**
+       * Game command to send.
+       */
+      command: string;
+    }> => {
+      // https://regex101.com/r/SNQQfA/1
+      const regex = getCachedRegExp(
+        '^#send\\s+(?<seconds>\\d+)\\s+(?<command>.+)$',
+        'g'
+      );
+
+      const match = regex.exec(action);
+
+      if (!match?.groups) {
+        return;
+      }
+
+      return {
+        seconds: Number(match.groups.seconds),
+        command: match.groups.command,
+      };
+    };
+
+    const sendCommand = (command: string): void => {
+      // Let the world know we are sending a command.
+      dispatch('game:command', { command });
+      gameInstance.send(command);
     };
   };
 };
