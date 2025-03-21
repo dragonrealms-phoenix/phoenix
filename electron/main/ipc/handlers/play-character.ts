@@ -197,16 +197,18 @@ export const playCharacterHandler = (options: {
     }): void => {
       const { action } = options;
 
+      logger.trace('processing action', { action });
+
+      // Treat action as a game command.
       if (!action.startsWith('#')) {
+        logger.trace('sending command to game', { action });
         sendCommand(action);
         return;
       }
 
-      logger.trace('processing action', { action });
-
       // Emits a beep noise.
       if (action === '#beep') {
-        logger.trace('beeping', { action });
+        logger.trace('beeping');
         shell.beep();
         return;
       }
@@ -214,7 +216,7 @@ export const playCharacterHandler = (options: {
       // Flashes the window until it gains focus.
       // If the window already has focus then does nothing.
       if (action === '#flash') {
-        logger.trace('flashing window', { action });
+        logger.trace('flashing window');
         window.flashFrame(true);
         return;
       }
@@ -237,11 +239,10 @@ export const playCharacterHandler = (options: {
       if (action.startsWith('#send')) {
         const sendAction = parseSendAction(action);
         if (sendAction) {
-          const { seconds, command } = sendAction;
-          logger.trace('scheduling send command', { seconds, command });
+          logger.trace('scheduling send command', { sendAction });
           setTimeout(() => {
-            sendCommand(command);
-          }, seconds * 1000);
+            processAction(sendAction);
+          }, sendAction.seconds * 1000);
         }
         return;
       }
@@ -255,6 +256,9 @@ export const playCharacterHandler = (options: {
       logger.trace('unhandled action, ignoring', { action });
     };
 
+    /**
+     * Parse an action to enable or disable a class setting.
+     */
     const parseClassAction = (action: string): Maybe<ClassSetting> => {
       // https://regex101.com/r/eDz3bz/1
       const regex = getCachedRegExp(
@@ -274,21 +278,24 @@ export const playCharacterHandler = (options: {
       });
     };
 
+    /**
+     * Parse an action to know which other action to send after a delay.
+     */
     const parseSendAction = (
       action: string
     ): Maybe<{
       /**
-       * Send the command afer this many seconds.
+       * Process the action afer this many seconds.
        */
       seconds: number;
       /**
-       * Game command to send.
+       * Action to process after a delay.
        */
-      command: string;
+      action: string;
     }> => {
-      // https://regex101.com/r/SNQQfA/1
+      // https://regex101.com/r/rAAT3a/1
       const regex = getCachedRegExp(
-        '^#send\\s+(?<seconds>\\d+)\\s+(?<command>.+)$',
+        '^#send\\s+(?<seconds>\\d+)\\s+(?<action>.+)$',
         'g'
       );
 
@@ -300,10 +307,13 @@ export const playCharacterHandler = (options: {
 
       return {
         seconds: Number(match.groups.seconds),
-        command: match.groups.command,
+        action: match.groups.action,
       };
     };
 
+    /**
+     * Send a command to the game.
+     */
     const sendCommand = (command: string): void => {
       // Let the world know we are sending a command.
       dispatch('game:command', { command });
