@@ -201,7 +201,7 @@ export const playCharacterHandler = (options: {
 
       // Treat action as a game command.
       if (!action.startsWith('#')) {
-        logger.trace('sending command to game', { action });
+        logger.trace('sending command', { action });
         sendCommand(action);
         return;
       }
