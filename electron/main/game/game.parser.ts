@@ -345,6 +345,16 @@ export class GameParserImpl implements GameParser {
     }
 
     if (this.gameText.length > 0) {
+      // Handle when a <pushBold/> tag is not paired with a <popBold/> tag
+      // but only a portion of text is supposed to be bold, not the entire line.
+      // Example:
+      //  <roundTime value='1742679864'/>You whip your smokewhorl whip at a musk hog.<pushBold/>  The smokewhorl whip lands an awesome strike to a musk hog's right foreleg.
+      //  <popBold/>With one last high-pitched squeal, the musk hog falls to the ground lifeless.
+      //  Roundtime: 2 sec.
+      if (this.boldTagActive) {
+        this.gameText += '</b>';
+        this.boldTagActive = false;
+      }
       this.emitTextGameEvent(this.consumeGameText());
     }
   }
@@ -475,7 +485,7 @@ export class GameParserImpl implements GameParser {
         // "You also see <pushBold />a town guard<popBold />."
         // "<pushBold/>Worn:  <popBold/>Generally worn."
         // Otherwise emit a game event to turn on bold text.
-        if (remaining.includes('<popBold/>')) {
+        if (this.gameText.length > 0 || remaining.includes('<popBold/>')) {
           this.gameText += '<b>';
           this.boldTagActive = true;
         } else {

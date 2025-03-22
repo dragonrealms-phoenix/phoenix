@@ -175,6 +175,40 @@ describe('game-parser', () => {
       });
     });
 
+    it('emits TextGameEvent (with fix for unpaired bold tags)', () => {
+      // Scenario:
+      //  You whip your meteor hammer at a musk hog.<pushBold/>  The meteor hammer lands an awesome strike to a musk hog's leg.\n
+      //  <popBold/>With one last high-pitched squeal, the musk hog falls to the ground lifeless.\n
+
+      // Note that the <pushBold/> has no corresponding <popBold/> tag.
+      gameSocketSubject$.next(
+        "You whip your meteor hammer at a musk hog.<pushBold/>  The meteor hammer lands an awesome strike to a musk hog's leg.\n"
+      );
+
+      // We detect the unpaired <pushBold/> tag and automatically add a </b> tag to properly close it.
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `You whip your meteor hammer at a musk hog.<b>  The meteor hammer lands an awesome strike to a musk hog's leg.\n</b>`,
+      });
+
+      onNextSpy.mockClear();
+
+      // Now the next encounter of the <popBold/> is treated normal rather than
+      // starting the line with a closing </b> tag.
+      gameSocketSubject$.next(
+        '<popBold/>With one last high-pitched squeal, the musk hog falls to the ground lifeless.\n'
+      );
+
+      expectGameEvent({
+        type: GameEventType.POP_BOLD,
+      });
+
+      expectGameEvent({
+        type: GameEventType.TEXT,
+        text: `With one last high-pitched squeal, the musk hog falls to the ground lifeless.\n`,
+      });
+    });
+
     it('emits TextGameEvent (anchor link text with protocol)', () => {
       gameSocketSubject$.next(
         'Visit the <a href="https://play.net/dr">DragonRealms</a> website.\n'
