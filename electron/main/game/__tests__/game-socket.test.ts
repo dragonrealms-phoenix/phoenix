@@ -271,7 +271,7 @@ describe('game-socket', () => {
       );
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(
         2,
-        `FE:PHOENIX /VERSION:${VERSION} /P:${process.platform.toUpperCase()} /XML\n`
+        `/FE:PHOENIX /VERSION:${VERSION} /P:${process.platform.toUpperCase()} /XML\n`
       );
       expect(mockSocket.writeSpy).toHaveBeenNthCalledWith(3, `\n\n`);
     });
