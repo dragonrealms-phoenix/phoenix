@@ -11,6 +11,8 @@ export class ClassSettingServiceMockImpl
     this.constructorSpy(args);
   }
 
+  getAsMap = vi.fn<ClassSettingService['getAsMap']>();
+  upsert = vi.fn<ClassSettingService['upsert']>();
   get = vi.fn<ClassSettingService['get']>();
   clear = vi.fn<ClassSettingService['clear']>();
   load = vi.fn<ClassSettingService['load']>();

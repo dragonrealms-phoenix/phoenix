@@ -11,6 +11,7 @@ export class HighlightSettingServiceMockImpl
     this.constructorSpy(args);
   }
 
+  add = vi.fn<HighlightSettingService['add']>();
   get = vi.fn<HighlightSettingService['get']>();
   clear = vi.fn<HighlightSettingService['clear']>();
   load = vi.fn<HighlightSettingService['load']>();

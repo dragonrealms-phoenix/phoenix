@@ -11,6 +11,7 @@ export class TriggerSettingServiceMockImpl
     this.constructorSpy(args);
   }
 
+  add = vi.fn<TriggerSettingService['add']>();
   get = vi.fn<TriggerSettingService['get']>();
   clear = vi.fn<TriggerSettingService['clear']>();
   load = vi.fn<TriggerSettingService['load']>();
