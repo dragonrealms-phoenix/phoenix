@@ -1,6 +1,7 @@
 import type {
   ClassSetting,
   HighlightSetting,
+  IgnoreSetting,
   TriggerSetting,
 } from '../../common/setting/types.js';
 
@@ -14,8 +15,8 @@ export interface SettingService {
   getHighlights(): Array<HighlightSetting>;
   getEnabledHighlights(): Array<HighlightSetting>;
 
-  // TODO getIgnores()
-  // TODO getEnabledIgnores()
+  getIgnores(): Array<IgnoreSetting>;
+  getEnabledIgnores(): Array<IgnoreSetting>;
 
   // TODO getMacros()
 
