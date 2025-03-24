@@ -1,4 +1,5 @@
 import path from 'node:path';
+import type { IgnoreSetting } from 'common/setting/types';
 import type {
   ClassSetting,
   HighlightSetting,
@@ -6,6 +7,7 @@ import type {
 } from '../../common/setting/types.js';
 import type { ClassSettingService } from './class/types.js';
 import type { HighlightSettingService } from './highlight/types.js';
+import type { IgnoreSettingService } from './ignore/types.js';
 import { logger } from './logger.js';
 import type { TriggerSettingService } from './trigger/types.js';
 import type { SettingService } from './types.js';
@@ -16,7 +18,7 @@ export class SettingServiceImpl implements SettingService {
   private classService: ClassSettingService;
   // TODO aliasService
   private highlightService: HighlightSettingService;
-  // TODO ignoreService
+  private ignoreService: IgnoreSettingService;
   // TODO macroService
   // TODO substituteService
   private triggerService: TriggerSettingService;
@@ -29,11 +31,13 @@ export class SettingServiceImpl implements SettingService {
     baseDir: string;
     classService: ClassSettingService;
     highlightService: HighlightSettingService;
+    ignoreService: IgnoreSettingService;
     triggerService: TriggerSettingService;
   }) {
     this.baseDir = options.baseDir;
     this.classService = options.classService;
     this.highlightService = options.highlightService;
+    this.ignoreService = options.ignoreService;
     this.triggerService = options.triggerService;
   }
 
@@ -59,7 +63,17 @@ export class SettingServiceImpl implements SettingService {
     });
   }
 
-  // TODO get ignores
+  public getIgnores(): Array<IgnoreSetting> {
+    return this.ignoreService.get();
+  }
+
+  public getEnabledIgnores(): Array<IgnoreSetting> {
+    const classMap = this.classService.getAsMap();
+    return this.getIgnores().filter((setting) => {
+      // Presumed enabled unless explicitly disabled.
+      return classMap[setting.className] ?? true;
+    });
+  }
 
   // TODO get macros
 
@@ -83,7 +97,7 @@ export class SettingServiceImpl implements SettingService {
     this.classService.clear();
     // TODO clear aliases
     this.highlightService.clear();
-    // TODO clear ignores
+    this.ignoreService.clear();
     // TODO clear macros
     // TODO clear substitutes
     this.triggerService.clear();
@@ -110,7 +124,12 @@ export class SettingServiceImpl implements SettingService {
       this.highlightService.load({
         filePath: path.join(profileDir, 'highlights.cfg'),
       }),
-      // TODO load ignores
+      this.ignoreService.load({
+        filePath: path.join(profileDir, 'gags.cfg'), // name used by Genie
+      }),
+      this.ignoreService.load({
+        filePath: path.join(profileDir, 'ignores.cfg'), // alternate name
+      }),
       // TODO load macros
       // TODO load substitutes
       this.triggerService.load({

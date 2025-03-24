@@ -2,6 +2,7 @@ import { app } from 'electron';
 import path from 'node:path';
 import { ClassSettingServiceImpl } from './class/class.service.js';
 import { HighlightSettingServiceImpl } from './highlight/highlight.service.js';
+import { IgnoreSettingServiceImpl } from './ignore/ignore.service.js';
 import { SettingServiceImpl } from './setting.service.js';
 import { TriggerSettingServiceImpl } from './trigger/trigger.service.js';
 
@@ -11,5 +12,6 @@ export const Settings = new SettingServiceImpl({
   baseDir: path.join(app.getPath('userData'), 'phoenix', 'settings'),
   classService: new ClassSettingServiceImpl(),
   highlightService: new HighlightSettingServiceImpl(),
+  ignoreService: new IgnoreSettingServiceImpl(),
   triggerService: new TriggerSettingServiceImpl(),
 });
