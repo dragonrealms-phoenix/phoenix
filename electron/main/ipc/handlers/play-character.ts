@@ -1,5 +1,5 @@
 import { type BrowserWindow, shell } from 'electron';
-import type { TriggerSetting } from 'common/setting/types';
+import type { IgnoreSetting, TriggerSetting } from 'common/setting/types';
 import * as rxjs from 'rxjs';
 import type {
   GameEvent,
@@ -8,7 +8,10 @@ import type {
 } from '../../../common/game/types.js';
 import { GameEventType } from '../../../common/game/types.js';
 import { getCachedRegExp } from '../../../common/regex/regex.cache.js';
-import { replaceTokensWithMatches } from '../../../common/regex/regex.utils.js';
+import {
+  isMatch,
+  replaceTokensWithMatches,
+} from '../../../common/regex/regex.utils.js';
 import type { ClassSetting } from '../../../common/setting/types.js';
 import type { Maybe } from '../../../common/types.js';
 import type { AccountService } from '../../account/types.js';
@@ -81,14 +84,22 @@ export const playCharacterHandler = (options: {
     logger.debug('subscribing to game service stream');
     gameEvents$
       .pipe(
+        rxjs.tap((gameEvent) => {
+          if (gameEvent.type === GameEventType.TEXT) {
+            processTriggers(gameEvent);
+          }
+        }),
+        rxjs.filter((gameEvent) => {
+          if (gameEvent.type !== GameEventType.TEXT) {
+            return true;
+          }
+          const isIgnored = processIgnores(gameEvent);
+          return !isIgnored;
+        }),
         rxjs.concatMap(async (gameEvent): Promise<GameEvent> => {
           if (gameEvent.type !== GameEventType.TEXT) {
             return gameEvent;
           }
-
-          processTriggers(gameEvent);
-
-          // TODO ignores
 
           // TODO substitutions
 
@@ -254,6 +265,54 @@ export const playCharacterHandler = (options: {
       // TODO #ungag #unignore
 
       logger.trace('unhandled action, ignoring', { action });
+    };
+
+    /**
+     * Processes all enabled ignores for the given line of game text.
+     * If any ignore's pattern matches then returns true.
+     * Otherwise, returns false.
+     */
+    const processIgnores = (gameEvent: TextGameEvent): boolean => {
+      const ignores = settingService.getEnabledIgnores();
+
+      return ignores.some((ignore) => {
+        return processIgnore({
+          text: gameEvent.text,
+          ignore,
+        });
+      });
+    };
+
+    /**
+     * Processes a ignore for the given line of game text.
+     * If the ignore's pattern matches then returns true.
+     * Otherwise, returns false.
+     */
+    const processIgnore = (options: {
+      /**
+       * The line of text from the game to evaluate.
+       */
+      text: string;
+      /**
+       * The ignore setting to use.
+       * If matches the text then returns true, else false.
+       */
+      ignore: IgnoreSetting;
+    }): boolean => {
+      const { text, ignore } = options;
+
+      const patternMatchedText = isMatch({
+        text,
+        pattern: ignore.pattern,
+      });
+
+      logger.trace('processing ignore', {
+        text,
+        pattern: ignore.pattern,
+        patternMatchedText,
+      });
+
+      return patternMatchedText;
     };
 
     /**
