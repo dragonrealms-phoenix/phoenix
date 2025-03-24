@@ -91,6 +91,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
           autoCorrect="off"
           autoCapitalize="off"
           autoComplete="off"
+          spellCheck={false}
           prepend={commandIcon}
           tabIndex={0}
           disabled={!isConnected}
