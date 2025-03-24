@@ -29,6 +29,33 @@ export interface HighlightedTextSegment {
   backgroundColor: string;
 }
 
+export enum HighlightMatchType {
+  /**
+   * Highlight only the pattern itself.
+   *
+   * Genie uses the term "string" or "strings".
+   */
+  EXACT = 'exact',
+  /**
+   * Highlight the entire line that contains the pattern.
+   *
+   * Genie uses the term "line" or "lines".
+   */
+  CONTAINS = 'contains',
+  /**
+   * Highlight the entire line that starts with the pattern.
+   *
+   * Genie uses the term "beginswith"
+   */
+  STARTS = 'starts',
+  /**
+   * Highlight within the line the captured groups of the pattern.
+   *
+   * Genie uses the term "regex" or "regexp".
+   */
+  REGEX = 'regex',
+}
+
 export interface HighlightSetting {
   /**
    * How to interpret the pattern.
@@ -60,39 +87,10 @@ export interface HighlightSetting {
   backgroundColor: string;
   /**
    * Optional class name to assign to the setting.
-   * Genie uses classes as boolean flags to denote if a setting
-   * is enabled or disabled.
-   * A setting is presumed enabled unless it is assigned a class
-   * that is explicitly disabled.
+   * Genie uses classes as boolean flags to denote if a setting is enabled.
+   * A setting is presumed enabled unless it is assigned a disabled class.
    */
   className: string;
-}
-
-export enum HighlightMatchType {
-  /**
-   * Highlight only the pattern itself.
-   *
-   * Genie uses the term "string" or "strings".
-   */
-  EXACT = 'exact',
-  /**
-   * Highlight the entire line that contains the pattern.
-   *
-   * Genie uses the term "line" or "lines".
-   */
-  CONTAINS = 'contains',
-  /**
-   * Highlight the entire line that starts with the pattern.
-   *
-   * Genie uses the term "beginswith"
-   */
-  STARTS = 'starts',
-  /**
-   * Highlight within the line the captured groups of the pattern.
-   *
-   * Genie uses the term "regex" or "regexp".
-   */
-  REGEX = 'regex',
 }
 
 export interface ClassSetting {
@@ -123,10 +121,23 @@ export interface TriggerSetting {
   action: string;
   /**
    * Optional class name to assign to the setting.
-   * Genie uses classes as boolean flags to denote if a setting
-   * is enabled or disabled.
-   * A setting is presumed enabled unless it is assigned a class
-   * that is explicitly disabled.
+   * Genie uses classes as boolean flags to denote if a setting is enabled.
+   * A setting is presumed enabled unless it is assigned a disabled class.
+   */
+  className: string;
+}
+
+export interface IgnoreSetting {
+  /**
+   * A regular expression that when matches a line of text
+   * then will squelch (i.e. gag, hide, ignore) the line
+   * so that it is not displayed to the user in the game windows.
+   */
+  pattern: string;
+  /**
+   * Optional class name to assign to the setting.
+   * Genie uses classes as boolean flags to denote if a setting is enabled.
+   * A setting is presumed enabled unless it is assigned a disabled class.
    */
   className: string;
 }
