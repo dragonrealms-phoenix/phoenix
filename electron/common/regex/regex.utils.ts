@@ -160,7 +160,10 @@ export const isMatch = (option: {
   // Use 'g' flag so ^ and $ match the start and end of each line.
   const regex = getCachedRegExp(pattern, 'g');
 
-  return regex.test(text);
+  // Remove trailing whitespace, such as newlines (\n) that
+  // may have been parsed from the game stream. User's don't
+  // expect to need to specify them in their regex settings.
+  return regex.test(text.trimEnd());
 };
 
 /**

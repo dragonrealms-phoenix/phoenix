@@ -116,6 +116,14 @@ describe('regex-utils', () => {
 
       expect(match).toBe(true);
     });
+
+    it('returns true when a match is found after trimming end', async () => {
+      const pattern = '^The (quick|agile) brown fox';
+
+      const match = isMatch({ text: text + '\n', pattern });
+
+      expect(match).toBe(true);
+    });
   });
 
   describe('#replaceTokensWithMatches', () => {
