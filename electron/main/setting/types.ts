@@ -2,6 +2,7 @@ import type {
   ClassSetting,
   HighlightSetting,
   IgnoreSetting,
+  SubstituteSetting,
   TriggerSetting,
 } from '../../common/setting/types.js';
 
@@ -20,8 +21,8 @@ export interface SettingService {
 
   // TODO getMacros()
 
-  // TODO getSubstitutes()
-  // TODO getEnabledSubstitutes()
+  getSubstitutes(): Array<SubstituteSetting>;
+  getEnabledSubstitutes(): Array<SubstituteSetting>;
 
   getTriggers(): Array<TriggerSetting>;
   getEnabledTriggers(): Array<TriggerSetting>;

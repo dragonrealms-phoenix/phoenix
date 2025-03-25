@@ -3,12 +3,14 @@ import type { IgnoreSetting } from 'common/setting/types';
 import type {
   ClassSetting,
   HighlightSetting,
+  SubstituteSetting,
   TriggerSetting,
 } from '../../common/setting/types.js';
 import type { ClassSettingService } from './class/types.js';
 import type { HighlightSettingService } from './highlight/types.js';
 import type { IgnoreSettingService } from './ignore/types.js';
 import { logger } from './logger.js';
+import type { SubstituteSettingService } from './substitute/types.js';
 import type { TriggerSettingService } from './trigger/types.js';
 import type { SettingService } from './types.js';
 
@@ -20,7 +22,7 @@ export class SettingServiceImpl implements SettingService {
   private highlightService: HighlightSettingService;
   private ignoreService: IgnoreSettingService;
   // TODO macroService
-  // TODO substituteService
+  private substituteService: SubstituteSettingService;
   private triggerService: TriggerSettingService;
 
   constructor(options: {
@@ -32,12 +34,14 @@ export class SettingServiceImpl implements SettingService {
     classService: ClassSettingService;
     highlightService: HighlightSettingService;
     ignoreService: IgnoreSettingService;
+    substituteService: SubstituteSettingService;
     triggerService: TriggerSettingService;
   }) {
     this.baseDir = options.baseDir;
     this.classService = options.classService;
     this.highlightService = options.highlightService;
     this.ignoreService = options.ignoreService;
+    this.substituteService = options.substituteService;
     this.triggerService = options.triggerService;
   }
 
@@ -77,7 +81,17 @@ export class SettingServiceImpl implements SettingService {
 
   // TODO get macros
 
-  // TODO get substitutes
+  public getSubstitutes(): Array<SubstituteSetting> {
+    return this.substituteService.get();
+  }
+
+  public getEnabledSubstitutes(): Array<SubstituteSetting> {
+    const classMap = this.classService.getAsMap();
+    return this.getSubstitutes().filter((setting) => {
+      // Presumed enabled unless explicitly disabled.
+      return classMap[setting.className] ?? true;
+    });
+  }
 
   public getTriggers(): Array<TriggerSetting> {
     return this.triggerService.get();
@@ -99,7 +113,7 @@ export class SettingServiceImpl implements SettingService {
     this.highlightService.clear();
     this.ignoreService.clear();
     // TODO clear macros
-    // TODO clear substitutes
+    this.substituteService.clear();
     this.triggerService.clear();
   }
 
@@ -131,7 +145,9 @@ export class SettingServiceImpl implements SettingService {
         filePath: path.join(profileDir, 'ignores.cfg'), // alternate name
       }),
       // TODO load macros
-      // TODO load substitutes
+      this.substituteService.load({
+        filePath: path.join(profileDir, 'substitutes.cfg'),
+      }),
       this.triggerService.load({
         filePath: path.join(profileDir, 'triggers.cfg'),
       }),
