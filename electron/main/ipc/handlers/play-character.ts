@@ -10,9 +10,13 @@ import { GameEventType } from '../../../common/game/types.js';
 import { getCachedRegExp } from '../../../common/regex/regex.cache.js';
 import {
   isMatch,
+  replaceMatches,
   replaceTokensWithMatches,
 } from '../../../common/regex/regex.utils.js';
-import type { ClassSetting } from '../../../common/setting/types.js';
+import type {
+  ClassSetting,
+  SubstituteSetting,
+} from '../../../common/setting/types.js';
 import type { Maybe } from '../../../common/types.js';
 import type { AccountService } from '../../account/types.js';
 import { Game } from '../../game/game.instance.js';
@@ -103,7 +107,7 @@ export const playCharacterHandler = (options: {
             return;
           }
 
-          // TODO substitutions
+          processSubstitutes(gameEvent);
 
           return buildStyledTextGameEvent(gameEvent);
         }),
@@ -309,6 +313,47 @@ export const playCharacterHandler = (options: {
       });
 
       return patternMatchedText;
+    };
+
+    /**
+     * Processes all enabled substitutes for the given line of game text.
+     * Updates the event's text with the pattern replaced by the replacement.
+     */
+    const processSubstitutes = (gameEvent: TextGameEvent): void => {
+      const substitutes = settingService.getEnabledSubstitutes();
+
+      for (const substitute of substitutes) {
+        gameEvent.text = processSubstitute({
+          text: gameEvent.text,
+          substitute,
+        });
+      }
+    };
+
+    /**
+     * Processes a substitute for the given line of game text.
+     * Returns the text with the pattern replaced by the replacement.
+     */
+    const processSubstitute = (options: {
+      text: string;
+      substitute: SubstituteSetting;
+    }): string => {
+      const { text, substitute } = options;
+
+      const replacedText = replaceMatches({
+        textToMatch: text,
+        textToReplace: substitute.replacement,
+        pattern: substitute.pattern,
+      });
+
+      logger.trace('processing substitute', {
+        text,
+        textToReplace: substitute.replacement,
+        pattern: substitute.pattern,
+        replacedText,
+      });
+
+      return replacedText;
     };
 
     /**
