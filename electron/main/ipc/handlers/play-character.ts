@@ -84,36 +84,32 @@ export const playCharacterHandler = (options: {
     logger.debug('subscribing to game service stream');
     gameEvents$
       .pipe(
-        rxjs.tap((gameEvent) => {
-          if (gameEvent.type === GameEventType.TEXT) {
-            processTriggers(gameEvent);
-          }
-        }),
-        rxjs.filter((gameEvent) => {
-          if (gameEvent.type !== GameEventType.TEXT) {
-            return true;
-          }
-          const isIgnored = processIgnores(gameEvent);
-          return !isIgnored;
-        }),
-        rxjs.concatMap(async (gameEvent): Promise<GameEvent> => {
+        // Because rxjs may buffer events in each pipe operator,
+        // if we process triggers and ignores and apply highlights
+        // in separate pipe operators then there's a race condition.
+        // What results is highlights or actions out of order.
+        // The workaround is we put all of that logic in one operator
+        // and if we need to exclude an event then return undefined.
+        rxjs.concatMap(async (gameEvent): Promise<Maybe<GameEvent>> => {
           if (gameEvent.type !== GameEventType.TEXT) {
             return gameEvent;
           }
 
+          // Process triggers, which may perform other actions
+          // or toggle classes which may toggle more settings.
+          processTriggers(gameEvent);
+
+          if (processIgnores(gameEvent)) {
+            return;
+          }
+
           // TODO substitutions
 
-          const styledTextEvent: StyledTextGameEvent = {
-            eventId: gameEvent.eventId,
-            type: GameEventType.STYLED_TEXT,
-            text: gameEvent.text,
-            segments: applyHighlights({
-              text: gameEvent.text,
-              highlights: settingService.getEnabledHighlights(),
-            }),
-          };
-
-          return styledTextEvent;
+          return buildStyledTextGameEvent(gameEvent);
+        }),
+        // Filter out undefined events from downstream.
+        rxjs.filter((gameEvent: Maybe<GameEvent>): gameEvent is GameEvent => {
+          return gameEvent !== undefined;
         })
       )
       .subscribe({
@@ -377,6 +373,24 @@ export const playCharacterHandler = (options: {
       // Let the world know we are sending a command.
       dispatch('game:command', { command });
       gameInstance.send(command);
+    };
+
+    /**
+     * Essentially applies the enabled highlights to the text game event.
+     */
+    const buildStyledTextGameEvent = (
+      gameEvent: TextGameEvent
+    ): StyledTextGameEvent => {
+      const styledTextEvent: StyledTextGameEvent = {
+        eventId: gameEvent.eventId,
+        type: GameEventType.STYLED_TEXT,
+        text: gameEvent.text,
+        segments: applyHighlights({
+          text: gameEvent.text,
+          highlights: settingService.getEnabledHighlights(),
+        }),
+      };
+      return styledTextEvent;
     };
   };
 };
