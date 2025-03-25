@@ -137,6 +137,25 @@ declare module 'common/setting/types' {
      */
     className: string;
   }
+  export interface SubstituteSetting {
+    /**
+     * A regular expression that when matches a line of text
+     * then will be substituted with the replacement text.
+     */
+    pattern: string;
+    /**
+     * The text to replace the matched pattern.
+     * Can use captured groups from the pattern.
+     * For example, "$1" refers to the first captured group.
+     */
+    replacement: string;
+    /**
+     * Optional class name to assign to the setting.
+     * Genie uses classes as boolean flags to denote if a setting is enabled.
+     * A setting is presumed enabled unless it is assigned a disabled class.
+     */
+    className: string;
+  }
 }
 declare module 'common/game/types' {
   import type { HighlightedTextSegment } from 'common/setting/types';
