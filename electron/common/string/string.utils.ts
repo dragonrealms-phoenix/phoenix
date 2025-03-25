@@ -174,3 +174,25 @@ export const sliceStart = (options: {
     remaining: text,
   };
 };
+
+/**
+ * Returns the trailing whitespace from the text.
+ *
+ * For example, 'foo   ' returns '   '.
+ */
+export const getTrailingWhitespace = (text: string): string => {
+  const trailingWhitespaceRegex = /\s+$/;
+  const match = text.match(trailingWhitespaceRegex);
+  return match?.[0] || '';
+};
+
+/**
+ * Returns the trailing newlines from the text.
+ *
+ * For example, 'foo  \r\n' returns '\r\n'.
+ */
+export const getTrailingNewlines = (text: string): string => {
+  const trailingNewlineRegex = /[\r\n]+$/;
+  const match = text.match(trailingNewlineRegex);
+  return match?.[0] || '';
+};

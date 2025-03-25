@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   equalsIgnoreCase,
+  getTrailingNewlines,
+  getTrailingWhitespace,
   includesIgnoreCase,
   isBlank,
   isEmpty,
@@ -219,6 +221,58 @@ describe('string-utils', () => {
         original: 'foo bar baz',
         remaining: 'foo bar baz',
       });
+    });
+  });
+
+  describe('#getTrailingWhitespace', () => {
+    it('returns the trailing whitespace from the text', () => {
+      const text = 'foo bar baz   ';
+
+      const result = getTrailingWhitespace(text);
+
+      expect(result).toEqual('   ');
+    });
+
+    it('returns the trailing whitespace with newlines from the text', () => {
+      const text = 'foo bar baz   \n';
+
+      const result = getTrailingWhitespace(text);
+
+      expect(result).toEqual('   \n');
+    });
+
+    it('returns an empty string when there is no trailing whitespace', () => {
+      const text = 'foo bar baz';
+
+      const result = getTrailingWhitespace(text);
+
+      expect(result).toEqual('');
+    });
+  });
+
+  describe('#getTrailingNewlines', () => {
+    it('returns the trailing newlines from the text', () => {
+      const text = 'foo bar baz\r\n';
+
+      const result = getTrailingNewlines(text);
+
+      expect(result).toEqual('\r\n');
+    });
+
+    it('returns the trailing newlines without spaces from the text', () => {
+      const text = 'foo bar baz   \n';
+
+      const result = getTrailingNewlines(text);
+
+      expect(result).toEqual('\n');
+    });
+
+    it('returns an empty string when there is no trailing newlines', () => {
+      const text = 'foo bar baz  ';
+
+      const result = getTrailingNewlines(text);
+
+      expect(result).toEqual('');
     });
   });
 });
