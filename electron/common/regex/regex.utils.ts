@@ -1,3 +1,4 @@
+import { getTrailingNewlines } from '../string/string.utils.js';
 import { getCachedRegExp } from './regex.cache.js';
 import type { RegExpMatchResult } from './types.js';
 
@@ -232,4 +233,54 @@ export const replaceTokensWithMatches = (options: {
     patternMatchedText,
     replacedText,
   };
+};
+
+/**
+ * Returns the `textToMatch` with the regex pattern replaced
+ * with the `textToReplace`.
+ *
+ * Originally designed to support user-defined text substitutions.
+ *
+ * Example:
+ * ```
+ *   textToMatch: 'The mace lands a powerful strike that knocks the goblin to the ground.'
+ *   textToReplace: '$1 (10/23)'
+ *   pattern: '(powerful strike)'
+ *   returns: 'The mace lands a powerful strike (10/23) that knocks the goblin to the ground.'
+ * ```
+ */
+export const replaceMatches = (options: {
+  /**
+   * The text to search for matches.
+   *
+   * Example: 'The mace lands a powerful strike that knocks the goblin to the ground.'.
+   */
+  textToMatch: string;
+  /**
+   * The text with numerical regex tokens to replace with any matches.
+   *
+   * Example: '$1 (10/23)'.
+   */
+  textToReplace: string;
+  /**
+   * A regular expression to match against the text.
+   *
+   * Example: '(powerful strike)'.
+   */
+  pattern: string;
+}): string => {
+  const { textToMatch, textToReplace, pattern } = options;
+
+  // For performance, cache compiled regex patterns.
+  // Use 'g' flag so ^ and $ match the start and end of each line.
+  const regex = getCachedRegExp(pattern, 'g');
+
+  // Remove trailing whitespace, such as newlines (\n) that
+  // may have been parsed from the game stream. User's don't
+  // expect to need to specify them in their regex settings.
+  const originalNewlines = getTrailingNewlines(textToMatch);
+  const replacedText = textToMatch.trimEnd().replaceAll(regex, textToReplace);
+
+  // Restore the trailing whitespace.
+  return replacedText + originalNewlines;
 };

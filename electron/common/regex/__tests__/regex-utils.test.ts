@@ -3,6 +3,7 @@ import {
   filterToMinimalCompleteMatches,
   getAllMatches,
   isMatch,
+  replaceMatches,
   replaceTokensWithMatches,
 } from '../regex.utils.js';
 
@@ -192,6 +193,78 @@ describe('regex-utils', () => {
       expect(result.replacedText).toBe(
         'The lazy dog is jumped over by the $1 fox'
       );
+    });
+  });
+
+  describe('#replaceMatches', () => {
+    it('does not require patterns to specify trailing whitespace', async () => {
+      const textToMatch = 'The quick brown fox jumps over the lazy dog.\n';
+      const pattern = ' dog.$';
+      const textToReplace = ' hamster.';
+
+      const result = replaceMatches({
+        textToMatch,
+        textToReplace,
+        pattern,
+      });
+
+      expect(result).toBe('The quick brown fox jumps over the lazy hamster.\n');
+    });
+
+    it('replaces nothing when no matches are found', async () => {
+      const textToMatch = 'The quick brown fox jumps over the lazy dog';
+      const pattern = 'Does not match the text';
+      const textToReplace = 'Will not replace anything';
+
+      const result = replaceMatches({
+        textToMatch,
+        textToReplace,
+        pattern,
+      });
+
+      expect(result).toBe(textToMatch);
+    });
+
+    it('replaces tokens with matches', async () => {
+      const textToMatch = 'The quick brown fox jumps over the lazy dog';
+      const pattern = '(quick brown) (\\w+)';
+      const textToReplace = 'slow black $2';
+
+      const result = replaceMatches({
+        textToMatch,
+        textToReplace,
+        pattern,
+      });
+
+      expect(result).toBe('The slow black fox jumps over the lazy dog');
+    });
+
+    it('replaces duplicate tokens with matches', async () => {
+      const textToMatch = 'The quick brown fox jumps over the lazy dog';
+      const pattern = 'The (quick) brown (fox) jumps over the (lazy) dog';
+      const textToReplace = '$1 $2 $3 $1 $2 $3';
+
+      const result = replaceMatches({
+        textToMatch,
+        textToReplace,
+        pattern,
+      });
+
+      expect(result).toBe('quick fox lazy quick fox lazy');
+    });
+
+    it('leaves unmatched tokens as-is while replacing others', async () => {
+      const textToMatch = 'The quick brown fox jumps over the lazy dog';
+      const pattern = `(black)? fox (\\w+)`;
+      const textToReplace = ' fox $2 easily';
+
+      const result = replaceMatches({
+        textToMatch,
+        textToReplace,
+        pattern,
+      });
+
+      expect(result).toBe('The quick brown fox jumps easily over the lazy dog');
     });
   });
 });
