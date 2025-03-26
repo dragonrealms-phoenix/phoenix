@@ -18,6 +18,16 @@ export const GameCommandInput: React.FC = (): ReactNode => {
   const [lastCommand, setLastCommand] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const sendCommand = useCallback((command: string) => {
+    runInBackground(async () => {
+      // TODO customize the command separator, and whether to use it or not
+      const cmds = command.split(';');
+      for (const cmd of cmds) {
+        await window.api.sendCommand(cmd);
+      }
+    });
+  }, []);
+
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLInputElement>>(
     (event: KeyboardEvent<HTMLInputElement>) => {
       // Handle any history navigation.
@@ -27,20 +37,12 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         const command = event.currentTarget.value;
         // <Cmd>+<Enter> = perform last command
         if (event.metaKey && !isEmpty(lastCommand)) {
-          runInBackground(async () => {
-            await window.api.sendCommand(lastCommand);
-          });
+          sendCommand(lastCommand);
         }
         // <Enter> = perform new command
         else if (!isEmpty(command)) {
           setLastCommand(command);
-          // TODO customize the command separator, and whether to use it or not
-          const cmds = command.split(';');
-          runInBackground(async () => {
-            for (const cmd of cmds) {
-              await window.api.sendCommand(cmd);
-            }
-          });
+          sendCommand(command);
         }
       } else if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
         // Ensure cursor remains at the end of the line.
@@ -53,7 +55,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         });
       }
     },
-    [handleKeyDown, lastCommand]
+    [handleKeyDown, sendCommand, lastCommand]
   );
 
   const onChange = useCallback(
