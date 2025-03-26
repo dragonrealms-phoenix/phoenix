@@ -46,15 +46,23 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
       const backgroundColor = defaultStyles.backgroundColor;
 
       // TODO add to user customizations in game stream style
-      if (logLine.style?.outputClass === 'mono') {
-        fontSize = euiTheme.size.m;
-        fontFamily = euiTheme.font.familyCode ?? fontFamily;
+      switch (logLine.style?.outputClass) {
+        case 'mono':
+          fontSize = euiTheme.size.m;
+          fontFamily = euiTheme.font.familyCode ?? fontFamily;
+          break;
       }
 
+      // TODO move this to game parser, wrap emitted text in span with class <span class='preset-whispers'>
       // TODO add presets to user customizations in game stream style
-      if (logLine.style?.stylePreset === 'roomName') {
-        foregroundColor = euiTheme.colors.title;
-        fontWeight = euiTheme.font.weight.bold;
+      switch (logLine.style?.stylePreset) {
+        case 'roomName':
+          foregroundColor = euiTheme.colors.title;
+          fontWeight = euiTheme.font.weight.bold;
+          break;
+        case 'whispers':
+          foregroundColor = '#65F9E9';
+          break;
       }
 
       if (logLine.style?.bold === true) {
