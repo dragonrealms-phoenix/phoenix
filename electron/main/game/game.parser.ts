@@ -385,6 +385,7 @@ export class GameParserImpl implements GameParser {
         }
         // This is a style information tag about talking or thinking.
         // Example: `<preset id='speech'>You say</preset>, "Hello."`
+        // Example: `<preset id="whisper">Katoak whispers,</preset> "hi"`
         else if (['speech', 'whisper', 'thought'].includes(tagId)) {
           this.gameText += text;
         } else {
