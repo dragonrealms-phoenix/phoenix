@@ -68,6 +68,9 @@ export const GameStream: React.FC<GameStreamProps> = (
   useEffect(() => {
     if (isConnected) {
       setGameLogLines([]);
+      observedTargetCountRef.current = 0;
+      hasScrolledTargetIntoViewRef.current = false;
+      scrollTargetIsInViewRef.current = false;
     }
   }, [isConnected]);
 
