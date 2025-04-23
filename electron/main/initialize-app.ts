@@ -60,7 +60,7 @@ export const initializeApp = async (): Promise<void> => {
 
   // When running in development, serve the app from these paths.
   const devRendererPath = path.join(appElectronPath, 'renderer');
-  const devPort = 3000; // arbitrary
+  const devPort = Number(process.env.LOCAL_DEV_PORT || 3000); // arbitrary
   const devAppUrl = `http://localhost:${devPort}`;
 
   const appUrl = appEnvIsProd ? prodAppUrl : devAppUrl;
