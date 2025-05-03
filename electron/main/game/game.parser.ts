@@ -9,10 +9,7 @@ import type {
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType, IndicatorType } from '../../common/game/types.js';
-import {
-  sliceStart,
-  unescapeEntities,
-} from '../../common/string/string.utils.js';
+import { sliceStart } from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
 import { Preferences } from '../preference/preference.instance.js';
 import { PreferenceKey } from '../preference/types.js';
@@ -108,6 +105,21 @@ const INDICATOR_ID_TO_TYPE_MAP: Record<string, IndicatorType> = {
 };
 
 /**
+ * These dialog tags are used by Simutronic's Wrayth client
+ * to provide a point-and-click interface for the game.
+ * Phoenix does not support this as I don't see a need for it.
+ */
+const TAGS_TO_IGNORE = [
+  // <openDialog type='dynamic' id='spellChoose' ...>...</openDialog>
+  'openDialog',
+  // <exposeDialog id='spellChoose'/>
+  'exposeDialog',
+  // <dynaStream id='spells'>Holy Defense</dynaStream>
+  // <dynaStream id='spells'>  <d cmd="_magic ask -3624 Shield of Light">Shield of Light</d></dynaStream>
+  'dynaStream',
+];
+
+/**
  * Represents basic tag information parsed from the game socket data.
  */
 interface Tag {
@@ -127,6 +139,13 @@ interface Tag {
    * Attributes of the tag.
    */
   attributes: Record<string, string>;
+
+  /**
+   * If true then either the current tag (or its ancestors) have been
+   * identified as a tag that should be ignored.
+   * Ignored tags (and their children) are not processed.
+   */
+  ignore: boolean;
 }
 
 export class GameParserImpl implements GameParser {
@@ -360,18 +379,32 @@ export class GameParserImpl implements GameParser {
   }
 
   protected processText(text: string): void {
-    const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
+    const {
+      id: tagId = '',
+      name: tagName = '',
+      ignore: ignoreThisTag = false,
+    } = this.getActiveTag() ?? {};
 
     logger.trace('processing text', {
       text,
       tagId,
       tagName,
+      ignoreThisTag,
       activeTags: this.activeTags,
     });
 
     // There are no tags so just keep collecting up the text.
     if (this.activeTags.length === 0) {
       this.gameText += text;
+      return;
+    }
+
+    // One or more active tags should be ignored.
+    if (ignoreThisTag) {
+      logger.trace('ignoring tag text', {
+        tagName,
+        text,
+      });
       return;
     }
 
@@ -463,13 +496,33 @@ export class GameParserImpl implements GameParser {
   }): void {
     const { tagName, attributes, remaining } = options;
 
-    logger.trace('processing tag start', { tagName, attributes });
+    logger.trace('processing tag start', {
+      tagName,
+      attributes,
+      activeTags: this.activeTags,
+    });
+
+    // Determine if this tag or its ancestors should be ignored
+    const parentTag = this.getActiveTag();
+    const ignoreParentTag = parentTag?.ignore || false;
+    const ignoreThisTag = ignoreParentTag || TAGS_TO_IGNORE.includes(tagName);
 
     this.activeTags.push({
       id: attributes.id,
       name: tagName,
       attributes,
+      ignore: ignoreThisTag,
     });
+
+    // One or more active tags should be ignored.
+    if (ignoreThisTag) {
+      logger.trace('ignoring start tag', {
+        tagName,
+        ignoreParentTag,
+        ignoreThisTag,
+      });
+      return;
+    }
 
     switch (tagName) {
       case 'a': // <a href='https://elanthipedia.play.net'>Elanthipedia</a>
@@ -564,16 +617,26 @@ export class GameParserImpl implements GameParser {
     const {
       id: tagId = '',
       name: tagName = '',
-      attributes = {},
+      ignore: ignoreThisTag = false,
     } = this.getActiveTag() ?? {};
 
     logger.trace('processing tag end', {
       tagId,
       tagName,
-      attributes,
       gameText: this.gameText,
+      ignoreThisTag,
       activeTags: this.activeTags,
     });
+
+    this.activeTags.pop();
+
+    // One or more active tags should be ignored.
+    if (ignoreThisTag) {
+      logger.trace('ignoring end tag', {
+        tagName,
+      });
+      return;
+    }
 
     switch (tagName) {
       case 'a':
@@ -628,10 +691,6 @@ export class GameParserImpl implements GameParser {
         // Example: `<right>Empty</right>`
         this.emitRightHandGameEvent(this.consumeGameText());
         break;
-    }
-
-    if (this.activeTags.length > 0) {
-      this.activeTags.pop();
     }
   }
 
@@ -716,7 +775,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.TEXT,
       eventId: uuid(),
-      text: unescapeEntities(text),
+      text,
     });
   }
 
@@ -768,7 +827,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.SPELL,
       eventId: uuid(),
-      spell: unescapeEntities(spell),
+      spell,
     });
   }
 
@@ -776,7 +835,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.LEFT_HAND,
       eventId: uuid(),
-      item: unescapeEntities(item),
+      item,
     });
   }
 
@@ -784,7 +843,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.RIGHT_HAND,
       eventId: uuid(),
-      item: unescapeEntities(item),
+      item,
     });
   }
 
@@ -858,7 +917,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.ROOM,
       eventId: uuid(),
-      [roomProperty]: unescapeEntities(roomText),
+      [roomProperty]: roomText,
     });
   }
 
