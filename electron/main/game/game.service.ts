@@ -67,12 +67,10 @@ export class GameServiceImpl implements GameService {
     const socketData$ = await this.socket.connect();
     const gameEvents$ = this.parser.parse(socketData$);
 
-    if (isLogLevelEnabled(LogLevel.TRACE)) {
-      this.logGameStreams({
-        socketData$,
-        gameEvents$,
-      });
-    }
+    this.logGameStreams({
+      socketData$,
+      gameEvents$,
+    });
 
     return gameEvents$;
   }
@@ -145,7 +143,12 @@ export class GameServiceImpl implements GameService {
     const socketLogPath = path.join(logPath, 'game-socket.log');
     const eventLogPath = path.join(logPath, 'game-event.log');
 
-    writeStreamToFile({ stream$: socketData$, filePath: socketLogPath });
-    writeStreamToFile({ stream$: gameEvents$, filePath: eventLogPath });
+    if (isLogLevelEnabled(LogLevel.INFO)) {
+      writeStreamToFile({ stream$: socketData$, filePath: socketLogPath });
+    }
+
+    if (isLogLevelEnabled(LogLevel.DEBUG)) {
+      writeStreamToFile({ stream$: gameEvents$, filePath: eventLogPath });
+    }
   }
 }
