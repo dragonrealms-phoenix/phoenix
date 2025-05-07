@@ -60,9 +60,10 @@ export const playCharacterHandler = (options: {
 
     window.setTitle(`DragonRealms Phoenix - ${characterName} (${gameCode})`);
 
-    settingService.clear();
-    await settingService.load({ profileName: 'default' });
-    await settingService.load({ profileName: `${characterName}${gameCode}` });
+    await settingService.load({
+      profileNames: ['default', `${characterName}${gameCode}`],
+      mode: 'replace',
+    });
 
     const sgeService = new SGEServiceImpl({
       gameCode,

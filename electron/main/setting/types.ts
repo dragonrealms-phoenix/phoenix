@@ -20,6 +20,7 @@ export interface SettingService {
   getEnabledIgnores(): Array<IgnoreSetting>;
 
   // TODO getMacros()
+  // TODO getEnabledMacros()
 
   getSubstitutes(): Array<SubstituteSetting>;
   getEnabledSubstitutes(): Array<SubstituteSetting>;
@@ -27,7 +28,19 @@ export interface SettingService {
   getTriggers(): Array<TriggerSetting>;
   getEnabledTriggers(): Array<TriggerSetting>;
 
-  clear(): void;
+  clear(): Promise<void>;
 
-  load(options: { profileName: string }): Promise<void>;
+  load(options: {
+    /**
+     * Load settings for the specified profiles.
+     * For example, `default` or `KatoakDR`.
+     */
+    profileNames: Array<string>;
+    /**
+     * Whether to append to previously loaded settings or replace them.
+     * Using `replace` is the same as calling {@link clear} then {@link load}.
+     * Default is `append`.
+     */
+    mode?: 'append' | 'replace';
+  }): Promise<void>;
 }
