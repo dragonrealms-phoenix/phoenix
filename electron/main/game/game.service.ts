@@ -1,7 +1,7 @@
 import { app } from 'electron';
 import path from 'node:path';
 import fs from 'fs-extra';
-import type * as rxjs from 'rxjs';
+import * as rxjs from 'rxjs';
 import { waitUntil } from '../../common/async/async.utils.js';
 import type { GameEvent } from '../../common/game/types.js';
 import { LogLevel } from '../../common/logger/types.js';
@@ -35,6 +35,11 @@ export class GameServiceImpl implements GameService {
    */
   private parser: GameParser;
 
+  /**
+   * Commands sent to the game server.
+   */
+  private commands$?: rxjs.Subject<string>;
+
   constructor(options: { credentials: SGEGameCredentials }) {
     const { credentials } = options;
 
@@ -66,8 +71,10 @@ export class GameServiceImpl implements GameService {
 
     const socketData$ = await this.socket.connect();
     const gameEvents$ = this.parser.parse(socketData$);
+    this.commands$ = new rxjs.Subject<string>();
 
     this.logGameStreams({
+      commands$: this.commands$,
       socketData$,
       gameEvents$,
     });
@@ -78,6 +85,7 @@ export class GameServiceImpl implements GameService {
   public async disconnect(): Promise<void> {
     if (!this._isDestroyed) {
       logger.info('disconnecting');
+      this.commands$?.complete();
       await this.socket.disconnect();
       await this.waitUntilDestroyed();
     }
@@ -86,6 +94,7 @@ export class GameServiceImpl implements GameService {
   public send(command: string): void {
     if (this._isConnected) {
       logger.debug('sending command', { command });
+      this.commands$?.next(command);
       this.socket.send(command);
     }
   }
@@ -106,13 +115,14 @@ export class GameServiceImpl implements GameService {
   }
 
   protected logGameStreams(options: {
+    commands$: rxjs.Observable<string>;
     socketData$: rxjs.Observable<string>;
     gameEvents$: rxjs.Observable<GameEvent>;
   }): void {
-    const { socketData$, gameEvents$ } = options;
+    const { commands$, socketData$, gameEvents$ } = options;
 
-    const writeStreamToFile = <T>(options: {
-      stream$: rxjs.Observable<T>;
+    const writeStreamToFile = (options: {
+      stream$: rxjs.Observable<unknown>;
       filePath: string;
     }): void => {
       const { stream$, filePath } = options;
@@ -123,10 +133,13 @@ export class GameServiceImpl implements GameService {
       });
 
       stream$.subscribe({
-        next: (data: T) => {
+        next: (data: unknown) => {
           if (typeof data === 'object') {
             fileWriteStream.write(`---\n${JSON.stringify(data, null, 2)}`);
           } else {
+            if (typeof data === 'string' && !data.endsWith('\n')) {
+              data += '\n';
+            }
             fileWriteStream.write(`---\n${data}`);
           }
         },
@@ -144,11 +157,17 @@ export class GameServiceImpl implements GameService {
     const eventLogPath = path.join(logPath, 'game-event.log');
 
     if (isLogLevelEnabled(LogLevel.INFO)) {
-      writeStreamToFile({ stream$: socketData$, filePath: socketLogPath });
+      writeStreamToFile({
+        stream$: rxjs.merge(socketData$, commands$),
+        filePath: socketLogPath,
+      });
     }
 
     if (isLogLevelEnabled(LogLevel.DEBUG)) {
-      writeStreamToFile({ stream$: gameEvents$, filePath: eventLogPath });
+      writeStreamToFile({
+        stream$: gameEvents$,
+        filePath: eventLogPath,
+      });
     }
   }
 }
