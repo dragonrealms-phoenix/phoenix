@@ -6,7 +6,14 @@ import type {
   ReactElement,
   ReactNode,
 } from 'react';
-import { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
 import { GameContext } from '../../context/game.jsx';
 import { useCommandHistory } from '../../hooks/commands.jsx';
@@ -66,6 +73,18 @@ export const GameCommandInput: React.FC = (): ReactNode => {
     },
     [handleOnChange]
   );
+
+  useEffect(() => {
+    const handleFocus = () => {
+      inputRef.current?.focus();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   const commandIcon = useMemo((): ReactElement => {
     return <EuiIcon type="arrowRight" size="s" color="primary" />;
