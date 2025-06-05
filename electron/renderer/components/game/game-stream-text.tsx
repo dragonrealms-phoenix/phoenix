@@ -107,6 +107,22 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
         },
       ];
 
+      // TODO make this a user preference which streams should have timestamps
+      if (logLine.streamId === 'thoughts') {
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        textSegments.unshift({
+          text: `[${timestamp}] `,
+          start: 0,
+          end: timestamp.length + 3,
+          foregroundColor: '',
+          backgroundColor: '',
+        });
+      }
+
       for (let i = 0; i < textSegments.length; i += 1) {
         const segment = textSegments[i];
 
