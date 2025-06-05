@@ -29,6 +29,13 @@ export interface CacheService {
   writeCache(newCache: Cache): void;
 }
 
+export interface DiskCacheService extends CacheService {
+  /**
+   * Reloads the cache from disk.
+   */
+  reload(): void;
+}
+
 export interface DiskCacheOptions {
   /**
    * Path to the file where to store the cache.

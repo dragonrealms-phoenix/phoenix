@@ -46,15 +46,23 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
       const backgroundColor = defaultStyles.backgroundColor;
 
       // TODO add to user customizations in game stream style
-      if (logLine.style?.outputClass === 'mono') {
-        fontSize = euiTheme.size.m;
-        fontFamily = euiTheme.font.familyCode ?? fontFamily;
+      switch (logLine.style?.outputClass) {
+        case 'mono':
+          fontSize = euiTheme.size.m;
+          fontFamily = euiTheme.font.familyCode ?? fontFamily;
+          break;
       }
 
+      // TODO move this to game parser, wrap emitted text in span with class <span class='preset-whispers'>
       // TODO add presets to user customizations in game stream style
-      if (logLine.style?.stylePreset === 'roomName') {
-        foregroundColor = euiTheme.colors.title;
-        fontWeight = euiTheme.font.weight.bold;
+      switch (logLine.style?.stylePreset) {
+        case 'roomName':
+          foregroundColor = euiTheme.colors.title;
+          fontWeight = euiTheme.font.weight.bold;
+          break;
+        case 'whispers':
+          foregroundColor = '#65F9E9';
+          break;
       }
 
       if (logLine.style?.bold === true) {
@@ -83,15 +91,63 @@ export const GameStreamText: React.FC<GameStreamTextProps> = memo(
       return textStyles;
     }, [euiTheme, defaultStyles, logLine.style]);
 
-    // We output the text using inner html because the text may contain tags.
-    // For example, tags to highlight a single word or phrases.
-    // If we output as `{logLine.text}` then those tags are escaped.
+    // We use `dangerouslySetInnerHTML` because the text may contain tags.
+    // For example, <b> or <a> tags for monsterbold and links.
+    // Otherwise those tags are escaped.
+    const textNode = useMemo(() => {
+      const nodeSegments = new Array<ReactNode>();
 
-    return (
-      <EuiText id={logLine.eventId} css={textStyles}>
-        <span dangerouslySetInnerHTML={{ __html: logLine.text }} />
-      </EuiText>
-    );
+      const textSegments = logLine.segments ?? [
+        {
+          text: logLine.text,
+          start: 0,
+          end: logLine.text.length,
+          backgroundColor: '',
+          foregroundColor: '',
+        },
+      ];
+
+      // TODO make this a user preference which streams should have timestamps
+      if (logLine.streamId === 'thoughts') {
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        textSegments.unshift({
+          text: `[${timestamp}] `,
+          start: 0,
+          end: timestamp.length + 3,
+          foregroundColor: '',
+          backgroundColor: '',
+        });
+      }
+
+      for (let i = 0; i < textSegments.length; i += 1) {
+        const segment = textSegments[i];
+
+        const segmentStyles = css({
+          color: segment.foregroundColor || 'inherit',
+          backgroundColor: segment.backgroundColor || 'inherit',
+        });
+
+        nodeSegments.push(
+          <span
+            key={i}
+            css={segmentStyles}
+            dangerouslySetInnerHTML={{ __html: segment.text }}
+          />
+        );
+      }
+
+      return (
+        <EuiText id={logLine.eventId} css={textStyles}>
+          {nodeSegments}
+        </EuiText>
+      );
+    }, [logLine, textStyles]);
+
+    return textNode;
   },
   (oldProps, newProps) => {
     // Component will only rerender when this method returns false.

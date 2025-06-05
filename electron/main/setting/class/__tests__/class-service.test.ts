@@ -1,0 +1,220 @@
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ClassSettingServiceImpl } from '../class.service.js';
+import { buildClassSetting } from '../class.utils.js';
+import type { ClassSettingService } from '../types.js';
+
+vi.mock('../../../logger/logger.factory.ts');
+
+describe('class-service', () => {
+  let classService: ClassSettingService;
+
+  beforeEach(() => {
+    classService = new ClassSettingServiceImpl();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  describe('#constructor', () => {
+    it('should initialize with empty settings', async () => {
+      classService = new ClassSettingServiceImpl();
+
+      expect(classService.get()).toEqual([]);
+    });
+
+    it('should initialize with specified settings', async () => {
+      const settings = {
+        'name 0': buildClassSetting({
+          name: 'name 0',
+          enabled: 'true',
+        }),
+      };
+
+      classService = new ClassSettingServiceImpl(settings);
+
+      expect(classService.get()).toEqual(Object.values(settings));
+    });
+  });
+
+  describe('#add', () => {
+    it('should add settings', async () => {
+      expect(classService.get()).toEqual([]);
+
+      const settings = [
+        buildClassSetting({
+          name: 'name 0',
+          enabled: 'true',
+        }),
+      ];
+
+      classService.upsert(settings);
+
+      expect(classService.get()).toEqual(settings);
+    });
+  });
+
+  describe('#getAsMap', () => {
+    it('should return an empty map for an empty array', async () => {
+      const map = classService.getAsMap();
+
+      expect(map).toEqual({});
+    });
+
+    it('should return a map with keys for each setting name', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const map = classService.getAsMap();
+
+      expect(map).toEqual({
+        'name 0': true,
+        'name 1': false,
+      });
+    });
+  });
+
+  describe('#get', () => {
+    it('should return empty settings', () => {
+      const settings = classService.get();
+
+      expect(settings.length).toBe(0);
+    });
+
+    it('should return loaded settings', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const settings = classService.get();
+
+      expect(settings.length).not.toBe(0);
+    });
+  });
+
+  describe('#load', () => {
+    it('should parse settings from file', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      const settings = classService.get();
+
+      expect(settings.length).toBe(2);
+
+      const setting0 = buildClassSetting({
+        name: 'name 0',
+        enabled: 'true',
+      });
+      expect(settings[0]).toEqual(setting0);
+
+      const setting1 = buildClassSetting({
+        name: 'name 1',
+        enabled: 'false',
+      });
+      expect(settings[1]).toEqual(setting1);
+    });
+
+    it('should parse settings from file2', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file2.cfg'),
+      });
+
+      const settings = classService.get();
+
+      expect(settings.length).toBe(3);
+
+      const setting0 = buildClassSetting({
+        name: 'name 1',
+        enabled: 'true',
+      });
+      expect(settings[0]).toEqual(setting0);
+
+      const setting1 = buildClassSetting({
+        name: 'name 2',
+        enabled: 'false',
+      });
+      expect(settings[1]).toEqual(setting1);
+
+      const setting2 = buildClassSetting({
+        name: 'name 3',
+        enabled: 'false',
+      });
+      expect(settings[2]).toEqual(setting2);
+    });
+
+    it('should upsert to previously loaded settings', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      expect(classService.get().length).toBe(2);
+
+      await classService.load({
+        filePath: path.join(__dirname, 'file2.cfg'),
+        mode: 'append',
+      });
+
+      expect(classService.get().length).toBe(4);
+
+      const settings = classService.get();
+
+      const setting0 = buildClassSetting({
+        name: 'name 0',
+        enabled: 'true',
+      });
+      expect(settings[0]).toEqual(setting0);
+
+      const setting1 = buildClassSetting({
+        name: 'name 1',
+        enabled: 'true',
+      });
+      expect(settings[1]).toEqual(setting1);
+
+      const setting2 = buildClassSetting({
+        name: 'name 2',
+        enabled: 'false',
+      });
+      expect(settings[2]).toEqual(setting2);
+
+      const setting3 = buildClassSetting({
+        name: 'name 3',
+        enabled: 'false',
+      });
+      expect(settings[3]).toEqual(setting3);
+    });
+
+    it('should replace previously loaded settings', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      expect(classService.get().length).toBe(2);
+
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+        mode: 'replace',
+      });
+
+      expect(classService.get().length).toBe(2);
+    });
+  });
+
+  describe('#clear', () => {
+    it('should clear settings', async () => {
+      await classService.load({
+        filePath: path.join(__dirname, 'file.cfg'),
+      });
+
+      classService.clear();
+
+      const settings = classService.get();
+
+      expect(settings.length).toBe(0);
+    });
+  });
+});

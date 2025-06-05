@@ -1,5 +1,4 @@
-import { afterEach } from 'node:test';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SGEGameCredentials } from '../../sge/types.js';
 import { GameServiceMockImpl } from '../__mocks__/game-service.mock.js';
 import { GameServiceImpl } from '../game.service.js';

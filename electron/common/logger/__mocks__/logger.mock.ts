@@ -36,5 +36,7 @@ export class LoggerMockImpl extends AbstractLogger implements LoggerMock {
       super.debug(...args);
     });
 
-  public override log = vi.fn();
+  public override log = vi.fn().mockImplementation((...args) => {
+    console.log('test', ...args);
+  });
 }

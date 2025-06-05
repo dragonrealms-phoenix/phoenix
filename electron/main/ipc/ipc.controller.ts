@@ -1,8 +1,10 @@
+import type { BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
 import { toUpperSnakeCase } from '../../common/string/string.utils.js';
 import type { AccountService } from '../account/types.js';
 import { Game } from '../game/game.instance.js';
 import type { LayoutService } from '../layout/types.js';
+import type { SettingService } from '../setting/types.js';
 import { deleteLayoutHandler } from './handlers/delete-layout.js';
 import { getLayoutHandler } from './handlers/get-layout.js';
 import { listAccountsHandler } from './handlers/list-accounts.js';
@@ -27,18 +29,23 @@ import type {
 
 export class IpcController {
   private dispatch: IpcDispatcher;
+  private window: BrowserWindow;
   private accountService: AccountService;
+  private settingService: SettingService;
   private layoutService: LayoutService;
   private handlerRegistry: IpcHandlerRegistry;
 
   constructor(options: {
-    dispatch: IpcDispatcher;
+    window: BrowserWindow;
     accountService: AccountService;
+    settingService: SettingService;
     layoutService: LayoutService;
   }) {
-    this.dispatch = options.dispatch;
+    this.window = options.window;
     this.accountService = options.accountService;
+    this.settingService = options.settingService;
     this.layoutService = options.layoutService;
+    this.dispatch = this.createDispatcher();
     this.handlerRegistry = this.createHandlerRegistry();
     this.registerHandlers(this.handlerRegistry);
   }
@@ -49,6 +56,22 @@ export class IpcController {
   public async destroy(): Promise<void> {
     this.unregisterHandlers(this.handlerRegistry);
     await this.disconnectFromGame();
+  }
+
+  /**
+   * Creates function that sends messages to the window over a channel.
+   * How the main process communicates to the renderer process.
+   */
+  private createDispatcher(): IpcDispatcher {
+    const dispatch: IpcDispatcher = (channel, ...args): void => {
+      // When the window is closed or destroyed, we might still
+      // receive async events from the ipc controller. Ignore them.
+      // This usually happens when the app is quit while a game is being played.
+      if (!this.window.isDestroyed()) {
+        this.window.webContents.send(channel, ...args);
+      }
+    };
+    return dispatch;
   }
 
   /**
@@ -90,7 +113,9 @@ export class IpcController {
 
       playCharacter: playCharacterHandler({
         dispatch: this.dispatch,
+        window: this.window,
         accountService: this.accountService,
+        settingService: this.settingService,
       }),
 
       quitCharacter: quitCharacterHandler({

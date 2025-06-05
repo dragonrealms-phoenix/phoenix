@@ -5056,6 +5056,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/regexp.escape@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@types/regexp.escape@npm:2.0.0"
+  checksum: 10c0/1ea7140b6572b9a9cbdf19ba50c9ac1d038b1984ffa51e69341791a78bbf2df0fa6a22f121ac47b98e7ee6043e62ce0bcc777908c8eb271e76c4a8d48551afb0
+  languageName: node
+  linkType: hard
+
 "@types/responselike@npm:^1.0.0":
   version: 1.0.3
   resolution: "@types/responselike@npm:1.0.3"
@@ -6687,6 +6694,15 @@ __metadata:
     fsevents:
       optional: true
   checksum: 10c0/8361dcd013f2ddbe260eacb1f3cb2f2c6f2b0ad118708a343a5ed8158941a39cb8fb1d272e0f389712e74ee90ce8ba864eece9e0e62b9705cb468a2f6d917462
+  languageName: node
+  linkType: hard
+
+"chokidar@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "chokidar@npm:4.0.3"
+  dependencies:
+    readdirp: "npm:^4.0.1"
+  checksum: 10c0/a58b9df05bb452f7d105d9e7229ac82fa873741c0c40ddcc7bb82f8a909fbe3f7814c9ebe9bc9a2bef9b737c0ec6e2d699d179048ef06ad3ec46315df0ebe6ad
   languageName: node
   linkType: hard
 
@@ -13139,6 +13155,7 @@ __metadata:
     "@types/node": "npm:^22.13.4"
     "@types/react": "npm:^18.3.18"
     "@types/react-dom": "npm:^18.3.5"
+    "@types/regexp.escape": "npm:^2.0.0"
     "@types/uuid": "npm:^10.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^8.24.1"
     "@typescript-eslint/parser": "npm:^8.24.1"
@@ -13146,6 +13163,7 @@ __metadata:
     "@vitest/coverage-v8": "npm:^3.0.6"
     babel-loader: "npm:^9.2.1"
     chalk: "npm:^5.4.1"
+    chokidar: "npm:^4.0.3"
     concurrently: "npm:^9.1.2"
     conventional-changelog-conventionalcommits: "npm:^8.0.0"
     copy-webpack-plugin: "npm:^12.0.2"
@@ -13178,6 +13196,7 @@ __metadata:
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-hook-form: "npm:^7.54.2"
+    regexp.escape: "npm:^2.0.1"
     rxjs: "npm:^7.8.1"
     semantic-release: "npm:^24.2.3"
     snyk: "npm:^1.1295.3"
@@ -13921,6 +13940,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"readdirp@npm:^4.0.1":
+  version: 4.1.2
+  resolution: "readdirp@npm:4.1.2"
+  checksum: 10c0/60a14f7619dec48c9c850255cd523e2717001b0e179dc7037cfa0895da7b9e9ab07532d324bfb118d73a710887d1e35f79c495fa91582784493e085d18c72c62
+  languageName: node
+  linkType: hard
+
 "readdirp@npm:~3.6.0":
   version: 3.6.0
   resolution: "readdirp@npm:3.6.0"
@@ -13995,6 +14021,20 @@ __metadata:
   dependencies:
     "@babel/runtime": "npm:^7.8.4"
   checksum: 10c0/7cfe6931ec793269701994a93bab89c0cc95379191fad866270a7fea2adfec67ea62bb5b374db77058b60ba4509319d9b608664d0d288bd9989ca8dbd08fae90
+  languageName: node
+  linkType: hard
+
+"regexp.escape@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "regexp.escape@npm:2.0.1"
+  dependencies:
+    call-bind: "npm:^1.0.7"
+    define-properties: "npm:^1.2.1"
+    es-abstract: "npm:^1.23.3"
+    es-errors: "npm:^1.3.0"
+    for-each: "npm:^0.3.3"
+    safe-regex-test: "npm:^1.0.3"
+  checksum: 10c0/017223da84af37e0c41eb362bd1ac77253d1ad8d08329b400d719511258ae588047bb91f6eb8b0073d20512c8e38dfbb3d4303dfcd84551091931a7b0199f962
   languageName: node
   linkType: hard
 

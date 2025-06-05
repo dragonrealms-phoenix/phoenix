@@ -49,7 +49,7 @@ describe('layout-instance', () => {
     const Layouts = (await import('../layout.instance.js')).Layouts;
     expect(Layouts).toBe(mockLayoutService);
     expect(mockLayoutServiceConstructorSpy).toHaveBeenCalledWith({
-      baseDir: 'userData/layouts',
+      baseDir: 'userData/phoenix/layouts',
     });
   });
 });

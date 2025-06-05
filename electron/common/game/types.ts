@@ -1,3 +1,5 @@
+import type { HighlightedTextSegment } from '../setting/types.js';
+
 /**
  * Simutronics has multiple games and instances per game.
  * Only interested in DragonRealms, though.
@@ -60,6 +62,7 @@ export const GameCodeMetaMap: Record<GameCode, GameCodeMeta> = {
  * Events emitted by the game parser of data received from the game socket.
  */
 export type GameEvent =
+  | StyledTextGameEvent
   | TextGameEvent
   | PushBoldGameEvent
   | PopBoldGameEvent
@@ -91,9 +94,30 @@ export interface GameEventBase {
 }
 
 /**
+ * Indicates text to display to the player, and
+ * how substrings of the text should be styled.
+ * This event was introduced to support highlight settings.
+ *
+ * Note that previous game events may indicate how the
+ * text should be styled (e.g. font) and to which window to display it.
+ */
+export interface StyledTextGameEvent extends GameEventBase {
+  type: GameEventType.STYLED_TEXT;
+  /**
+   * The entire line of text, unstyled.
+   * Same value that would be emitted with a {@link TextGameEvent}.
+   */
+  text: string;
+  /**
+   * Segments of the line of text annotated with style information.
+   */
+  segments: Array<HighlightedTextSegment>;
+}
+
+/**
  * Indicates text to display to the player.
  * Note that previous game events may indicate how the
- * text should be styled and to which window to display it.
+ * text should be styled (e.g. font) and to which window to display it.
  */
 export interface TextGameEvent extends GameEventBase {
   type: GameEventType.TEXT;
@@ -260,6 +284,11 @@ export interface CastTimeGameEvent extends GameEventBase {
 }
 
 export enum GameEventType {
+  /**
+   * A super type of TEXT where segments of the line of text
+   * are annotated with style information, such as font color.
+   */
+  STYLED_TEXT = 'STYLED_TEXT',
   /**
    * Text to display to the player.
    */
