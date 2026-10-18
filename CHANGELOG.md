@@ -1,3 +1,9 @@
+## [1.36.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.36.0...v1.36.1) (2026-10-18)
+
+### :broom: Miscellaneous
+
+* add the lich5 ruby version ([8080ff8](https://github.com/dragonrealms-phoenix/phoenix/commit/8080ff80537d81d9bc626f89994bd5d936e03f96))
+
 ## [1.36.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.35.0...v1.36.0) (2026-10-18)
 
 ### :sparkles: Features
