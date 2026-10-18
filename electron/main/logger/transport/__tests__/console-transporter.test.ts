@@ -27,7 +27,9 @@ describe('console-log-transporter', () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('#transport', () => {

@@ -9,10 +9,7 @@ import type {
   RoomGameEvent,
 } from '../../common/game/types.js';
 import { GameEventType, IndicatorType } from '../../common/game/types.js';
-import {
-  sliceStart,
-  unescapeEntities,
-} from '../../common/string/string.utils.js';
+import { sliceStart } from '../../common/string/string.utils.js';
 import type { Maybe } from '../../common/types.js';
 import { Preferences } from '../preference/preference.instance.js';
 import { PreferenceKey } from '../preference/types.js';
@@ -108,6 +105,21 @@ const INDICATOR_ID_TO_TYPE_MAP: Record<string, IndicatorType> = {
 };
 
 /**
+ * These dialog tags are used by Simutronic's Wrayth client
+ * to provide a point-and-click interface for the game.
+ * Phoenix does not support this as I don't see a need for it.
+ */
+const TAGS_TO_IGNORE = [
+  // <openDialog type='dynamic' id='spellChoose' ...>...</openDialog>
+  'openDialog',
+  // <exposeDialog id='spellChoose'/>
+  'exposeDialog',
+  // <dynaStream id='spells'>Holy Defense</dynaStream>
+  // <dynaStream id='spells'>  <d cmd="_magic ask -3624 Shield of Light">Shield of Light</d></dynaStream>
+  'dynaStream',
+];
+
+/**
  * Represents basic tag information parsed from the game socket data.
  */
 interface Tag {
@@ -127,6 +139,13 @@ interface Tag {
    * Attributes of the tag.
    */
   attributes: Record<string, string>;
+
+  /**
+   * If true then either the current tag (or its ancestors) have been
+   * identified as a tag that should be ignored.
+   * Ignored tags (and their children) are not processed.
+   */
+  ignore: boolean;
 }
 
 export class GameParserImpl implements GameParser {
@@ -140,6 +159,17 @@ export class GameParserImpl implements GameParser {
    * we push their data onto this stack to track them.
    */
   private activeTags: Array<Tag>;
+
+  /**
+   * When the game wants to bold some text, it doesn't use <b> tags.
+   * Instead, it uses <pushBold/> and <popBold/> tags.
+   * However, the XML tags may not come paired on the same line.
+   * Sometimes a <pushBold/> tag appears one or more lines before a <popBold/> tag.
+   * To help distinguish between inline text styles and game text styles,
+   * we track the state of the bold tag so we know when we should emit
+   * push/pop bold events vs. embedding <b> tags to the text we emit.
+   */
+  private boldTagActive: boolean;
 
   /**
    * When parsing a <compass> tag, these are the directions we find.
@@ -167,6 +197,7 @@ export class GameParserImpl implements GameParser {
     this.gameEventsSubject$ = new rxjs.Subject<GameEvent>();
     this.activeTags = [];
     this.compassDirections = [];
+    this.boldTagActive = false;
     this.gameText = '';
     this.promptText = Preferences.get(PreferenceKey.GAME_WINDOW_PROMPT);
   }
@@ -314,8 +345,10 @@ export class GameParserImpl implements GameParser {
             attributes[name] = value;
           });
 
+          const remaining = startTagSliceResult.remaining;
+
           logger.trace('parsed start tag', { tagName, attributes });
-          this.processTagStart(tagName, attributes);
+          this.processTagStart({ tagName, attributes, remaining });
 
           if (tag.endsWith('/>')) {
             this.processTagEnd();
@@ -331,23 +364,47 @@ export class GameParserImpl implements GameParser {
     }
 
     if (this.gameText.length > 0) {
+      // Handle when a <pushBold/> tag is not paired with a <popBold/> tag
+      // but only a portion of text is supposed to be bold, not the entire line.
+      // Example:
+      //  <roundTime value='1742679864'/>You whip your smokewhorl whip at a musk hog.<pushBold/>  The smokewhorl whip lands an awesome strike to a musk hog's right foreleg.
+      //  <popBold/>With one last high-pitched squeal, the musk hog falls to the ground lifeless.
+      //  Roundtime: 2 sec.
+      if (this.boldTagActive) {
+        this.gameText += '</b>';
+        this.boldTagActive = false;
+      }
       this.emitTextGameEvent(this.consumeGameText());
     }
   }
 
   protected processText(text: string): void {
-    const { id: tagId = '', name: tagName = '' } = this.getActiveTag() ?? {};
+    const {
+      id: tagId = '',
+      name: tagName = '',
+      ignore: ignoreThisTag = false,
+    } = this.getActiveTag() ?? {};
 
     logger.trace('processing text', {
       text,
       tagId,
       tagName,
+      ignoreThisTag,
       activeTags: this.activeTags,
     });
 
     // There are no tags so just keep collecting up the text.
     if (this.activeTags.length === 0) {
       this.gameText += text;
+      return;
+    }
+
+    // One or more active tags should be ignored.
+    if (ignoreThisTag) {
+      logger.trace('ignoring tag text', {
+        tagName,
+        text,
+      });
       return;
     }
 
@@ -361,6 +418,7 @@ export class GameParserImpl implements GameParser {
         }
         // This is a style information tag about talking or thinking.
         // Example: `<preset id='speech'>You say</preset>, "Hello."`
+        // Example: `<preset id="whisper">Katoak whispers,</preset> "hi"`
         else if (['speech', 'whisper', 'thought'].includes(tagId)) {
           this.gameText += text;
         } else {
@@ -427,40 +485,76 @@ export class GameParserImpl implements GameParser {
     }
   }
 
-  protected processTagStart(
-    tagName: string,
-    attributes: Record<string, string>
-  ): void {
-    logger.trace('processing tag start', { tagName, attributes });
+  protected processTagStart(options: {
+    tagName: string;
+    attributes: Record<string, string>;
+    /**
+     * The remaining line of text that appears after this tag.
+     * It does not contain any text prior to the tag.
+     */
+    remaining: string;
+  }): void {
+    const { tagName, attributes, remaining } = options;
+
+    logger.trace('processing tag start', {
+      tagName,
+      attributes,
+      activeTags: this.activeTags,
+    });
+
+    // Determine if this tag or its ancestors should be ignored
+    const parentTag = this.getActiveTag();
+    const ignoreParentTag = parentTag?.ignore || false;
+    const ignoreThisTag = ignoreParentTag || TAGS_TO_IGNORE.includes(tagName);
 
     this.activeTags.push({
       id: attributes.id,
       name: tagName,
       attributes,
+      ignore: ignoreThisTag,
     });
+
+    // One or more active tags should be ignored.
+    if (ignoreThisTag) {
+      logger.trace('ignoring start tag', {
+        tagName,
+        ignoreParentTag,
+        ignoreThisTag,
+      });
+      return;
+    }
 
     switch (tagName) {
       case 'a': // <a href='https://elanthipedia.play.net'>Elanthipedia</a>
+        // Ensure url starts with a protocol, otherwise the redirect
+        // goes to 'http://localhost:3000/<url>' instead of '<url>'.
+        if (!attributes.href.startsWith('http')) {
+          attributes.href = 'https://' + attributes.href;
+        }
         this.gameText += `<a href="${attributes.href}" target="_blank">`;
         break;
       case 'pushBold': // <pushBold/>
         // If this is nested inside text then it is an inline text style.
-        // For example, emphasizing a person's name.
+        // For example, emphasizing a person's name or a shop label.
         // "You also see <pushBold />a town guard<popBold />."
+        // "<pushBold/>Worn:  <popBold/>Generally worn."
         // Otherwise emit a game event to turn on bold text.
-        if (this.gameText.length > 0) {
+        if (this.gameText.length > 0 || remaining.includes('<popBold/>')) {
           this.gameText += '<b>';
+          this.boldTagActive = true;
         } else {
           this.emitPushBoldGameEvent();
         }
         break;
       case 'popBold': // <popBold/>
         // If this is nested inside text then it is an inline text style.
-        // For example, emphasizing a person's name.
+        // For example, emphasizing a person's name or a shop label.
         // "You also see <pushBold />a town guard<popBold />."
+        // "<pushBold/>Worn:  <popBold/>Generally worn."
         // Otherwise emit a game event to turn off bold text.
-        if (this.gameText.length > 0) {
+        if (this.boldTagActive) {
           this.gameText += '</b>';
+          this.boldTagActive = false;
         } else {
           this.emitPopBoldGameEvent();
         }
@@ -523,16 +617,26 @@ export class GameParserImpl implements GameParser {
     const {
       id: tagId = '',
       name: tagName = '',
-      attributes = {},
+      ignore: ignoreThisTag = false,
     } = this.getActiveTag() ?? {};
 
     logger.trace('processing tag end', {
       tagId,
       tagName,
-      attributes,
       gameText: this.gameText,
+      ignoreThisTag,
       activeTags: this.activeTags,
     });
+
+    this.activeTags.pop();
+
+    // One or more active tags should be ignored.
+    if (ignoreThisTag) {
+      logger.trace('ignoring end tag', {
+        tagName,
+      });
+      return;
+    }
 
     switch (tagName) {
       case 'a':
@@ -587,10 +691,6 @@ export class GameParserImpl implements GameParser {
         // Example: `<right>Empty</right>`
         this.emitRightHandGameEvent(this.consumeGameText());
         break;
-    }
-
-    if (this.activeTags.length > 0) {
-      this.activeTags.pop();
     }
   }
 
@@ -675,7 +775,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.TEXT,
       eventId: uuid(),
-      text: unescapeEntities(text),
+      text,
     });
   }
 
@@ -727,7 +827,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.SPELL,
       eventId: uuid(),
-      spell: unescapeEntities(spell),
+      spell,
     });
   }
 
@@ -735,7 +835,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.LEFT_HAND,
       eventId: uuid(),
-      item: unescapeEntities(item),
+      item,
     });
   }
 
@@ -743,7 +843,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.RIGHT_HAND,
       eventId: uuid(),
-      item: unescapeEntities(item),
+      item,
     });
   }
 
@@ -817,7 +917,7 @@ export class GameParserImpl implements GameParser {
     this.emitGameEvent({
       type: GameEventType.ROOM,
       eventId: uuid(),
-      [roomProperty]: unescapeEntities(roomText),
+      [roomProperty]: roomText,
     });
   }
 

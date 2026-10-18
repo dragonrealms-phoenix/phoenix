@@ -43,6 +43,7 @@ describe('account-instance', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it('is an account service', async () => {
@@ -51,7 +52,7 @@ describe('account-instance', () => {
     expect(Accounts).toBeInstanceOf(AccountServiceImpl);
 
     expect(mockCacheServiceConstructorSpy).toHaveBeenCalledWith({
-      filePath: 'userData/accounts.json',
+      filePath: 'userData/phoenix/config/accounts.json',
     });
   });
 });

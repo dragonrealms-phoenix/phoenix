@@ -25,6 +25,7 @@ describe('install-extension', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('#installChromeExtensions', () => {

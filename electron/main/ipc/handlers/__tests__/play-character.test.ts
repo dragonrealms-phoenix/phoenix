@@ -1,3 +1,4 @@
+import type { BrowserWindow } from 'electron';
 import * as rxjs from 'rxjs';
 import type { Mock, Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,42 +7,53 @@ import {
   type GameEvent,
   GameEventType,
 } from '../../../../common/game/types.js';
+import { createBrowserWindowMock } from '../../../__mocks__/browser-window.mock.js';
 import { AccountServiceMockImpl } from '../../../account/__mocks__/account-service.mock.js';
 import type { AccountService } from '../../../account/types.js';
 import { GameServiceMockImpl } from '../../../game/__mocks__/game-service.mock.js';
 import type { GameService } from '../../../game/types.js';
+import { PreferenceKey } from '../../../preference/types.js';
+import { SettingServiceMockImpl } from '../../../setting/__mocks__/setting-service.mock.js';
+import type { SettingService } from '../../../setting/types.js';
 import type { SGEService } from '../../../sge/types.js';
 import { playCharacterHandler } from '../play-character.js';
 
 type GameInstanceModule = typeof import('../../../game/game.instance.js');
 type MockSGEService = Mocked<SGEService> & { constructorSpy: Mock };
 
-const { mockPreferenceService, mockGameInstance, mockSgeService } =
-  await vi.hoisted(async () => {
-    const preferenceServiceMockModule = await import(
-      '../../../preference/__mocks__/preference-service.mock.js'
-    );
+const {
+  mockPreferenceService,
+  mockGameInstance,
+  mockSgeService,
+  mockLichStartProcess,
+} = await vi.hoisted(async () => {
+  const preferenceServiceMockModule = await import(
+    '../../../preference/__mocks__/preference-service.mock.js'
+  );
 
-    const mockPreferenceService =
-      new preferenceServiceMockModule.PreferenceServiceMockImpl();
+  const mockPreferenceService =
+    new preferenceServiceMockModule.PreferenceServiceMockImpl();
 
-    const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
-      getInstance: vi.fn(),
-      newInstance: vi.fn(),
-    };
+  const mockGameInstance: Mocked<GameInstanceModule['Game']> = {
+    getInstance: vi.fn(),
+    newInstance: vi.fn(),
+  };
 
-    const mockSgeService: MockSGEService = {
-      constructorSpy: vi.fn(),
-      loginCharacter: vi.fn<SGEService['loginCharacter']>(),
-      listCharacters: vi.fn<SGEService['listCharacters']>(),
-    };
+  const mockSgeService: MockSGEService = {
+    constructorSpy: vi.fn(),
+    loginCharacter: vi.fn<SGEService['loginCharacter']>(),
+    listCharacters: vi.fn<SGEService['listCharacters']>(),
+  };
 
-    return {
-      mockPreferenceService,
-      mockGameInstance,
-      mockSgeService,
-    };
-  });
+  const mockLichStartProcess = vi.fn();
+
+  return {
+    mockPreferenceService,
+    mockGameInstance,
+    mockSgeService,
+    mockLichStartProcess,
+  };
+});
 
 vi.mock('../../../preference/preference.instance.js', () => {
   return {
@@ -79,27 +91,54 @@ vi.mock('../../../sge/sge.service.js', () => {
   };
 });
 
+vi.mock('../../../lich/start-process.js', () => {
+  return {
+    startLichProcess: mockLichStartProcess,
+  };
+});
+
 vi.mock('../../../logger/logger.factory.ts');
 
 describe('play-character', () => {
+  let gameEvents$: rxjs.Subject<GameEvent>;
+
   beforeEach(() => {
+    mockPreferenceService.get.mockReset().mockReturnValue(false);
+
+    mockLichStartProcess.mockReset();
+
+    mockSgeService.loginCharacter.mockReset();
+
+    mockGameInstance.newInstance.mockReset();
+
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
   afterEach(() => {
+    gameEvents$.complete();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
   });
 
-  describe('#playCharacterHandler', async () => {
+  describe('#playCharacterHandler', () => {
     let mockIpcDispatcher: Mock;
     let mockAccountService: Mocked<AccountService>;
     let mockGameService: Mocked<GameService>;
-    let gameEvents$: rxjs.Subject<GameEvent>;
+    let mockWindow: Mocked<BrowserWindow>;
+    let mockSettingService: Mocked<SettingService>;
 
     beforeEach(() => {
       mockIpcDispatcher = vi.fn();
+
+      mockWindow = createBrowserWindowMock();
+
+      mockSettingService = new SettingServiceMockImpl();
+      mockSettingService.getEnabledHighlights.mockReturnValue([]);
+      mockSettingService.getEnabledIgnores.mockReturnValue([]);
+      mockSettingService.getEnabledSubstitutes.mockReturnValue([]);
+      mockSettingService.getEnabledTriggers.mockReturnValue([]);
+      mockSettingService.load.mockResolvedValue(undefined);
 
       mockAccountService = new AccountServiceMockImpl();
       mockAccountService.getAccount.mockReturnValue({
@@ -107,23 +146,25 @@ describe('play-character', () => {
         accountPassword: 'test-account-password',
       });
 
-      mockSgeService.loginCharacter.mockResolvedValueOnce({
+      mockSgeService.loginCharacter.mockResolvedValue({
         host: 'test-host',
         port: 1234,
         accessToken: 'test-access-token',
       });
 
       mockGameService = new GameServiceMockImpl();
-      mockGameInstance.newInstance.mockResolvedValueOnce(mockGameService);
+      mockGameInstance.newInstance.mockResolvedValue(mockGameService);
 
       gameEvents$ = new rxjs.Subject<GameEvent>();
-      mockGameService.connect.mockResolvedValueOnce(gameEvents$);
+      mockGameService.connect.mockResolvedValue(gameEvents$);
     });
 
     it('logs into game as a character', async () => {
       const handler = playCharacterHandler({
         dispatch: mockIpcDispatcher,
         accountService: mockAccountService,
+        window: mockWindow,
+        settingService: mockSettingService,
       });
 
       await handler([
@@ -137,6 +178,17 @@ describe('play-character', () => {
       expect(mockAccountService.getAccount).toHaveBeenCalledWith({
         accountName: 'test-account-name',
       });
+
+      expect(mockWindow.setTitle).toHaveBeenCalledExactlyOnceWith(
+        `DragonRealms Phoenix - test-character-name (${GameCode.PRIME})`
+      );
+
+      expect(mockSettingService.load).toHaveBeenCalledExactlyOnceWith({
+        profileNames: ['default', `test-character-name${GameCode.PRIME}`],
+        mode: 'replace',
+      });
+
+      expect(mockLichStartProcess).not.toHaveBeenCalled();
 
       expect(mockSgeService.constructorSpy).toHaveBeenCalledWith([
         {
@@ -167,10 +219,53 @@ describe('play-character', () => {
       });
     });
 
-    it('dispatches a game event when the stream emits an event', async () => {
+    it('starts lich process when lich preference is enabled', async () => {
+      mockPreferenceService.get.mockImplementation((key) => {
+        switch (key) {
+          case PreferenceKey.LICH_ENABLED:
+            return true;
+        }
+      });
+
+      mockLichStartProcess.mockResolvedValue({
+        host: 'test-lich-host',
+        port: 4242,
+      });
+
       const handler = playCharacterHandler({
         dispatch: mockIpcDispatcher,
         accountService: mockAccountService,
+        window: mockWindow,
+        settingService: mockSettingService,
+      });
+
+      await handler([
+        {
+          accountName: 'test-account-name',
+          characterName: 'test-character-name',
+          gameCode: GameCode.PRIME,
+        },
+      ]);
+
+      expect(mockLichStartProcess).toHaveBeenCalledWith({
+        gameCode: GameCode.PRIME,
+      });
+
+      expect(mockGameInstance.newInstance).toHaveBeenCalledWith({
+        credentials: {
+          host: 'test-lich-host',
+          port: 4242,
+          accessToken: 'test-access-token',
+        },
+      });
+    });
+
+    it('dispatches styled text when the stream emits text', async () => {
+      const handler = playCharacterHandler({
+        dispatch: mockIpcDispatcher,
+        accountService: mockAccountService,
+        window: mockWindow,
+        settingService: mockSettingService,
       });
 
       await handler([
@@ -192,11 +287,22 @@ describe('play-character', () => {
         text: 'test-text',
       });
 
+      await vi.runAllTimersAsync();
+
       expect(mockIpcDispatcher).toHaveBeenCalledWith('game:event', {
         gameEvent: {
-          type: GameEventType.TEXT,
+          type: GameEventType.STYLED_TEXT,
           eventId: 'test-event-id',
           text: 'test-text',
+          segments: [
+            {
+              text: 'test-text',
+              start: 0,
+              end: 9,
+              foregroundColor: '',
+              backgroundColor: '',
+            },
+          ],
         },
       });
     });
@@ -205,6 +311,8 @@ describe('play-character', () => {
       const handler = playCharacterHandler({
         dispatch: mockIpcDispatcher,
         accountService: mockAccountService,
+        window: mockWindow,
+        settingService: mockSettingService,
       });
 
       await handler([
@@ -232,6 +340,8 @@ describe('play-character', () => {
       const handler = playCharacterHandler({
         dispatch: mockIpcDispatcher,
         accountService: mockAccountService,
+        window: mockWindow,
+        settingService: mockSettingService,
       });
 
       await handler([
@@ -262,6 +372,8 @@ describe('play-character', () => {
       const handler = playCharacterHandler({
         dispatch: mockIpcDispatcher,
         accountService: mockAccountService,
+        window: mockWindow,
+        settingService: mockSettingService,
       });
 
       try {
@@ -275,6 +387,10 @@ describe('play-character', () => {
         expect.unreachable('it should throw an error');
       } catch (error) {
         expect(mockIpcDispatcher).toHaveBeenCalledTimes(0);
+        expect(mockWindow.setTitle).not.toHaveBeenCalled();
+        expect(mockSettingService.load).not.toHaveBeenCalled();
+        expect(mockSgeService.loginCharacter).not.toHaveBeenCalled();
+        expect(mockGameInstance.newInstance).not.toHaveBeenCalled();
         expect(mockAccountService.getAccount).toHaveBeenCalledWith({
           accountName: 'test-account-name',
         });

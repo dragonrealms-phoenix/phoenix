@@ -242,7 +242,7 @@ export class GameSocketImpl implements GameSocket {
       // it was renamed to "Wrayth". The version is something I found common
       // on GitHub among other clients. I did not notice a theme for the platform
       // of the code I reviewed. I assume the last flag is to request XML formatted feed.
-      const frontendHeader = `FE:PHOENIX /VERSION:${VERSION} /P:${process.platform.toUpperCase()} /XML`;
+      const frontendHeader = `/FE:PHOENIX /VERSION:${VERSION} /P:${process.platform.toUpperCase()} /XML`;
 
       socket.write(`${this.credentials.accessToken}\n`);
       socket.write(`${frontendHeader}\n`);

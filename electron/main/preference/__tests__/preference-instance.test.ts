@@ -51,7 +51,7 @@ describe('preference-instance', () => {
     expect(Preferences).toBeInstanceOf(PreferenceServiceImpl);
 
     expect(mockCacheServiceConstructorSpy).toHaveBeenCalledWith({
-      filePath: 'userData/preferences.json',
+      filePath: 'userData/phoenix/config/preferences.json',
     });
   });
 });

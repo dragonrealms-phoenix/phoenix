@@ -362,4 +362,44 @@ describe('disk-cache-service', () => {
       );
     });
   });
+
+  describe('#reload', () => {
+    it('reloads the cache from disk', async () => {
+      mockFsExtra.writeJsonSync(filePath, { key: 42 });
+
+      const cacheService = new DiskCacheServiceImpl({
+        filePath,
+      });
+
+      expect(cacheService.readCache()).toEqual({ key: 42 });
+
+      // Simulate that the file on disk has changed.
+      mockFsExtra.writeJsonSync(filePath, { foo: 'bar' });
+
+      // To see the updated file's values, the cache must be reloaded.
+      cacheService.reload();
+
+      await vi.advanceTimersToNextTimerAsync();
+
+      expect(cacheService.readCache()).toEqual({ foo: 'bar' });
+    });
+
+    it('does not reload the cache from disk', async () => {
+      mockFsExtra.writeJsonSync(filePath, { key: 42 });
+
+      const cacheService = new DiskCacheServiceImpl({
+        filePath,
+      });
+
+      expect(cacheService.readCache()).toEqual({ key: 42 });
+
+      // If we don't reload, then reading the cache
+      // returns the data from the last time the file was read.
+      mockFsExtra.writeJsonSync(filePath, { foo: 'bar' });
+
+      await vi.advanceTimersToNextTimerAsync();
+
+      expect(cacheService.readCache()).toEqual({ key: 42 });
+    });
+  });
 });

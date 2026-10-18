@@ -38,7 +38,7 @@ jobs:
       id-token: write # to enable use of OIDC for npm provenance
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -46,7 +46,7 @@ jobs:
         # Have to setup node twice as workaround until corepack is supported.
         # https://github.com/actions/setup-node/issues/531
       - name: Setup Node (corepack-prereq)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
@@ -55,7 +55,7 @@ jobs:
         run: corepack enable
 
       - name: Setup Node and Yarn
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: yarn
@@ -65,7 +65,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: dist
 
@@ -79,7 +79,7 @@ jobs:
         run: yarn semantic-release
 
       - name: Sentry Release
-        uses: getsentry/action-release@v1
+        uses: getsentry/action-release@v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ github.repository_owner }}

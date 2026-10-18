@@ -1,4 +1,5 @@
 import type { EuiThemeColorMode } from '@elastic/eui';
+import type { HighlightedTextSegment } from '../../common/setting/types.js';
 
 export interface GameLogLine {
   /**
@@ -13,9 +14,18 @@ export interface GameLogLine {
    */
   streamId: string;
   /**
-   * The text to display.
+   * The unhighlighted text to display.
+   * May include `<b>` and `<a>` tags for "monsterbold" and links,
+   * but won't include any user-defined highlights.
    */
   text: string;
+  /**
+   * If highlights have been applied then these are how
+   * each segment of the text should be styled, including
+   * segments that should have no highlighting applied to them.
+   * Each segment's text may include `<b>` and `<a>` tags, too.
+   */
+  segments?: Array<HighlightedTextSegment>;
   /**
    * The text formatting to apply to the entire line.
    * Overrides the default stream style.

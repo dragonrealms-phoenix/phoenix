@@ -7,13 +7,13 @@ import { VERSION } from '../common/version.js';
 import { Accounts } from './account/account.instance.js';
 import { runInBackground } from './async/run-in-background.js';
 import { IpcController } from './ipc/ipc.controller.js';
-import type { IpcDispatcher } from './ipc/types.js';
 import { Layouts } from './layout/layout.instance.js';
 import { getScopedLogger } from './logger/logger.factory.js';
 import { getLogLevel } from './logger/logger.utils.js';
 import { initializeMenu } from './menu/menu.js';
 import { Preferences } from './preference/preference.instance.js';
 import { PreferenceKey } from './preference/types.js';
+import { Settings } from './setting/setting.instance.js';
 
 export const initializeApp = async (): Promise<void> => {
   const logger = getScopedLogger('main:app');
@@ -60,7 +60,7 @@ export const initializeApp = async (): Promise<void> => {
 
   // When running in development, serve the app from these paths.
   const devRendererPath = path.join(appElectronPath, 'renderer');
-  const devPort = 3000; // arbitrary
+  const devPort = Number(process.env.LOCAL_DEV_PORT || 3000); // arbitrary
   const devAppUrl = `http://localhost:${devPort}`;
 
   const appUrl = appEnvIsProd ? prodAppUrl : devAppUrl;
@@ -141,18 +141,10 @@ export const initializeApp = async (): Promise<void> => {
       mainWindow.show();
     });
 
-    const dispatch: IpcDispatcher = (channel, ...args): void => {
-      // When the window is closed or destroyed, we might still
-      // receive async events from the ipc controller. Ignore them.
-      // This usually happens when the app is quit while a game is being played.
-      if (!mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(channel, ...args);
-      }
-    };
-
     ipcController = new IpcController({
-      dispatch,
+      window: mainWindow,
       accountService: Accounts,
+      settingService: Settings,
       layoutService: Layouts,
     });
 
@@ -179,7 +171,7 @@ export const initializeApp = async (): Promise<void> => {
 
   // Disable or limit creation of new windows to protect app and users.
   // https://www.electronjs.org/docs/latest/tutorial/security
-  app.on('web-contents-created', (_, contents) => {
+  app.on('web-contents-created', (_event, contents) => {
     const allowedDomains = [
       // https://regex101.com/r/pUmfMR/1
       /^(.*\.)?github\.com$/i,
@@ -209,11 +201,11 @@ export const initializeApp = async (): Promise<void> => {
       return { action: 'deny' };
     });
 
-    contents.on('will-navigate', (event, url) => {
+    contents.on('will-navigate', (_event, url) => {
       logger.debug('will-navigate', { url });
     });
 
-    contents.on('will-redirect', (event, url) => {
+    contents.on('will-redirect', (_event, url) => {
       logger.debug('will-redirect', { url });
     });
   });

@@ -1,4 +1,164 @@
+declare module 'common/setting/types' {
+  export interface HighlightedTextSegment {
+    /**
+     * The segment of text to highlight.
+     * This is a substring between the start and end indices
+     * of the original line of text.
+     */
+    text: string;
+    /**
+     * The start index of the highlighted segment of text.
+     */
+    start: number;
+    /**
+     * The end index of the highlighted segment of text.
+     */
+    end: number;
+    /**
+     * The color name or hex code to use for the segment.
+     * For example, "red" or "#FF0000".
+     * Though any valid CSS color value will work.
+     * Use a blank string to not apply a foreground color.
+     */
+    foregroundColor: string;
+    /**
+     * The color name or hex code to use for the background for the segment.
+     * For example, "blue" or "#0000FF".
+     * Though any valid CSS color value will work.
+     * Use a blank string to not apply a background color.
+     */
+    backgroundColor: string;
+  }
+  export enum HighlightMatchType {
+    /**
+     * Highlight only the pattern itself.
+     *
+     * Genie uses the term "string" or "strings".
+     */
+    EXACT = 'exact',
+    /**
+     * Highlight the entire line that contains the pattern.
+     *
+     * Genie uses the term "line" or "lines".
+     */
+    CONTAINS = 'contains',
+    /**
+     * Highlight the entire line that starts with the pattern.
+     *
+     * Genie uses the term "beginswith"
+     */
+    STARTS = 'starts',
+    /**
+     * Highlight within the line the captured groups of the pattern.
+     *
+     * Genie uses the term "regex" or "regexp".
+     */
+    REGEX = 'regex',
+  }
+  export interface HighlightSetting {
+    /**
+     * How to interpret the pattern.
+     */
+    matchType: HighlightMatchType;
+    /**
+     * Literal or regular expression whose captured groups will be
+     * highlighted with the specified colors.
+     * See {@link pattern} for the inferred regular expression.
+     */
+    text: string;
+    /**
+     * A regular expression inferred from the pattern and match type.
+     * For example, when the match type is not a regex then the pattern
+     * should be interpreted literally, and so characters that have special
+     * meanings in regular expressions should be escaped.
+     * Use this value to create `RegExp` objects.
+     */
+    pattern: string;
+    /**
+     * Foreground color of the text.
+     * A falsy value will not apply a foreground color.
+     */
+    foregroundColor: string;
+    /**
+     * Background color of the text.
+     * A falsy value will not apply a background color.
+     */
+    backgroundColor: string;
+    /**
+     * Optional class name to assign to the setting.
+     * Genie uses classes as boolean flags to denote if a setting is enabled.
+     * A setting is presumed enabled unless it is assigned a disabled class.
+     */
+    className: string;
+  }
+  export interface ClassSetting {
+    /**
+     * The name of the class.
+     */
+    name: string;
+    /**
+     * Whether the class is enabled or disabled.
+     * When enabled, then settings assigned that class are also enabled.
+     * When disabled, then settings assigned that class are also disabled.
+     */
+    enabled: boolean;
+  }
+  export interface TriggerSetting {
+    /**
+     * A regular expression that when matches a line of text
+     * then will trigger the action.
+     */
+    pattern: string;
+    /**
+     * A semicolon-delimited list of actions to perform when triggered.
+     * These can be game commands (e.g. "look") and phoenix commands (e.g. "#class boxes off").
+     * Whitespace around the semicolons are ignored.
+     * Example: 'look ; #class boxes off'
+     */
+    action: string;
+    /**
+     * Optional class name to assign to the setting.
+     * Genie uses classes as boolean flags to denote if a setting is enabled.
+     * A setting is presumed enabled unless it is assigned a disabled class.
+     */
+    className: string;
+  }
+  export interface IgnoreSetting {
+    /**
+     * A regular expression that when matches a line of text
+     * then will squelch (i.e. gag, hide, ignore) the line
+     * so that it is not displayed to the user in the game windows.
+     */
+    pattern: string;
+    /**
+     * Optional class name to assign to the setting.
+     * Genie uses classes as boolean flags to denote if a setting is enabled.
+     * A setting is presumed enabled unless it is assigned a disabled class.
+     */
+    className: string;
+  }
+  export interface SubstituteSetting {
+    /**
+     * A regular expression that when matches a line of text
+     * then will be substituted with the replacement text.
+     */
+    pattern: string;
+    /**
+     * The text to replace the matched pattern.
+     * Can use captured groups from the pattern.
+     * For example, "$1" refers to the first captured group.
+     */
+    replacement: string;
+    /**
+     * Optional class name to assign to the setting.
+     * Genie uses classes as boolean flags to denote if a setting is enabled.
+     * A setting is presumed enabled unless it is assigned a disabled class.
+     */
+    className: string;
+  }
+}
 declare module 'common/game/types' {
+  import type { HighlightedTextSegment } from 'common/setting/types';
   /**
    * Simutronics has multiple games and instances per game.
    * Only interested in DragonRealms, though.
@@ -32,6 +192,7 @@ declare module 'common/game/types' {
    * Events emitted by the game parser of data received from the game socket.
    */
   export type GameEvent =
+    | StyledTextGameEvent
     | TextGameEvent
     | PushBoldGameEvent
     | PopBoldGameEvent
@@ -61,9 +222,29 @@ declare module 'common/game/types' {
     type: GameEventType;
   }
   /**
+   * Indicates text to display to the player, and
+   * how substrings of the text should be styled.
+   * This event was introduced to support highlight settings.
+   *
+   * Note that previous game events may indicate how the
+   * text should be styled (e.g. font) and to which window to display it.
+   */
+  export interface StyledTextGameEvent extends GameEventBase {
+    type: GameEventType.STYLED_TEXT;
+    /**
+     * The entire line of text, unstyled.
+     * Same value that would be emitted with a {@link TextGameEvent}.
+     */
+    text: string;
+    /**
+     * Segments of the line of text annotated with style information.
+     */
+    segments: Array<HighlightedTextSegment>;
+  }
+  /**
    * Indicates text to display to the player.
    * Note that previous game events may indicate how the
-   * text should be styled and to which window to display it.
+   * text should be styled (e.g. font) and to which window to display it.
    */
   export interface TextGameEvent extends GameEventBase {
     type: GameEventType.TEXT;
@@ -212,6 +393,11 @@ declare module 'common/game/types' {
     time: number;
   }
   export enum GameEventType {
+    /**
+     * A super type of TEXT where segments of the line of text
+     * are annotated with style information, such as font color.
+     */
+    STYLED_TEXT = 'STYLED_TEXT',
     /**
      * Text to display to the player.
      */
@@ -705,4 +891,20 @@ declare module 'preload/index' {
     }
   }
   export type { AppAPI };
+}
+declare module 'common/regex/types' {
+  export interface RegExpMatchResult {
+    /**
+     * The matched text.
+     */
+    text: string;
+    /**
+     * The start index of the match in the original text.
+     */
+    start: number;
+    /**
+     * The end index of the match in the original text.
+     */
+    end: number;
+  }
 }

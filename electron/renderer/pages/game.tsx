@@ -108,6 +108,16 @@ const GamePage: React.FC = (): ReactNode => {
         });
         break;
 
+      case GameEventType.STYLED_TEXT:
+        gameLogLineSubject$.next({
+          eventId: gameEvent.eventId,
+          streamId: gameStreamIdRef.current,
+          style: textStyles,
+          text: gameEvent.text,
+          segments: gameEvent.segments,
+        });
+        break;
+
       case GameEventType.EXPERIENCE:
         // TODO need to track a map of skill names to their latest event
         //      so that when we receive a new event we can update that skill

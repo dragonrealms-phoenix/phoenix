@@ -6,7 +6,14 @@ import type {
   ReactElement,
   ReactNode,
 } from 'react';
-import { useCallback, useContext, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { isEmpty } from '../../../common/string/string.utils.js';
 import { GameContext } from '../../context/game.jsx';
 import { useCommandHistory } from '../../hooks/commands.jsx';
@@ -16,6 +23,17 @@ export const GameCommandInput: React.FC = (): ReactNode => {
   const { isConnected } = useContext(GameContext);
   const { input, handleKeyDown, handleOnChange } = useCommandHistory();
   const [lastCommand, setLastCommand] = useState<string>();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const sendCommand = useCallback((command: string) => {
+    runInBackground(async () => {
+      // TODO customize the command separator, and whether to use it or not
+      const cmds = command.split(';');
+      for (const cmd of cmds) {
+        await window.api.sendCommand(cmd);
+      }
+    });
+  }, []);
 
   const onKeyDown = useCallback<KeyboardEventHandler<HTMLInputElement>>(
     (event: KeyboardEvent<HTMLInputElement>) => {
@@ -26,24 +44,25 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         const command = event.currentTarget.value;
         // <Cmd>+<Enter> = perform last command
         if (event.metaKey && !isEmpty(lastCommand)) {
-          runInBackground(async () => {
-            await window.api.sendCommand(lastCommand);
-          });
+          sendCommand(lastCommand);
         }
         // <Enter> = perform new command
         else if (!isEmpty(command)) {
           setLastCommand(command);
-          // TODO customize the command separator, and whether to use it or not
-          const cmds = command.split(';');
-          runInBackground(async () => {
-            for (const cmd of cmds) {
-              await window.api.sendCommand(cmd);
-            }
-          });
+          sendCommand(command);
         }
+      } else if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
+        // Ensure cursor remains at the end of the line.
+        // Use a timeout so the cursor is set after the history navigation.
+        setTimeout(() => {
+          inputRef.current?.setSelectionRange(
+            inputRef.current.value.length,
+            inputRef.current.value.length
+          );
+        });
       }
     },
-    [handleKeyDown, lastCommand]
+    [handleKeyDown, sendCommand, lastCommand]
   );
 
   const onChange = useCallback(
@@ -54,6 +73,18 @@ export const GameCommandInput: React.FC = (): ReactNode => {
     },
     [handleOnChange]
   );
+
+  useEffect(() => {
+    const handleFocus = () => {
+      inputRef.current?.focus();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   const commandIcon = useMemo((): ReactElement => {
     return <EuiIcon type="arrowRight" size="s" color="primary" />;
@@ -68,6 +99,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
         }}
       >
         <EuiFieldText
+          inputRef={inputRef}
           css={{
             // Removes the bottom blue border when user focuses the field.
             // I found it distracting.
@@ -80,6 +112,7 @@ export const GameCommandInput: React.FC = (): ReactNode => {
           autoCorrect="off"
           autoCapitalize="off"
           autoComplete="off"
+          spellCheck={false}
           prepend={commandIcon}
           tabIndex={0}
           disabled={!isConnected}

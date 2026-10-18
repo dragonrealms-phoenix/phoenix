@@ -3,7 +3,7 @@ name: Build
 on:
   # Allow developers to run this on-demand.
   workflow_dispatch:
-  # Allow the release workflow to trigger this workflow.
+  # Allow the other workflows to trigger this workflow.
   workflow_call:
   # Validate pull request to confirm that the build is still working.
   pull_request:
@@ -43,12 +43,12 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
         # Have to setup node twice as workaround until corepack is supported.
         # https://github.com/actions/setup-node/issues/531
       - name: Setup Node (corepack-prereq)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
 
@@ -57,7 +57,7 @@ jobs:
         run: corepack enable
 
       - name: Setup Node and Yarn
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: yarn
@@ -106,7 +106,7 @@ jobs:
         run: yarn build:win
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: phoenix-app-${{ matrix.os }}
           path: |

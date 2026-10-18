@@ -57,10 +57,15 @@ export enum PreferenceKey {
    */
   LICH_HOST = 'lich.host',
   /**
-   * The port to connect to when starting Lich.
+   * The port to connect to when starting Lich for DragonRealms.
    * Example: 11024
    */
-  LICH_PORT = 'lich.port',
+  LICH_PORT_DR = 'lich.port.dr',
+  /**
+   * The port to connect to when starting Lich for DragonRealms Test.
+   * Example: 11624
+   */
+  LICH_PORT_DRT = 'lich.port.drt',
   /**
    * The number of seconds to wait after starting Lich before
    * attempting to connect to it.
@@ -82,7 +87,8 @@ export type PreferenceKeyToTypeMap = {
   [PreferenceKey.LICH_RUBY_PATH]: string;
   [PreferenceKey.LICH_PATH]: string;
   [PreferenceKey.LICH_HOST]: string;
-  [PreferenceKey.LICH_PORT]: number;
+  [PreferenceKey.LICH_PORT_DR]: number;
+  [PreferenceKey.LICH_PORT_DRT]: number;
   [PreferenceKey.LICH_START_WAIT]: number;
   [PreferenceKey.LICH_ENABLED]: boolean;
 };

@@ -4,14 +4,22 @@ import type { Maybe } from '../../common/types.js';
 import { AbstractCacheService } from './abstract-cache.service.js';
 import { logger } from './logger.js';
 import { MemoryCacheServiceImpl } from './memory-cache.service.js';
-import type { Cache, CacheService, DiskCacheOptions } from './types.js';
+import type {
+  Cache,
+  CacheService,
+  DiskCacheOptions,
+  DiskCacheService,
+} from './types.js';
 
 /**
  * Caches all data as properties of a single JSON object written to disk.
  * Uses an in-memory cache buffer to provide synchronous access to data.
  * Writes to disk occur in the background and may not flush immediately.
  */
-export class DiskCacheServiceImpl extends AbstractCacheService {
+export class DiskCacheServiceImpl
+  extends AbstractCacheService
+  implements DiskCacheService
+{
   /**
    * To avoid repeatedly reading and parsing a file from disk,
    * we read the file and cache it in memory.
@@ -85,6 +93,12 @@ export class DiskCacheServiceImpl extends AbstractCacheService {
     this.delegate.writeCache(newCache);
     this.queueWriteToDisk();
   }
+
+  public reload(): void {
+    this.loadFromDisk();
+  }
+
+  // -------------------------------------------------------------------------
 
   private loadFromDisk(): void {
     const filePath = this.filePath;

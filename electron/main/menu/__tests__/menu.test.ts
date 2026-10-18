@@ -134,7 +134,6 @@ describe('menu', () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -784,7 +783,6 @@ describe('menu', () => {
 
       it('initializes the menu with preferences', async () => {
         mockPreferenceService.get = vi.fn().mockImplementation((key) => {
-          console.log('*** mock pref get', { key });
           switch (key) {
             case PreferenceKey.APP_CONFIRM_CLOSE:
               return false;
