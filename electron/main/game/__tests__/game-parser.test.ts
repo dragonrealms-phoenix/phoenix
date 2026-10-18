@@ -43,6 +43,8 @@ describe('game-parser', () => {
   let parser: GameParser;
 
   beforeEach(() => {
+    mockPreferenceService.get.mockReset();
+
     gameSocketSubject$ = new rxjs.Subject<string>();
     gameSocketStream$ = gameSocketSubject$.asObservable();
 
@@ -61,8 +63,10 @@ describe('game-parser', () => {
   });
 
   afterEach(() => {
+    gameSocketSubject$.complete();
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   const expectGameEvent = (expected: Partial<GameEvent>) => {
@@ -123,16 +127,16 @@ describe('game-parser', () => {
       });
     });
 
-    it('emits TextGameEvent (prompt)', () => {
+    it('emits TextGameEvent (prompt)', async () => {
       gameSocketSubject$.next('<prompt time="1703804031">&gt;</prompt>\n');
 
       expectGameEvent({
         type: GameEventType.TEXT,
-        text: `>\n`,
+        text: `&gt;\n`,
       });
     });
 
-    it('emits TextGameEvent (prompt preference)', () => {
+    it('emits TextGameEvent (prompt preference)', async () => {
       mockPreferenceService.get.mockImplementation((key) => {
         switch (key) {
           case PreferenceKey.GAME_WINDOW_PROMPT:
@@ -144,6 +148,7 @@ describe('game-parser', () => {
       // the parser is created, we need to create a new
       // parser so that it picks up the mocked value.
 
+      gameSocketSubject$.complete();
       gameSocketSubject$ = new rxjs.Subject<string>();
 
       parser = new GameParserImpl();

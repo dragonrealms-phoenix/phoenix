@@ -43,6 +43,7 @@ describe('account-instance', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it('is an account service', async () => {

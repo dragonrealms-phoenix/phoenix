@@ -134,7 +134,6 @@ describe('menu', () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();

@@ -18,9 +18,11 @@ const { mockPreferenceService, mockSpawn } = await vi.hoisted(async () => {
   };
 });
 
-vi.mock('node:child_process', () => ({
-  spawn: mockSpawn,
-}));
+vi.mock('node:child_process', () => {
+  return {
+    spawn: mockSpawn,
+  };
+});
 
 vi.mock('../../preference/preference.instance.js', () => {
   return {
@@ -51,8 +53,10 @@ describe('start-process', () => {
           return '/path/to/lich.rb';
         case PreferenceKey.LICH_HOST:
           return 'localhost';
-        case PreferenceKey.LICH_PORT:
+        case PreferenceKey.LICH_PORT_DR:
           return 4242;
+        case PreferenceKey.LICH_PORT_DRT:
+          return 4343;
         case PreferenceKey.LICH_START_WAIT:
           return 0;
       }
@@ -137,8 +141,23 @@ describe('start-process', () => {
       expect(result).toEqual({
         pid: mockChildProcess.pid,
         host: 'localhost',
-        port: 4242,
+        port: 4343,
       });
+    });
+
+    it.each([
+      { gameCode: GameCode.PRIME, port: 11024 },
+      { gameCode: GameCode.TEST, port: 11624 },
+    ])('uses default port $port for $gameCode', async ({ gameCode, port }) => {
+      mockPreferenceService.get.mockImplementation((key) => {
+        if (key === PreferenceKey.LICH_START_WAIT) {
+          return 0;
+        }
+      });
+
+      const result = await startLichProcess({ gameCode });
+
+      expect(result.port).toBe(port);
     });
   });
 });

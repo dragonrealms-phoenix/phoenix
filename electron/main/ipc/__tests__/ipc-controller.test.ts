@@ -1,6 +1,9 @@
-import type { Mock } from 'vitest';
+import type { BrowserWindow } from 'electron';
+import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createBrowserWindowMock } from '../../__mocks__/browser-window.mock.js';
 import { mockLogger } from '../../logger/__mocks__/logger.factory.js';
+import { SettingServiceMockImpl } from '../../setting/__mocks__/setting-service.mock.js';
 import { IpcController } from '../ipc.controller.js';
 
 const {
@@ -194,10 +197,27 @@ vi.mock('electron', () => {
 vi.mock('../../logger/logger.factory.ts');
 
 describe('ipc-controller', () => {
-  let mockIpcDispatcher: Mock;
+  let controller: IpcController | undefined;
+  let controllerOptions: ConstructorParameters<typeof IpcController>[0];
+
+  let mockWindow: Mocked<BrowserWindow>;
+  let mockSettingService: SettingServiceMockImpl;
 
   beforeEach(() => {
-    mockIpcDispatcher = vi.fn();
+    mockGameInstance.getInstance.mockReset();
+
+    mockWindow = createBrowserWindowMock();
+    mockWindow.isDestroyed.mockReturnValue(false);
+
+    mockSettingService = new SettingServiceMockImpl();
+
+    controller = undefined;
+    controllerOptions = {
+      window: mockWindow,
+      accountService: mockAccountService,
+      layoutService: mockLayoutService,
+      settingService: mockSettingService,
+    };
 
     mockIpcPingHandler.mockReturnValue(vi.fn());
     mockIpcLogHandler.mockReturnValue(vi.fn());
@@ -218,7 +238,8 @@ describe('ipc-controller', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await controller?.destroy();
     vi.clearAllMocks();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -227,18 +248,17 @@ describe('ipc-controller', () => {
   describe('#IpcController', () => {
     describe('#constructor', () => {
       it('registers channel handlers', async () => {
-        const controller = new IpcController({
-          dispatch: mockIpcDispatcher,
-          accountService: mockAccountService,
-          layoutService: mockLayoutService,
-        });
+        controller = new IpcController(controllerOptions);
+
+        const dispatch = controller['dispatch'];
 
         expect(controller).toBeInstanceOf(IpcController);
+        expect(dispatch).toEqual(expect.any(Function));
 
         // Creates handler registry
 
         expect(mockIpcPingHandler).toHaveBeenCalledWith({
-          dispatch: mockIpcDispatcher,
+          dispatch,
         });
 
         expect(mockIpcLogHandler).toHaveBeenCalledWith({
@@ -270,12 +290,14 @@ describe('ipc-controller', () => {
         });
 
         expect(mockIpcPlayCharacterHandler).toHaveBeenCalledWith({
-          dispatch: mockIpcDispatcher,
+          dispatch,
+          window: mockWindow,
           accountService: mockAccountService,
+          settingService: mockSettingService,
         });
 
         expect(mockIpcQuitCharacterHandler).toHaveBeenCalledWith({
-          dispatch: mockIpcDispatcher,
+          dispatch,
         });
 
         expect(mockIpcGetLayoutHandler).toHaveBeenCalledWith({
@@ -295,7 +317,7 @@ describe('ipc-controller', () => {
         });
 
         expect(mockIpcSendCommandHandler).toHaveBeenCalledWith({
-          dispatch: mockIpcDispatcher,
+          dispatch,
         });
 
         // Adds listeners to ipc channels
@@ -375,18 +397,34 @@ describe('ipc-controller', () => {
       it('throws an error if a channel has no handler', async () => {
         mockIpcPingHandler.mockReset(); // will return undefined
 
-        try {
-          new IpcController({
-            dispatch: mockIpcDispatcher,
-            accountService: mockAccountService,
-            layoutService: mockLayoutService,
-          });
-          expect.unreachable('it should throw an error');
-        } catch (error) {
-          expect(error).toEqual(
-            new Error(`[IPC:CHANNEL:ERROR:HANDLER_NOT_FOUND] ping`)
-          );
-        }
+        expect(() => {
+          new IpcController(controllerOptions);
+        }).toThrow(new Error('[IPC:CHANNEL:ERROR:HANDLER_NOT_FOUND] ping'));
+      });
+
+      it('forwards dispatched events to the window', async () => {
+        controller = new IpcController(controllerOptions);
+
+        const dispatch = controller['dispatch'];
+
+        dispatch('game:command', { command: 'look' });
+
+        expect(mockWindow.webContents.send).toHaveBeenCalledExactlyOnceWith(
+          'game:command',
+          { command: 'look' }
+        );
+      });
+
+      it('ignores dispatched events after the window is destroyed', async () => {
+        controller = new IpcController(controllerOptions);
+
+        const dispatch = controller['dispatch'];
+
+        mockWindow.isDestroyed.mockReturnValue(true);
+
+        dispatch('game:command', { command: 'look' });
+
+        expect(mockWindow.webContents.send).not.toHaveBeenCalled();
       });
     });
 
@@ -394,11 +432,7 @@ describe('ipc-controller', () => {
       it('removes handlers and disconnects game instance', async () => {
         mockGameInstance.getInstance.mockReturnValue(mockGameService);
 
-        const controller = new IpcController({
-          dispatch: mockIpcDispatcher,
-          accountService: mockAccountService,
-          layoutService: mockLayoutService,
-        });
+        const controller = new IpcController(controllerOptions);
 
         await controller.destroy();
 
@@ -429,11 +463,7 @@ describe('ipc-controller', () => {
           vi.fn().mockResolvedValueOnce('pong')
         );
 
-        new IpcController({
-          dispatch: mockIpcDispatcher,
-          accountService: mockAccountService,
-          layoutService: mockLayoutService,
-        });
+        controller = new IpcController(controllerOptions);
 
         await expect(mockIpcMain.invokeChannel('ping')).resolves.toEqual(
           'pong'
@@ -445,11 +475,7 @@ describe('ipc-controller', () => {
           vi.fn().mockRejectedValueOnce(new Error('test-error'))
         );
 
-        new IpcController({
-          dispatch: mockIpcDispatcher,
-          accountService: mockAccountService,
-          layoutService: mockLayoutService,
-        });
+        controller = new IpcController(controllerOptions);
 
         await expect(mockIpcMain.invokeChannel('ping')).rejects.toEqual(
           new Error(`[IPC:CHANNEL:ERROR:PING] test-error`)

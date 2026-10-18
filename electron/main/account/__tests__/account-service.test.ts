@@ -1,5 +1,6 @@
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GameCode } from '../../../common/game/types.js';
 import { CacheServiceMockImpl } from '../../cache/__mocks__/cache-service.mock.js';
 import type { CacheService } from '../../cache/types.js';
 import { AccountServiceImpl } from '../account.service.js';
@@ -52,6 +53,7 @@ describe('account-service', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   describe('#listAccounts', () => {
@@ -165,7 +167,7 @@ describe('account-service', () => {
           accountPassword: 'test-encrypted',
         },
         'sge.character.test-character.dr': {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account',
           characterName: 'test-character',
         },
@@ -199,12 +201,12 @@ describe('account-service', () => {
           accountPassword: 'test-encrypted',
         },
         'sge.character.test-character-1.dr': {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account-1',
           characterName: 'test-character-1',
         },
         'sge.character.test-character-2.dr': {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account-2',
           characterName: 'test-character-2',
         },
@@ -222,12 +224,12 @@ describe('account-service', () => {
 
       expect(characters).toEqual([
         {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account-1',
           characterName: 'test-character-1',
         },
         {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account-2',
           characterName: 'test-character-2',
         },
@@ -241,7 +243,7 @@ describe('account-service', () => {
 
       expect(characters).toEqual([
         {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account-1',
           characterName: 'test-character-1',
         },
@@ -264,7 +266,7 @@ describe('account-service', () => {
       mockCacheService.get.mockImplementation((key: string) => {
         if (key === 'sge.character.test-character.dr') {
           return {
-            gameCode: 'DR',
+            gameCode: GameCode.PRIME,
             accountName: 'test-account',
             characterName: 'test-character',
           };
@@ -274,12 +276,12 @@ describe('account-service', () => {
       });
 
       const character = accountService.getCharacter({
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
         characterName: 'test-character',
       });
 
       expect(character).toEqual({
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
         accountName: 'test-account',
         characterName: 'test-character',
       });
@@ -289,7 +291,7 @@ describe('account-service', () => {
       mockCacheService.get.mockReturnValueOnce(undefined);
 
       const character = accountService.getCharacter({
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
         characterName: 'test-character',
       });
 
@@ -301,7 +303,7 @@ describe('account-service', () => {
     it('does not save a character if no account is found', async () => {
       try {
         accountService.saveCharacter({
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account',
           characterName: 'test-character',
         });
@@ -326,7 +328,7 @@ describe('account-service', () => {
       });
 
       accountService.saveCharacter({
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
         accountName: 'test-account',
         characterName: 'test-character',
       });
@@ -334,7 +336,7 @@ describe('account-service', () => {
       expect(mockCacheService.set).toHaveBeenCalledWith(
         'sge.character.test-character.dr',
         {
-          gameCode: 'DR',
+          gameCode: GameCode.PRIME,
           accountName: 'test-account',
           characterName: 'test-character',
         }
@@ -345,7 +347,7 @@ describe('account-service', () => {
   describe('#removeCharacter', () => {
     it('removes a character', async () => {
       accountService.removeCharacter({
-        gameCode: 'DR',
+        gameCode: GameCode.PRIME,
         accountName: 'test-account',
         characterName: 'test-character',
       });

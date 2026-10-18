@@ -31,6 +31,7 @@ describe('replay-first-subscriber-only-subject', () => {
   afterEach(() => {
     vi.clearAllMocks();
     vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it('replays buffered events to the first subscriber only', () => {

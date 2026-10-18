@@ -1,3 +1,4 @@
+import path from 'node:path';
 import * as rxjs from 'rxjs';
 import type { Mocked } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,40 +8,55 @@ import { clearLogLevelCache } from '../../logger/logger.utils.js';
 import { GameServiceImpl } from '../game.service.js';
 import type { GameParser, GameSocket } from '../types.js';
 
-const { mockParser, mockSocket, mockWriteStream, mockWaitUntil } = vi.hoisted(
-  () => {
-    // For mocking the game parser module.
-    const mockParser: Mocked<GameParser> = {
-      parse: vi.fn<GameParser['parse']>(),
-    };
+const {
+  mockParser,
+  mockSocket,
+  mockSocketLogStream,
+  mockEventLogStream,
+  mockCreateWriteStream,
+  mockWaitUntil,
+} = vi.hoisted(() => {
+  // For mocking the game parser module.
+  const mockParser: Mocked<GameParser> = {
+    parse: vi.fn<GameParser['parse']>(),
+  };
 
-    // For mocking the game socket module.
-    const mockSocket: Mocked<GameSocket> = {
-      isConnected: vi.fn<GameSocket['isConnected']>(),
-      connect: vi.fn<GameSocket['connect']>(),
-      disconnect: vi.fn<GameSocket['disconnect']>(),
-      send: vi.fn<GameSocket['send']>(),
-    };
+  // For mocking the game socket module.
+  const mockSocket: Mocked<GameSocket> = {
+    isConnected: vi.fn<GameSocket['isConnected']>(),
+    connect: vi.fn<GameSocket['connect']>(),
+    disconnect: vi.fn<GameSocket['disconnect']>(),
+    send: vi.fn<GameSocket['send']>(),
+  };
 
-    // When game service connects and log level is trace then it creates
-    // log streams. This lets us mock the write stream and assert behaviors.
-    const mockWriteStream = {
-      write: vi.fn(),
-      end: vi.fn(),
-    };
+  // For mocking the socket log stream.
+  const mockSocketLogStream = {
+    write: vi.fn(),
+    end: vi.fn(),
+  };
 
-    // When game service disconnects, it waits until the socket is destroyed.
-    // This lets us mock if the function resolves or not (i.e. times out).
-    const mockWaitUntil = vi.fn();
+  // For mocking the event log stream.
+  const mockEventLogStream = {
+    write: vi.fn(),
+    end: vi.fn(),
+  };
 
-    return {
-      mockParser,
-      mockSocket,
-      mockWriteStream,
-      mockWaitUntil,
-    };
-  }
-);
+  // For mocking the creation of write streams.
+  const mockCreateWriteStream = vi.fn();
+
+  // When game service disconnects, it waits until the socket is destroyed.
+  // This lets us mock if the function resolves or not (i.e. times out).
+  const mockWaitUntil = vi.fn();
+
+  return {
+    mockParser,
+    mockSocket,
+    mockSocketLogStream,
+    mockEventLogStream,
+    mockCreateWriteStream,
+    mockWaitUntil,
+  };
+});
 
 vi.mock('../game.parser.js', () => {
   class GameParserMockImpl implements GameParser {
@@ -114,7 +130,7 @@ vi.mock('electron', async () => {
 vi.mock('fs-extra', () => {
   return {
     default: {
-      createWriteStream: vi.fn().mockImplementation(() => mockWriteStream),
+      createWriteStream: mockCreateWriteStream,
     },
   };
 });
@@ -129,8 +145,34 @@ vi.mock('../../logger/logger.factory.ts');
 
 describe('game-service', () => {
   let gameService: GameServiceImpl;
+  let mockSocketData$: rxjs.Observable<string>;
+  let mockEvent: GameEvent;
 
   beforeEach(() => {
+    clearLogLevelCache();
+    vi.stubEnv('LOG_LEVEL', 'warn');
+
+    mockSocketData$ = rxjs.of('test message');
+
+    mockSocket.connect.mockReset().mockResolvedValue(mockSocketData$);
+
+    mockEvent = {
+      eventId: 'test-event-1',
+      type: GameEventType.TEXT,
+      text: 'test message',
+    };
+
+    mockParser.parse.mockReset().mockReturnValue(rxjs.of(mockEvent));
+
+    mockWaitUntil.mockReset().mockResolvedValue(true);
+
+    mockCreateWriteStream.mockReset().mockImplementation((filePath: string) => {
+      if (filePath === path.join('logs', 'game-event.log')) {
+        return mockEventLogStream;
+      }
+      return mockSocketLogStream;
+    });
+
     gameService = new GameServiceImpl({
       credentials: {
         accessToken: 'test-access-token',
@@ -151,21 +193,6 @@ describe('game-service', () => {
   });
 
   describe('#connect', () => {
-    let mockSocketData$: rxjs.Observable<string>;
-    let mockEvent: GameEvent;
-
-    beforeEach(() => {
-      mockSocketData$ = rxjs.of('test message');
-      mockSocket.connect.mockResolvedValueOnce(mockSocketData$);
-
-      mockEvent = {
-        eventId: 'test-event-1',
-        type: GameEventType.TEXT,
-        text: 'test message',
-      };
-      mockParser.parse.mockReturnValueOnce(rxjs.of(mockEvent));
-    });
-
     it('connects to the game server', async () => {
       const gameEvents$ = await gameService.connect();
 
@@ -199,34 +226,89 @@ describe('game-service', () => {
       expect(mockSocket.connect).toHaveBeenCalledTimes(2);
     });
 
-    it('creates log streams when log level is trace', async () => {
-      vi.stubEnv('LOG_LEVEL', 'trace');
+    it.each(['debug', 'trace'])(
+      'logs socket data and events when log level is %s',
+      async (logLevel) => {
+        vi.stubEnv('LOG_LEVEL', logLevel);
+
+        await gameService.connect();
+
+        expect(mockCreateWriteStream).toHaveBeenCalledTimes(2);
+        expect(mockCreateWriteStream).toHaveBeenCalledWith(
+          path.join('logs', 'game-socket.log'),
+          { encoding: 'utf8', flags: 'w' }
+        );
+        expect(mockCreateWriteStream).toHaveBeenCalledWith(
+          path.join('logs', 'game-event.log'),
+          { encoding: 'utf8', flags: 'w' }
+        );
+
+        expect(mockSocketLogStream.write).toHaveBeenCalledExactlyOnceWith(
+          '---\ntest message\n'
+        );
+
+        expect(mockEventLogStream.write).toHaveBeenCalledExactlyOnceWith(
+          `---\n${JSON.stringify(mockEvent, null, 2)}`
+        );
+
+        // Our mock event log stream has one event so we expect
+        // it to complete after writing the event and thus end the stream.
+        expect(mockSocketLogStream.end).not.toHaveBeenCalled();
+        expect(mockEventLogStream.end).toHaveBeenCalledOnce();
+
+        gameService.send('look');
+
+        expect(mockSocketLogStream.write).toHaveBeenLastCalledWith(
+          '---\nlook\n'
+        );
+
+        await gameService.disconnect();
+
+        expect(mockSocketLogStream.end).toHaveBeenCalledOnce();
+        expect(mockEventLogStream.end).toHaveBeenCalledOnce();
+      }
+    );
+
+    it('logs only socket data when log level is info', async () => {
+      vi.stubEnv('LOG_LEVEL', 'info');
 
       await gameService.connect();
 
-      expect(mockWriteStream.write).toHaveBeenCalledTimes(2);
-
-      expect(mockWriteStream.write).toHaveBeenNthCalledWith(
-        1,
-        `---\ntest message`
+      expect(mockCreateWriteStream).toHaveBeenCalledExactlyOnceWith(
+        path.join('logs', 'game-socket.log'),
+        { encoding: 'utf8', flags: 'w' }
       );
 
-      expect(mockWriteStream.write).toHaveBeenNthCalledWith(
-        2,
-        `---\n${JSON.stringify(mockEvent, null, 2)}`
+      expect(mockSocketLogStream.write).toHaveBeenCalledExactlyOnceWith(
+        '---\ntest message\n'
       );
 
-      expect(mockWriteStream.end).toHaveBeenCalledTimes(2);
+      expect(mockEventLogStream.write).not.toHaveBeenCalled();
+      expect(mockSocketLogStream.end).not.toHaveBeenCalled();
+
+      await gameService.disconnect();
+
+      expect(mockSocketLogStream.end).toHaveBeenCalledOnce();
+      expect(mockEventLogStream.end).not.toHaveBeenCalled();
     });
 
-    it('does not create log streams when log level is not trace', async () => {
-      vi.stubEnv('LOG_LEVEL', 'debug');
+    it.each(['warn', 'error'])(
+      'does not create log streams when log level is %s',
+      async (logLevel) => {
+        vi.stubEnv('LOG_LEVEL', logLevel);
 
-      await gameService.connect();
+        await gameService.connect();
 
-      expect(mockWriteStream.write).toHaveBeenCalledTimes(0);
-      expect(mockWriteStream.end).toHaveBeenCalledTimes(0);
-    });
+        expect(mockCreateWriteStream).not.toHaveBeenCalled();
+        expect(mockSocketLogStream.write).not.toHaveBeenCalled();
+        expect(mockEventLogStream.write).not.toHaveBeenCalled();
+
+        await gameService.disconnect();
+
+        expect(mockSocketLogStream.end).not.toHaveBeenCalled();
+        expect(mockEventLogStream.end).not.toHaveBeenCalled();
+      }
+    );
   });
 
   describe('#disconnect', () => {
