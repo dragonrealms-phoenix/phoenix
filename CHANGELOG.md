@@ -1,3 +1,10 @@
+## [1.36.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.36.1...v1.36.2) (2026-10-31)
+
+### :broom: Miscellaneous
+
+* remove old copilot instructions ([f39a2e0](https://github.com/dragonrealms-phoenix/phoenix/commit/f39a2e002c43bb8689c3e2a2fb1263c5e7c09880))
+* update ruby 4.0.9 ([f3629df](https://github.com/dragonrealms-phoenix/phoenix/commit/f3629dffd6760a3a7f0990dad7a51c5c85c10fd6))
+
 ## [1.36.1](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.36.0...v1.36.1) (2026-10-18)
 
 ### :broom: Miscellaneous
