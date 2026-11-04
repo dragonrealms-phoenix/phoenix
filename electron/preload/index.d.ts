@@ -210,7 +210,8 @@ declare module 'common/game/types' {
     | RoomGameEvent
     | ServerTimeGameEvent
     | RoundTimeGameEvent
-    | CastTimeGameEvent;
+    | CastTimeGameEvent
+    | AimTimeGameEvent;
   export interface GameEventBase {
     /**
      * Unique identifier for this game event.
@@ -392,6 +393,13 @@ declare module 'common/game/types' {
     type: GameEventType.CAST_TIME;
     time: number;
   }
+  /**
+   * <timer id='firingTimer' value='1793766287'/>
+   */
+  export interface AimTimeGameEvent extends GameEventBase {
+    type: GameEventType.AIM_TIME;
+    time: number;
+  }
   export enum GameEventType {
     /**
      * A super type of TEXT where segments of the line of text
@@ -470,7 +478,7 @@ declare module 'common/game/types' {
     ROOM = 'ROOM',
     /**
      * Tells us the game server time.
-     * Use this in round time and cast time calculations.
+     * Use this in round time, cast time, and aim time calculations.
      */
     SERVER_TIME = 'SERVER_TIME',
     /**
@@ -488,6 +496,14 @@ declare module 'common/game/types' {
      * the number of seconds to wait.
      */
     CAST_TIME = 'CAST_TIME',
+    /**
+     * Indicates the character is aiming a ranged weapon.
+     * They must wait until the game server time reaches the specified aim time
+     * for the weapon to have its best shot.
+     * Subtracting the aim time from the current game time tells you
+     * the number of seconds to wait.
+     */
+    AIM_TIME = 'AIM_TIME',
   }
   export enum IndicatorType {
     DEAD = 'DEAD', // character is dead

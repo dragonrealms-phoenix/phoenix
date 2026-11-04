@@ -48,7 +48,7 @@ What the Character holds in its left and right hands, plus the spell it is prepa
 
 **Server Time**:
 The game server's clock, sent with each prompt.
-Round Time and Cast Time are deadlines on this clock.
+Round Time, Cast Time and Aim Time are deadlines on this clock.
 
 **Round Time**:
 How long the Character must wait after an action before it can act again.
@@ -60,7 +60,6 @@ _Avoid_: casttime, CT (in prose)
 
 **Aim Time**:
 How long after the `AIM` command until the Character's ranged weapon has its best shot.
-The game added an aim timer window in June 2026; Phoenix doesn't parse it yet.
 _Avoid_: aimtime, AT (in prose)
 
 ### Experience

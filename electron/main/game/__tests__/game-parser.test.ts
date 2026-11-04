@@ -554,5 +554,14 @@ describe('game-parser', () => {
         time: 1703804031,
       });
     });
+
+    it('emits AimTimeGameEvent', () => {
+      gameSocketSubject$.next(`<timer id='firingTimer' value='1793766287'/>\n`);
+
+      expectGameEvent({
+        type: GameEventType.AIM_TIME,
+        time: 1793766287,
+      });
+    });
   });
 });

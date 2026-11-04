@@ -610,6 +610,11 @@ export class GameParserImpl implements GameParser {
       case 'castTime': // <castTime value='1703617016'/>
         this.emitCastTimeGameEvent(parseInt(attributes.value));
         break;
+      case 'timer': // <timer id='firingTimer' value='1793766287' />
+        if (attributes.id === 'firingTimer') {
+          this.emitAimTimeGameEvent(parseInt(attributes.value));
+        }
+        break;
     }
   }
 
@@ -940,6 +945,14 @@ export class GameParserImpl implements GameParser {
   protected emitCastTimeGameEvent(time: number): void {
     this.emitGameEvent({
       type: GameEventType.CAST_TIME,
+      eventId: uuid(),
+      time,
+    });
+  }
+
+  protected emitAimTimeGameEvent(time: number): void {
+    this.emitGameEvent({
+      type: GameEventType.AIM_TIME,
       eventId: uuid(),
       time,
     });

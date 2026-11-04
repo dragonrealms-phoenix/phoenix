@@ -17,6 +17,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
   const serverTimeRef = useRef<number>(0); // current time on game server
   const roundTimeRef = useRef<number>(0); // future time when can take action
   const castTimeRef = useRef<number>(0); // future time when spell is prepared
+  const aimTimeRef = useRef<number>(0); // future time when aim is best
 
   // User-friendly remaining durations (in seconds).
   // Example: '6' (for 6 seconds remaining).
@@ -28,6 +29,8 @@ export const GameRoundTime: React.FC = (): ReactNode => {
   const [initialRT, setInitialRT] = useState<number>(0);
   const [currentCT, setCurrentCT] = useState<number>(0);
   const [initialCT, setInitialCT] = useState<number>(0);
+  const [currentAT, setCurrentAT] = useState<number>(0);
+  const [initialAT, setInitialAT] = useState<number>(0);
 
   // Interval for updating remaining round time.
   // Used to refresh the UI every second.
@@ -38,6 +41,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
     const elapsed = nowInSeconds();
     setCurrentRT(Math.max(0, roundTimeRef.current - elapsed));
     setCurrentCT(Math.max(0, castTimeRef.current - elapsed));
+    setCurrentAT(Math.max(0, aimTimeRef.current - elapsed));
   }, [nowInSeconds]);
 
   // Periodically recalculate the round time UI for the user.
@@ -69,6 +73,11 @@ export const GameRoundTime: React.FC = (): ReactNode => {
         setInitialCT(castTimeRef.current - nowInSeconds());
         calculateRoundTimes();
         break;
+      case GameEventType.AIM_TIME:
+        aimTimeRef.current = gameEvent.time;
+        setInitialAT(aimTimeRef.current - nowInSeconds());
+        calculateRoundTimes();
+        break;
     }
   });
 
@@ -81,6 +90,7 @@ export const GameRoundTime: React.FC = (): ReactNode => {
     serverTimeRef.current = 0;
     roundTimeRef.current = 0;
     castTimeRef.current = 0;
+    aimTimeRef.current = 0;
   });
 
   const roundTimeCmp = useMemo((): ReactElement => {
@@ -107,6 +117,18 @@ export const GameRoundTime: React.FC = (): ReactNode => {
     );
   }, [currentCT, initialCT, euiTheme]);
 
+  const aimTimeCmp = useMemo((): ReactElement => {
+    return (
+      <GameTimeDisplay
+        type="AimTime"
+        currentTime={currentAT}
+        initialTime={initialAT}
+        textColor={euiTheme.colors.fullShade}
+        fillColor={euiTheme.colors.success}
+      />
+    );
+  }, [currentAT, initialAT, euiTheme]);
+
   const timerCmps = useMemo((): ReactElement => {
     return (
       <div
@@ -121,10 +143,12 @@ export const GameRoundTime: React.FC = (): ReactNode => {
         }}
       >
         {roundTimeCmp}
-        {castTimeCmp}
+        {/* Aim time takes cast time's slot until the bottom bar has room for a third timer. */}
+        {/* {castTimeCmp} */}
+        {aimTimeCmp}
       </div>
     );
-  }, [roundTimeCmp, castTimeCmp]);
+  }, [roundTimeCmp, aimTimeCmp]);
 
   return timerCmps;
 };
@@ -136,8 +160,14 @@ interface GameTimeDisplayProps {
   initialTime: number;
   fillColor: string;
   textColor: string;
-  type: 'RoundTime' | 'CastTime';
+  type: keyof typeof TIMER_LABELS;
 }
+
+const TIMER_LABELS = {
+  RoundTime: { abbrev: 'RT', tooltip: 'Round Time' },
+  CastTime: { abbrev: 'CT', tooltip: 'Cast Time' },
+  AimTime: { abbrev: 'AT', tooltip: 'Aim Time' },
+};
 
 const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
   props: GameTimeDisplayProps
@@ -146,8 +176,7 @@ const GameTimeDisplay: React.FC<GameTimeDisplayProps> = (
 
   const { euiTheme } = useEuiTheme();
 
-  const typeAbbrev = type === 'RoundTime' ? 'RT' : 'CT';
-  const typeTooltip = type === 'RoundTime' ? 'Round Time' : 'Cast Time';
+  const { abbrev: typeAbbrev, tooltip: typeTooltip } = TIMER_LABELS[type];
 
   const fillColor = currentTime > 0 ? props.fillColor : 'inherit';
   const textColor = currentTime > 0 ? props.textColor : 'inherit';
