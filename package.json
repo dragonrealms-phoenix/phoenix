@@ -47,7 +47,7 @@
     "lint:fix": "yarn lint --fix",
     "lint:staged": "lint-staged --concurrent 1",
     "format": "yarn prettier:fix && yarn lint:fix",
-    "start": "yarn build && yarn sentry:sourcemaps && APP_ENV=production electron ./electron/build/main/index.js",
+    "start": "yarn build && APP_ENV=production electron ./electron/build/main/index.js",
     "start:dev": "yarn build:dev && APP_ENV=development electron ./electron/build/main/index.js",
     "build:common": "yarn clean && tsc -p electron/common",
     "build:main": "yarn clean && tsc -p electron/main",
