@@ -22,6 +22,60 @@ const compat = new FlatCompat({
   allConfig: pluginJavaScript.configs.all,
 });
 
+const electronProcesses = ['main', 'preload', 'renderer'];
+
+const processBoundaryZones = [
+  {
+    target: 'electron/renderer',
+    from: ['electron/main', 'electron/preload'],
+    message: 'renderer is sandboxed; reach main through window.api',
+  },
+  {
+    target: 'electron/preload',
+    from: ['electron/main', 'electron/renderer'],
+    message: 'preload is the bridge between processes, not part of either',
+  },
+  {
+    target: 'electron/main',
+    from: ['electron/renderer', 'electron/preload'],
+    message: 'main reaches other processes over ipc, never by importing them',
+  },
+  {
+    target: 'electron/common',
+    from: electronProcesses.map((name) => `electron/${name}`),
+    message: 'common is shared by every process, so it cannot depend on any',
+  },
+];
+
+/**
+ * Main layers, lowest first.
+ * A layer may import its own layer and lower ones.
+ */
+const mainLayers = [
+  ['logger'],
+  ['async', 'cache', 'tls', 'setting', 'layout'],
+  ['preference', 'account', 'sge'],
+  ['game', 'lich'],
+  ['ipc'],
+];
+const mainAppShell = ['menu', 'electron-next', 'chrome', 'sentry'];
+const mainRoot = ['index.ts', 'initialize-app.ts'];
+
+const mainLayeringZones = mainLayers.map((layer, i) => {
+  const isTopLayer = i === mainLayers.length - 1;
+  return {
+    target: layer.map((entry) => `electron/main/${entry}`),
+    from: [
+      ...mainLayers.slice(i + 1).flat(),
+      ...(isTopLayer ? [] : mainAppShell),
+      ...mainRoot,
+    ].map((entry) => `electron/main/${entry}`),
+    message: isTopLayer
+      ? 'the composition root imports ipc, not the reverse'
+      : 'main is layered: lower layers may not import higher layers or the app shell',
+  };
+});
+
 /**
  * @type {Array<import('eslint').Linter.Config>}
  */
@@ -29,7 +83,8 @@ export default [
   {
     ignores: [
       'eslint.config.js', // ignore self
-      '.yarn/*',
+      '.claude',
+      '.yarn',
       'node_modules',
       'coverage',
       'electron/build',
@@ -277,6 +332,15 @@ export default [
           message:
             'common package is used in non-node environments, only process.env is allowed',
         },
+      ],
+    },
+  },
+  {
+    files: ['electron/**/*.ts', 'electron/**/*.tsx'],
+    rules: {
+      'import/no-restricted-paths': [
+        'error',
+        { zones: [...processBoundaryZones, ...mainLayeringZones] },
       ],
     },
   },
