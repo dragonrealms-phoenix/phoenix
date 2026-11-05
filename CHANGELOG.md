@@ -1,3 +1,24 @@
+## [1.37.0](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.36.2...v1.37.0) (2026-11-05)
+
+### :sparkles: Features
+
+* **game:** parse and show aim time ([08aa1d1](https://github.com/dragonrealms-phoenix/phoenix/commit/08aa1d18b7fc836c44c7db53bcebb3f247306a2e))
+
+### :books: Documentation
+
+* **claude:** add decision records ([41c3cf0](https://github.com/dragonrealms-phoenix/phoenix/commit/41c3cf002b7c4d7b7d43a0db88da196f3811f388))
+* **claude:** add domain glossary ([80248b9](https://github.com/dragonrealms-phoenix/phoenix/commit/80248b98cb5d59400f8f31913f14085e6847c41e))
+* **claude:** add domain-modeling skill ([d1593ed](https://github.com/dragonrealms-phoenix/phoenix/commit/d1593ed32cd7147c60d6f33f16e1e38873ba6014))
+* **claude:** add grilling skill ([02d857a](https://github.com/dragonrealms-phoenix/phoenix/commit/02d857a9b7618680e6133fd526d4eb4dd422a5c9))
+* **claude:** add per-folder rules ([72d8e06](https://github.com/dragonrealms-phoenix/phoenix/commit/72d8e0657be23afa41e00d44e8f50cc57c3a8ac5))
+* **claude:** add ponytail skills ([f1bc603](https://github.com/dragonrealms-phoenix/phoenix/commit/f1bc603dcd50c7f814f7adf61ffbc55d487c69ec))
+* **claude:** add pr-body skill ([b4145e7](https://github.com/dragonrealms-phoenix/phoenix/commit/b4145e73d1c672bbd6bad9d323c484b91774d15c))
+* **claude:** add project instructions ([808992e](https://github.com/dragonrealms-phoenix/phoenix/commit/808992e836124bab8903f1f49bd3d93933081e42))
+
+### :test_tube: Tests
+
+* skip build output instead of deleting it ([6f1e65c](https://github.com/dragonrealms-phoenix/phoenix/commit/6f1e65c09e7e92c0f83566165f284afddfcc7a33))
+
 ## [1.36.2](https://github.com/dragonrealms-phoenix/phoenix/compare/v1.36.1...v1.36.2) (2026-10-31)
 
 ### :broom: Miscellaneous
